@@ -48,7 +48,7 @@ const state = {
 // CANVAS
 // ============================================================
 const c = document.getElementById('gc'),
-  ctx = c.getContext('2d');
+  ctx = c.getContext('2d', { alpha: false });
 let cw = 0,
   ch = 0,
   sc = 1,
@@ -238,7 +238,9 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('digdug');
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   if (state.best >= 1000) achievements.unlock('digdug_thousand');
+  say('Dig Dug: excavá y derrotá a los enemigos subterráneos.');
 }
 
 function loseLife() {
@@ -284,6 +286,8 @@ function endGame() {
   fs.textContent = `Puntaje: ${state.score} · Record: ${state.best}`;
   he.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Dig Dug: game over.');
   updateHUD();
 }
 
@@ -404,6 +408,14 @@ bH(
 document.getElementById('gc').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -1037,6 +1049,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }
@@ -1050,7 +1063,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

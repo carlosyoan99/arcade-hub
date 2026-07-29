@@ -83,7 +83,7 @@ let bricks = [];
 // CANVAS SETUP
 // ============================================================
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0;
 let scale = 1;
@@ -312,6 +312,14 @@ const overlay = document.getElementById('overlay');
 const overlayText = document.getElementById('overlayText');
 const hintEl = document.getElementById('hintEl');
 const finalScoreEl = document.getElementById('finalScore');
+const announce = document.getElementById('announce');
+
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
 
 overlay.addEventListener('click', () => {
   if (!state.running) startGame();
@@ -385,6 +393,8 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('breakout');
   overlay.classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
+  say('Breakout: comenzó la partida. Rompé todos los ladrillos.');
 }
 
 function nextLevel() {
@@ -436,6 +446,8 @@ function endGame() {
   finalScoreEl.textContent = `Puntos: ${state.score} · Nivel: ${state.level} · Mejor: ${state.best}`;
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar`;
   overlay.classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Breakout: juego terminado.');
   updateHUD();
 }
 
@@ -790,6 +802,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
@@ -802,7 +815,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

@@ -82,7 +82,7 @@ let animTime = 0;
 
 // ── CANVAS SETUP ──
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0;
 let scale = 1,
@@ -245,6 +245,9 @@ overlay.addEventListener('click', () => {
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
 
 // ── LÓGICA DEL JUEGO ──
 
@@ -277,6 +280,7 @@ function startGame() {
   achievements.incrementPlays('joust');
   initPlayer();
   overlay.classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   hintEl.innerHTML =
     '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espacio</kbd> / <kbd>↑</kbd> aletear · <kbd>R</kbd> reiniciar';
   say(`Joust: oleada ${state.wave}. Sobreviví y derrotá a los enemigos.`);
@@ -349,6 +353,7 @@ function endGame() {
   finalScoreEl.textContent = `Puntaje: ${state.score} · Récord: ${Math.max(state.score, best)}`;
   hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
   say(`Joust: Game Over. Puntaje final: ${state.score}.`);
+  document.removeEventListener('keydown', trapTab);
   overlay.classList.remove('hidden');
 }
 
@@ -1034,7 +1039,7 @@ function draw() {
 let animFrameId = null;
 let lastTime = 0;
 function tick(time) {
-  const dt = Math.min((time - lastTime) / 1000, 0.03);
+  const dt = Math.min((time - lastTime) / 1000, 0.05);
   lastTime = time;
   animTime += dt;
   pollGamepad();
@@ -1073,6 +1078,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }
@@ -1086,7 +1092,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

@@ -56,7 +56,7 @@ const state = {
 // CANVAS
 // ============================================================
 const c = document.getElementById('gc'),
-  ctx = c.getContext('2d');
+  ctx = c.getContext('2d', { alpha: false });
 let cw = 0,
   ch = 0,
   sc = 1,
@@ -174,7 +174,9 @@ function startGame() {
   achievements.incrementPlays('galaga');
   startAmbient();
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   if (state.best >= 2000) achievements.unlock('galaga_twothousand');
+  say('Galaga: comenzó la partida. Derribá a los enemigos en formación.');
 }
 
 function loseLife() {
@@ -207,6 +209,8 @@ function endGame() {
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Galaga: game over.');
   updateHUD();
 }
 
@@ -301,6 +305,14 @@ bF?.addEventListener('touchcancel', () => {
 document.getElementById('gc').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -448,38 +460,76 @@ function updateBullets(dt) {
   // Player bullets
   for (let i = pBullets.length - 1; i >= 0; i--) {
     const b = pBullets[i];
-    b.y += b.vy * dt;
-    if (b.y < 0) {
-      pBullets.splice(i, 1);
-      continue;
-    }
 
-    // Hit enemies (both formation and diving)
-    let hit = false;
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      if (Math.abs(b.x - e.x) < ENEMY_W / 2 && Math.abs(b.y - e.y) < ENEMY_H / 2) {
-        e.alive = false;
-        state.score += e.points;
-        pExplode();
-        spawnParticles(e.x, e.y, e.color, 12, { spd: 80, life: 0.35 });
-        pBullets.splice(i, 1);
-        hit = true;
-        updateHUD();
-        // Remove from diving if was diving
-        const di = diving.indexOf(e);
-        if (di >= 0) diving.splice(di, 1);
-        // Check if all cleared
-        if (enemies.filter((en) => en.alive).length === 0) {
-          if (!bonusActive) {
-            pBonus();
-            nextWave();
+    // Anti-tunneling: sub-pasos para balas rápidas
+    const maxStep = BULLET_SPEED * dt;
+    const minThickness = ENEMY_W * 0.5; // half enemy width
+    if (maxStep > minThickness * 0.4) {
+      const steps = Math.ceil(maxStep / (minThickness * 0.3));
+      const subDt = dt / steps;
+      let hit = false;
+      for (let s = 0; s < steps && !hit; s++) {
+        b.y += b.vy * subDt;
+        if (b.y < 0) {
+          pBullets.splice(i, 1);
+          hit = true;
+          break;
+        }
+        // Collision check in each sub-step
+        for (const e of enemies) {
+          if (!e.alive) continue;
+          if (Math.abs(b.x - e.x) < ENEMY_W / 2 && Math.abs(b.y - e.y) < ENEMY_H / 2) {
+            e.alive = false;
+            state.score += e.points;
+            pExplode();
+            spawnParticles(e.x, e.y, e.color, 12, { spd: 80, life: 0.35 });
+            pBullets.splice(i, 1);
+            hit = true;
+            updateHUD();
+            const di = diving.indexOf(e);
+            if (di >= 0) diving.splice(di, 1);
+            if (enemies.filter((en) => en.alive).length === 0) {
+              if (!bonusActive) {
+                pBonus();
+                nextWave();
+              }
+            }
+            break;
           }
         }
-        break;
       }
+    } else {
+      b.y += b.vy * dt;
+      if (b.y < 0) {
+        pBullets.splice(i, 1);
+        continue;
+      }
+
+      // Hit enemies
+      let hit = false;
+      for (const e of enemies) {
+        if (!e.alive) continue;
+        if (Math.abs(b.x - e.x) < ENEMY_W / 2 && Math.abs(b.y - e.y) < ENEMY_H / 2) {
+          e.alive = false;
+          state.score += e.points;
+          pExplode();
+          spawnParticles(e.x, e.y, e.color, 12, { spd: 80, life: 0.35 });
+          pBullets.splice(i, 1);
+          hit = true;
+          updateHUD();
+          const di = diving.indexOf(e);
+          if (di >= 0) diving.splice(di, 1);
+          if (enemies.filter((en) => en.alive).length === 0) {
+            if (!bonusActive) {
+              pBonus();
+              nextWave();
+            }
+          }
+          break;
+        }
+      }
+      if (hit) continue;
     }
-    if (hit) continue;
   }
 
   // Enemy bullets
@@ -745,6 +795,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }
@@ -758,7 +809,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

@@ -75,7 +75,7 @@ let timeAcc = 0;
 
 // ── CANVAS SETUP ──
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0;
 let scale = 1,
@@ -238,6 +238,15 @@ const overlay = document.getElementById('overlay');
 const overlayText = document.getElementById('overlayText');
 const hintEl = document.getElementById('hintEl');
 const finalScoreEl = document.getElementById('finalScore');
+const announce = document.getElementById('announce');
+
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 overlay.addEventListener('click', () => {
   if (!state.running && !state.gameOver) startGame();
 });
@@ -267,6 +276,8 @@ function startGame() {
   achievements.incrementPlays('donkey-kong');
   initPlayer();
   overlay.classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
+  say('Donkey Kong: ayudá a Mario a escalar la obra.');
   hintEl.innerHTML =
     '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espacio</kbd> / <kbd>↑</kbd> saltar · <kbd>R</kbd> reiniciar';
   updateHUD();
@@ -296,6 +307,9 @@ function endGame() {
   finalScoreEl.textContent = `Puntaje: ${state.score} · Nivel: ${state.level}`;
   hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
   overlay.classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Donkey Kong: game over.');
+  updateHUD();
 }
 
 function levelComplete() {
@@ -750,6 +764,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }
@@ -763,7 +778,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

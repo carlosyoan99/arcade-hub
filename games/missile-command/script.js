@@ -59,7 +59,7 @@ const state = {
 // CANVAS
 // ============================================================
 const c = document.getElementById('gc'),
-  ctx = c.getContext('2d');
+  ctx = c.getContext('2d', { alpha: false });
 let cw = 0,
   ch = 0,
   sc = 1,
@@ -306,7 +306,9 @@ function startGame() {
   achievements.incrementPlays('missile-command');
   startWave();
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   updateHUD();
+  say('Missile Command: defendé tus ciudades de los misiles.');
 }
 
 function endGame() {
@@ -325,6 +327,8 @@ function endGame() {
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Missile Command: game over.');
   updateHUD();
 }
 
@@ -433,6 +437,14 @@ document.getElementById('bF')?.addEventListener(
 document.getElementById('bF')?.addEventListener('touchcancel', () => {
   document.getElementById('bF').classList.remove('is-pressed');
 });
+
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
 
 // Gamepad
 let gI = null;
@@ -1021,6 +1033,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }
@@ -1034,7 +1047,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

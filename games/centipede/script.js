@@ -57,7 +57,7 @@ const state = {
 // CANVAS
 // ============================================================
 const c = document.getElementById('gc'),
-  ctx = c.getContext('2d');
+  ctx = c.getContext('2d', { alpha: false });
 let cw = 0,
   ch = 0,
   sc = 1,
@@ -232,7 +232,9 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('centipede');
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   if (state.best >= 1000) achievements.unlock('centipede_thousand');
+  say('Centipede: destruí el ciempiés y esquivá las arañas.');
 }
 
 function loseLife() {
@@ -263,6 +265,8 @@ function endGame() {
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Centipede: game over.');
   updateHUD();
 }
 
@@ -377,6 +381,14 @@ document.getElementById('bF')?.addEventListener('touchcancel', () => {
 document.getElementById('gc').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -617,7 +629,50 @@ function updatePlayer(dt) {
 function updateBullets(dt) {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
-    b.y += b.vy * dt;
+
+    // Anti-tunneling: sub-pasos para balas rápidas
+    const maxStep = BULLET_SPEED * dt;
+    const minThickness = 16;
+    if (maxStep > minThickness * 0.4) {
+      const steps = Math.ceil(maxStep / (minThickness * 0.3));
+      const subDt = dt / steps;
+      for (let s = 0; s < steps; s++) {
+        b.y += b.vy * subDt;
+        if (b.y < 0) {
+          bullets.splice(i, 1);
+          break;
+        }
+        // Collision check in each sub-step (same logic as main loop)
+        let hit = false;
+        for (let si = 0; si < segments.length && !hit; si++) {
+          const seg = segments[si];
+          if (Math.abs(b.x - seg.x) < GS / 2 && Math.abs(b.y - seg.y) < GS / 2) {
+            const gx = Math.round((seg.x - GS / 2) / GS);
+            const gy = Math.round((seg.y - GS / 2) / GS);
+            const points = seg.isHead ? HEAD_POINTS : SEGMENT_POINTS;
+            state.score += points;
+            pHitSeg();
+            spawnParticles(seg.x, seg.y, '#6ee7b7', 8, { spd: 60, life: 0.3 });
+            addMushroomAt(gx, gy);
+            segments.splice(si, 1);
+            if (segments.length > 0) segments[0].isHead = true;
+            bullets.splice(i, 1);
+            hit = true;
+            updateHUD();
+            if (segments.length === 0) {
+              setTimeout(() => {
+                if (state.running && !state.gameOver) nextWave();
+              }, 500);
+            }
+            break;
+          }
+        }
+        if (!bullets[i]) break;
+      }
+      if (!bullets[i]) continue;
+    } else {
+      b.y += b.vy * dt;
+    }
     if (b.y < 0) {
       bullets.splice(i, 1);
       continue;
@@ -1129,6 +1184,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }
@@ -1142,7 +1198,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

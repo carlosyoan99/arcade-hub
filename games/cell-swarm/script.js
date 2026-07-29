@@ -81,11 +81,19 @@ const NEON_COLORS = [
 // DOM REFS
 // ============================================================
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 
 const overlay = document.getElementById('overlay');
 const overlayText = document.getElementById('overlayText');
 const finalScoreEl = document.getElementById('finalScore');
+const announce = document.getElementById('announce');
+
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
 
 const nameOverlay = document.getElementById('nameOverlay');
 const nameInput = document.getElementById('nameInput');
@@ -736,6 +744,8 @@ function startGame() {
   overlay.classList.add('hidden');
   nameOverlay.classList.add('hidden');
 
+  document.addEventListener('keydown', trapTab);
+  say('Cell Swarm: crecé devorando células más pequeñas.');
   cells = [createPlayerCell(WORLD_W / 2 + rng(-200, 200), WORLD_H / 2 + rng(-200, 200), MIN_MASS)];
   player = cells[0];
   state.targetX = player.x;
@@ -788,6 +798,8 @@ function endGame(killedBy) {
   overlayText.textContent = `☠ ${killedBy || 'Alguien'} te devoró ☠`;
   finalScoreEl.textContent = `Masa final: ${Math.floor(finalMass)} · Mejor: ${state.bestMass}`;
   overlay.classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Cell Swarm: te devoraron.');
   updateHUD();
 }
 
@@ -1300,6 +1312,7 @@ function tick(time) {
 // ── Init ──
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
@@ -1312,7 +1325,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

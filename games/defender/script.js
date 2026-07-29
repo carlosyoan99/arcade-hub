@@ -548,61 +548,118 @@ function updatePlayer(dt) {
 function updateLasers(dt) {
   for (let i = lasers.length - 1; i >= 0; i--) {
     const l = lasers[i];
-    l.x += l.vx * dt;
 
-    // Off-screen
-    const sx = l.x - camera.x;
-    if (sx > GAME_W + 20 || sx < -20) {
-      lasers.splice(i, 1);
-      continue;
-    }
+    // Anti-tunneling: sub-pasos para láseres rápidos
+    const maxStep = LASER_SPEED * dt;
+    const minThickness = 10;
+    if (maxStep > minThickness * 0.4) {
+      const steps = Math.ceil(maxStep / (minThickness * 0.3));
+      const subDt = dt / steps;
+      for (let s = 0; s < steps; s++) {
+        l.x += l.vx * subDt;
 
-    // Check collision with enemies (in world coords)
-    let hit = false;
-    for (let j = enemies.length - 1; j >= 0; j--) {
-      const e = enemies[j];
-      const dist = Math.hypot(l.x - e.x, l.y - e.y);
-      const hitRadius = e.type === 'mutant' ? 10 : 14;
-      if (dist < hitRadius) {
-        // Hit!
-        e.hp -= 1;
-        lasers.splice(i, 1);
-        hit = true;
-
-        // Particles
-        const dx = e.x - camera.x;
-        spawnParticles(dx, e.y, '#ffb800', 6, { spd: 60, life: 0.2 });
-
-        if (e.hp <= 0) {
-          // Destroy enemy
-          const scoreValue = e.type === 'lander' ? 150 : e.type === 'bomber' ? 250 : 300;
-          state.score += scoreValue;
-          enemiesKilled++;
-          if (enemiesKilled === 1) achievements.unlock('def_first_kill');
-          if (state.score >= 10000) achievements.unlock('def_commander');
-          playExplosion();
-          spawnParticles(e.x - camera.x, e.y, '#ff5e7a', 14, { spd: 100, life: 0.4 });
-
-          // If carrying human, free them
-          if (e.carriedHuman !== null) {
-            const h = e.carriedHuman;
-            h.grabbed = false;
-            h.falling = true;
-            h.vy = -80;
-            h.parachute = true;
-            h.x = e.x;
-            h.y = e.y + 10;
-            e.carriedHuman = null;
-            playRescue();
-            spawnParticles(e.x - camera.x, e.y, '#39ff14', 10, { spd: 60, life: 0.3 });
-          }
-
-          enemies.splice(j, 1);
-          state.landerCount -= 1;
-          updateHUD();
+        const sx = l.x - camera.x;
+        if (sx > GAME_W + 20 || sx < -20) {
+          lasers.splice(i, 1);
+          break;
         }
 
+        let hit = false;
+        for (let j = enemies.length - 1; j >= 0; j--) {
+          const e = enemies[j];
+          const dist = Math.hypot(l.x - e.x, l.y - e.y);
+          const hitRadius = e.type === 'mutant' ? 10 : 14;
+          if (dist < hitRadius) {
+            e.hp -= 1;
+            lasers.splice(i, 1);
+            hit = true;
+
+            const dx = e.x - camera.x;
+            spawnParticles(dx, e.y, '#ffb800', 6, { spd: 60, life: 0.2 });
+
+            if (e.hp <= 0) {
+              const scoreValue = e.type === 'lander' ? 150 : e.type === 'bomber' ? 250 : 300;
+              state.score += scoreValue;
+              enemiesKilled++;
+              if (enemiesKilled === 1) achievements.unlock('def_first_kill');
+              if (state.score >= 10000) achievements.unlock('def_commander');
+              playExplosion();
+              spawnParticles(e.x - camera.x, e.y, '#ff5e7a', 14, { spd: 100, life: 0.4 });
+
+              if (e.carriedHuman !== null) {
+                const h = e.carriedHuman;
+                h.grabbed = false;
+                h.falling = true;
+                h.vy = -80;
+                h.parachute = true;
+                h.x = e.x;
+                h.y = e.y + 10;
+                e.carriedHuman = null;
+                playRescue();
+                spawnParticles(e.x - camera.x, e.y, '#39ff14', 10, { spd: 60, life: 0.3 });
+              }
+
+              enemies.splice(j, 1);
+              state.landerCount -= 1;
+              updateHUD();
+            }
+
+            if (hit) break;
+          }
+        }
         if (hit) break;
+      }
+    } else {
+      l.x += l.vx * dt;
+
+      const sx = l.x - camera.x;
+      if (sx > GAME_W + 20 || sx < -20) {
+        lasers.splice(i, 1);
+        continue;
+      }
+
+      let hit = false;
+      for (let j = enemies.length - 1; j >= 0; j--) {
+        const e = enemies[j];
+        const dist = Math.hypot(l.x - e.x, l.y - e.y);
+        const hitRadius = e.type === 'mutant' ? 10 : 14;
+        if (dist < hitRadius) {
+          e.hp -= 1;
+          lasers.splice(i, 1);
+          hit = true;
+
+          const dx = e.x - camera.x;
+          spawnParticles(dx, e.y, '#ffb800', 6, { spd: 60, life: 0.2 });
+
+          if (e.hp <= 0) {
+            const scoreValue = e.type === 'lander' ? 150 : e.type === 'bomber' ? 250 : 300;
+            state.score += scoreValue;
+            enemiesKilled++;
+            if (enemiesKilled === 1) achievements.unlock('def_first_kill');
+            if (state.score >= 10000) achievements.unlock('def_commander');
+            playExplosion();
+            spawnParticles(e.x - camera.x, e.y, '#ff5e7a', 14, { spd: 100, life: 0.4 });
+
+            if (e.carriedHuman !== null) {
+              const h = e.carriedHuman;
+              h.grabbed = false;
+              h.falling = true;
+              h.vy = -80;
+              h.parachute = true;
+              h.x = e.x;
+              h.y = e.y + 10;
+              e.carriedHuman = null;
+              playRescue();
+              spawnParticles(e.x - camera.x, e.y, '#39ff14', 10, { spd: 60, life: 0.3 });
+            }
+
+            enemies.splice(j, 1);
+            state.landerCount -= 1;
+            updateHUD();
+          }
+
+          if (hit) break;
+        }
       }
     }
   }

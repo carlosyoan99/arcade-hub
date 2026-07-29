@@ -57,7 +57,7 @@ const state = {
 // CANVAS
 // ============================================================
 const canvas = document.getElementById('gameCanvas'),
-  ctx = canvas.getContext('2d');
+  ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0,
   scale = 1,
@@ -194,6 +194,8 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('space-invaders');
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
+  say('Space Invaders: comenzó la partida. Destruí a los invasores.');
 }
 
 function loseLife() {
@@ -227,6 +229,8 @@ function endGame(won) {
   finalScore.textContent = `Puntos: ${state.score} · Récord: ${state.best}`;
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Space Invaders: game over.');
   updateHUD();
 }
 
@@ -402,6 +406,14 @@ btnFire?.addEventListener('mouseup', () => {
 document.getElementById('gameCanvas').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -631,63 +643,129 @@ function tick(t) {
   if (state.running && !state.gameOver) {
     updateShip(dt);
     updateInvaders(dt);
-    // Collision check for bullets
+    // Collision check for bullets (con anti-tunneling)
     for (let i = plyBullets.length - 1; i >= 0; i--) {
       const b = plyBullets[i];
-      b.y += b.vy * dt;
-      let removed = false;
-      if (b.y < 0) {
-        plyBullets.splice(i, 1);
-        continue;
-      }
-      // Hit invaders
-      for (const inv of invs) {
-        if (!inv.alive) continue;
-        if (Math.abs(b.x - inv.x) < INVADER_W / 2 && Math.abs(b.y - inv.y) < INVADER_H / 2) {
-          inv.alive = false;
-          state.score += inv.points;
-          playExplosion();
-          spawnParticles(inv.x, inv.y, inv.color, 12, { spd: 80, life: 0.35 });
-          plyBullets.splice(i, 1);
-          removed = true;
-          updateHUD();
-          if (invs.filter((x) => x.alive).length === 0) {
-            playWin();
-            buildInvaders();
-          }
-          break;
-        }
-      }
-      if (removed) continue;
-      // Hit shields
-      for (const sh of shields) {
-        for (let bi = sh.blocks.length - 1; bi >= 0; bi--) {
-          const bl = sh.blocks[bi];
-          if (b.x > bl.x && b.x < bl.x + bl.w && b.y > bl.y && b.y < bl.y + bl.h) {
-            bl.hp--;
-            if (bl.hp <= 0) sh.blocks.splice(bi, 1);
+
+      const maxStep = BULLET_SPEED * dt;
+      const minThickness = 7.5; // shield block width
+      if (maxStep > minThickness * 0.4) {
+        const steps = Math.ceil(maxStep / (minThickness * 0.3));
+        const subDt = dt / steps;
+        for (let s = 0; s < steps; s++) {
+          b.y += b.vy * subDt;
+          let removed = false;
+          if (b.y < 0) {
             plyBullets.splice(i, 1);
             removed = true;
             break;
           }
+          // Hit invaders
+          for (const inv of invs) {
+            if (!inv.alive) continue;
+            if (Math.abs(b.x - inv.x) < INVADER_W / 2 && Math.abs(b.y - inv.y) < INVADER_H / 2) {
+              inv.alive = false;
+              state.score += inv.points;
+              playExplosion();
+              spawnParticles(inv.x, inv.y, inv.color, 12, { spd: 80, life: 0.35 });
+              plyBullets.splice(i, 1);
+              removed = true;
+              updateHUD();
+              if (invs.filter((x) => x.alive).length === 0) {
+                playWin();
+                buildInvaders();
+              }
+              break;
+            }
+          }
+          if (removed) break;
+          // Hit shields
+          for (const sh of shields) {
+            for (let bi = sh.blocks.length - 1; bi >= 0; bi--) {
+              const bl = sh.blocks[bi];
+              if (b.x > bl.x && b.x < bl.x + bl.w && b.y > bl.y && b.y < bl.y + bl.h) {
+                bl.hp--;
+                if (bl.hp <= 0) sh.blocks.splice(bi, 1);
+                plyBullets.splice(i, 1);
+                removed = true;
+                break;
+              }
+            }
+            if (removed) break;
+          }
+          // Hit mystery ship
+          if (
+            !removed &&
+            mysteryShip &&
+            Math.abs(b.x - mysteryShip.x) < 25 &&
+            Math.abs(b.y - mysteryShip.y) < 15
+          ) {
+            state.score += 100;
+            playMystery();
+            spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
+            mysteryShip = null;
+            mysteryTimer = 5 + Math.random() * 8;
+            plyBullets.splice(i, 1);
+            removed = true;
+            updateHUD();
+          }
         }
-        if (removed) break;
-      }
-      // Hit mystery ship
-      if (
-        !removed &&
-        mysteryShip &&
-        Math.abs(b.x - mysteryShip.x) < 25 &&
-        Math.abs(b.y - mysteryShip.y) < 15
-      ) {
-        state.score += 100;
-        playMystery();
-        spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
-        mysteryShip = null;
-        mysteryTimer = 5 + Math.random() * 8;
-        plyBullets.splice(i, 1);
-        removed = true;
-        updateHUD();
+      } else {
+        b.y += b.vy * dt;
+        let removed = false;
+        if (b.y < 0) {
+          plyBullets.splice(i, 1);
+          continue;
+        }
+        // Hit invaders
+        for (const inv of invs) {
+          if (!inv.alive) continue;
+          if (Math.abs(b.x - inv.x) < INVADER_W / 2 && Math.abs(b.y - inv.y) < INVADER_H / 2) {
+            inv.alive = false;
+            state.score += inv.points;
+            playExplosion();
+            spawnParticles(inv.x, inv.y, inv.color, 12, { spd: 80, life: 0.35 });
+            plyBullets.splice(i, 1);
+            removed = true;
+            updateHUD();
+            if (invs.filter((x) => x.alive).length === 0) {
+              playWin();
+              buildInvaders();
+            }
+            break;
+          }
+        }
+        if (removed) continue;
+        // Hit shields
+        for (const sh of shields) {
+          for (let bi = sh.blocks.length - 1; bi >= 0; bi--) {
+            const bl = sh.blocks[bi];
+            if (b.x > bl.x && b.x < bl.x + bl.w && b.y > bl.y && b.y < bl.y + bl.h) {
+              bl.hp--;
+              if (bl.hp <= 0) sh.blocks.splice(bi, 1);
+              plyBullets.splice(i, 1);
+              removed = true;
+              break;
+            }
+          }
+          if (removed) break;
+        }
+        // Hit mystery ship
+        if (
+          !removed &&
+          mysteryShip &&
+          Math.abs(b.x - mysteryShip.x) < 25 &&
+          Math.abs(b.y - mysteryShip.y) < 15
+        ) {
+          state.score += 100;
+          playMystery();
+          spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
+          mysteryShip = null;
+          mysteryTimer = 5 + Math.random() * 8;
+          plyBullets.splice(i, 1);
+          removed = true;
+          updateHUD();
+        }
       }
     }
     // Enemy bullets
@@ -754,6 +832,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
@@ -766,7 +845,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

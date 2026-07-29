@@ -76,7 +76,7 @@ const state = {
 // CANVAS
 // ============================================================
 const c = document.getElementById('gc'),
-  ctx = c.getContext('2d');
+  ctx = c.getContext('2d', { alpha: false });
 let cw = 0,
   ch = 0,
   sc = 1,
@@ -196,7 +196,9 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('frogger');
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   if (state.best >= 1000) achievements.unlock('frogger_thousand');
+  say('Frogger: cruzá la calle y el río esquivando obstáculos.');
 }
 
 function loseLife() {
@@ -228,6 +230,8 @@ function endGame(won) {
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Frogger: game over.');
   updateHUD();
 }
 
@@ -411,6 +415,14 @@ bTouch('bR', () => {
 document.getElementById('gc').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -729,6 +741,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
@@ -741,7 +754,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

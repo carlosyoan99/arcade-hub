@@ -45,7 +45,7 @@ const state = {
 // CANVAS
 // ============================================================
 const c = document.getElementById('gc'),
-  ctx = c.getContext('2d');
+  ctx = c.getContext('2d', { alpha: false });
 let cw = 0,
   ch = 0,
   sc = 1,
@@ -111,7 +111,9 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('flappy-bird');
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   if (state.best >= 10) achievements.unlock('flappy_decathlon');
+  say('Flappy Bird: comenzó la partida.');
 }
 
 function endGame() {
@@ -133,6 +135,8 @@ function endGame() {
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say(isBest ? 'Flappy Bird: nuevo récord.' : 'Flappy Bird: chocaste.');
   updateHUD();
 }
 
@@ -269,6 +273,14 @@ document.getElementById('gc').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
   else flap();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -480,6 +492,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
@@ -492,7 +505,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

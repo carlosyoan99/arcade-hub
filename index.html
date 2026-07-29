@@ -74,7 +74,7 @@
         --surface: rgba(255, 255, 255, 0.7);
         --surface-hover: rgba(240, 238, 250, 0.85);
         --text: #1a1830;
-        --text-dim: #6a6890;
+        --text-dim: #5d5b7a;
         --card-border: rgba(0, 0, 0, 0.07);
         --card-hover-border: rgba(0, 0, 0, 0.18);
         --toggle-bg: rgba(0, 0, 0, 0.06);
@@ -1415,6 +1415,78 @@
           padding: 0;
         }
       }
+
+      /* ═══════════════════════════════════════════════════
+         GAME CONTAINER (hash routing)
+         ═══════════════════════════════════════════════════ */
+      #gameContainer {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: var(--bg-deep);
+        display: flex;
+        flex-direction: column;
+        transition: opacity 0.3s ease;
+      }
+      #gameContainer.hidden {
+        pointer-events: none;
+        opacity: 0;
+      }
+      #gameFrame {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: #000;
+      }
+      #gameContainer .game-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+      }
+      #gameContainer .game-bar button {
+        font-family: 'Bungee', sans-serif;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        padding: 6px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #gameContainer .game-bar button:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+      }
+      #gameContainer .game-bar .game-title {
+        font-family: 'Bungee', sans-serif;
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: var(--text-dim);
+      }
+
+      @media (max-width: 600px) {
+        #gameContainer .game-bar {
+          padding: 6px 10px;
+        }
+        #gameContainer .game-bar button {
+          font-size: 10px;
+          padding: 4px 10px;
+        }
+        #gameContainer .game-bar .game-title {
+          font-size: 10px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1503,6 +1575,16 @@
     <footer>
       <span>✦ Sin frameworks · Sin build step · Abrir y jugar ✦</span>
     </footer>
+
+    <!-- ═══ GAME CONTAINER (hash routing) ═══ -->
+    <div id="gameContainer" class="hidden" aria-hidden="true">
+      <div class="game-bar">
+        <button id="backToHubBtn" aria-label="Volver al Arcade Hub">← Arcade</button>
+        <span class="game-title" id="gameTitle"></span>
+        <button id="fsGameBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      </div>
+      <iframe id="gameFrame" allowfullscreen title="Juego"></iframe>
+    </div>
 
     <script type="module">
       import { games } from './games.js';
@@ -1874,6 +1956,11 @@
 
         if (isReady) {
           el.href = game.file;
+          el.addEventListener('click', (e) => {
+            if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+            e.preventDefault();
+            window.location.hash = 'game/' + game.id;
+          });
         }
 
         // Check if game was created within the last 30 days
@@ -2177,6 +2264,63 @@
           statsGrid.appendChild(card);
         }
       })();
+
+      /* ── Hash routing for games ── */
+      const gameContainer = document.getElementById('gameContainer');
+      const gameFrame = document.getElementById('gameFrame');
+      const gameTitle = document.getElementById('gameTitle');
+      const backToHubBtn = document.getElementById('backToHubBtn');
+      const fsGameBtn = document.getElementById('fsGameBtn');
+
+      function showGame(game) {
+        gameContainer.classList.remove('hidden');
+        gameContainer.setAttribute('aria-hidden', 'false');
+        gameFrame.src = game.file;
+        gameTitle.textContent = game.icon + ' ' + game.title;
+        document.body.style.overflow = 'hidden';
+      }
+
+      function hideGame() {
+        gameContainer.classList.add('hidden');
+        gameContainer.setAttribute('aria-hidden', 'true');
+        gameFrame.src = '';
+        document.body.style.overflow = '';
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+
+      function handleHash() {
+        const match = window.location.hash.match(/^#game\/(.+)$/);
+        if (match) {
+          const gameId = match[1];
+          const game = games.find((g) => g.id === gameId);
+          if (game && game.status === 'listo') {
+            showGame(game);
+          } else {
+            window.location.hash = '';
+          }
+        } else {
+          hideGame();
+        }
+      }
+
+      window.addEventListener('hashchange', handleHash);
+      backToHubBtn.addEventListener('click', () => {
+        window.location.hash = '';
+      });
+      document.addEventListener('keydown', (e) => {
+        if (
+          e.key === 'Escape' &&
+          !gameContainer.classList.contains('hidden')
+        ) {
+          backToHubBtn.click();
+        }
+      });
+      fsGameBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen().catch(() => {});
+      });
+
+      if (window.location.hash) handleHash();
     </script>
   </body>
 </html>

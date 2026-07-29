@@ -996,50 +996,104 @@ function updateEnemies(dt) {
 function updateProjectiles(dt) {
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.life -= dt;
 
-    for (const e of enemies) {
-      if (Math.hypot(p.x - e.x, p.y - e.y) < e.r + 4) {
-        e.hp -= p.dmg;
-        sfxHit();
-        spawnParticles(p.x, p.y, '#00f5ff', 3, { spd: 40, life: 0.2, sm: 1.5, smx: 2.5 });
+    // Anti-tunneling: sub-pasos para proyectiles rápidos
+    const maxStep = PROJECTILE_SPEED * dt;
+    const minThickness = 10;
+    if (maxStep > minThickness * 0.4) {
+      const steps = Math.ceil(maxStep / (minThickness * 0.3));
+      const subDt = dt / steps;
+      for (let s = 0; s < steps; s++) {
+        p.x += p.vx * subDt;
+        p.y += p.vy * subDt;
+        if (s === steps - 1) p.life -= dt;
 
-        if (state.cards.chain) {
-          let nextTarget = null,
-            nd = Infinity;
-          for (const e2 of enemies) {
-            if (e2 === e) continue;
-            const d = Math.hypot(e2.x - e.x, e2.y - e.y);
-            if (d < nd && d < 100) {
-              nd = d;
-              nextTarget = e2;
+        let hit = false;
+        for (const e of enemies) {
+          if (Math.hypot(p.x - e.x, p.y - e.y) < e.r + 4) {
+            e.hp -= p.dmg;
+            sfxHit();
+            spawnParticles(p.x, p.y, '#00f5ff', 3, { spd: 40, life: 0.2, sm: 1.5, smx: 2.5 });
+
+            if (state.cards.chain) {
+              let nextTarget = null,
+                nd = Infinity;
+              for (const e2 of enemies) {
+                if (e2 === e) continue;
+                const d = Math.hypot(e2.x - e.x, e2.y - e.y);
+                if (d < nd && d < 100) {
+                  nd = d;
+                  nextTarget = e2;
+                }
+              }
+              if (nextTarget) {
+                nextTarget.hp -= p.dmg * 0.5;
+                spawnParticles(nextTarget.x, nextTarget.y, '#c084fc', 2, { spd: 30, life: 0.15 });
+              }
+            }
+
+            if (state.cards.vampire) {
+              state.towerHP = Math.min(state.towerHP + p.dmg * 0.15, state.towerMaxHP);
+            }
+
+            if (state.cards.aoe) {
+              for (const e2 of enemies) {
+                if (e2 === e) continue;
+                if (Math.hypot(e2.x - e.x, e2.y - e.y) < 60) e2.hp -= p.dmg * 0.4;
+              }
+              spawnParticles(p.x, p.y, '#ffd93d', 8, { spd: 80, life: 0.3, sm: 2, smx: 4 });
+            }
+
+            projectiles.splice(i, 1);
+            hit = true;
+            break;
+          }
+        }
+        if (hit) break;
+      }
+    } else {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+
+      for (const e of enemies) {
+        if (Math.hypot(p.x - e.x, p.y - e.y) < e.r + 4) {
+          e.hp -= p.dmg;
+          sfxHit();
+          spawnParticles(p.x, p.y, '#00f5ff', 3, { spd: 40, life: 0.2, sm: 1.5, smx: 2.5 });
+
+          if (state.cards.chain) {
+            let nextTarget = null,
+              nd = Infinity;
+            for (const e2 of enemies) {
+              if (e2 === e) continue;
+              const d = Math.hypot(e2.x - e.x, e2.y - e.y);
+              if (d < nd && d < 100) {
+                nd = d;
+                nextTarget = e2;
+              }
+            }
+            if (nextTarget) {
+              nextTarget.hp -= p.dmg * 0.5;
+              spawnParticles(nextTarget.x, nextTarget.y, '#c084fc', 2, { spd: 30, life: 0.15 });
             }
           }
-          if (nextTarget) {
-            nextTarget.hp -= p.dmg * 0.5;
-            spawnParticles(nextTarget.x, nextTarget.y, '#c084fc', 2, { spd: 30, life: 0.15 });
+
+          if (state.cards.vampire) {
+            state.towerHP = Math.min(state.towerHP + p.dmg * 0.15, state.towerMaxHP);
           }
-        }
 
-        if (state.cards.vampire) {
-          const heal = p.dmg * 0.15;
-          state.towerHP = Math.min(state.towerHP + heal, state.towerMaxHP);
-        }
-
-        if (state.cards.aoe) {
-          for (const e2 of enemies) {
-            if (e2 === e) continue;
-            if (Math.hypot(e2.x - e.x, e2.y - e.y) < 60) {
-              e2.hp -= p.dmg * 0.4;
+          if (state.cards.aoe) {
+            for (const e2 of enemies) {
+              if (e2 === e) continue;
+              if (Math.hypot(e2.x - e.x, e2.y - e.y) < 60) e2.hp -= p.dmg * 0.4;
             }
+            spawnParticles(p.x, p.y, '#ffd93d', 8, { spd: 80, life: 0.3, sm: 2, smx: 4 });
           }
-          spawnParticles(p.x, p.y, '#ffd93d', 8, { spd: 80, life: 0.3, sm: 2, smx: 4 });
-        }
 
-        projectiles.splice(i, 1);
-        break;
+          projectiles.splice(i, 1);
+          break;
+        }
       }
     }
 

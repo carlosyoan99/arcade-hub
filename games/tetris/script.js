@@ -126,7 +126,7 @@ let lockTimer = 0;
 // CANVAS
 // ============================================================
 const canvas = document.getElementById('gc'),
-  ctx = canvas.getContext('2d');
+  ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0,
   scale = 1,
@@ -436,6 +436,14 @@ bTouch('bDrop', () => {
 document.getElementById('gc').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -519,6 +527,8 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('tetris');
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
+  say('Tetris: comenzó la partida. Completá líneas para sumar puntos.');
 }
 
 function togglePause() {
@@ -552,6 +562,8 @@ function endGame() {
   fs.textContent = `Puntaje: ${state.score} · Líneas: ${state.lines} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Tetris: game over.');
   updateHUD();
 }
 
@@ -768,6 +780,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }
@@ -781,7 +794,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

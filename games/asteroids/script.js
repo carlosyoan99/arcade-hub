@@ -1,5 +1,5 @@
 import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import {
   triggerShake,
@@ -61,7 +61,7 @@ const state = {
 // CANVAS SETUP
 // ============================================================
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0;
 let scale = 1;
@@ -377,6 +377,15 @@ const overlay = document.getElementById('overlay');
 const overlayText = document.getElementById('overlayText');
 const hintEl = document.getElementById('hintEl');
 const finalScoreEl = document.getElementById('finalScore');
+const announce = document.getElementById('announce');
+
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 overlay.addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -410,6 +419,8 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('asteroids');
   overlay.classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
+  say('Asteroids: comenzó la partida. Destruí todos los asteroides.');
 }
 
 function loseLife() {
@@ -440,6 +451,8 @@ function endGame() {
   finalScoreEl.textContent = `Puntos: ${state.score} · Récord: ${state.best}`;
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar  ·  <kbd>R</kbd> reiniciar`;
   overlay.classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Asteroids: juego terminado.');
   updateHUD();
 }
 
@@ -486,8 +499,41 @@ function updateShip(dt) {
 function updateBullets(dt) {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
-    b.x += b.vx * dt;
-    b.y += b.vy * dt;
+
+    // Anti-tunneling: sub-pasos para balas rápidas
+    const maxStep = BULLET_SPEED * dt;
+    const minThickness = 13; // small asteroid radius
+    if (maxStep > minThickness * 0.4) {
+      const steps = Math.ceil(maxStep / (minThickness * 0.3));
+      const subDt = dt / steps;
+      for (let s = 0; s < steps; s++) {
+        b.x += b.vx * subDt;
+        b.y += b.vy * subDt;
+        // Collision check en cada sub-paso
+        for (let ai = asteroids.length - 1; ai >= 0; ai--) {
+          const a = asteroids[ai];
+          if (Math.hypot(b.x - a.x, b.y - a.y) < a.radius) {
+            state.score += a.points;
+            playExplosionSound();
+            spawnParticles(a.x, a.y, '#6ec6ff', 15, { spd: 100, life: 0.4, friction: 0.97 });
+            breakAsteroid(a);
+            bullets.splice(i, 1);
+            asteroids.splice(ai, 1);
+            updateHUD();
+            if (asteroids.length === 0) {
+              playLevelClearSound();
+              spawnAsteroidWave();
+            }
+            break;
+          }
+        }
+        if (!bullets[i]) break;
+      }
+    } else {
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+    }
+
     b.life -= dt;
     wrapEntity(b);
     if (b.life <= 0) {
@@ -720,6 +766,8 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
+  stopAmbient();
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
@@ -732,7 +780,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});

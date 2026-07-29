@@ -102,7 +102,7 @@ const state = {
 // CANVAS
 // ============================================================
 const canvas = document.getElementById('gameCanvas'),
-  ctx = canvas.getContext('2d');
+  ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0,
   scale = 1,
@@ -528,7 +528,9 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('pacman');
   document.getElementById('overlay').classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   if (state.best >= 2000) achievements.unlock('pacman_twothousand');
+  say('Pac-Man: comenzó la partida. Comé todos los puntos y esquivá a los fantasmas.');
 }
 
 function togglePause() {
@@ -577,6 +579,8 @@ function endGame() {
   finalScore.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   hintEl.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  document.removeEventListener('keydown', trapTab);
+  say('Pac-Man: game over.');
   updateHUD();
 }
 
@@ -710,6 +714,14 @@ btnPause?.addEventListener('touchcancel', () => btnPause.classList.remove('is-pr
 document.getElementById('gameCanvas').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
+const announce = document.getElementById('announce');
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
+
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
 });
@@ -977,6 +989,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
@@ -989,7 +1002,11 @@ animFrameId = requestAnimationFrame((t) => {
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
+  if (window.self !== window.top) {
+    window.top.location.hash = '';
+  } else {
+    window.location.href = '../../index.html';
+  }
 });
 document.getElementById('fsBtn')?.addEventListener('click', () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
