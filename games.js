@@ -19,6 +19,7 @@ export const games = [
     file: 'games/pong/index.html',
     icon: '🏓',
     status: 'listo',
+    created: '2026-06-01',
   },
   {
     id: 'breakout',
@@ -28,6 +29,7 @@ export const games = [
     file: 'games/breakout/index.html',
     icon: '🧱',
     status: 'listo',
+    created: '2026-06-03',
   },
   {
     id: 'snake',
@@ -37,6 +39,7 @@ export const games = [
     file: 'games/snake/index.html',
     icon: '🐍',
     status: 'listo',
+    created: '2026-06-05',
   },
   {
     id: 'dino-runner',
@@ -46,6 +49,7 @@ export const games = [
     file: 'games/dino-runner/index.html',
     icon: '🦖',
     status: 'listo',
+    created: '2026-06-08',
   },
   {
     id: 'asteroids',
@@ -55,6 +59,7 @@ export const games = [
     file: 'games/asteroids/index.html',
     icon: '🚀',
     status: 'listo',
+    created: '2026-06-10',
   },
   {
     id: 'space-invaders',
@@ -64,6 +69,7 @@ export const games = [
     file: 'games/space-invaders/index.html',
     icon: '👾',
     status: 'listo',
+    created: '2026-06-12',
   },
   {
     id: 'flappy-bird',
@@ -73,6 +79,7 @@ export const games = [
     file: 'games/flappy-bird/index.html',
     icon: '🐤',
     status: 'listo',
+    created: '2026-06-15',
   },
   {
     id: 'pacman',
@@ -82,6 +89,7 @@ export const games = [
     file: 'games/pacman/index.html',
     icon: '🟡',
     status: 'listo',
+    created: '2026-06-18',
   },
   {
     id: 'tetris',
@@ -91,6 +99,7 @@ export const games = [
     file: 'games/tetris/index.html',
     icon: '🧊',
     status: 'listo',
+    created: '2026-06-20',
   },
   {
     id: 'frogger',
@@ -100,6 +109,7 @@ export const games = [
     file: 'games/frogger/index.html',
     icon: '🐸',
     status: 'listo',
+    created: '2026-06-22',
   },
   {
     id: 'galaga',
@@ -109,6 +119,7 @@ export const games = [
     file: 'games/galaga/index.html',
     icon: '🛸',
     status: 'listo',
+    created: '2026-07-15',
   },
   {
     id: 'centipede',
@@ -118,6 +129,7 @@ export const games = [
     file: 'games/centipede/index.html',
     icon: '🐛',
     status: 'listo',
+    created: '2026-07-20',
   },
   {
     id: 'digdug',
@@ -127,6 +139,7 @@ export const games = [
     file: 'games/digdug/index.html',
     icon: '⛏️',
     status: 'listo',
+    created: '2026-07-25',
   },
   {
     id: 'missile-command',
@@ -136,6 +149,7 @@ export const games = [
     file: 'games/missile-command/index.html',
     icon: '🚀',
     status: 'listo',
+    created: '2026-07-28',
   },
   {
     id: 'neon-nexus',
@@ -145,6 +159,7 @@ export const games = [
     file: 'games/neon-nexus/index.html',
     icon: '◈',
     status: 'listo',
+    created: '2026-07-28',
   },
   {
     id: 'cell-swarm',
@@ -154,5 +169,36 @@ export const games = [
     file: 'games/cell-swarm/index.html',
     icon: '🟣',
     status: 'listo',
+    created: '2026-07-28',
+  },
+  {
+    id: 'donkey-kong',
+    title: 'Donkey Kong',
+    description:
+      'Ayudá a Mario a escalar la obra en construcción. Esquivá los barriles que lanza Donkey Kong y llegá hasta la cima. ¡Plataformas clásico!',
+    file: 'games/donkey-kong/index.html',
+    icon: '🦍',
+    status: 'listo',
+    created: '2026-07-28',
+  },
+  {
+    id: 'defender',
+    title: 'Defender',
+    description:
+      'Side-scrolling shooter. Volá sobre montañas, dispará a los landers que secuestran humanos, usá bombas inteligentes y rescatá a todos en este clásico frenético.',
+    file: 'games/defender/index.html',
+    icon: '🚀',
+    status: 'listo',
+    created: '2026-07-28',
+  },
+  {
+    id: 'joust',
+    title: 'Joust',
+    description:
+      'Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas. Golpeá desde arriba para vencer, recolectá huevos y sobreviví oleadas cada vez más difíciles.',
+    file: 'games/joust/index.html',
+    icon: '🦅',
+    status: 'listo',
+    created: '2026-07-29',
   },
 ];

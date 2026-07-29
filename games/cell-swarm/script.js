@@ -105,10 +105,12 @@ let canvasW = 0,
   canvasH = 0;
 
 function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
   canvasW = window.innerWidth;
   canvasH = window.innerHeight;
-  canvas.width = canvasW;
-  canvas.height = canvasH;
+  canvas.width = canvasW * dpr;
+  canvas.height = canvasH * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();

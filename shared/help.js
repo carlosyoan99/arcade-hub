@@ -215,6 +215,56 @@ const GAMES = {
     goal: 'Crece comiendo células más pequeñas y comida. Huí de las más grandes. Usá Split para cazar presas rápidas o escapar. Convertite en la célula más grande del mapa.',
     achievements: [],
   },
+  'donkey-kong': {
+    title: 'Donkey Kong',
+    icon: '🦍',
+    controls: [
+      '← → o A/D para mover a Mario',
+      'Espacio / ↑ / W para saltar',
+      'Subí escaleras automáticamente al presionar ↑',
+      'Gamepad: Stick mover, A saltar',
+    ],
+    goal: 'Ayudá a Mario a escalar la obra en construcción. Esquivá los barriles que lanza Donkey Kong desde la cima, subí por las escaleras y llegá hasta el último nivel. Cada nivel completado suma puntos y avanza de ronda.',
+    achievements: [
+      { icon: '🪜', name: 'Escalador novato', desc: 'Completá tu primer nivel en Donkey Kong' },
+      { icon: '🔥', name: 'Imparable', desc: 'Alcanzá los 5.000 puntos en Donkey Kong' },
+      { icon: '🏆', name: 'Maestro de la obra', desc: 'Llegá al nivel 10 en Donkey Kong' },
+    ],
+  },
+  defender: {
+    title: 'Defender',
+    icon: '🚀',
+    controls: [
+      '↑ ↓ ← → o WASD para mover la nave',
+      'Espacio para disparar / empezar',
+      'B para bomba inteligente',
+      'R para reiniciar',
+      'Gamepad: Stick mover, A disparar, B bomba',
+    ],
+    goal: 'Defendé a los humanos de la invasión alienígena. Dispará a los landers antes de que escapen con humanos. Usá bombas inteligentes para limpiar enemigos. Rescatá humanos caídos para sumar puntos y avanzar de nivel.',
+    achievements: [
+      { icon: '👽', name: 'Primera sangre', desc: 'Derrotá a tu primer enemigo en Defender' },
+      { icon: '💣', name: 'Bombardero', desc: 'Usá 3 bombas inteligentes en Defender' },
+      { icon: '🏆', name: 'Comandante galáctico', desc: 'Alcanzá los 10.000 puntos en Defender' },
+    ],
+  },
+  joust: {
+    title: 'Joust',
+    icon: '🦅',
+    controls: [
+      '← → o A/D para mover el avestruz',
+      'Espacio / ↑ / W para aletear / ascender',
+      'R para reiniciar',
+      'Tocar para empezar',
+      'Gamepad: Stick mover, A aletear',
+    ],
+    goal: 'Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas. Golpeá desde arriba para vencer — si el enemigo está más arriba que vos, perdés. Recolectá huevos para puntos extra antes de que eclosionen en nuevos enemigos. Sobreviví oleadas cada vez más difíciles con Bounders, Hunters y Shadow Lords.',
+    achievements: [
+      { icon: '🥇', name: 'Primera justa', desc: 'Derrotá a tu primer enemigo en Joust' },
+      { icon: '🥚', name: 'Cazador de huevos', desc: 'Recolectá 10 huevos en Joust' },
+      { icon: '🏆', name: 'Imbatible', desc: 'Llegá a la oleada 5 en Joust' },
+    ],
+  },
 };
 
 /**
@@ -328,6 +378,15 @@ export function showHelp(gameId) {
     Exterminador: 'centipede_thousand',
     'Excavador implacable': 'digdug_thousand',
     'Defensor de ciudades': 'missile_thousand',
+    'Escalador novato': 'dk_first_win',
+    Imparable: 'dk_thousand',
+    'Maestro de la obra': 'dk_master',
+    'Primera sangre': 'def_first_kill',
+    Bombardero: 'def_bomb_three',
+    'Comandante galáctico': 'def_commander',
+    'Primera justa': 'joust_first_joust',
+    'Cazador de huevos': 'joust_egg_hunter',
+    Imbatible: 'joust_invincible',
   };
 
   for (const a of g.achievements) {

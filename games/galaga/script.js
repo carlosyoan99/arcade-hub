@@ -63,10 +63,12 @@ let cw = 0,
   ox = 0,
   oy = 0;
 function resize() {
+  const dpr = window.devicePixelRatio || 1;
   cw = window.innerWidth;
   ch = window.innerHeight;
-  c.width = cw;
-  c.height = ch;
+  c.width = cw * dpr;
+  c.height = ch * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const sx = (cw - CPAD * 2) / CW,
     sy = (ch - CPAD * 2) / CH;
   sc = Math.min(sx, sy);

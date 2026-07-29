@@ -74,10 +74,12 @@ let offX = 0,
   offY = 0;
 
 function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
   canvasW = window.innerWidth;
   canvasH = window.innerHeight;
-  canvas.width = canvasW;
-  canvas.height = canvasH;
+  canvas.width = canvasW * dpr;
+  canvas.height = canvasH * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   const scaleX = (canvasW - COURT_PADDING * 2) / COURT_W;
   const scaleY = (canvasH - COURT_PADDING * 2) / COURT_H;

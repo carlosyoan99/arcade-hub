@@ -47,50 +47,65 @@ export function getShakeOffset() {
 }
 
 // ──────────────────────────────────────────────
-// PARTÍCULAS
+// PARTÍCULAS — Object Pool
 // ──────────────────────────────────────────────
-let particles = [];
+const POOL_MAX = 500;
+const pool = [];
+
+/**
+ * Obtiene una partícula inactiva del pool, o crea una nueva si hace falta.
+ */
+function allocParticle() {
+  for (let i = 0; i < pool.length; i++) {
+    if (!pool[i].alive) {
+      pool[i].alive = true;
+      return pool[i];
+    }
+  }
+  if (pool.length >= POOL_MAX) return null;
+  const p = { alive: true };
+  pool.push(p);
+  return p;
+}
 
 /**
  * Genera una explosión de partículas en (x, y).
+ * Reutiliza objetos del pool en vez de crear nuevos.
  *
  * @param {number} x       - Coordenada X (lógica del juego, antes de escalar)
  * @param {number} y       - Coordenada Y (lógica del juego)
  * @param {string} color   - Color CSS para las partículas
  * @param {number} count   - Cantidad de partículas (default 10)
- * @param {object} opts    - Opciones: { spd, life, sm, smx }
- *   spd: velocidad base en px/s (default 80)
- *   life: vida base en segundos (default 0.35)
- *   sm: tamaño mínimo en px (default 1.5)
- *   smx: tamaño máximo en px (default 3)
+ * @param {object} opts    - Opciones: { spd, life, sm, smx, gravity, friction }
  */
 export function spawnParticles(x, y, color, count = 10, opts = {}) {
   const { spd = 80, life = 0.35, sm = 1.5, smx = 3 } = opts;
-  if (particles.length > 500) return;
   for (let i = 0; i < count; i++) {
+    const p = allocParticle();
+    if (!p) break;
     const a = Math.random() * Math.PI * 2;
     const s = spd * (0.4 + Math.random() * 0.6);
-    particles.push({
-      x,
-      y,
-      vx: Math.cos(a) * s,
-      vy: Math.sin(a) * s,
-      life: life + Math.random() * 0.2,
-      ml: life + 0.2,
-      color,
-      size: sm + Math.random() * (smx - sm),
-    });
+    p.x = x;
+    p.y = y;
+    p.vx = Math.cos(a) * s;
+    p.vy = Math.sin(a) * s;
+    p.life = life + Math.random() * 0.2;
+    p.ml = life + 0.2;
+    p.color = color;
+    p.size = sm + Math.random() * (smx - sm);
+    p.friction = opts.friction;
+    p.gravity = opts.gravity;
   }
 }
 
 /**
  * Actualiza todas las partículas (movimiento, fricción, decaimiento).
- * Elimina las que tienen vida <= 0. Llamar una vez por frame.
- * Soporta gravedad (p.gravity) y fricción por partícula (p.friction).
+ * Marca las muertas como inactivas (sin splice). Llamar una vez por frame.
  */
 export function updateParticles(dt) {
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
+  for (let i = 0; i < pool.length; i++) {
+    const p = pool[i];
+    if (!p.alive) continue;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     const fric = p.friction ?? 0.96;
@@ -101,19 +116,23 @@ export function updateParticles(dt) {
       p.vy *= fric;
     }
     p.life -= dt;
-    if (p.life <= 0) particles.splice(i, 1);
+    if (p.life <= 0) {
+      p.alive = false;
+    }
   }
 }
 
 /**
- * Dibuja todas las partículas en el canvas.
+ * Dibuja todas las partículas activas en el canvas.
  * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
  * @param {number} ox - Offset X de la cancha escalada
  * @param {number} oy - Offset Y de la cancha escalada
  * @param {number} sc - Factor de escala
  */
 export function drawParticles(ctx, ox = 0, oy = 0, sc = 1) {
-  for (const p of particles) {
+  for (let i = 0; i < pool.length; i++) {
+    const p = pool[i];
+    if (!p.alive) continue;
     const a = Math.max(0, p.life / p.ml);
     const sx = ox + p.x * sc;
     const sy = oy + p.y * sc;
@@ -132,10 +151,12 @@ export function drawParticles(ctx, ox = 0, oy = 0, sc = 1) {
 }
 
 /**
- * Vacía el array de partículas. Útil al reiniciar un juego.
+ * Vacía el pool de partículas. Útil al reiniciar un juego.
  */
 export function clearParticles() {
-  particles = [];
+  for (let i = 0; i < pool.length; i++) {
+    pool[i].alive = false;
+  }
 }
 
 // ──────────────────────────────────────────────

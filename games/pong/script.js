@@ -55,10 +55,12 @@ let offX = 0,
   offY = 0;
 
 function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
   canvasW = window.innerWidth;
   canvasH = window.innerHeight;
-  canvas.width = canvasW;
-  canvas.height = canvasH;
+  canvas.width = canvasW * dpr;
+  canvas.height = canvasH * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const scaleX = (canvasW - COURT_PADDING * 2) / COURT_W;
   const scaleY = (canvasH - COURT_PADDING * 2) / COURT_H;
   scale = Math.min(scaleX, scaleY);
@@ -210,9 +212,18 @@ const overlay = document.getElementById('overlay');
 const overlayText = document.getElementById('overlayText');
 const hintEl = document.getElementById('hintEl');
 const finalScoreEl = document.getElementById('finalScore');
+const announce = document.getElementById('announce');
 overlay.addEventListener('click', () => {
   if (!state.running) startGame();
 });
+
+// ── Anuncio accesible (screen reader) ──
+function say(msg) {
+  if (announce) announce.textContent = msg;
+}
+function trapTab(e) {
+  if (e.key === 'Tab') e.preventDefault();
+}
 
 // LÓGICA
 function serveBall(towardPlayer) {
@@ -244,7 +255,9 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('pong');
   overlay.classList.add('hidden');
+  document.addEventListener('keydown', trapTab);
   if (state.wins >= 1) achievements.unlock('pong_first_win');
+  say('Pong: comenzó la partida. Primero en llegar a 7 puntos gana.');
 }
 function endGame(playerWon) {
   stopAmbient();
@@ -263,8 +276,11 @@ function endGame(playerWon) {
   overlayText.textContent = playerWon ? '¡Ganaste! 🏆' : 'Perdiste 💀';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `${state.playerScore} - ${state.aiScore} · Victorias: ${state.wins}`;
+  document.removeEventListener('keydown', trapTab);
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar`;
   overlay.classList.remove('hidden');
+  if (playerWon) say('Pong: ganaste la partida.');
+  else say('Pong: perdiste la partida.');
   updateHUD();
 }
 
@@ -517,6 +533,7 @@ updateHUD();
 
 function cleanup() {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
 }

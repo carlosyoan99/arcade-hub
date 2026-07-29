@@ -35,26 +35,29 @@
 - [x] Meta tags Open Graph + Twitter Card
 - [x] Per-game accent colors en tarjetas del hub
 
-### Juegos implementados (16/16)
+### Juegos implementados (18/18)
 
-| Juego | Estado | Versión |
-|-------|--------|---------|
-| 🏓 Pong | ✅ listo | 1.2.0 |
-| 🧱 Breakout | ✅ listo | 1.2.0 |
-| 🐍 Snake | ✅ listo | 1.2.0 |
-| 🦖 Dino Runner | ✅ listo | 1.2.0 |
-| 🚀 Asteroids | ✅ listo | 1.2.0 |
-| 👾 Space Invaders | ✅ listo | 1.2.0 |
-| 🐤 Flappy Bird | ✅ listo | 1.2.0 |
-| 🟡 Pac-Man | ✅ listo | 1.2.0 |
-| 🧊 Tetris | ✅ listo | 1.2.0 |
-| 🐸 Frogger | ✅ listo | 1.2.0 |
-| 🛸 Galaga | ✅ listo | 1.2.0 |
-| 🐛 Centipede | ✅ listo | 1.2.0 |
-| ⛏️ Dig Dug | ✅ listo | 1.1.0 |
-| 🚀 Missile Command | ✅ listo | 1.1.0 |
-| ◈ Neon Nexus | ✅ listo | 1.1.0 |
-| 🟣 Cell Swarm | ✅ listo | 1.1.0 |
+| Juego              | Estado   | Versión |
+| ------------------ | -------- | ------- |
+| 🏓 Pong            | ✅ listo | 1.2.0   |
+| 🧱 Breakout        | ✅ listo | 1.2.0   |
+| 🐍 Snake           | ✅ listo | 1.2.0   |
+| 🦖 Dino Runner     | ✅ listo | 1.2.0   |
+| 🚀 Asteroids       | ✅ listo | 1.2.0   |
+| 👾 Space Invaders  | ✅ listo | 1.2.0   |
+| 🐤 Flappy Bird     | ✅ listo | 1.2.0   |
+| 🟡 Pac-Man         | ✅ listo | 1.2.0   |
+| 🧊 Tetris          | ✅ listo | 1.2.0   |
+| 🐸 Frogger         | ✅ listo | 1.2.0   |
+| 🛸 Galaga          | ✅ listo | 1.2.0   |
+| 🐛 Centipede       | ✅ listo | 1.2.0   |
+| ⛏️ Dig Dug         | ✅ listo | 1.1.0   |
+| 🚀 Missile Command | ✅ listo | 1.1.0   |
+| ◈ Neon Nexus       | ✅ listo | 1.1.0   |
+| 🟣 Cell Swarm      | ✅ listo | 1.1.0   |
+| 🦍 Donkey Kong     | ✅ listo | 1.0.0   |
+| 🚀 Defender        | ✅ listo | 1.0.0   |
+| 🦅 **Joust**       | ✅ listo | 1.0.0   |
 
 ### Refactor CSS — base.css + paleta neon
 
@@ -89,35 +92,52 @@
 - [x] README.md del proyecto con descripción, estructura, guía de nuevo juego
 - [x] CLAUDE.md con convenciones, skills y flujo de trabajo
 - [x] TODO.md con tareas completadas y pendientes priorizados
-- [x] 16 README.md por juego con controles y descripción
-- [x] 16 metadata.json actualizados con versiones y changelog
+- [x] 18 README.md por juego con controles y descripción
+- [x] 18 metadata.json actualizados con versiones y changelog
 
 ---
 
 ## 📋 Pendientes
 
+### ✅ Completados (ronda crítica)
+
+- [x] **Commit + push** — Todos los cambios acumulados en GitHub (commit `75fa438`)
+- [x] **Capturas en README.md** — 18 screenshots tomadas con Chrome headless
+- [x] **Prettier — index.html** — Pasa `prettier --check` sin problemas
+- [x] **Nuevo juego: Joust** — Implementado con 5 archivos, registrado en hub + SW + ayuda
+- [x] **Logros de Joust** — 3 logros (Primera justa, Cazador de huevos, Imbatible) en help.js + script.js
+
 ### 🔴 Alta prioridad
 
-| # | Tarea | Archivos | Detalle |
-|---|-------|----------|---------|
-| 1 | **Commit + push** | Todos | Cambios acumulados sin commitear (base.css, style.css, READMEs, metadata, docs, fix ayuda) |
-| 2 | **Agregar capturas a README.md** | `games/*/README.md` | Cada juego necesita al menos 1 screenshot ilustrando el gameplay |
-| 3 | **Prettier — index.html** | `index.html` | Verificar que el hub pase `prettier --check` sin problemas |
+| #   | Tarea                               | Archivos                                                                         | Detalle                                                                                                                                                                                   |
+| --- | ----------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **High-DPI scaling (Retina)**       | Todos `games/*/script.js`                                                        | Multiplicar `canvas.width/height` por `devicePixelRatio` y aplicar `ctx.scale(dpr, dpr)`. Sin esto los juegos se ven borrosos en pantallas Retina/HiDPI.                                  |
+| 2   | **Alpha channel desactivado**       | Todos `games/*/script.js`                                                        | Agregar `{ alpha: false }` en `canvas.getContext('2d', { alpha: false })`. Permite al compositor del browser optimizar el renderizado significativamente.                                 |
+| 3   | **Memory leaks — cleanup faltante** | `games/asteroids/script.js`, `games/frogger/script.js`, `games/tetris/script.js` | Algunos juegos no cancelan `requestAnimationFrame` ni limpian event listeners en `beforeunload`/`pagehide`. Verificar y agregar función `cleanup()`.                                      |
+| 4   | **Object pooling para partículas**  | `shared/effects.js`                                                              | Las partículas se crean/destruyen constantemente → GC pressure → micro-stutters. Implementar pool reutilizable, especialmente para juegos con muchas partículas (Neon Nexus, Cell Swarm). |
 
 ### 🟡 Media prioridad
 
-| # | Tarea | Archivos | Detalle |
-|---|-------|----------|---------|
-| 4 | **Nuevos juegos** | `games/*/` | Candidatos: Joust, Defender, Paperboy, Bubble Bobble, Donkey Kong |
-| 5 | **Badge "¡Nuevo!"** | `index.html` + `games.js` | Mostrar badge en juegos lanzados en los últimos 30 días |
-| 6 | **Ícono/thumbnail real** | `games/*/` | SVG/PNG por juego si el hub crece |
+| #   | Tarea                                          | Archivos                                                                             | Detalle                                                                                                                                                                                |
+| --- | ---------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 5   | **Accesibilidad canvas**                       | Todos `games/*/` + `index.html`                                                      | Sin `aria-label` en canvas, sin `aria-live` para puntajes, sin skip links, sin focus trapping. Los juegos son inaccesibles para lectores de pantalla. Prioridad alta de accesibilidad. |
+| 6   | **Anti-tunneling inconsistente**               | Todos `games/*/script.js`                                                            | Dt cap varía entre juegos (0.05, 0.03, etc.). Unificar criterio y verificar fórmula `v_max * dt_max < min_collider_thickness`. Agregar sub-pasos donde sea necesario.                  |
+| 7   | **Service Worker — estrategias diferenciadas** | `sw.js`                                                                              | Todo se cachea igual (cache-first). Separar estrategias: network-first para `metadata.json`, cache-first para assets estáticos. Agrupar por game.                                      |
+| 8   | **Hash routing hub↔juego**                     | `index.html`                                                                         | Cada juego abre como página independiente (pérdida de estado del hub). Implementar History API + hash routing para navegación fluida sin recarga completa.                             |
+| 9   | **Variable `particles` local muerta**          | `games/cell-swarm/script.js`, `games/neon-nexus/script.js`, `games/digdug/script.js` | Declaran `let particles = []` local que sombrea el array interno de `shared/effects.js`. Eliminar declaración muerta.                                                                  |
+| 10  | **Modo claro — contraste bajo**                | `shared/base.css`                                                                    | Textos `--text-secondary` con opacidad 0.4 sobre fondo claro → contraste < 4.5:1 WCAG AA. Ajustar opacidad o color.                                                                    |
 
 ### 🟢 Baja prioridad / Ideas
 
-| # | Tarea | Archivos | Detalle |
-|---|-------|----------|---------|
-| 7 | **Secuencia título animada** | `index.html` | Animación de "inserción de moneda" al cargar el hub |
-| 8 | **Efecto hover sonoro** | `index.html` | Sonido sutil al hover sobre las tarjetas |
-| 9 | **Modo juego aleatorio** | `index.html` | Botón "Juego sorpresa" que lleve a un juego al azar |
-| 10 | **Pantalla de carga progresiva** | `index.html` | Barra de progreso mientras cargan los módulos |
-| 11 | **Tema visual por juego** | `games/*/style.css` | Algunos juegos podrían tener tema propio más distintivo |
+| #   | Tarea                                    | Archivos            | Detalle                                                                         |
+| --- | ---------------------------------------- | ------------------- | ------------------------------------------------------------------------------- |
+| 11  | **Título HTML dinámico por juego**       | `index.html`        | Cambiar `<title>` según el contexto (hub vs juego específico). Mejora SEO y UX. |
+| 12  | **Meta tags dinámicos por juego**        | `index.html`        | Open Graph tags dinámicos al compartir un juego específico.                     |
+| 13  | **Schema.org / JSON-LD (VideoGame)**     | `index.html`        | Agregar schema markup para que los juegos aparezcan en rich snippets de Google. |
+| 14  | **Sitemap XML**                          | Raíz del proyecto   | Para que los 18 juegos sean indexables por buscadores.                          |
+| 15  | **Pantalla de carga progresiva**         | `index.html`        | Barra de progreso al cargar módulos del hub (mejora perceived performance).     |
+| 16  | **Animación "inserción de moneda"**      | `index.html`        | Secuencia nostálgica animada al cargar el hub.                                  |
+| 17  | **Juego aleatorio / "Sorpresa"**         | `index.html`        | Botón que lleve a un juego al azar. Bueno para retention.                       |
+| 18  | **Efecto hover sonoro**                  | `index.html`        | Sonido sutil al hover sobre tarjetas del hub.                                   |
+| 19  | **Ícono/thumbnail real por juego**       | `games/*/`          | SVG/PNG por juego si el hub crece.                                              |
+| 20  | **Tema visual más distintivo por juego** | `games/*/style.css` | Algunos juegos podrían tener tema propio más diferenciado.                      |

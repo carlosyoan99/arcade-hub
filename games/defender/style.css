@@ -1,0 +1,42 @@
+:root {
+  --accent: var(--neon-blue);
+  --accent-glow: rgba(110, 198, 255, 0.3);
+}
+
+#hud .sb .value {
+  font-size: 18px;
+}
+
+#touchControls .dpad button#btnFire:active,
+#touchControls .dpad button#btnFire.is-pressed {
+  background: rgba(255, 50, 50, 0.3) !important;
+  border-color: rgba(255, 50, 50, 0.5) !important;
+}
+
+#touchControls .dpad button#btnBomb:active,
+#touchControls .dpad button#btnBomb.is-pressed {
+  background: rgba(255, 184, 0, 0.25) !important;
+  border-color: rgba(255, 184, 0, 0.4) !important;
+}
+
+@media (max-width: 520px) {
+  #hud .sb .value {
+    font-size: 14px;
+  }
+  #hud .sb .label {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+}
+
+@media (max-width: 400px) {
+  #hud .sg {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  #hud .sb {
+    min-width: 30px;
+  }
+}

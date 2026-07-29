@@ -1,0 +1,34 @@
+:root {
+  --accent: var(--neon-purple);
+  --accent-glow: rgba(192, 132, 252, 0.3);
+  --overlay-grad-start: rgba(15, 8, 25, 0.88);
+}
+
+#hud .sb .value {
+  color: var(--accent);
+  font-size: 20px;
+}
+
+#touchControls .dpad {
+  grid-template-columns: 68px 68px 68px;
+  grid-template-rows: 68px 68px 68px;
+}
+
+#touchControls .dpad button:active,
+#touchControls .dpad button.is-pressed {
+  background: rgba(192, 132, 252, 0.2);
+  border-color: rgba(192, 132, 252, 0.35);
+}
+
+@media (max-width: 480px) {
+  #hud .sg {
+    padding: 4px 12px;
+  }
+  #hud .sb .value {
+    font-size: 16px;
+  }
+  #touchControls .dpad {
+    grid-template-columns: 56px 56px 56px;
+    grid-template-rows: 56px 56px 56px;
+  }
+}

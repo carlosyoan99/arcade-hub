@@ -1,0 +1,27 @@
+{
+  "id": "defender",
+  "title": "Defender",
+  "version": "1.0.0",
+  "created": "2026-07-28",
+  "lastModified": "2026-07-28",
+  "description": "Side-scrolling shooter. Defendé a los humanos de la invasión alienígena en un mundo scrolleante.",
+  "genre": "shooter",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Versión inicial del juego",
+        "Side-scrolling terrain procedural",
+        "Landers que secuestran humanos",
+        "Bombers que lanzan bombas",
+        "Mutantes que persiguen al jugador",
+        "Smart bombs, radar, niveles progresivos",
+        "Soporte para teclado, táctil y gamepad"
+      ]
+    }
+  ]
+}

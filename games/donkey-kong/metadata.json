@@ -1,0 +1,19 @@
+{
+  "id": "donkey-kong",
+  "title": "Donkey Kong",
+  "version": "1.0.0",
+  "created": "2026-07-28",
+  "lastModified": "2026-07-28",
+  "description": "Ayudá a Mario a escalar la obra en construcción. Esquivá los barriles que lanza Donkey Kong y llegá hasta la cima.",
+  "genre": "plataformas",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-28",
+      "changes": ["Versión inicial del juego"]
+    }
+  ]
+}

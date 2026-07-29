@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Defender — Arcade Hub</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,10 90,30 90,70 50,90 10,70 10,30' fill='%236ec6ff'/%3E%3Ccircle cx='50' cy='50' r='12' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='50' r='6' fill='%2300f0ff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>◈ Cargando...</span>
+    </div>
+
+    <canvas id="gameCanvas" aria-label="Defender - Arcade Hub"></canvas>
+    <div id="announce" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="sg">
+        <div class="sb">
+          <div class="label">Puntos</div>
+          <div class="value" id="scoreDisplay" style="color: var(--accent)">0</div>
+        </div>
+        <span class="sp">·</span>
+        <div class="sb">
+          <div class="label">Vidas</div>
+          <div class="value" id="livesDisplay">3</div>
+        </div>
+        <span class="sp">·</span>
+        <div class="sb">
+          <div class="label">Humanos</div>
+          <div class="value" id="humansDisplay" style="color: var(--neon-green)">10</div>
+        </div>
+        <span class="sp">·</span>
+        <div class="sb">
+          <div class="label">Bombas</div>
+          <div class="value" id="bombsDisplay" style="color: var(--neon-gold)">3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay">
+      <h1>◈ DEFENDER ◈</h1>
+      <p id="overlayText">
+        Defendé a los humanos de la invasión alienígena. Dispará a los landers antes de que escapen
+        con los humanos. Usá bombas inteligentes para limpiar la pantalla.
+      </p>
+      <p id="finalScore" style="display: none"></p>
+      <p class="hint" id="hintEl">
+        <kbd>↑</kbd><kbd>↓</kbd> mover · <kbd>←</kbd><kbd>→</kbd> volar ·
+        <kbd>Espacio</kbd> disparar/empezar · <kbd>B</kbd> bomba · <kbd>R</kbd> reiniciar
+      </p>
+      <div class="version-badge">2D · canvas · side-scroller</div>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touchControls">
+      <div class="dpad">
+        <button class="empty" aria-hidden="true"></button>
+        <button id="btnUp" aria-label="Arriba">▲</button>
+        <button class="empty" aria-hidden="true"></button>
+        <button id="btnLeft" aria-label="Izquierda">◀</button>
+        <button
+          id="btnFire"
+          aria-label="Disparar"
+          style="background: rgba(255, 50, 50, 0.15); border-color: rgba(255, 50, 50, 0.3)"
+        >
+          ●
+        </button>
+        <button id="btnRight" aria-label="Derecha">▶</button>
+        <button class="empty" aria-hidden="true"></button>
+        <button id="btnDown" aria-label="Abajo">▼</button>
+        <button
+          id="btnBomb"
+          aria-label="Bomba"
+          style="
+            background: rgba(255, 184, 0, 0.12);
+            border-color: rgba(255, 184, 0, 0.25);
+            font-size: 10px;
+          "
+        >
+          💣
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+    <div id="gameBar">
+      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
+        ← Arcade
+      </button>
+      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Donkey Kong — Arcade Hub</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='20' width='60' height='15' rx='3' fill='%23ff6600'/%3E%3Crect x='10' y='50' width='80' height='15' rx='3' fill='%23ff6600'/%3E%3Crect x='30' y='50' width='8' height='30' rx='2' fill='%23b87333'/%3E%3Ccircle cx='50' cy='18' r='10' fill='%23ffcc00'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>◈ Cargando...</span>
+    </div>
+
+    <canvas id="gameCanvas" aria-label="Donkey Kong - Arcade Hub"></canvas>
+    <div id="announce" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="sg">
+        <div class="sb">
+          <div class="label">Puntaje</div>
+          <div class="value" id="scoreDisplay">0</div>
+        </div>
+        <span class="sp">|</span>
+        <div class="sb">
+          <div class="label">Nivel</div>
+          <div class="value" id="levelDisplay">1</div>
+        </div>
+        <span class="sp">|</span>
+        <div class="sb">
+          <div class="label">Vidas</div>
+          <div class="value" id="livesDisplay">3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay">
+      <h1>🦍 <span class="accent">DONKEY</span> KONG</h1>
+      <p id="overlayText">
+        Ayudá a Mario a escalar la obra en construcción.<br />
+        Esquivá los barriles y llegá hasta la cima.
+      </p>
+      <p id="finalScore" style="display: none"></p>
+      <p class="hint" id="hintEl">
+        <kbd>←</kbd><kbd>→</kbd> mover &nbsp;·&nbsp; <kbd>Espacio</kbd> / <kbd>↑</kbd> saltar
+        &nbsp;·&nbsp; tocar para empezar · <kbd>R</kbd> reiniciar
+      </p>
+      <div class="version-badge">2D · canvas · sin dependencias</div>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touchControls">
+      <div class="dpad">
+        <button class="empty"></button>
+        <button id="btnUp" aria-label="Saltar">▲</button>
+        <button class="empty"></button>
+        <button id="btnLeft" aria-label="Izquierda">◀</button>
+        <button class="empty"></button>
+        <button id="btnRight" aria-label="Derecha">▶</button>
+      </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+    <div id="gameBar">
+      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
+        ← Arcade
+      </button>
+      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
+    </div>
+  </body>
+</html>

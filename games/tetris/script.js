@@ -133,10 +133,12 @@ let canvasW = 0,
   offX = 0,
   offY = 0;
 function resize() {
+  const dpr = window.devicePixelRatio || 1;
   canvasW = window.innerWidth;
   canvasH = window.innerHeight;
-  canvas.width = canvasW;
-  canvas.height = canvasH;
+  canvas.width = canvasW * dpr;
+  canvas.height = canvasH * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const previewW = CS * 6,
     totalW = CW + previewW + CS * 2;
   const sx = (canvasW - CPAD * 2) / totalW,
