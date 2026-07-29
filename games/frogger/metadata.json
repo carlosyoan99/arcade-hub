@@ -1,7 +1,7 @@
 {
   "id": "frogger",
   "title": "Frogger",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created": "2026-06-22",
   "lastModified": "2026-07-28",
   "description": "Cruzá la calle y el río esquivando autos y cayendo al agua.",
@@ -22,6 +22,14 @@
         "Refactor a carpeta individual",
         "Botón ayuda + Volver al hub",
         "Partículas refactorizadas a shared/effects.js"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor CSS: estética neon compartida en base.css",
+        "README.md con controles y descripción"
       ]
     }
   ]

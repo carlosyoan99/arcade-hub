@@ -4,6 +4,10 @@
 
 Battle royale de células neón. Crece comiendo comida y células más pequeñas, divide tu masa para cazar, eyecta para distraer. ¡Conviértete en la célula más grande del mapa!
 
+## Captura
+
+![Cell Swarm en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

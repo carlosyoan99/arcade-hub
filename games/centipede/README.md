@@ -4,6 +4,10 @@
 
 Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruyas se convierte en un hongo nuevo. ¡Cuidado con la araña saltarina, las pulgas y los escorpiones!
 
+## Captura
+
+![Centipede en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

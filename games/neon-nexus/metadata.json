@@ -1,7 +1,7 @@
 {
   "id": "neon-nexus",
   "title": "Neon Nexus",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "created": "2026-07-28",
   "lastModified": "2026-07-28",
   "description": "Defiende tu torre geométrica contra oleadas de formas neon en este tower defense roguelike. Haz clic para dañar, mejora tu torre y elige cartas de poder entre oleadas.",
@@ -14,6 +14,17 @@
       "version": "1.0.0",
       "date": "2026-07-28",
       "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor CSS: estética neon compartida en base.css",
+        "README.md con controles y descripción",
+        "Nuevas cartas: Drenar, Torreta Auxiliar, Escudo Regenerativo, Ralentización Global",
+        "Balance de oleadas y corrección multishot",
+        "Fix botón de ayuda en shared/help.js"
+      ]
     }
   ]
 }

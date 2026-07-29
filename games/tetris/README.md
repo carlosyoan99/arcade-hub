@@ -4,6 +4,10 @@
 
 Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos. ¡Clásico infinito!
 
+## Captura
+
+![Tetris en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

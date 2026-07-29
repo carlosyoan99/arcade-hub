@@ -4,6 +4,10 @@
 
 Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrumbá rocas sobre ellos. Dos tipos de enemigos con IA propia.
 
+## Captura
+
+![Dig Dug en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

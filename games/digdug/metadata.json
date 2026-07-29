@@ -1,7 +1,7 @@
 {
   "id": "digdug",
   "title": "Dig Dug",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "created": "2026-07-25",
   "lastModified": "2026-07-28",
   "description": "Excavá túneles, inflá enemigos hasta que exploten o derrumbá rocas sobre ellos.",
@@ -14,6 +14,15 @@
       "version": "1.0.0",
       "date": "2026-07-25",
       "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor CSS: estética neon compartida en base.css",
+        "README.md con controles y descripción",
+        "Correcciones ESLint"
+      ]
     }
   ]
 }

@@ -4,6 +4,10 @@
 
 El clásico de tenis de mesa recreado en canvas 2D. Primero en llegar a 7 puntos gana.
 
+## Captura
+
+![Pong en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

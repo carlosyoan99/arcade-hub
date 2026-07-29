@@ -4,6 +4,10 @@
 
 Volá esquivando tubos. Tocá la pantalla o presioná Espacio para aletear. ¡A ver cuánto durás!
 
+## Captura
+
+![Flappy Bird en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

@@ -1,7 +1,7 @@
 {
   "id": "asteroids",
   "title": "Asteroids",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created": "2026-06-10",
   "lastModified": "2026-07-28",
   "description": "Navegá por el espacio destruyendo asteroides que se fragmentan.",
@@ -23,6 +23,14 @@
         "Botón ayuda + Volver al hub",
         "Sub-pasos de colisión anti-tunneling",
         "Screen shake y partículas"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor CSS: estética neon compartida en base.css",
+        "README.md con controles y descripción"
       ]
     }
   ]

@@ -1,7 +1,7 @@
 {
   "id": "pong",
   "title": "Pong",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created": "2026-06-01",
   "lastModified": "2026-07-28",
   "description": "El clásico de tenis de mesa. Primero en llegar a 7 puntos gana.",
@@ -23,6 +23,14 @@
         "Botón ayuda + Volver al hub",
         "Soporte para shared/effects.js",
         "Screen shake y partículas"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor CSS: estética neon compartida en base.css",
+        "README.md con controles y descripción"
       ]
     }
   ]

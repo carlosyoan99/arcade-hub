@@ -1,29 +1,34 @@
 # 🕹️ Arcade Hub
 
-**16 juegos clásicos recreados** con estética 2D/2.5D neon. Un archivo HTML por juego, cero dependencias, sin build step. Abrí y jugá.
+**16 juegos clásicos recreados** con estética 2D/2.5D neon.  
+Cero dependencias, sin build step, un archivo HTML por juego.  
+Abrí y jugá.
 
 ---
 
 ## ✨ Filosofía
 
-- **Cero dependencias.** Se abre `index.html` en el navegador y listo.
-- **Sin build step.** No hay npm install, no hay bundlers, no hay toolchain.
-- **Un archivo por juego.** Cada juego es autocontenido en su carpeta (`games/pong/`, etc.). Se puede compartir o abrir suelto sin el hub.
-- **Estética 2D/2.5D.** Canvas 2D con paralaje, sombras proyectadas y partículas. Nada de motores 3D (las versiones Three.js antiguas están archivadas en `games/legacy-3d/`).
-- **Cada juego importa módulos compartidos** (`shared/audio.js`, `shared/effects.js`, `shared/achievements.js`, `shared/base.css`) para sonido, partículas, logros y estilos base.
+| Principio | Por qué |
+|-----------|---------|
+| **Cero dependencias** | Se abre en el navegador y listo. No hay `npm install`, no hay bundlers, no hay toolchain. |
+| **Sin build step** | Cada juego es HTML + CSS + JS estáticos. Editar y recargar. |
+| **Autocontenido** | Cada juego vive en su carpeta (`games/pong/`). Se puede compartir el HTML suelto sin el hub. |
+| **Canvas 2D / 2.5D** | `canvas` 2D con paralaje, sombras proyectadas y partículas. Nada de motores 3D. |
+| **Módulos compartidos** | Sonido, partículas, logros, estilos base y ayuda se importan desde `shared/`. |
 
 ---
 
 ## 🚀 Cómo correrlo
 
 ```bash
-# Servidor estático simple:
 python3 -m http.server 8000
-# O con Node:
+# o con Node:
 npx serve .
 ```
 
-Abrir `http://localhost:8000`. También funciona con `file://` directo, aunque algunos navegadores requieren HTTP para los `type="module"`.
+Abrir [`http://localhost:8000`](http://localhost:8000) en el navegador.
+
+> ⚠️ Los juegos usan `type="module"` en los scripts, por lo que requieren un servidor HTTP (no funcionan con `file://` en todos los navegadores).
 
 ---
 
@@ -31,50 +36,52 @@ Abrir `http://localhost:8000`. También funciona con `file://` directo, aunque a
 
 ```
 arcade-hub/
-├── index.html              # Hub principal — grilla de juegos, toolbar, stats
-├── games.js                # Manifiesto: metadata de cada juego (id, title, icon, status)
-├── sw.js                   # Service Worker — cache-first, offline
 │
-├── shared/                 # Módulos compartidos entre todos los juegos
-│   ├── base.css            # Variables CSS (neon palette), overlay, HUD, touch controls
-│   ├── audio.js            # Web Audio API: beep(), startAmbient(), stopAmbient()
-│   ├── effects.js          # Screen shake, partículas, flash, roundRect
-│   ├── achievements.js     # Sistema de logros persistidos en localStorage
-│   └── help.js             # Modal de ayuda contextual
+├── index.html              # Hub — grilla de juegos con toolbar y stats
+├── games.js                # Manifiesto — metadata de cada juego
+├── sw.js                   # Service Worker — offline cache-first
 │
-├── games/                  # Un directorio por juego
+├── shared/                 # ← Módulos compartidos entre todos los juegos
+│   ├── base.css            #   Variables neon, overlay, HUD, touch controls
+│   ├── audio.js            #   Web Audio API: beep(), startAmbient()
+│   ├── effects.js          #   Screen shake, partículas, flash, roundRect
+│   ├── achievements.js     #   Logros persistidos en localStorage
+│   └── help.js             #   Modal de ayuda contextual
+│
+├── games/                  # ← Un directorio por juego
 │   ├── pong/
-│   │   ├── index.html      # HTML del juego (estructura + etiquetas)
-│   │   ├── style.css       # Estilos específicos del juego
-│   │   ├── script.js       # Lógica completa del juego (ES module)
-│   │   ├── metadata.json   # Versión, fechas, changelog
-│   │   └── README.md       # Controles, descripción, features
+│   │   ├── index.html      #   HTML del juego (loading, canvas, HUD, overlay)
+│   │   ├── style.css       #   Solo acentos neon y estilos únicos del juego
+│   │   ├── script.js       #   Módulo ES con lógica completa
+│   │   ├── metadata.json   #   Versión, fechas, changelog
+│   │   └── README.md       #   Controles, descripción y características
 │   ├── breakout/
-│   │   └── ...
 │   ├── snake/
-│   │   └── ...
-│   └── ... (16 juegos en total)
+│   ├── ...                 #   16 juegos en total
+│   └── legacy-3d/          #   Versiones Three.js archivadas (solo referencia)
 │
-├── .agents/                # Skills instalados para trabajo con IA
+├── .agents/
 │   └── skills/
-│       └── frontend-design.md
+│       └── frontend-design.md   # Skill de diseño visual instalada
 │
-└── README.md, CLAUDE.md, TODO.md
+└── README.md, CLAUDE.md, TODO.md   # Documentación del proyecto
 ```
 
-## 📦 Cada juego contiene
+### 📦 Anatomía de un juego
 
-| Archivo | Propósito |
-|---------|-----------|
-| `index.html` | Estructura HTML: loading, canvas, HUD, overlay, touch controls, game bar. Sin CSS ni JS inline. |
-| `style.css` | Estilos específicos del juego. Usa variables de `shared/base.css`. |
-| `script.js` | Módulo ES (`type="module"`). Importa de `../../shared/*.js`. |
-| `metadata.json` | Versión, fechas, changelog para el modal de ayuda. |
-| `README.md` | Descripción, controles (teclado/gamepad/táctil), características. |
+Cada juego tiene exactamente **5 archivos**:
+
+| Archivo | Rol | Contenido típico |
+|---------|-----|------------------|
+| `index.html` | Estructura | Canvas, loading spinner, HUD, overlay, game bar, touch controls, módulos compartidos |
+| `style.css` | Estilo específico | Solo `:root { --accent: ... }` y elementos únicos del juego |
+| `script.js` | Lógica | Módulo ES con constantes, estado, entrada, física, render y bucle principal |
+| `metadata.json` | Metadatos | Versión, fechas, changelog (se muestra en el modal de ayuda) |
+| `README.md` | Documentación | Descripción, tabla de controles (teclado + gamepad + táctil), características |
 
 ---
 
-## 🎮 Juegos disponibles (16)
+## 🎮 Juegos disponibles
 
 | # | Juego | Género | Descripción |
 |---|-------|--------|-------------|
@@ -85,62 +92,142 @@ arcade-hub/
 | 5 | 🚀 **Asteroids** | Space Shooter | Asteroides que se fragmentan, nave con inercia y wrapping. |
 | 6 | 👾 **Space Invaders** | Space Shooter | Oleadas de invasores, escudos, nave misteriosa. |
 | 7 | 🐤 **Flappy Bird** | Arcade | Volá esquivando tubos con gravedad y aleteo. |
-| 8 | 🟡 **Pac-Man** | Laberinto | 4 IAs de fantasmas distintas, power pellets, fruta bonus. |
-| 9 | 🧊 **Tetris** | Puzzle | 7 piezas, ghost piece, next preview, niveles progresivos. |
-| 10 | 🐸 **Frogger** | Arcade | Cruzá calle y río, 5 zonas seguras, temporizador. |
+| 8 | 🟡 **Pac-Man** | Laberinto | 4 IAs de fantasmas, power pellets, fruta bonus. |
+| 9 | 🧊 **Tetris** | Puzzle | 7 piezas, ghost piece, next preview, niveles. |
+| 10 | 🐸 **Frogger** | Arcade | Cruzá calle y río, 5 zonas seguras. |
 | 11 | 🛸 **Galaga** | Space Shooter | Invasores en formación con picados en espiral. |
-| 12 | 🐛 **Centipede** | Arcade | Ciempiés, hongos, araña, pulgas, escorpiones venenosos. |
+| 12 | 🐛 **Centipede** | Arcade | Ciempiés, hongos, araña, pulgas, escorpiones. |
 | 13 | ⛏️ **Dig Dug** | Arcade | Excavá túneles, inflá enemigos, derrumbá rocas. |
-| 14 | 🚀 **Missile Command** | Defensa | Defendé ciudades con interceptores, misiles inteligentes. |
+| 14 | 🚀 **Missile Command** | Defensa | Defendé ciudades con interceptores y misiles inteligentes. |
 | 15 | ◈ **Neon Nexus** | Tower Defense Roguelike | Defiende tu torre, mejora con estrellas, elige cartas de poder. |
-| 16 | 🟣 **Cell Swarm** | Battle Royale | Crecé comiendo células, dividite, eyectá masa. ¡Sé el más grande! |
+| 16 | 🟣 **Cell Swarm** | Battle Royale | Crecé comiendo células, dividite, eyectá masa. |
+
+> Todos los juegos son **100% funcionales** (status: `listo`).
 
 ---
 
 ## 🧩 Cómo agregar un juego nuevo
 
-### 1. Crear la carpeta del juego
+Agregar un juego al Arcade Hub es un proceso de 5 pasos:
+
+### 1. Crear la carpeta y archivos
 
 ```bash
 mkdir games/mi-juego
 ```
 
-### 2. Crear los archivos
+Dentro de `games/mi-juego/` crear 5 archivos:
 
 ```
-games/mi-juego/
-├── index.html        # Estructura HTML + import de shared/base.css + script.js
-├── style.css         # Variables neon (--accent, --accent-glow), estilos específicos
-├── script.js         # Módulo ES: import { beep } from '../../shared/audio.js'
-├── metadata.json     # Versión, fechas, changelog
-└── README.md         # Descripción y controles
+index.html        → estructura HTML con canvas, loading, game bar y overlay
+style.css         → definir :root { --accent: ...; --accent-glow: ... }
+script.js         → módulo ES importando desde ../../shared/
+metadata.json     → versión 1.0.0, fecha, changelog inicial
+README.md         → descripción y tabla de controles
 ```
 
-### 3. Seguir las convenciones
+### 2. Seguir las convenciones técnicas
 
-Ver `CLAUDE.md` para reglas detalladas. Resumen rápido:
+| Aspecto | Regla |
+|---------|-------|
+| **Renderizado** | `<canvas>` 2D — nada de Three.js ni WebGL |
+| **Paleta neon** | Usar variables `var(--neon-cyan)`, `var(--neon-pink)`, etc. de `shared/base.css` |
+| **Entrada** | Teclado (flechas/WASD + acción) + Táctil (`.is-pressed` + `@media hover:none`) + Gamepad (polling en loop) |
+| **Overlay** | Estructura `#overlay` de `base.css` con `--accent` y `--overlay-grad-start` |
+| **Ayuda** | Importar `showHelp` de `../../shared/help.js` y conectarlo al `#helpBtn` |
+| **Módulos** | Importar desde `../../shared/` — no importar de otros juegos |
+| **Persistencia** | `localStorage` con key namespaced: `<gameId>_<clave>` |
+| **Sonido** | `beep({freq, duration, type, volume})` desde `shared/audio.js` — nunca archivos externos |
+| **Partículas** | `spawnParticles()` + `updateParticles()` + `drawParticles()` desde `shared/effects.js` |
 
-- **Canvas 2D** — nada de Three.js ni motores 3D
-- **Paleta neon** — usar variables `var(--neon-cyan)`, `var(--neon-pink)`, etc. de `shared/base.css`
-- **3 modos de entrada** — teclado (flechas/WASD + acción), táctil (`.is-pressed` + media query), gamepad (polling en el loop)
-- **Módulos compartidos** — importar `audio.js`, `effects.js`, `achievements.js` desde `../../shared/`
-- **Persistencia** — `localStorage` con key namespaced: `<gameId>_<key>`
-- **Overlay** — usar la estructura `#overlay` de `shared/base.css` con variable `--accent`
-- **Ayuda** — importar `showHelp` de `../../shared/help.js` y llamarlo desde `helpBtn`
+### 3. Registrar el juego en el hub
 
-### 4. Registrar el juego
+En `games.js` agregar una entrada como esta:
 
-- Agregar entrada en `games.js` con `status: 'listo'` o `'en-desarrollo'`
-- Agregar la ruta al `index.html` en `FILES` de `sw.js`
-- Listo — el hub lo muestra automáticamente
+```js
+{
+  id: 'mi-juego',
+  title: 'Mi Juego',
+  description: 'Una breve descripción del juego.',
+  file: './games/mi-juego/index.html',
+  icon: '🎮',
+  status: 'listo',       // o 'en-desarrollo' para placeholder
+  genre: 'arcade',
+}
+```
+
+### 4. Agregar al Service Worker
+
+En `sw.js`:
+- Agregar la ruta `'./games/mi-juego/index.html'` al array `FILES`
+- Incrementar la versión en `CACHE` si ya hay usuarios en producción
 
 ### 5. Validar
 
 ```bash
-npm run lint          # ESLint — sin errores
+npm run lint          # ESLint — 0 errores
 npm run format        # Prettier — formato consistente
-npm run check         # Ambos
+npm run check         # lint + format combinados
 ```
+
+---
+
+## 🧠 Cómo funciona
+
+### Ciclo de vida de un juego
+
+```
+1. Usuario abre games/mi-juego/index.html
+2. Se muestra el loading spinner (#loading)
+3. Se importan los módulos shared (audio, effects, achievements, help)
+4. Se inicializa el canvas y el bucle de animación (requestAnimationFrame)
+5. Se oculta el loading y se muestra el overlay de inicio
+6. El usuario presiona Espacio / clic / botón de gamepad para empezar
+7. El juego corre en su bucle principal (input → update → render)
+8. Al terminar, se muestra el overlay de fin de partida (puntaje, récord)
+9. El usuario puede reiniciar (R / clic en overlay / botón de acción)
+```
+
+### Módulos compartidos
+
+Cada módulo en `shared/` provee funciones exportadas que los juegos importan:
+
+```
+shared/audio.js       → beep(), startAmbient(), stopAmbient()
+shared/effects.js     → spawnParticles(), updateParticles(), drawParticles(),
+                        triggerShake(), getShakeOffset(), triggerFlash(), drawFlash()
+shared/achievements.js → unlockAchievement(), getAchievements(), trackPlay()
+shared/help.js        → showHelp(gameId)
+shared/base.css       → Variables neon, overlay, HUD, touch controls, game bar
+```
+
+### Diseño del hub
+
+El hub (`index.html`) es una página estática que:
+
+1. **Lee `games.js`** — carga el manifiesto con metadata de cada juego
+2. **Renderiza tarjetas** — cada juego se muestra como una card con icono, título y descripción
+3. **Ofrece toolbar** — búsqueda por nombre, orden (defecto/nombre/nuevos/más jugados), vista grilla/lista
+4. **Muestra stats** — contadores animados, logros desbloqueados, Top 3 de juegos más jugados
+5. **Fondo animado** — canvas con nebulosas, estrellas y grid que transiciona con el tema
+6. **Tema oscuro/claro** — con persistencia en `localStorage` y transición suave
+
+---
+
+## 🎨 Sistema de diseño
+
+El proyecto usa un sistema de tokens visuales:
+
+| Variable | Valor | Uso |
+|----------|-------|-----|
+| `--neon-cyan` | `#00f0ff` | Acento primario del hub |
+| `--neon-pink` | `#ff2d78` | Acento secundario |
+| `--neon-gold` | `#ffb800` | Acento terciario |
+| `--neon-green` | `#39ff14` | Estado "jugable" |
+| `--accent` | *(por juego)* | Color principal del juego |
+
+**Tipografía**: Bungee (display, solo títulos) + Inter (body) en el hub.  
+**Courier New** (monoespaciada, estilo terminal) en los juegos.
 
 ---
 
@@ -152,23 +239,8 @@ npm run check         # Ambos
 | Sonido | Web Audio API (osciladores sintetizados) |
 | Estilos | CSS vanilla con variables + neon palette |
 | Persistencia | `localStorage` |
-| Logros | `shared/achievements.js` |
-| Service Worker | `sw.js` para offline |
-| Tipografía | Bungee (display) + Inter (body) en el hub, Courier New en juegos |
+| Service Worker | `sw.js` — cache-first offline |
 | Sin dependencias | Sin frameworks, sin librerías externas |
-
----
-
-## 📐 Diseño visual
-
-El hub está diseñado con la skill `frontend-design` (`.agents/skills/frontend-design.md`) que define:
-
-- **Paleta**: 4 colores intencionales (cyan-neon `#00f0ff`, pink-neon `#ff2d78`, gold-neon `#ffb800`, green-neon `#39ff14`)
-- **Tipografía**: Bungee para display, Inter para body en el hub
-- **Elemento signature**: Marquee chase-light border animado en el título del hub
-- **Riesgo estético**: Contadores animados tipo máquina tragamonedas en las stats del hero
-
-Cada juego tiene su propio color de acento (`--accent`) heredado del sistema de tokens.
 
 ---
 

@@ -6,13 +6,13 @@ Este archivo documenta cómo trabajar en este repo. **Léelo antes de crear o mo
 
 ## 🎯 Regla de oro: estética 2D/2.5D, no 3D
 
-Los juegos usan **`<canvas>` 2D** como base. Está permitido dar sensación de profundidad con:
+Los juegos usan **`<canvas>` 2D** como base. Técnicas 2.5D permitidas:
 - Paralaje de fondos (capas a distinta velocidad)
 - Sombras proyectadas dibujadas a mano
-- Perspectiva/inclinación simulada (escalar sprites por "distancia")
+- Perspectiva simulada (escalar sprites por "distancia")
 - Ángulos de cámara fijos tipo isométrico
 
-**No** usar motores 3D (Three.js, WebGL). Las versiones 3D antiguas están en `games/legacy-3d/` como referencia de gameplay/física, pero no se agregan al manifiesto activo (`games.js`).
+**No** usar motores 3D (Three.js, WebGL). Las versiones 3D antiguas están en `games/legacy-3d/` como referencia de gameplay — no se agregan al manifiesto activo.
 
 ---
 
@@ -20,37 +20,26 @@ Los juegos usan **`<canvas>` 2D** como base. Está permitido dar sensación de p
 
 ```
 arcade-hub/
-├── index.html            # Hub principal (grilla de juegos, neon, marquee)
-├── games.js              # Manifiesto con metadata de cada juego
-├── sw.js                 # Service Worker (cache-first, offline)
+├── index.html            # Hub — grilla neon con toolbar, stats, fondo animado
+├── games.js              # Manifiesto — metadata (id, title, icon, status) de cada juego
+├── sw.js                 # Service Worker — cache-first, offline
 │
-├── shared/
-│   ├── base.css          # NEON PALETTE + overlay, HUD, touch controls compartidos
-│   ├── audio.js          # Web Audio API (beep, ambient)
-│   ├── achievements.js   # Logros + contador de partidas
-│   ├── effects.js        # Screen shake, partículas, flash, roundRect
-│   └── help.js           # Modal de ayuda contextual
+├── shared/               # Módulos compartidos (import relativo desde cada juego)
+│   ├── base.css          #   Neon palette, overlay, HUD, touch controls, game bar
+│   ├── audio.js          #   Web Audio API: beep(), startAmbient(), stopAmbient()
+│   ├── effects.js        #   Screen shake, partículas, flash, roundRect
+│   ├── achievements.js   #   Logros + contador de partidas (localStorage)
+│   └── help.js           #   Modal de ayuda contextual con metadata y changelog
 │
-├── games/
+├── games/                # 16 juegos, cada uno con 5 archivos
 │   ├── pong/             → index.html, style.css, script.js, metadata.json, README.md
 │   ├── breakout/         → (misma estructura)
-│   ├── snake/
-│   ├── ...               # 16 juegos en total
-│   └── legacy-3d/        # Versiones Three.js antiguas (solo referencia)
+│   ├── ...               → 16 en total
+│   └── legacy-3d/        → Versiones Three.js archivadas (solo referencia)
 │
-└── .agents/skills/
-    └── frontend-design.md  # Skill de diseño visual instalada
+└── .agents/skills/       → Skills instalados para trabajo con IA
+    └── frontend-design.md
 ```
-
-Cada juego tiene **5 archivos**:
-
-| Archivo | Propósito |
-|---------|-----------|
-| `index.html` | Estructura HTML (loading, HUD, overlay, game bar, touch controls). Sin CSS/JS inline. |
-| `style.css` | Estilos específicos: solo define `:root { --accent: ... }` y colores particulares. |
-| `script.js` | Módulo ES (`type="module"`). Importa desde `../../shared/`. |
-| `metadata.json` | Versión, fechas, changelog. |
-| `README.md` | Descripción, controles y características. |
 
 ---
 
@@ -59,19 +48,19 @@ Cada juego tiene **5 archivos**:
 ### Variables CSS compartidas (`shared/base.css`)
 
 ```css
---neon-cyan:   #00f0ff;   /* Acento primario */
+--neon-cyan:   #00f0ff;   /* Acento primario del hub */
 --neon-pink:   #ff2d78;   /* Acento secundario */
 --neon-gold:   #ffb800;   /* Acento terciario */
---neon-green:  #39ff14;   /* Acento verde arcade */
---neon-purple: #c084fc;   /* Acento púrpura */
---neon-red:    #ff5e7a;   /* Acento rojo */
---neon-blue:   #6ec6ff;   /* Acento azul */
---neon-yellow: #ffe066;   /* Acento amarillo */
+--neon-green:  #39ff14;   /* Verde arcade (status listo) */
+--neon-purple: #c084fc;
+--neon-red:    #ff5e7a;
+--neon-orange: #ff8a65;
+--neon-blue:   #6ec6ff;
+--neon-yellow: #ffe066;
+--neon-white:  #ffffff;
 ```
 
-### Por juego: definir `--accent`
-
-Cada `style.css` debe definir su acento y glow:
+### Cada juego define solo su acento
 
 ```css
 :root {
@@ -83,16 +72,19 @@ Cada `style.css` debe definir su acento y glow:
 
 ### Patrones compartidos en `base.css`
 
-`shared/base.css` ya incluye estilos base para:
-- **Overlay** (`#overlay`) — con variables `--accent`, `--accent-glow`, `--overlay-grad-start`
-- **HUD** — `.score-group`/`.sg`, `.score-block`/`.sb`, `.score-sep`/`.sp`
-- **Touch controls** — `#touchControls`/`#tc`, `.dpad`/`.dp`
-- **Game bar** — `#gameBar` con botones
-- **Loading spinner** — `#loading` con animación
-- **Reduced motion** — media query `prefers-reduced-motion`
-- **Responsive** — media queries para 520px, 480px
+`shared/base.css` ya incluye estilos para todo lo común:
 
-Cada juego solo necesita definir **lo que es único**: colores de score blocks, touch control accent colors, y elementos especiales (leaderboard, name entry, shop).
+| Componente | Selectores |
+|-----------|------------|
+| Overlay | `#overlay` con `--accent`, `--accent-glow`, `--overlay-grad-start/end` |
+| HUD | `.score-group`/`.sg`, `.score-block`/`.sb`, `.score-sep`/`.sp` |
+| Touch controls | `#touchControls`/`#tc`, `.dpad`/`.dp` |
+| Game bar | `#gameBar` con botones estilo panel translúcido |
+| Loading | `#loading` con spinner animado |
+| Reduced motion | `@media (prefers-reduced-motion)` |
+| Responsive | Media queries para 520px, 480px |
+
+Cada `style.css` solo necesita elementos únicos: colores de score blocks, touch control accents, leaderboard, name entry, shop, cards...
 
 ---
 
@@ -100,19 +92,19 @@ Cada juego solo necesita definir **lo que es único**: colores de score blocks, 
 
 Todo juego debe soportar desde el primer build:
 
-| Modo | Implementación |
-|------|----------------|
-| ⌨️ **Teclado** | Flechas/WASD + tecla de acción (`Espacio`) |
-| 👆 **Táctil** | Botones on-screen visibles solo en táctil (`@media (hover: none) and (pointer: coarse)`) con feedback (`.is-pressed` + `:active`) |
-| 🕹️ **Gamepad** | Polling en el loop principal (stick + D-pad + botón de acción) |
-| 🔄 **Reinicio** | Tecla `R` + tap en overlay + botón de acción |
+| Modo | Cómo |
+|------|------|
+| ⌨️ **Teclado** | Flechas/WASD + tecla de acción (`Espacio`) + `R` reinicio |
+| 👆 **Táctil** | Botones visibles solo en táctil (`@media (hover: none) and (pointer: coarse)`) con feedback (`.is-pressed` + `:active`) |
+| 🕹️ **Gamepad** | Polling en loop principal: stick/D-pad para movimiento, botón para acción |
+| 🔄 **Reinicio** | Tecla `R` + tap en overlay + botón de acción principal |
 
 ---
 
 ## 🔊 Sonido y partículas
 
-- **Sonido**: Web Audio API con `beep({freq, duration, type, volume})` desde `shared/audio.js`. Nunca archivos externos.
-- **Ambient**: `startAmbient()` / `stopAmbient()` del mismo módulo para música de fondo drone.
+- **Sonido**: `beep({freq, duration, type, volume})` desde `shared/audio.js`. Nunca archivos externos.
+- **Ambient**: `startAmbient()` / `stopAmbient()` para música drone de fondo.
 - **Partículas**: `spawnParticles()`, `updateParticles()`, `drawParticles()` desde `shared/effects.js`. Física inline solo si es muy especial.
 - **Screen shake**: `triggerShake(intensity)` + `getShakeOffset()` desde `shared/effects.js`.
 
@@ -120,7 +112,8 @@ Todo juego debe soportar desde el primer build:
 
 ## 💾 Persistencia
 
-`localStorage` con key namespaced: `<gameId>_<clave>` (ej. `pong2d_wins`, `breakout2d_best`).
+`localStorage` con key namespaced: `<gameId>_<clave>` (ej. `pong2d_wins`, `breakout2d_best`).  
+El sistema de logros usa `ach_data` en `shared/achievements.js`.
 
 ---
 
@@ -140,74 +133,72 @@ No importar de otros juegos ni de fuera de `shared/`.
 
 ## 🔧 Skills locales recomendadas
 
-El proyecto incluye skills instaladas en `.agents/skills/`. Estas skills proporcionan guías detalladas para tareas específicas. **Usarlas siempre que sea relevante.**
+Skills instaladas en `.agents/skills/`. **Cargar la skill relevante antes de ejecutar la tarea** con:
+
+```
+skill("frontend-design")
+```
 
 | Skill | Cuándo usarla |
 |-------|---------------|
-| `frontend-design` | Rediseñar el hub o un juego — define paleta, tipografía, layout y elemento signature |
-| `game-feel` | Agregar juicio (juice): screen shake, hit-stop, squash & stretch, knockback |
-| `game-ui-ux` | Diseñar HUDs, menús, overlays responsivos y navegación por foco |
-| `audio-design` | Diseñar sonido adaptativo, mezcla, ducking, SFX variation |
-| `physics-tuning` | Ajustar física: fixed timestep, CCD anti-tunneling, gravedad, drag |
-| `input-systems` | Arquitectura de input: action mapping, rebinding, deadzones, accesibilidad |
-| `performance-optimization` | Optimizar rendimiento: object pooling, draw-call batching, GC |
-| `save-systems` | Diseñar save/load: slots, migración de schemas, escritura atómica |
-| `game-balance` | Analizar y balancear economía, dificultad, progresión y reward schedules |
+| `frontend-design` | Rediseñar hub o juego — paleta, tipografía, layout, elemento signature |
+| `game-feel` | Agregar juicio: screen shake, hit-stop, squash & stretch, knockback |
+| `game-ui-ux` | Diseñar HUDs, menús, overlays, navegación por foco |
+| `audio-design` | Diseño de sonido adaptativo, mezcla, ducking, variación SFX |
+| `physics-tuning` | Ajustar física: fixed timestep, CCD anti-tunneling, gravedad |
+| `input-systems` | Arquitectura de input: action mapping, rebinding, deadzones |
+| `performance-optimization` | Optimizar: object pooling, draw-call batching, GC |
+| `save-systems` | Save/load: slots, migración, escritura atómica |
+| `game-balance` | Balancear economía, dificultad, progresión, rewards |
 | `itch-publish` | Publicar en itch.io con butler |
 | `steam-publish` | Publicar en Steam con SteamPipe |
 
-Para cargar una skill: `skill("nombre-de-skill")`
-
 ---
 
-## ✅ Después de construir/modificar un juego
+## ✅ Checklist post-modificación
 
-1. ✅ Correr `npm run lint` — 0 errores, 0 warnings
-2. ✅ Correr `npm run format` — Prettier sin cambios pendientes
-3. ✅ Correr `npm run check` — lint + format combinados
-4. ✅ Revisar los 3 modos de entrada (teclado/táctil/gamepad)
-5. ✅ Verificar anti-tunneling si hay objetos rápidos
-6. ✅ Confirmar que HUD + overlay muestran resultado y récord
+Después de construir o modificar un juego:
+
+1. ✅ `npm run lint` — 0 errores, 0 warnings
+2. ✅ `npm run format` — Prettier sin cambios pendientes
+3. ✅ `npm run check` — lint + format combinados
+4. ✅ Probar los 3 modos de entrada (teclado/táctil/gamepad)
+5. ✅ Verificar anti-tunneling si hay objetos rápidos (`velocidad * dt >= grosor`)
+6. ✅ Confirmar que HUD + overlay muestran resultado y récord persistido
 7. ✅ Agregar ruta a `FILES` en `sw.js`
-8. ✅ Actualizar `README.md` del juego si cambiaron controles, características o metadata
+8. ✅ Actualizar `README.md` del juego si cambiaron controles o features
 9. ✅ Actualizar `metadata.json` con nueva versión y changelog
-10. ✅ **Hacer commit** después de cada tarea completada con mensaje descriptivo
-
----
-
-## 🧪 Flujo de trabajo sugerido
-
-1. Leer este archivo (`CLAUDE.md`) y `TODO.md` antes de empezar
-2. Identificar la skill relevante y cargarla con `skill("nombre")`
-3. Ejecutar cambios siguiendo las convenciones
-4. Validar con `npm run check`
-5. **Commit + push** después de cada tarea
-
----
-
-## 📐 El hub (`index.html` + `games.js`)
-
-- `games.js` es la única fuente de metadata. El hub solo lo lee.
-- `status: 'listo'` = jugable, `'en-desarrollo'` = placeholder sin enlace.
-- Rutas siempre relativas (`./games/...`), nunca absolutas.
-
----
-
-## ⚠️ Anti-tunneling
-
-Si `velocidad_máxima * dt_máximo` es mayor o igual al grosor mínimo de colisión, subdividir el movimiento del frame en sub-pasos.
+10. ✅ **Hacer commit** después de cada tarea (mensaje descriptivo)
 
 ---
 
 ## 📋 Service Worker (`sw.js`)
 
-- Cachea todos los archivos estáticos para offline.
+- Cachea todos los archivos estáticos con estrategia **cache-first**.
 - **Al agregar un juego**: agregar ruta a `FILES`.
 - **Al actualizar**: incrementar versión en `CACHE` (ej. `arcadehub-v3`).
-- Estrategia: **cache-first**.
 
 ---
 
-## Distinción con otros proyectos
+## 🌐 El hub (`index.html` + `games.js`)
 
-Este repo es **deliberadamente simple**: directorio de juegos autocontenidos desde un hub estático. No usa arquitectura de motor compartido, SvelteKit, Express, Prisma ni Supabase como otros proyectos similares.
+- `games.js` es la única fuente de metadata. El hub solo lo lee y renderiza.
+- `status: 'listo'` = jugable. `'en-desarrollo'` = placeholder sin enlace.
+- Rutas siempre relativas (`./games/...`), nunca absolutas con `/`.
+- Cada tarjeta recibe colores del per-game `palette` en el hub.
+
+---
+
+## ⚠️ Anti-tunneling
+
+Si `velocidad_máxima * dt_máximo >= grosor_mínimo_colisión`, subdividir el movimiento en sub-pasos.
+
+---
+
+## 🧪 Flujo de trabajo recomendado
+
+1. Leer `CLAUDE.md` y `TODO.md` primero
+2. Identificar la skill relevante y cargarla
+3. Ejecutar cambios siguiendo las convenciones
+4. Validar con `npm run check`
+5. **Commit + push** después de cada tarea

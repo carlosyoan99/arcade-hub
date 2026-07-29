@@ -4,6 +4,10 @@
 
 Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos, nave misteriosa y velocidad progresiva.
 
+## Captura
+
+![Space Invaders en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

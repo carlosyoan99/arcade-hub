@@ -4,6 +4,10 @@
 
 Rompe todos los ladrillos con la pelota. 5 filas de colores, niveles progresivos y récord persistido.
 
+## Captura
+
+![Breakout en acción](./screenshot.png)
+
 ## Controles
 
 | Dispositivo | Acción | Tecla / Control |

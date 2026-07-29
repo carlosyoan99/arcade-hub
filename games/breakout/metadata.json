@@ -1,7 +1,7 @@
 {
   "id": "breakout",
   "title": "Breakout",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created": "2026-06-03",
   "lastModified": "2026-07-28",
   "description": "Rompe todos los ladrillos con la pelota. 5 filas de colores, niveles progresivos.",
@@ -22,6 +22,14 @@
         "Refactor a carpeta individual",
         "Botón ayuda + Volver al hub",
         "Screen shake y partículas compartidas"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor CSS: estética neon compartida en base.css",
+        "README.md con controles y descripción"
       ]
     }
   ]

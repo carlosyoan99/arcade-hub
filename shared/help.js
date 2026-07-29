@@ -189,6 +189,32 @@ const GAMES = {
       },
     ],
   },
+  'neon-nexus': {
+    title: 'Neon Nexus',
+    icon: '◈',
+    controls: [
+      'Click / tocar enemigos para daño extra',
+      '1 / 2 / 3 para mejorar ATK, HP o Velocidad',
+      'T o tap en tienda para mejoras permanentes',
+      'Espacio para empezar / reiniciar',
+      '←→ para elegir carta entre oleadas',
+      'Gamepad: Stick para moverse, botones A/B/X/Y',
+    ],
+    goal: 'Defendé tu torre geométrica contra oleadas de formas neon. Elegí cartas de poder entre oleadas para construir tu build. Sobreviví el mayor tiempo posible en este tower defense roguelike.',
+    achievements: [],
+  },
+  'cell-swarm': {
+    title: 'Cell Swarm',
+    icon: '🟣',
+    controls: [
+      'Mouse / deslizar para mover tu célula',
+      'Espacio para dividirte (Split)',
+      'E para eyectar masa (Eject)',
+      'Gamepad: Stick para mover, A dividir, B eyectar',
+    ],
+    goal: 'Crece comiendo células más pequeñas y comida. Huí de las más grandes. Usá Split para cazar presas rápidas o escapar. Convertite en la célula más grande del mapa.',
+    achievements: [],
+  },
 };
 
 /**
