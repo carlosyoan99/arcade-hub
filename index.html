@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arcade Hub — 16 clásicos recreados</title>
+    <title>Arcade Hub — 19 clásicos recreados</title>
     <script>
       document.documentElement.dataset.theme =
         localStorage.getItem('arcadehub_theme') ||
@@ -12,20 +12,22 @@
     <link rel="icon" type="image/svg+xml" href="./asset/icons/favicon.svg" />
 
     <!-- Open Graph / Social Sharing -->
-    <meta property="og:title" content="Arcade Hub — 16 clásicos recreados" />
+    <meta id="og-title" property="og:title" content="Arcade Hub — 19 clásicos recreados" />
     <meta
+      id="og-desc"
       property="og:description"
-      content="16 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris, Neon Nexus y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
+      content="19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris, Neon Nexus y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Arcade Hub" />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:image" content="./asset/icons/favicon.svg" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Arcade Hub — 16 clásicos recreados" />
+    <meta id="tw-title" name="twitter:title" content="Arcade Hub — 19 clásicos recreados" />
     <meta
+      id="tw-desc"
       name="twitter:description"
-      content="16 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
+      content="19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
     />
     <meta name="twitter:image" content="./asset/icons/favicon.svg" />
 
@@ -491,6 +493,21 @@
         background: rgba(0, 240, 255, 0.1);
         border-color: rgba(0, 240, 255, 0.25);
         color: var(--cyan-neon);
+      }
+
+      .toolbar .view-btn.surprise {
+        font-size: 16px;
+        transition: all 0.25s ease;
+      }
+
+      .toolbar .view-btn.surprise:hover {
+        background: linear-gradient(135deg, rgba(255, 45, 120, 0.15), rgba(255, 184, 0, 0.15));
+        border-color: rgba(255, 45, 120, 0.3);
+        transform: scale(1.12) rotate(-8deg);
+      }
+
+      .toolbar .view-btn.surprise:active {
+        transform: scale(0.9) rotate(8deg);
       }
 
       /* ═══════════════════════════════════════════════════
@@ -1503,7 +1520,7 @@
         <h1>Arcade Hub</h1>
       </div>
       <p class="subtitle">
-        <strong>16 clásicos</strong> recreados con estética 2D / 2.5D — un archivo HTML
+        <strong>19 clásicos</strong> recreados con estética 2D / 2.5D — un archivo HTML
         autocontenido por juego
       </p>
       <div class="hero-stats">
@@ -1544,6 +1561,7 @@
           ▦
         </button>
         <button class="view-btn" id="viewListBtn" aria-label="Vista lista" title="Lista">☰</button>
+        <button class="view-btn surprise" id="surpriseBtn" aria-label="Juego al azar" title="¡Sorpresa!">🎲</button>
       </div>
     </div>
 
@@ -1941,6 +1959,28 @@
         return allGames;
       }
 
+      /* ── Hover sound effect ── */
+      let hoverAudioCtx = null;
+      let lastHoverSound = 0;
+      function playHoverSound() {
+        const now = Date.now();
+        if (now - lastHoverSound < 100) return; // throttle
+        lastHoverSound = now;
+        try {
+          if (!hoverAudioCtx) hoverAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (hoverAudioCtx.state === 'suspended') hoverAudioCtx.resume();
+          const osc = hoverAudioCtx.createOscillator();
+          const gain = hoverAudioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = 660 + Math.random() * 220;
+          gain.gain.setValueAtTime(0.04, hoverAudioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, hoverAudioCtx.currentTime + 0.08);
+          osc.connect(gain).connect(hoverAudioCtx.destination);
+          osc.start(hoverAudioCtx.currentTime);
+          osc.stop(hoverAudioCtx.currentTime + 0.08);
+        } catch { /* ignore audio errors */ }
+      }
+
       function renderCard(game, index, playsData = {}) {
         const isReady = game.status === 'listo';
         const el = document.createElement(isReady ? 'a' : 'div');
@@ -1956,6 +1996,7 @@
 
         if (isReady) {
           el.href = game.file;
+          el.addEventListener('mouseenter', playHoverSound);
           el.addEventListener('click', (e) => {
             if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
             e.preventDefault();
@@ -2053,6 +2094,11 @@
       }
       viewGridBtn.addEventListener('click', () => setView('grid'));
       viewListBtn.addEventListener('click', () => setView('list'));
+      document.getElementById('surpriseBtn').addEventListener('click', () => {
+        if (ready.length === 0) return;
+        const pick = ready[Math.floor(Math.random() * ready.length)];
+        window.location.hash = 'game/' + pick.id;
+      });
 
       /* ── Scroll reveal for sections ── */
       (function initScrollReveal() {
@@ -2277,6 +2323,11 @@
         gameContainer.setAttribute('aria-hidden', 'false');
         gameFrame.src = game.file;
         gameTitle.textContent = game.icon + ' ' + game.title;
+        document.title = 'Arcade Hub — ' + game.icon + ' ' + game.title;
+        document.getElementById('og-title').content = 'Arcade Hub — ' + game.icon + ' ' + game.title;
+        document.getElementById('og-desc').content = game.description;
+        document.getElementById('tw-title').content = 'Arcade Hub — ' + game.icon + ' ' + game.title;
+        document.getElementById('tw-desc').content = game.description;
         document.body.style.overflow = 'hidden';
       }
 
@@ -2284,6 +2335,13 @@
         gameContainer.classList.add('hidden');
         gameContainer.setAttribute('aria-hidden', 'true');
         gameFrame.src = '';
+        document.title = 'Arcade Hub — 19 clásicos recreados';
+        document.getElementById('og-title').content = 'Arcade Hub — 19 clásicos recreados';
+        document.getElementById('og-desc').content =
+          '19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias.';
+        document.getElementById('tw-title').content = 'Arcade Hub — 19 clásicos recreados';
+        document.getElementById('tw-desc').content =
+          '19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias.';
         document.body.style.overflow = '';
         history.replaceState(null, '', window.location.pathname + window.location.search);
       }

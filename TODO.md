@@ -122,16 +122,21 @@
 | 9  | **Variable `particles` local muerta** | cell-swarm, neon-nexus, digdug | Eliminadas declaraciones locales que sombreaban el pool. |
 | 10 | **Modo claro — contraste WCAG AA** | `shared/base.css`, `index.html` | `--text-secondary` 0.4→0.55 (~4.58:1). `--text-dim` #6a6890→#5d5b7a (~5.45:1). |
 
+### ✅ Completados (ronda hub — UX)
+
+| #  | Tarea | Archivos | Logrado |
+|----|-------|----------|---------|
+| 11 | **Título HTML dinámico** | `index.html` | `document.title` se actualiza con el nombre del juego al abrir vía hash routing. |
+| 12 | **Meta tags OG dinámicos** | `index.html` | `og:title`, `og:description`, `twitter:title`, `twitter:description` cambian por juego. |
+| 15 | **Botón Sorpresa** | `index.html` | 🎲 en toolbar → juego al azar de los disponibles. |
+| 16 | **Hover sonoro** | `index.html` | Sine tone 660±220Hz, gain 0.04, 0.08s. AudioContext lazy, throttle 100ms. |
+
 ### 🟡 Próximas (media prioridad)
 
 | #  | Tarea | Archivos | Detalle |
 |----|-------|----------|---------|
-| 11 | **Título HTML dinámico por juego** | `index.html` | Cambiar `<title>` según el contexto (hub vs juego específico). Mejora SEO y UX. |
-| 12 | **Meta tags dinámicos por juego** | `index.html` | Open Graph tags dinámicos al compartir un juego específico. |
 | 13 | **Pantalla de carga progresiva** | `index.html` | Barra de progreso al cargar módulos del hub (mejora perceived performance). |
 | 14 | **Animación \"inserción de moneda\"** | `index.html` | Secuencia nostálgica animada al cargar el hub. |
-| 15 | **Juego aleatorio / \"Sorpresa\"** | `index.html` | Botón que lleve a un juego al azar. Bueno para retention. |
-| 16 | **Efecto hover sonoro** | `index.html` | Sonido sutil al hover sobre tarjetas del hub. |
 
 ### 🟢 Ideas / Mejora continua
 
