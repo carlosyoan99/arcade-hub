@@ -146,4 +146,13 @@ export const games = [
     icon: '◈',
     status: 'listo',
   },
+  {
+    id: 'cell-swarm',
+    title: 'Cell Swarm',
+    description:
+      'Battle royale de células neón. Crece comiendo comida y células más pequeñas, divide tu masa para cazar, eyecta para distraer. ¡Conviértete en la célula más grande del mapa!',
+    file: 'games/cell-swarm/index.html',
+    icon: '🟣',
+    status: 'listo',
+  },
 ];

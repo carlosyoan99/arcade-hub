@@ -1,0 +1,19 @@
+{
+  "id": "cell-swarm",
+  "title": "Cell Swarm",
+  "version": "1.0.0",
+  "created": "2026-07-28",
+  "lastModified": "2026-07-28",
+  "description": "Battle royale de células. Crece comiendo comida y células más pequeñas, huye de las más grandes. ¡Divide, eyecta y conviértete en la célula más grande del mapa!",
+  "genre": "battle-royale",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlosyoan99/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-28",
+      "changes": ["Versión inicial del juego"]
+    }
+  ]
+}

@@ -29,6 +29,7 @@ const FILES = [
   './games/digdug/index.html',
   './games/missile-command/index.html',
   './games/neon-nexus/index.html',
+  './games/cell-swarm/index.html',
 ];
 
 // Instalación: precachear todos los archivos

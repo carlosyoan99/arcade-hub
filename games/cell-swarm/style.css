@@ -1,0 +1,379 @@
+/* ============================================================
+   CELL SWARM — Estilos para battle royale de células
+   ============================================================ */
+
+/* ── HUD ── */
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#hud .hud-group {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 5px 14px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#hud .hud-item {
+  text-align: center;
+  padding: 0 8px;
+}
+
+#hud .hud-item .label {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+}
+
+#hud .hud-item .value {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+#hud .hud-item.mass .value {
+  color: #00f5ff;
+}
+
+#hud .hud-item.rank .value {
+  color: #ffd93d;
+}
+
+#hud .hud-divider {
+  width: 1px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 4px;
+}
+
+/* ── Action buttons ── */
+#actions {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.action-btn {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 8px 14px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.12s ease;
+  touch-action: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.action-btn:hover {
+  background: rgba(0, 245, 255, 0.12);
+  border-color: rgba(0, 245, 255, 0.25);
+}
+
+.action-btn:active {
+  transform: scale(0.93);
+}
+
+/* ── Leaderboard ── */
+#leaderboard {
+  position: fixed;
+  top: 60px;
+  right: 12px;
+  z-index: 11;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 8px 12px;
+  min-width: 120px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.lb-header {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lb-entry {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 2px 0;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.lb-entry .lb-rank {
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-entry .lb-name {
+  color: rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
+
+.lb-entry .lb-mass {
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
+}
+
+.lb-entry.is-player {
+  background: rgba(0, 245, 255, 0.08);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: 0 -4px;
+}
+
+.lb-entry.is-player .lb-name {
+  color: #00f5ff;
+}
+
+/* ── Name Entry ── */
+#nameOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: radial-gradient(circle at 50% 40%, rgba(8, 8, 30, 0.92), rgba(4, 4, 12, 0.97));
+  z-index: 30;
+  color: #fff;
+  text-align: center;
+  transition: opacity 0.4s ease;
+}
+
+#nameOverlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#nameOverlay h1 {
+  font-size: 30px;
+  letter-spacing: 6px;
+  text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+}
+
+#nameOverlay h1 .accent {
+  color: #00f5ff;
+}
+
+#nameOverlay p {
+  font-size: 13px;
+  opacity: 0.7;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+#nameOverlay .hint {
+  font-size: 11px;
+  opacity: 0.35;
+}
+
+#nameInput {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px 20px;
+  color: #fff;
+  font-size: 18px;
+  font-family: inherit;
+  text-align: center;
+  outline: none;
+  width: 240px;
+  max-width: 80vw;
+  transition: border-color 0.2s ease;
+}
+
+#nameInput:focus {
+  border-color: rgba(0, 245, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.06);
+}
+
+#nameInput::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+#btnStart {
+  background: rgba(0, 245, 255, 0.12);
+  border: 1px solid rgba(0, 245, 255, 0.25);
+  border-radius: 10px;
+  padding: 10px 36px;
+  color: #00f5ff;
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+#btnStart:hover {
+  background: rgba(0, 245, 255, 0.2);
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+}
+
+#btnStart:active {
+  transform: scale(0.95);
+}
+
+/* ── Game Over ── */
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: radial-gradient(circle at 50% 40%, rgba(20, 8, 30, 0.85), rgba(4, 4, 12, 0.95));
+  color: #fff;
+  text-align: center;
+  z-index: 20;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+#overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.92) translateY(-8px);
+}
+
+#overlay h1 {
+  font-size: 28px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(255, 94, 122, 0.3);
+  color: #ff5e7a;
+}
+
+#overlay p {
+  opacity: 0.8;
+  font-size: 13px;
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+#overlay .hint {
+  font-size: 11px;
+  opacity: 0.4;
+}
+
+#finalScore {
+  font-size: 15px;
+  opacity: 0.85;
+}
+
+/* ── Touch controls ── */
+#touchControls {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: none;
+  justify-content: center;
+  gap: 20px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+#touchControls button {
+  pointer-events: auto;
+  width: 56px;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 18px;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.08s ease,
+    transform 0.08s ease;
+  touch-action: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+#touchControls button:active,
+#touchControls button.is-pressed {
+  background: rgba(0, 245, 255, 0.2);
+  border-color: rgba(0, 245, 255, 0.3);
+  transform: scale(0.9);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #touchControls {
+    display: flex;
+  }
+  #actions {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  #leaderboard {
+    top: 52px;
+    right: 8px;
+    min-width: 100px;
+    padding: 6px 10px;
+  }
+  .lb-entry {
+    font-size: 10px;
+  }
+  #nameOverlay h1 {
+    font-size: 22px;
+  }
+  #nameInput {
+    font-size: 16px;
+    width: 200px;
+  }
+  #touchControls button {
+    width: 50px;
+    height: 46px;
+    font-size: 16px;
+  }
+}
