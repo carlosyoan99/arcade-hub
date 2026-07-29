@@ -82,10 +82,6 @@ resize();
 function pFire() {
   beep({ freq: 900, freqEnd: 1400, duration: 0.04, type: 'square', volume: 0.08 });
 }
-function pHit() {
-  beep({ freq: 300, freqEnd: 60, duration: 0.15, type: 'sawtooth', volume: 0.14 });
-  triggerShake(2);
-}
 function pExplode() {
   beep({ freq: 200, freqEnd: 40, duration: 0.2, type: 'sawtooth', volume: 0.18 });
   triggerShake(3);
@@ -122,8 +118,8 @@ let formationDir = 1,
 let diving = []; // enemies currently diving
 let bonusActive = false,
   bonusTimer = 0;
-let diveTimer = 0,
-  diveInterval = 2.5;
+let diveTimer = 0;
+const diveInterval = 2.5;
 
 function buildEnemies() {
   enemies = [];
@@ -308,8 +304,8 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gI = null,
-  gP = { f: false, s: false };
+let gI = null;
+const gP = { f: false, s: false };
 window.addEventListener('gamepadconnected', (e) => (gI = e.gamepad.index));
 window.addEventListener('gamepaddisconnected', (e) => {
   if (gI === e.gamepad.index) gI = null;

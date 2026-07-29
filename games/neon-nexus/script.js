@@ -75,8 +75,8 @@ const CARD_POOL = [
   {
     id: 'multishot',
     name: '🔱 +1 Proyectil',
-    desc: 'Dispara un proyectil adicional',
-    rarity: 'rare',
+    desc: 'Apunta a enemigos distintos o al azar',
+    rarity: 'common',
   },
   { id: 'aoe', name: '💥 Explosión', desc: 'Proyectiles explotan en área (60px)', rarity: 'epic' },
   {
@@ -87,9 +87,28 @@ const CARD_POOL = [
   },
   { id: 'atkSpd', name: '⚡ Cargador', desc: '+40% velocidad de disparo', rarity: 'common' },
   { id: 'atkUp', name: '🔫 Cañón', desc: '+40% daño de torre', rarity: 'common' },
-  { id: 'regen', name: '💚 Regeneración', desc: '+2 PV/s', rarity: 'rare' },
+  { id: 'regen', name: '💚 Regeneración', desc: '+3 PV/s', rarity: 'rare' },
   { id: 'magnet', name: '🧲 Imán', desc: 'Dobla rango de atracción', rarity: 'common' },
   { id: 'thorns', name: '🛡️ Púas', desc: 'Refleja 25% daño recibido', rarity: 'rare' },
+  { id: 'drain', name: '💧 Drenar', desc: 'Drena 4% PV/s del enemigo más cercano', rarity: 'rare' },
+  {
+    id: 'turret',
+    name: '🔧 Torreta Auxiliar',
+    desc: 'Torreta extra que dispara sola',
+    rarity: 'epic',
+  },
+  {
+    id: 'regenShield',
+    name: '🛡️ Escudo Regenerativo',
+    desc: 'Escudo se regenera 4/s tras 2s sin daño',
+    rarity: 'rare',
+  },
+  {
+    id: 'globalSlow',
+    name: '🌀 Ralentización Global',
+    desc: 'Ralentiza 25% a todos los enemigos',
+    rarity: 'common',
+  },
 ];
 
 const SHOP_ITEMS = [
@@ -252,6 +271,10 @@ function loadPerm() {
     regen: 0,
     magnet: 0,
     thorns: 0,
+    drain: false,
+    turret: false,
+    regenShield: false,
+    globalSlow: 0,
   };
 }
 
@@ -312,7 +335,7 @@ function spawnEnemy(type) {
   const dist = ARENA_R - def.r - 5;
   const x = TOWER_CX + Math.cos(angle) * dist;
   const y = TOWER_CY + Math.sin(angle) * dist;
-  const hpMult = 1 + (state.wave - 1) * 0.35;
+  const hpMult = 1 + (state.wave - 1) * 0.28;
   const spdMult = 1 + (state.wave - 1) * 0.015;
 
   enemies.push({
@@ -358,11 +381,37 @@ function spawnWave() {
 // PROYECTILES
 // ============================================================
 function fireProjectile(target) {
-  const projs = state.cards.multishot > 0 ? 1 + state.cards.multishot : 1;
+  const projs = 1 + (state.cards.multishot > 0 ? state.cards.multishot : 0);
   const dmg = state.towerATK;
+
+  // Collect unique targets for multishot: farthest first to avoid focusing one enemy
+  const allTargets = [target];
+  if (projs > 1) {
+    const others = enemies.filter((e) => e !== target && e.hp > 0 && e.frozen <= 0);
+    // Sort by distance to tower (it's OK to spread shots around)
+    others.sort(
+      (a, b) =>
+        Math.hypot(a.x - TOWER_CX, a.y - TOWER_CY) - Math.hypot(b.x - TOWER_CX, b.y - TOWER_CY),
+    );
+    for (let i = 0; i < projs - 1 && i < others.length; i++) {
+      allTargets.push(others[i]);
+    }
+    while (allTargets.length < projs) allTargets.push(null); // random
+  }
+
   for (let i = 0; i < projs; i++) {
-    const spread = (i - (projs - 1) / 2) * 0.15;
-    const angle = Math.atan2(target.y - TOWER_CY, target.x - TOWER_CX) + spread;
+    let angle;
+    if (allTargets[i]) {
+      const t = allTargets[i];
+      const offAngle = Math.random() * Math.PI * 2;
+      const offDist = Math.random() * t.r * 0.5;
+      angle = Math.atan2(
+        t.y + Math.sin(offAngle) * offDist - TOWER_CY,
+        t.x + Math.cos(offAngle) * offDist - TOWER_CX,
+      );
+    } else {
+      angle = Math.random() * Math.PI * 2;
+    }
     projectiles.push({
       x: TOWER_CX + Math.cos(angle) * TOWER_R,
       y: TOWER_CY + Math.sin(angle) * TOWER_R,
@@ -892,12 +941,15 @@ function updateEnemies(dt) {
 
     e.rot += e.rotSpd * dt;
 
+    // Ralentización Global
+    const slowMult = state.cards.globalSlow > 0 ? 0.75 : 1;
+
     const dx = e.targetX - e.x;
     const dy = e.targetY - e.y;
     const dist = Math.hypot(dx, dy);
     if (dist > 1) {
-      e.x += (dx / dist) * e.speed * dt;
-      e.y += (dy / dist) * e.speed * dt;
+      e.x += (dx / dist) * e.speed * dt * slowMult;
+      e.y += (dy / dist) * e.speed * dt * slowMult;
     }
 
     if (dist < TOWER_R + e.r) {
@@ -1035,6 +1087,7 @@ function updateTower(dt) {
   tower.pulsePhase += dt * 2;
   tower.glowPhase += dt;
 
+  // ── Auto-fire principal ──
   state.towerFireTimer -= dt;
   if (state.towerFireTimer <= 0) {
     const target = findNearestEnemy();
@@ -1046,9 +1099,52 @@ function updateTower(dt) {
     }
   }
 
-  const regenRate = (state.cards.regen || 0) * 2 + (state.perm.regenBonus || 0);
+  // ── Torreta Auxiliar (dispara independiente al 60% de cadencia) ──
+  if (state.cards.turret) {
+    if (!state._turretTimer) state._turretTimer = 0;
+    state._turretTimer -= dt;
+    if (state._turretTimer <= 0) {
+      const tTarget = findNearestEnemy();
+      if (tTarget) {
+        const dmg = state.towerATK * 0.5;
+        const angle = Math.atan2(tTarget.y - TOWER_CY, tTarget.x - TOWER_CX);
+        projectiles.push({
+          x: TOWER_CX + Math.cos(angle) * (TOWER_R + 10),
+          y: TOWER_CY + Math.sin(angle) * (TOWER_R + 10),
+          vx: Math.cos(angle) * PROJECTILE_SPEED * 1.2,
+          vy: Math.sin(angle) * PROJECTILE_SPEED * 1.2,
+          dmg,
+          life: 1.5,
+        });
+        beep({ freq: 1200, duration: 0.02, type: 'sine', volume: 0.04 });
+      }
+      state._turretTimer = 1 / (state.fireRate * 0.6);
+    }
+  }
+
+  // ── Regeneración pasiva ──
+  const regenRate = (state.cards.regen || 0) * 3 + (state.perm.regenBonus || 0);
   if (regenRate > 0 && state.towerHP < state.towerMaxHP) {
     state.towerHP = Math.min(state.towerHP + regenRate * dt, state.towerMaxHP);
+  }
+
+  // ── Escudo Regenerativo (se regenera tras 2s sin daño) ──
+  if (state.cards.regenShield) {
+    if (state._lastHitTimer === undefined) state._lastHitTimer = 0;
+    state._lastHitTimer += dt;
+    if (state._lastHitTimer > 2 && state.shieldHP < 20) {
+      state.shieldHP = Math.min(state.shieldHP + 4 * dt, 20);
+    }
+  }
+
+  // ── Drenar: chupa vida del enemigo más cercano ──
+  if (state.cards.drain) {
+    const drainTarget = findNearestEnemy();
+    if (drainTarget && state.towerHP < state.towerMaxHP) {
+      const drainAmt = drainTarget.maxHP * 0.04 * dt;
+      drainTarget.hp -= drainAmt;
+      state.towerHP = Math.min(state.towerHP + drainAmt, state.towerMaxHP);
+    }
   }
 
   if (state.clickTimer > 0) state.clickTimer -= dt;

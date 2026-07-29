@@ -26,8 +26,6 @@ const COLS = CW / GS; // 20
 const ROWS = CH / GS; // 22
 const START_LIVES = 3;
 const PUMP_RATE = 0.12; // seconds between pump cycles
-const PLAYER_SPEED = 80; // cells per second (converted to px)
-const ENEMY_SPEED = 50;
 
 const PTS_POOKA = 1000;
 const PTS_FYGAR = 2000;
@@ -166,7 +164,6 @@ const player = { c: Math.floor(COLS / 2), r: 3, dir: 0, moving: false, pumpDir: 
 let pumpTarget = null; // enemy being inflated
 let pumpProgress = 0;
 let enemies = [];
-const rocks = []; // falling rocks
 let fallingRock = null; // {c, r, vy, frame}
 let fruits = [];
 let fruitTimer = 0;
@@ -410,8 +407,8 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gI = null,
-  gP = { f: false, s: false };
+let gI = null;
+const gP = { f: false, s: false };
 window.addEventListener('gamepadconnected', (e) => (gI = e.gamepad.index));
 window.addEventListener('gamepaddisconnected', (e) => {
   if (gI === e.gamepad.index) gI = null;
@@ -644,7 +641,7 @@ function updateEnemies(dt) {
   }
 }
 
-function checkFallingRocks(dt) {
+function checkFallingRocks(_dt) {
   // Check for rocks that should fall
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
@@ -985,7 +982,6 @@ function draw() {
       ctx.stroke();
       // Feet
       ctx.fillStyle = '#44aa77';
-      const walkCycle = Math.sin(Date.now() / 100) * 2 * s;
       ctx.fillRect(px - 4 * s, py + 2 * s, 3 * s, 3 * s);
       ctx.fillRect(px + 1 * s, py + 2 * s, 3 * s, 3 * s);
       ctx.shadowBlur = 0;

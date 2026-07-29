@@ -208,6 +208,114 @@ function createPlayerCell(x, y, mass) {
 }
 
 // ============================================================
+// SKIN SYSTEM
+// ============================================================
+const FLAG_SKINS = {
+  argentina: ['#75aadb', '#ffffff', '#75aadb'],
+  arg: ['#75aadb', '#ffffff', '#75aadb'],
+  brasil: ['#009739', '#ffe11a', '#002776'],
+  bra: ['#009739', '#ffe11a', '#002776'],
+  usa: ['#b22234', '#ffffff', '#3c3b6e'],
+  eeuu: ['#b22234', '#ffffff', '#3c3b6e'],
+  france: ['#002395', '#ffffff', '#ed2939'],
+  fra: ['#002395', '#ffffff', '#ed2939'],
+  italy: ['#009246', '#ffffff', '#ce2b37'],
+  ita: ['#009246', '#ffffff', '#ce2b37'],
+  japan: ['#ffffff', '#bc002d', '#ffffff'],
+  jpn: ['#ffffff', '#bc002d', '#ffffff'],
+  uk: ['#012169', '#ffffff', '#c8102e'],
+  gbr: ['#012169', '#ffffff', '#c8102e'],
+  germany: ['#000000', '#dd0000', '#ffce00'],
+  deu: ['#000000', '#dd0000', '#ffce00'],
+  spain: ['#aa151b', '#f1bf00', '#aa151b'],
+  esp: ['#aa151b', '#f1bf00', '#aa151b'],
+  mexico: ['#006341', '#ffffff', '#ce1126'],
+  mex: ['#006341', '#ffffff', '#ce1126'],
+  colombia: ['#ce1126', '#003893', '#ffd100'],
+  col: ['#ce1126', '#003893', '#ffd100'],
+  canada: ['#ff0000', '#ffffff', '#ff0000'],
+  can: ['#ff0000', '#ffffff', '#ff0000'],
+  china: ['#de2910', '#ffde00', '#de2910'],
+  chn: ['#de2910', '#ffde00', '#de2910'],
+};
+
+const GRADIENT_SKINS = {
+  rainbow: { colors: ['#ff0000', '#ff8800', '#ffdd00', '#00dd00', '#0088ff', '#8800ff'] },
+  aurora: { colors: ['#00ff88', '#00ddff', '#8800ff', '#ff00aa'] },
+  sunset: { colors: ['#ff4400', '#ff8800', '#ffdd00', '#ff0088'] },
+  ocean: { colors: ['#0044ff', '#0088ff', '#00ddff', '#00ffaa'] },
+  fire: { colors: ['#ff0000', '#ff4400', '#ff8800', '#ffdd00'] },
+  forest: { colors: ['#004400', '#008800', '#00cc00', '#44ff44'] },
+  galaxy: { colors: ['#220044', '#6600aa', '#4400aa', '#0000aa'] },
+  candy: { colors: ['#ff44aa', '#ff88cc', '#44ffaa', '#88ffcc'] },
+};
+
+const EMOJI_SKINS = {
+  smile: '😊',
+  heart: '❤️',
+  alien: '👾',
+  ghost: '👻',
+  robot: '🤖',
+  cat: '🐱',
+  dog: '🐶',
+  star: '⭐',
+  moon: '🌙',
+  sun: '☀️',
+  skull: '💀',
+  fire: '🔥',
+  rainbow: '🌈',
+  unicorn: '🦄',
+  diamond: '💎',
+  crown: '👑',
+  lightning: '⚡',
+  snow: '❄️',
+  flower: '🌸',
+  dragon: '🐉',
+};
+
+function getSkin(name) {
+  const lower = name.toLowerCase();
+
+  // Check flag skins
+  for (const [key, colors] of Object.entries(FLAG_SKINS)) {
+    if (lower === key || lower.includes(key)) {
+      return { type: 'flag', color: colors[1], flagColors: colors };
+    }
+  }
+
+  // Check emoji skins
+  for (const [keyword, emoji] of Object.entries(EMOJI_SKINS)) {
+    if (lower === keyword || lower.includes(keyword)) {
+      return { type: 'emoji', color: '#ffd93d', emoji };
+    }
+  }
+
+  // Check gradient skins (by exact name match)
+  for (const [key, grad] of Object.entries(GRADIENT_SKINS)) {
+    if (lower === key || lower.includes(key)) {
+      return { type: 'gradient', color: grad.colors[0], gradColors: grad.colors };
+    }
+  }
+
+  // Legacy special colors
+  if (lower.includes('neon') || lower.includes('cyber') || lower.includes('glow')) {
+    return { type: 'solid', color: '#00f5ff' };
+  }
+  if (lower.includes('gold') || lower.includes('star') || lower.includes('sun')) {
+    return { type: 'solid', color: '#ffd93d' };
+  }
+  if (lower.includes('ghost') || lower.includes('shadow') || lower.includes('dark')) {
+    return { type: 'solid', color: '#c084fc' };
+  }
+  if (lower.includes('fire') || lower.includes('blaze') || lower.includes('inferno')) {
+    return { type: 'solid', color: '#ff5e7a' };
+  }
+
+  // Random neon
+  return { type: 'solid', color: randColor() };
+}
+
+// ============================================================
 // COMIDA
 // ============================================================
 function spawnFood() {
@@ -230,12 +338,23 @@ function initFood() {
 // ============================================================
 // BOTS (IA)
 // ============================================================
-const BOT_STATE = { WANDER: 0, SEEK: 1, CHASE: 2, FLEE: 3 };
+const BOT_STATE = { WANDER: 0, SEEK: 1, CHASE: 2, FLEE: 3, EVADE: 4 };
+
+const BOT_PERSONALITIES = ['aggressive', 'timid', 'balanced', 'hunter', 'coward'];
+
+const PERSONALITY_MODIFIERS = {
+  aggressive: { chaseRange: 1.4, fleeRange: 0.7, chaseMassMin: 12, thresholdRatio: 1.1 },
+  timid: { chaseRange: 0.6, fleeRange: 1.5, chaseMassMin: 30, thresholdRatio: 1.25 },
+  balanced: { chaseRange: 1.0, fleeRange: 1.0, chaseMassMin: 20, thresholdRatio: 1.15 },
+  hunter: { chaseRange: 1.6, fleeRange: 0.5, chaseMassMin: 8, thresholdRatio: 1.05 },
+  coward: { chaseRange: 0.3, fleeRange: 1.8, chaseMassMin: 50, thresholdRatio: 1.35 },
+};
 
 function createBot() {
   const mass = rng(10, 60);
   const pos = randWorldPos(100);
   const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+  const personality = BOT_PERSONALITIES[Math.floor(Math.random() * BOT_PERSONALITIES.length)];
   return {
     x: pos.x,
     y: pos.y,
@@ -245,6 +364,7 @@ function createBot() {
     vy: 0,
     color: randColor(),
     name,
+    personality,
     isPlayer: false,
     targetX: pos.x,
     targetY: pos.y,
@@ -265,7 +385,34 @@ function updateBotAI(bot, dt) {
   if (bot.aiTimer > 0) return;
   bot.aiTimer = 0.3 + Math.random() * 0.4;
 
-  // Find nearest threats and prey
+  const mod = PERSONALITY_MODIFIERS[bot.personality] || PERSONALITY_MODIFIERS.balanced;
+
+  // Check for nearby split projectiles → evade!
+  let nearestProj = null,
+    ndProj = Infinity;
+  for (const sp of splitProjectiles) {
+    const d = dist(bot, sp);
+    if (d < 200 && d < ndProj) {
+      ndProj = d;
+      nearestProj = sp;
+    }
+  }
+
+  if (nearestProj && ndProj < 150) {
+    // Dodge perpendicular to projectile direction
+    bot.state = BOT_STATE.EVADE;
+    const dx = nearestProj.vx;
+    const dy = nearestProj.vy;
+    // Perpendicular vector: (-dy, dx) or (dy, -dx)
+    const perp = Math.random() > 0.5 ? 1 : -1;
+    const evadeX = bot.x + -dy * perp * 300;
+    const evadeY = bot.y + dx * perp * 300;
+    bot.targetX = clamp(evadeX, 30, WORLD_W - 30);
+    bot.targetY = clamp(evadeY, 30, WORLD_H - 30);
+    return;
+  }
+
+  // Find nearest threats and prey (personality-adjusted)
   let nearestThreat = null,
     ndT = Infinity;
   let nearestPrey = null,
@@ -274,18 +421,22 @@ function updateBotAI(bot, dt) {
     ndF = Infinity;
 
   const allCells = [...(cells || []), ...bots];
+  const threatRatio = mod.thresholdRatio || 1.15;
+  const preyRatio = 1 / threatRatio;
+  const baseChaseRange = 500 * mod.chaseRange;
+  const baseFleeRange = 600 * mod.fleeRange;
 
   for (const other of allCells) {
     if (other === bot) continue;
     const d = dist(bot, other);
     const ratio = other.mass / bot.mass;
 
-    if (ratio > 1.15 && d < 600) {
+    if (ratio > threatRatio && d < baseFleeRange) {
       if (d < ndT) {
         ndT = d;
         nearestThreat = other;
       }
-    } else if (ratio < 0.85 && d < 500) {
+    } else if (ratio < preyRatio && d < baseChaseRange) {
       if (d < ndP) {
         ndP = d;
         nearestPrey = other;
@@ -302,15 +453,18 @@ function updateBotAI(bot, dt) {
     }
   }
 
-  // Decide action
-  if (nearestThreat && ndT < 350) {
+  // Decide action (personality-adjusted thresholds)
+  const fleeDist = 350 * mod.fleeRange;
+  const chaseDist = 300 * mod.chaseRange;
+
+  if (nearestThreat && ndT < fleeDist) {
     bot.state = BOT_STATE.FLEE;
     const dx = bot.x - nearestThreat.x;
     const dy = bot.y - nearestThreat.y;
     const d = Math.hypot(dx, dy) || 1;
     bot.targetX = bot.x + (dx / d) * 300;
     bot.targetY = bot.y + (dy / d) * 300;
-  } else if (nearestPrey && ndP < 300 && bot.mass > 20) {
+  } else if (nearestPrey && ndP < chaseDist && bot.mass > mod.chaseMassMin) {
     bot.state = BOT_STATE.CHASE;
     bot.targetX = nearestPrey.x;
     bot.targetY = nearestPrey.y;
@@ -585,18 +739,15 @@ function startGame() {
   state.targetX = player.x;
   state.targetY = player.y;
 
-  // Check for special name skins
+  // ── SKIN SYSTEM ──
   const name = state.playerName.toLowerCase();
-  if (name.includes('neon') || name.includes('cyber') || name.includes('glow')) {
-    cells[0].color = '#00f5ff';
-  } else if (name.includes('fire') || name.includes('blaze') || name.includes('inferno')) {
-    cells[0].color = '#ff5e7a';
-  } else if (name.includes('gold') || name.includes('star') || name.includes('sun')) {
-    cells[0].color = '#ffd93d';
-  } else if (name.includes('ghost') || name.includes('shadow') || name.includes('dark')) {
-    cells[0].color = '#c084fc';
-  } else {
-    cells[0].color = NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
+  const skin = getSkin(name);
+  cells[0].color = skin.color;
+  cells[0].skin = skin;
+
+  // Gradient skins need extra data
+  if (skin.type === 'gradient') {
+    cells[0].skinGrad = skin;
   }
 
   initFood();
@@ -996,18 +1147,46 @@ function drawCell(cell) {
   if (s.x < -100 || s.x > canvasW + 100 || s.y < -100 || s.y > canvasH + 100) return;
 
   const isPlayer = cell.isPlayer;
+  const skin = cell.skin || {};
+  const skinType = skin.type || 'solid';
 
-  // Glow
+  // Glow outer
   ctx.shadowColor = cell.color;
   ctx.shadowBlur = isPlayer ? 20 * cam.zoom : 8 * cam.zoom;
 
-  // Body
-  ctx.fillStyle = cell.color;
-  ctx.beginPath();
-  ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
-  ctx.fill();
+  // ── Cell body ──
+  if (skinType === 'gradient' && skin.gradColors && r > 12) {
+    const gColors = skin.gradColors;
+    const gGrad = ctx.createRadialGradient(s.x - r * 0.3, s.y - r * 0.3, 0, s.x, s.y, r);
+    for (let gi = 0; gi < gColors.length; gi++) {
+      gGrad.addColorStop(gi / (gColors.length - 1), gColors[gi]);
+    }
+    ctx.fillStyle = gGrad;
+  } else if (skinType === 'flag' && skin.flagColors && r > 14) {
+    // Draw horizontal stripes
+    const fCols = skin.flagColors;
+    const stripeH = (r * 2) / fCols.length;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+    ctx.clip();
+    for (let fi = 0; fi < fCols.length; fi++) {
+      ctx.fillStyle = fCols[fi];
+      ctx.fillRect(s.x - r, s.y - r + fi * stripeH, r * 2, stripeH + 1);
+    }
+    ctx.restore();
+  } else {
+    ctx.fillStyle = cell.color;
+  }
 
-  // Inner highlight
+  // Draw circle body (unless flag did it via clip)
+  if (skinType !== 'flag' || !skin.flagColors || r <= 14) {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Inner highlight overlay
   ctx.shadowBlur = 0;
   const hiGrad = ctx.createRadialGradient(s.x - r * 0.3, s.y - r * 0.3, 0, s.x, s.y, r);
   hiGrad.addColorStop(0, 'rgba(255,255,255,0.25)');
@@ -1018,26 +1197,40 @@ function drawCell(cell) {
   ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // Name label
+  // ── Name & emoji label ──
   if (r > 8) {
     const fontSize = Math.max(10, Math.min(r * 0.5, 30));
-    ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
 
-    // Text shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.fillText(cell.name, s.x + 1, s.y + 1);
+    if (skinType === 'emoji' && skin.emoji && r > 14) {
+      // Render emoji instead of name
+      const emojiSize = Math.max(12, Math.min(r * 0.55, 40));
+      ctx.font = `${emojiSize}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(skin.emoji, s.x, s.y - 2);
+    } else {
+      ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
 
-    ctx.fillStyle = '#fff';
-    ctx.fillText(cell.name, s.x, s.y);
+      // Text shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillText(cell.name, s.x + 1, s.y + 1);
+
+      ctx.fillStyle = '#fff';
+      ctx.fillText(cell.name, s.x, s.y);
+    }
 
     // Mass label (smaller, below name)
     if (r > 14) {
       const massFontSize = Math.max(8, Math.min(r * 0.3, 16));
       ctx.font = `${massFontSize}px system-ui, sans-serif`;
       ctx.fillStyle = 'rgba(255,255,255,0.4)';
-      ctx.fillText(Math.floor(cell.mass), s.x, s.y + fontSize * 1.1);
+      ctx.fillText(
+        Math.floor(cell.mass),
+        s.x,
+        s.y + (skinType === 'emoji' ? fontSize * 1.4 : fontSize * 1.1),
+      );
     }
   }
 

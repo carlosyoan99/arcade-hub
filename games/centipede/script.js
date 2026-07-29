@@ -26,7 +26,6 @@ const ROWS = CH / GS; // 30
 const START_LIVES = 3;
 const NUM_MUSHROOMS_INIT = 40;
 
-const SEGMENT_SPEED = 120; // pixels per second
 const PLAYER_SPEED = 280;
 const BULLET_SPEED = 420;
 const FIRE_CD = 0.18;
@@ -87,10 +86,6 @@ function pFire() {
 function pHitSeg() {
   beep({ freq: 400, freqEnd: 100, duration: 0.08, type: 'sawtooth', volume: 0.12 });
   triggerShake(1.5);
-}
-function pHitHead() {
-  beep({ freq: 600, freqEnd: 200, duration: 0.12, type: 'sawtooth', volume: 0.16 });
-  triggerShake(2);
 }
 function pDeath() {
   triggerShake(6);
@@ -385,8 +380,8 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gI = null,
-  gP = { f: false, s: false };
+let gI = null;
+const gP = { f: false, s: false };
 window.addEventListener('gamepadconnected', (e) => (gI = e.gamepad.index));
 window.addEventListener('gamepaddisconnected', (e) => {
   if (gI === e.gamepad.index) gI = null;
@@ -426,15 +421,6 @@ function hasMushroomAt(gx, gy) {
     if (Math.abs(m.x - cx) < 1 && Math.abs(m.y - cy) < 1) return true;
   }
   return false;
-}
-
-function getMushroomAt(gx, gy) {
-  const cx = gx * GS + GS / 2,
-    cy = gy * GS + GS / 2;
-  for (let i = 0; i < mushrooms.length; i++) {
-    if (Math.abs(mushrooms[i].x - cx) < 1 && Math.abs(mushrooms[i].y - cy) < 1) return i;
-  }
-  return -1;
 }
 
 function addMushroomAt(gx, gy, poisoned = false) {
@@ -654,7 +640,6 @@ function updateBullets(dt) {
         // Actually in classic centipede, hitting a segment creates a mushroom and splits
         // Segments after it become a new centipede (but heading in same dir)
         // For simplicity: just remove this segment
-        const wasHead = seg.isHead;
         segments.splice(si, 1);
 
         if (segments.length > 0) {

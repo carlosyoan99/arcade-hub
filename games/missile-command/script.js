@@ -93,10 +93,6 @@ function pHitCity() {
   triggerShake(3);
   beep({ freq: 300, freqEnd: 30, duration: 0.3, type: 'sawtooth', volume: 0.18 });
 }
-function pDeath() {
-  triggerShake(6);
-  beep({ freq: 400, freqEnd: 40, duration: 0.4, type: 'sawtooth', volume: 0.2 });
-}
 function pWaveStart() {
   beep({ freq: 220, freqEnd: 440, duration: 0.15, type: 'triangle', volume: 0.12 });
 }
@@ -247,7 +243,6 @@ function spawnMissile() {
       ? target[Math.floor(Math.random() * target.length)].x
       : Math.random() * CW;
   const speed = 120 + state.wave * 8 + Math.random() * 40;
-  const angle = Math.atan2(GROUND_Y - 0, targetY - fromX);
   const len = Math.hypot(targetY - fromX, GROUND_Y);
   missiles.push({
     x: fromX,
@@ -342,7 +337,6 @@ function nextWave() {
 // ============================================================
 // ENTRADA
 // ============================================================
-const input = { fire: false };
 
 // Mouse / pointer
 c.addEventListener('mousemove', (e) => {
@@ -439,8 +433,8 @@ document.getElementById('bF')?.addEventListener('touchcancel', () => {
 });
 
 // Gamepad
-let gI = null,
-  gP = { f: false, s: false };
+let gI = null;
+const gP = { f: false, s: false };
 window.addEventListener('gamepadconnected', (e) => (gI = e.gamepad.index));
 window.addEventListener('gamepaddisconnected', (e) => {
   if (gI === e.gamepad.index) gI = null;
