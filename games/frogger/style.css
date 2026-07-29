@@ -1,0 +1,183 @@
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 14px 24px 0;
+  pointer-events: none;
+  z-index: 10;
+}
+#hud .sg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 6px 16px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+#hud .sb {
+  text-align: center;
+  min-width: 40px;
+}
+#hud .sb .label {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+#hud .sb .value {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+#hud .sb.score .value {
+  color: #6ee7b7;
+}
+#hud .sb.lives .value {
+  font-size: 14px;
+  color: #ffe066;
+}
+#hud .sb.level .value {
+  color: #6ec6ff;
+}
+#hud .sb.best .value {
+  color: #ffd700;
+}
+.sp {
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 520px) {
+  #hud .sg {
+    padding: 4px 10px;
+    gap: 6px;
+  }
+  #hud .sb .value {
+    font-size: 16px;
+  }
+  #hud .sb.level {
+    display: none;
+  }
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: radial-gradient(circle at 50% 40%, rgba(20, 30, 20, 0.85), rgba(8, 8, 16, 0.92));
+  color: var(--text-primary);
+  text-align: center;
+  z-index: 20;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+#overlay h1 {
+  font-size: 32px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(110, 231, 183, 0.3);
+}
+#overlay h1 .accent {
+  color: #6ee7b7;
+}
+#overlay p {
+  opacity: 0.8;
+  font-size: 13px;
+  max-width: 380px;
+  line-height: 1.6;
+}
+#overlay .hint {
+  font-size: 11px;
+  opacity: 0.45;
+  margin-top: 4px;
+  line-height: 1.8;
+}
+#overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.92) translateY(-8px);
+}
+#overlay .vb {
+  position: absolute;
+  bottom: 20px;
+  font-size: 10px;
+  opacity: 0.2;
+  letter-spacing: 1px;
+}
+#finalScore {
+  font-size: 14px;
+  opacity: 0.85;
+  margin-top: -4px;
+}
+
+#tc {
+  position: fixed;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: none;
+  justify-content: center;
+  z-index: 15;
+  pointer-events: none;
+}
+#tc .dp {
+  display: grid;
+  grid-template-columns: 60px 60px 60px;
+  grid-template-rows: 60px 60px 60px;
+  gap: 3px;
+  pointer-events: auto;
+}
+#tc .dp button {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font-size: 16px;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.08s ease,
+    transform 0.08s ease;
+  touch-action: none;
+  cursor: pointer;
+}
+#tc .dp button:active,
+#tc .dp button.is-pressed {
+  background: rgba(110, 231, 183, 0.2);
+  border-color: rgba(110, 231, 183, 0.35);
+  transform: scale(0.92);
+}
+#tc .dp .empty {
+  visibility: hidden;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #tc {
+    display: flex;
+  }
+}
+@media (max-width: 480px) {
+  #overlay h1 {
+    font-size: 24px;
+  }
+  #tc .dp {
+    grid-template-columns: 50px 50px 50px;
+    grid-template-rows: 50px 50px 50px;
+  }
+  #tc .dp button {
+    font-size: 14px;
+  }
+}

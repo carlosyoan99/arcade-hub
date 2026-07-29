@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Flappy Bird — Arcade Hub</title>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('arcadehub_theme') ||
+        (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+    </script>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='38' cy='45' r='16' fill='%23ffe066'/%3E%3Ccircle cx='46' cy='40' r='3' fill='%23000'/%3E%3Cpolygon points='54,45 76,42 54,48' fill='%23ff8800'/%3E%3Crect x='70' y='8' width='16' height='38' rx='3' fill='%2344dd66'/%3E%3Crect x='70' y='56' width='16' height='38' rx='3' fill='%2344dd66'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>◈ Cargando...</span>
+    </div>
+    <canvas id="gc"></canvas>
+
+    <div id="hud">
+      <div class="sg">
+        <div class="sb score">
+          <div class="label">Puntaje</div>
+          <div class="value" id="sc">0</div>
+        </div>
+        <div class="sb best">
+          <div class="label">Récord</div>
+          <div class="value" id="bst">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <h1><span class="accent">🐤</span> FLAPPY BIRD <span class="accent">🐤</span></h1>
+      <p id="ot">
+        Tocá la pantalla o presioná Espacio para volar. Pasá por los huecos de los tubos para sumar
+        puntos. ¡No te choques!
+      </p>
+      <p id="fs" style="display: none"></p>
+      <p class="hint" id="he"><kbd>Espacio</kbd> / <kbd>↑</kbd> / tocar para volar · empezar</p>
+      <div class="vb">2D · canvas · sin dependencias</div>
+    </div>
+
+    <div id="tc">
+      <button id="bF" aria-label="Volar">🐤 VOLAR</button>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+    <div id="gameBar">
+      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
+        ← Arcade
+      </button>
+      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
+    </div>
+  </body>
+</html>

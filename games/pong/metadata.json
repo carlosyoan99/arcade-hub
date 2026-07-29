@@ -1,0 +1,29 @@
+{
+  "id": "pong",
+  "title": "Pong",
+  "version": "1.1.0",
+  "created": "2026-06-01",
+  "lastModified": "2026-07-28",
+  "description": "El clásico de tenis de mesa. Primero en llegar a 7 puntos gana.",
+  "genre": "deportes",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-01",
+      "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor a carpeta individual",
+        "Botón ayuda + Volver al hub",
+        "Soporte para shared/effects.js",
+        "Screen shake y partículas"
+      ]
+    }
+  ]
+}

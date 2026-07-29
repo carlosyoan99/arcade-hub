@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dino Runner 3D</title>
+<style>
+  :root { color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #1a1a2e;
+    font-family: 'Courier New', monospace;
+  }
+  #canvas-container { position: fixed; inset: 0; }
+  canvas { display: block; }
+
+  #hud {
+    position: fixed; top: 20px; left: 0; right: 0;
+    display: flex; justify-content: space-between;
+    padding: 0 24px;
+    color: #eaeaea;
+    pointer-events: none;
+    z-index: 10;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  #hud .score-block { text-align: right; }
+  #hud .speed-block { text-align: center; }
+  #hud .label { font-size: 11px; letter-spacing: 2px; opacity: 0.6; }
+  #hud .value { font-size: 22px; font-weight: bold; }
+
+  #overlay {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px;
+    background: radial-gradient(circle at 50% 40%, rgba(30,30,55,0.55), rgba(10,10,20,0.85));
+    color: #f2f2f2;
+    text-align: center;
+    z-index: 20;
+    transition: opacity 0.25s ease;
+  }
+  #overlay h1 { font-size: 28px; letter-spacing: 3px; }
+  #overlay p { opacity: 0.75; font-size: 13px; max-width: 320px; line-height: 1.6; }
+  #overlay .hint { font-size: 12px; opacity: 0.5; }
+  #overlay.hidden { opacity: 0; pointer-events: none; }
+  #finalScore { font-size: 15px; opacity: 0.9; }
+
+  kbd {
+    display: inline-block; padding: 2px 8px; margin: 0 2px;
+    border: 1px solid #999; border-radius: 4px;
+    font-size: 11px; background: rgba(255,255,255,0.08);
+  }
+
+  #touchControls {
+    position: fixed; bottom: 24px; left: 0; right: 0;
+    display: none; justify-content: center; gap: 16px;
+    z-index: 15;
+  }
+  #touchControls button {
+    width: 84px; height: 64px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: #fff; font-size: 12px; letter-spacing: 1px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s ease, transform 0.1s ease;
+  }
+  #touchControls button:active,
+  #touchControls button.is-pressed {
+    background: rgba(255,255,255,0.28);
+    transform: scale(0.94);
+  }
+  @media (hover: none) and (pointer: coarse) {
+    #touchControls { display: flex; }
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<div id="hud">
+  <div class="dist-block">
+    <div class="label">DISTANCIA</div>
+    <div class="value" id="distValue">0 m</div>
+  </div>
+  <div class="speed-block">
+    <div class="label">VELOCIDAD</div>
+    <div class="value" id="speedValue">0 m/s</div>
+  </div>
+  <div class="score-block">
+    <div class="label">RÉCORD</div>
+    <div class="value" id="bestValue">0 m</div>
+  </div>
+</div>
+
+<div id="overlay">
+  <h1>DINO RUNNER 3D</h1>
+  <p id="overlayText">Esquiva cactus, agáchate bajo los pterodáctilos y sobrevive el mayor tiempo posible.</p>
+  <p class="hint"><kbd>ESPACIO</kbd> / toca la pantalla / botón A saltar &nbsp;·&nbsp; <kbd>↓</kbd> / mando agacharse</p>
+</div>
+
+<div id="touchControls">
+  <button id="btnDuck">AGACHAR</button>
+  <button id="btnJump">SALTAR</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.165.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+
+/* ============================================================
+   DINO RUNNER 3D
+   Vanilla JS + Three.js (única dependencia externa, justificada
+   por el renderizado 3D en tiempo real). Todo el estado y la
+   lógica del juego viven en módulos/clases dentro de este
+   mismo archivo para mantenerlo autocontenido.
+   ============================================================ */
+
+// ---------- Constantes de juego ----------
+const GROUND_Z_LEN = 40;          // largo de cada segmento de suelo
+const GRAVITY      = -32;
+const JUMP_VELOCITY = 12.5;
+const DUCK_SCALE_Y  = 0.45;
+const BASE_SPEED    = 14;         // unidades / seg
+const MAX_SPEED     = 34;
+const SPEED_RAMP    = 0.045;      // aceleración por segundo
+const SPAWN_MIN     = 0.9;
+const SPAWN_MAX     = 1.9;
+const PLAYER_X      = 0;
+
+// ---------- Estado global ----------
+const state = {
+  running: false,
+  gameOver: false,
+  distance: 0,
+  best: Number(localStorage.getItem('dino3d_best') || 0),
+  speed: BASE_SPEED,
+  elapsed: 0,
+  nextSpawnIn: 1.2,
+};
+
+// ---------- Escena / cámara / render ----------
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1a2e);
+scene.fog = new THREE.Fog(0x1a1a2e, 18, 55);
+
+const camera = new THREE.PerspectiveCamera(
+  62, window.innerWidth / window.innerHeight, 0.1, 200
+);
+camera.position.set(0, 4.4, 8.5);
+camera.lookAt(0, 1.2, -6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+// ---------- Luces ----------
+const hemi = new THREE.HemisphereLight(0x9aa7ff, 0x1a1a2e, 0.65);
+scene.add(hemi);
+
+const sun = new THREE.DirectionalLight(0xffe3b3, 1.1);
+sun.position.set(-8, 14, 6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -20;
+sun.shadow.camera.right = 20;
+sun.shadow.camera.top = 20;
+sun.shadow.camera.bottom = -20;
+scene.add(sun);
+
+// ---------- Suelo (segmentos que se reciclan) ----------
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x2b2b45, roughness: 0.95 });
+const laneLineMat = new THREE.MeshStandardMaterial({ color: 0x45456e, roughness: 0.9 });
+const groundSegments = [];
+
+function makeGroundSegment(zOffset) {
+  const g = new THREE.Group();
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(10, 0.4, GROUND_Z_LEN), groundMat);
+  base.position.set(0, -0.2, zOffset);
+  base.receiveShadow = true;
+  g.add(base);
+
+  // líneas laterales para dar sensación de velocidad
+  for (const x of [-3.2, 3.2]) {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.42, GROUND_Z_LEN), laneLineMat);
+    stripe.position.set(x, -0.19, zOffset);
+    g.add(stripe);
+  }
+
+  scene.add(g);
+  return { group: g, z: zOffset };
+}
+
+for (let i = 0; i < 3; i++) {
+  groundSegments.push(makeGroundSegment(-i * GROUND_Z_LEN + GROUND_Z_LEN / 2 - GROUND_Z_LEN));
+}
+
+function updateGround(dt) {
+  for (const seg of groundSegments) {
+    seg.group.position.z += state.speed * dt;
+    // Cuando un segmento pasa de largo por delante de la cámara,
+    // se reubica detrás del resto para dar la vuelta al ciclo.
+    if (seg.group.position.z > GROUND_Z_LEN * 1.5) {
+      seg.group.position.z -= GROUND_Z_LEN * 3;
+    }
+  }
+}
+
+// ---------- Sonido (sintetizado con Web Audio API, sin archivos externos) ----------
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function beep({ freq = 440, freqEnd = null, duration = 0.15, type = 'sine', volume = 0.2 }) {
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  if (freqEnd) osc.frequency.exponentialRampToValueAtTime(freqEnd, ctx.currentTime + duration);
+  gain.gain.setValueAtTime(volume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
+}
+
+function playJumpSound() {
+  beep({ freq: 520, freqEnd: 760, duration: 0.14, type: 'square', volume: 0.15 });
+}
+
+function playLandSound() {
+  beep({ freq: 220, freqEnd: 140, duration: 0.08, type: 'sine', volume: 0.08 });
+}
+
+function playCollisionSound() {
+  beep({ freq: 180, freqEnd: 55, duration: 0.35, type: 'sawtooth', volume: 0.25 });
+}
+
+function playRecordSound() {
+  [660, 880, 1100].forEach((freq, i) => {
+    setTimeout(() => beep({ freq, duration: 0.12, type: 'triangle', volume: 0.18 }), i * 90);
+  });
+}
+
+// ---------- Partículas (polvo al saltar/aterrizar, explosión al chocar) ----------
+const particles = [];
+const dustGeo = new THREE.SphereGeometry(0.06, 6, 6);
+const debrisGeo = new THREE.BoxGeometry(0.14, 0.14, 0.14);
+
+function spawnParticles(position, {
+  count = 8, geometry = dustGeo, color = 0xcfa77a,
+  speed = 2.5, upBias = 2.5, life = 0.5, gravity = -9,
+} = {}) {
+  for (let i = 0; i < count; i++) {
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 });
+    const mesh = new THREE.Mesh(geometry, mat);
+    mesh.position.copy(position);
+    scene.add(mesh);
+
+    const angle = Math.random() * Math.PI * 2;
+    const radial = (0.4 + Math.random() * 0.6) * speed;
+    particles.push({
+      mesh,
+      velocity: new THREE.Vector3(
+        Math.cos(angle) * radial,
+        upBias * (0.4 + Math.random() * 0.6),
+        Math.sin(angle) * radial
+      ),
+      gravity,
+      life,
+      maxLife: life,
+    });
+  }
+}
+
+function spawnDust(position) {
+  spawnParticles(position, { count: 6, geometry: dustGeo, color: 0xcfa77a, speed: 1.6, upBias: 1.6, life: 0.4 });
+}
+
+function spawnExplosion(position) {
+  spawnParticles(position, { count: 22, geometry: debrisGeo, color: 0x6ee7b7, speed: 4.5, upBias: 5, life: 0.9, gravity: -14 });
+  spawnParticles(position, { count: 10, geometry: debrisGeo, color: 0x2f9e73, speed: 3.5, upBias: 4, life: 0.9, gravity: -14 });
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.velocity.y += p.gravity * dt;
+    p.mesh.position.addScaledVector(p.velocity, dt);
+    p.life -= dt;
+
+    if (p.life <= 0) {
+      scene.remove(p.mesh);
+      p.mesh.material.dispose();
+      particles.splice(i, 1);
+      continue;
+    }
+    p.mesh.material.opacity = Math.max(0, p.life / p.maxLife);
+  }
+}
+
+// ---------- Dino (low-poly, construido con primitivas) ----------
+const dinoGroup = new THREE.Group();
+const dinoMat = new THREE.MeshStandardMaterial({ color: 0x6ee7b7, roughness: 0.6 });
+const dinoDarkMat = new THREE.MeshStandardMaterial({ color: 0x2f9e73, roughness: 0.6 });
+
+function box(w, h, d, mat, castShadow = true) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.castShadow = castShadow;
+  return m;
+}
+
+const torso = box(0.9, 0.9, 1.5, dinoMat);
+torso.position.set(0, 0.95, 0);
+dinoGroup.add(torso);
+
+const neck = box(0.45, 0.7, 0.45, dinoMat);
+neck.position.set(0, 1.55, -0.55);
+neck.rotation.x = 0.35;
+dinoGroup.add(neck);
+
+const head = box(0.55, 0.5, 0.75, dinoMat);
+head.position.set(0, 1.95, -0.95);
+dinoGroup.add(head);
+
+const jaw = box(0.5, 0.18, 0.4, dinoDarkMat);
+jaw.position.set(0, 1.72, -1.2);
+dinoGroup.add(jaw);
+
+const tail = box(0.4, 0.4, 1.1, dinoMat);
+tail.position.set(0, 1.0, 1.0);
+tail.rotation.x = -0.25;
+dinoGroup.add(tail);
+
+const legL = box(0.32, 0.7, 0.32, dinoDarkMat);
+legL.position.set(-0.25, 0.35, 0.1);
+dinoGroup.add(legL);
+
+const legR = box(0.32, 0.7, 0.32, dinoDarkMat);
+legR.position.set(0.25, 0.35, -0.1);
+dinoGroup.add(legR);
+
+const armL = box(0.18, 0.35, 0.18, dinoDarkMat);
+armL.position.set(-0.4, 0.85, -0.5);
+dinoGroup.add(armL);
+
+const armR = box(0.18, 0.35, 0.18, dinoDarkMat);
+armR.position.set(0.4, 0.85, -0.5);
+dinoGroup.add(armR);
+
+dinoGroup.position.set(PLAYER_X, 0, 3.5);
+scene.add(dinoGroup);
+
+// ---------- Física del jugador ----------
+const player = {
+  y: 0,
+  vy: 0,
+  ducking: false,
+  onGround: true,
+  legPhase: 0,
+};
+
+function jump() {
+  if (player.onGround && state.running && !state.gameOver) {
+    player.vy = JUMP_VELOCITY;
+    player.onGround = false;
+    playJumpSound();
+    spawnDust(dinoGroup.position.clone().setY(0.05));
+  }
+}
+
+function setDuck(active) {
+  if (!state.running || state.gameOver) return;
+  player.ducking = active && player.onGround;
+}
+
+function updatePlayer(dt) {
+  // Gravedad y salto
+  const wasOnGround = player.onGround;
+  player.vy += GRAVITY * dt;
+  player.y += player.vy * dt;
+  if (player.y <= 0) {
+    player.y = 0;
+    player.vy = 0;
+    player.onGround = true;
+  }
+
+  if (player.onGround && !wasOnGround) {
+    playLandSound();
+    spawnDust(dinoGroup.position.clone().setY(0.05));
+  }
+
+  // Agachado (solo visual/hitbox, no en el aire)
+  const duckTarget = player.ducking && player.onGround ? DUCK_SCALE_Y : 1;
+  dinoGroup.scale.y += (duckTarget - dinoGroup.scale.y) * Math.min(1, dt * 14);
+
+  dinoGroup.position.y = player.y;
+
+  // Animación de correr (piernas alternando) solo si no salta
+  if (player.onGround && !player.ducking) {
+    player.legPhase += dt * (10 + state.speed * 0.35);
+    legL.rotation.x = Math.sin(player.legPhase) * 0.6;
+    legR.rotation.x = Math.sin(player.legPhase + Math.PI) * 0.6;
+    armL.rotation.x = Math.sin(player.legPhase + Math.PI) * 0.3;
+    armR.rotation.x = Math.sin(player.legPhase) * 0.3;
+  } else if (!player.onGround) {
+    legL.rotation.x += (0.3 - legL.rotation.x) * 0.2;
+    legR.rotation.x += (-0.3 - legR.rotation.x) * 0.2;
+  }
+
+  // leve inclinación al saltar
+  const tilt = player.onGround ? 0 : THREE.MathUtils.clamp(player.vy * 0.02, -0.35, 0.35);
+  dinoGroup.rotation.x += (tilt - dinoGroup.rotation.x) * 0.15;
+}
+
+// ---------- Obstáculos ----------
+const cactusMat = new THREE.MeshStandardMaterial({ color: 0x3fae5c, roughness: 0.7 });
+const birdMat = new THREE.MeshStandardMaterial({ color: 0xd98c4a, roughness: 0.6 });
+
+const obstacles = [];
+const SPAWN_Z = -60;
+const DESPAWN_Z = 8;
+
+function spawnCactus() {
+  const group = new THREE.Group();
+  const clusters = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < clusters; i++) {
+    const h = 0.9 + Math.random() * 0.6;
+    const seg = box(0.35, h, 0.35, cactusMat);
+    seg.position.set((i - (clusters - 1) / 2) * 0.45, h / 2, 0);
+    group.add(seg);
+    // brazo del cactus
+    if (Math.random() > 0.4) {
+      const arm = box(0.16, 0.4, 0.16, cactusMat);
+      arm.position.set((i - (clusters - 1) / 2) * 0.45 + (Math.random() > 0.5 ? 0.25 : -0.25), h * 0.6, 0);
+      group.add(arm);
+    }
+  }
+  group.position.set(PLAYER_X, 0, SPAWN_Z);
+  scene.add(group);
+  obstacles.push({
+    mesh: group,
+    type: 'cactus',
+    halfW: 0.5, halfH: 0.9, halfD: 0.4,
+    baseY: 0,
+  });
+}
+
+function spawnBird() {
+  const group = new THREE.Group();
+  const body = box(0.7, 0.35, 1.0, birdMat);
+  group.add(body);
+  const wingL = box(0.9, 0.08, 0.35, birdMat);
+  wingL.position.set(-0.7, 0.1, 0);
+  group.add(wingL);
+  const wingR = box(0.9, 0.08, 0.35, birdMat);
+  wingR.position.set(0.7, 0.1, 0);
+  group.add(wingR);
+  group.userData.wingL = wingL;
+  group.userData.wingR = wingR;
+  group.userData.flapPhase = Math.random() * Math.PI * 2;
+
+  const flightY = 0.6 + Math.random() * 1.5; // a veces obliga a agacharse, a veces a saltar por debajo
+  group.position.set(PLAYER_X, flightY, SPAWN_Z);
+  scene.add(group);
+  obstacles.push({
+    mesh: group,
+    type: 'bird',
+    halfW: 0.5, halfH: 0.35, halfD: 0.4,
+    baseY: flightY,
+  });
+}
+
+function spawnObstacle() {
+  if (state.distance > 25 && Math.random() < 0.35) {
+    spawnBird();
+  } else {
+    spawnCactus();
+  }
+}
+
+function updateObstacles(dt) {
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    o.mesh.position.z += state.speed * dt;
+
+    if (o.type === 'bird') {
+      o.mesh.userData.flapPhase += dt * 12;
+      const flap = Math.sin(o.mesh.userData.flapPhase) * 0.5;
+      o.mesh.userData.wingL.rotation.z = flap;
+      o.mesh.userData.wingR.rotation.z = -flap;
+    }
+
+    if (o.mesh.position.z > DESPAWN_Z) {
+      scene.remove(o.mesh);
+      obstacles.splice(i, 1);
+      continue;
+    }
+
+    if (checkCollision(o)) {
+      endGame();
+      return;
+    }
+  }
+}
+
+function checkCollision(o) {
+  const dz = Math.abs(o.mesh.position.z - dinoGroup.position.z);
+  if (dz > o.halfD + 0.6) return false;
+
+  const dx = Math.abs(o.mesh.position.x - dinoGroup.position.x);
+  if (dx > o.halfW + 0.35) return false;
+
+  const dinoBottom = player.y;
+  const dinoTop = player.y + (player.ducking && player.onGround ? 0.75 : 1.9);
+  const oBottom = o.baseY - o.halfH;
+  const oTop = o.baseY + o.halfH;
+
+  return dinoTop > oBottom && dinoBottom < oTop;
+}
+
+// ---------- Ciclo de vida del juego ----------
+function resetGame() {
+  for (const o of obstacles) scene.remove(o.mesh);
+  obstacles.length = 0;
+
+  state.distance = 0;
+  state.speed = BASE_SPEED;
+  state.elapsed = 0;
+  state.nextSpawnIn = 1.2;
+  state.gameOver = false;
+
+  player.y = 0;
+  player.vy = 0;
+  player.ducking = false;
+  player.onGround = true;
+  dinoGroup.rotation.x = 0;
+  dinoGroup.scale.y = 1;
+  dinoGroup.position.set(PLAYER_X, 0, 3.5);
+
+  groundSegments.forEach((s, i) => {
+    s.group.position.z = 0;
+  });
+}
+
+function startGame() {
+  resetGame();
+  state.running = true;
+  overlay.classList.add('hidden');
+}
+
+function endGame() {
+  state.running = false;
+  state.gameOver = true;
+
+  const isNewRecord = state.distance > state.best;
+  if (isNewRecord) {
+    state.best = state.distance;
+    localStorage.setItem('dino3d_best', String(Math.floor(state.best)));
+  }
+
+  playCollisionSound();
+  if (isNewRecord) playRecordSound();
+  spawnExplosion(dinoGroup.position.clone().setY(1));
+
+  overlayText.textContent = isNewRecord ? '¡Nuevo récord!' : '¡Chocaste!';
+  finalScoreEl.style.display = 'block';
+  finalScoreEl.textContent = `Distancia: ${Math.floor(state.distance)} m · Récord: ${Math.floor(state.best)} m`;
+  hintEl.textContent = 'ESPACIO / botón A / toca para reintentar';
+  overlay.classList.remove('hidden');
+}
+
+// ---------- HUD ----------
+const distValue = document.getElementById('distValue');
+const speedValue = document.getElementById('speedValue');
+const bestValue = document.getElementById('bestValue');
+const overlay = document.getElementById('overlay');
+const overlayText = document.getElementById('overlayText');
+
+const finalScoreEl = document.createElement('p');
+finalScoreEl.id = 'finalScore';
+finalScoreEl.style.display = 'none';
+overlay.insertBefore(finalScoreEl, overlay.querySelector('.hint'));
+const hintEl = overlay.querySelector('.hint');
+
+bestValue.textContent = `${Math.floor(state.best)} m`;
+
+function updateHUD() {
+  distValue.textContent = `${Math.floor(state.distance)} m`;
+  speedValue.textContent = `${Math.floor(state.speed)} m/s`;
+  bestValue.textContent = `${Math.floor(state.best)} m`;
+}
+
+// ---------- Input ----------
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    e.preventDefault();
+    if (!state.running) {
+      startGame();
+    } else {
+      jump();
+    }
+  }
+  if (e.code === 'ArrowDown') {
+    e.preventDefault();
+    setDuck(true);
+  }
+  if (e.code === 'KeyR' && !state.running) {
+    e.preventDefault();
+    startGame();
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'ArrowDown') setDuck(false);
+});
+
+overlay.addEventListener('pointerdown', () => {
+  if (!state.running) startGame();
+});
+
+document.getElementById('btnJump').addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  if (!state.running) startGame(); else jump();
+});
+const btnDuck = document.getElementById('btnDuck');
+btnDuck.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  setDuck(true);
+  btnDuck.classList.add('is-pressed');
+});
+btnDuck.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  setDuck(false);
+  btnDuck.classList.remove('is-pressed');
+});
+
+container.addEventListener('pointerdown', () => {
+  if (!state.running) startGame();
+  else jump();
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ---------- Gamepad ----------
+let gamepadIndex = null;
+let prevGamepadButtons = { jump: false, start: false };
+
+window.addEventListener('gamepadconnected', (e) => {
+  gamepadIndex = e.gamepad.index;
+});
+window.addEventListener('gamepaddisconnected', (e) => {
+  if (gamepadIndex === e.gamepad.index) gamepadIndex = null;
+});
+
+function pollGamepad() {
+  if (!navigator.getGamepads) return;
+  const pads = navigator.getGamepads();
+  const gp = (gamepadIndex !== null ? pads[gamepadIndex] : null) || pads[0];
+  if (!gp) return;
+
+  // A / Cruz (0) o Y / Triángulo (3) para saltar
+  const jumpHeld = !!(gp.buttons[0]?.pressed || gp.buttons[3]?.pressed);
+  // Start (9) o Select/Back (8) para iniciar/reintentar
+  const startHeld = !!(gp.buttons[9]?.pressed || gp.buttons[8]?.pressed);
+  // B / Círculo (1), D-pad abajo (13) o stick izquierdo hacia abajo, para agacharse
+  const stickDown = (gp.axes[1] ?? 0) > 0.6;
+  const duckHeld = !!(gp.buttons[1]?.pressed || gp.buttons[13]?.pressed || stickDown);
+
+  const jumpEdge = jumpHeld && !prevGamepadButtons.jump;
+  const startEdge = startHeld && !prevGamepadButtons.start;
+
+  if (!state.running && (jumpEdge || startEdge)) {
+    startGame();
+  } else if (state.running && jumpEdge) {
+    jump();
+  }
+
+  setDuck(duckHeld);
+
+  prevGamepadButtons = { jump: jumpHeld, start: startHeld };
+}
+
+// ---------- Bucle principal ----------
+const clock = new THREE.Clock();
+
+function tick() {
+  requestAnimationFrame(tick);
+  const dt = Math.min(clock.getDelta(), 0.05);
+
+  pollGamepad();
+
+  if (state.running && !state.gameOver) {
+    state.elapsed += dt;
+    state.speed = Math.min(MAX_SPEED, BASE_SPEED + state.elapsed * SPEED_RAMP * 60);
+    state.distance += state.speed * dt * 0.5;
+
+    updatePlayer(dt);
+    updateGround(dt);
+    updateObstacles(dt);
+
+    state.nextSpawnIn -= dt;
+    if (state.nextSpawnIn <= 0) {
+      spawnObstacle();
+      const range = SPAWN_MAX - SPAWN_MIN;
+      const difficultyFactor = Math.max(0.5, 1 - state.elapsed / 90);
+      state.nextSpawnIn = (SPAWN_MIN + Math.random() * range) * difficultyFactor;
+    }
+
+    updateHUD();
+  }
+
+  updateParticles(dt);
+
+  renderer.render(scene, camera);
+}
+
+tick();
+</script>
+</body>
+</html>

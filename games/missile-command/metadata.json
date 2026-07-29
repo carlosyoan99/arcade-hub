@@ -1,0 +1,19 @@
+{
+  "id": "missile-command",
+  "title": "Missile Command",
+  "version": "1.0.0",
+  "created": "2026-07-28",
+  "lastModified": "2026-07-28",
+  "description": "Defendé tus ciudades de misiles enemigos con interceptores y misiles teledirigidos.",
+  "genre": "defensa",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-28",
+      "changes": ["Versión inicial del juego"]
+    }
+  ]
+}

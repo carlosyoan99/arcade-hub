@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Pong — Arcade Hub</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='15' width='10' height='45' rx='4' fill='%236ee7b7'/%3E%3Crect x='82' y='15' width='10' height='45' rx='4' fill='%23ff8a65'/%3E%3Ccircle cx='50' cy='50' r='7' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%238de8ff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>◈ Cargando...</span>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="score-group">
+        <div class="score-block player">
+          <div class="label">TÚ</div>
+          <div class="value" id="playerScore">0</div>
+        </div>
+        <div class="score-sep">:</div>
+        <div class="score-block ai">
+          <div class="label">IA</div>
+          <div class="value" id="aiScore">0</div>
+        </div>
+      </div>
+      <div class="wins-block">
+        <div class="label">Victorias</div>
+        <div class="value" id="winsDisplay">0</div>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay">
+      <h1><span class="accent">◈</span> PONG <span class="accent">◈</span></h1>
+      <p id="overlayText">
+        Primero en llegar a 7 puntos gana. Mové tu paleta para devolver la pelota.
+      </p>
+      <p id="finalScore" style="display: none"></p>
+      <p class="hint" id="hintEl">
+        <kbd>↑</kbd><kbd>↓</kbd> o <kbd>W</kbd><kbd>S</kbd> mover &nbsp;·&nbsp; <kbd>Espacio</kbd> /
+        tocar para empezar · <kbd>R</kbd> reiniciar
+      </p>
+      <div class="version-badge">2D · canvas · sin dependencias</div>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touchControls">
+      <button id="btnUp" aria-label="Arriba">▲</button>
+      <button id="btnDown" class="down" aria-label="Abajo">▼</button>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+    <div id="gameBar">
+      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
+        ← Arcade
+      </button>
+      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
+    </div>
+  </body>
+</html>

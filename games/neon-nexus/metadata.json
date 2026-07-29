@@ -1,0 +1,19 @@
+{
+  "id": "neon-nexus",
+  "title": "Neon Nexus",
+  "version": "1.0.0",
+  "created": "2026-07-28",
+  "lastModified": "2026-07-28",
+  "description": "Defiende tu torre geométrica contra oleadas de formas neon en este tower defense roguelike. Haz clic para dañar, mejora tu torre y elige cartas de poder entre oleadas.",
+  "genre": "tower-defense",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-28",
+      "changes": ["Versión inicial del juego"]
+    }
+  ]
+}

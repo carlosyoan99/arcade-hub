@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Space Invaders — Arcade Hub</title>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('arcadehub_theme') ||
+        (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+    </script>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='24' y='36' width='52' height='34' rx='8' fill='%236ee7b7'/%3E%3Cline x1='32' y1='36' x2='28' y2='18' stroke='%236ee7b7' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='68' y1='36' x2='72' y2='18' stroke='%236ee7b7' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='50' r='5' fill='%23fff'/%3E%3Ccircle cx='60' cy='50' r='5' fill='%23fff'/%3E%3Ccircle cx='42' cy='50' r='2' fill='%23000'/%3E%3Ccircle cx='62' cy='50' r='2' fill='%23000'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>◈ Cargando...</span>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud">
+      <div class="sg">
+        <div class="sb score">
+          <div class="label">Puntos</div>
+          <div class="value" id="sc">0</div>
+        </div>
+        <div class="sp">·</div>
+        <div class="sb lives">
+          <div class="label">Naves</div>
+          <div class="value" id="lv">●●●</div>
+        </div>
+        <div class="sp">·</div>
+        <div class="sb best">
+          <div class="label">Récord</div>
+          <div class="value" id="bst">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <h1><span class="accent">◈</span> SPACE INVADERS <span class="accent">◈</span></h1>
+      <p id="overlayText">
+        Destruí todos los invasores antes de que lleguen a la base. Los invasores se aceleran al
+        quedar menos. ¡Cuidado con sus disparos!
+      </p>
+      <p id="finalScore" style="display: none"></p>
+      <p class="hint" id="hintEl">
+        <kbd>←</kbd><kbd>→</kbd> mover &nbsp;·&nbsp; <kbd>Espacio</kbd> disparar / empezar
+      </p>
+      <div class="vb">2D · canvas · sin dependencias</div>
+    </div>
+
+    <div id="tc">
+      <button id="btnLeft" aria-label="Izquierda">◀ IZQ</button>
+      <button id="btnFire" class="btn-fire" aria-label="Disparar">🔥 FUEGO</button>
+      <button id="btnRight" aria-label="Derecha">DER ▶</button>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+    <div id="gameBar">
+      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
+        ← Arcade
+      </button>
+      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
+    </div>
+  </body>
+</html>

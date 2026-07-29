@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Snake — Arcade Hub</title>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('arcadehub_theme') ||
+        (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+    </script>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='32' y='42' width='20' height='20' rx='5' fill='%236ee7b7'/%3E%3Crect x='52' y='42' width='20' height='20' rx='5' fill='%234dcc8a'/%3E%3Crect x='72' y='42' width='20' height='20' rx='5' fill='%2333aa70'/%3E%3Ccircle cx='40' cy='50' r='3' fill='%23fff'/%3E%3Ccircle cx='40' cy='54' r='3' fill='%23fff'/%3E%3Ccircle cx='20' cy='55' r='8' fill='%23ff4444'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>◈ Cargando...</span>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="score-group">
+        <div class="score-block score">
+          <div class="label">Puntos</div>
+          <div class="value" id="scoreValue">0</div>
+        </div>
+        <div class="score-sep">·</div>
+        <div class="score-block best">
+          <div class="label">Mejor</div>
+          <div class="value" id="bestValue">0</div>
+        </div>
+      </div>
+      <div class="speed-indicator">
+        <div class="label">Vel.</div>
+        <div class="value" id="speedValue">1</div>
+      </div>
+    </div>
+
+    <!-- Overlay de inicio / fin -->
+    <div id="overlay">
+      <h1><span class="accent">◈</span> SNAKE <span class="accent">◈</span></h1>
+      <p id="overlayText">
+        Atrapá la comida para crecer y sumar puntos. No te choques contra las paredes ni contra vos
+        mismo.
+      </p>
+      <p id="finalScore" style="display: none"></p>
+      <p class="hint" id="hintEl">
+        <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> o <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd
+        ><kbd>D</kbd> mover &nbsp;·&nbsp; <kbd>Espacio</kbd> / <kbd>P</kbd> pausa
+      </p>
+      <div class="version-badge">2D · canvas · sin dependencias</div>
+    </div>
+
+    <!-- Touch controls (d-pad) -->
+    <div id="touchControls">
+      <div class="dpad">
+        <div class="empty"></div>
+        <button id="btnUp" aria-label="Arriba">▲</button>
+        <div class="empty"></div>
+        <button id="btnLeft" aria-label="Izquierda">◀</button>
+        <button id="btnPause" aria-label="Pausa" style="font-size: 14px; letter-spacing: 1px">
+          II
+        </button>
+        <button id="btnRight" aria-label="Derecha">▶</button>
+        <div class="empty"></div>
+        <button id="btnDown" aria-label="Abajo">▼</button>
+        <div class="empty"></div>
+      </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+    <div id="gameBar">
+      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
+        ← Arcade
+      </button>
+      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
+    </div>
+  </body>
+</html>

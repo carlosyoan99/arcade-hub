@@ -1,0 +1,29 @@
+{
+  "id": "dino-runner",
+  "title": "Dino Runner",
+  "version": "1.1.0",
+  "created": "2026-06-08",
+  "lastModified": "2026-07-28",
+  "description": "Corré, saltá y agachate para esquivar cactus y pterodáctilos.",
+  "genre": "plataformas",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-08",
+      "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor a carpeta individual",
+        "Botón ayuda + Volver al hub",
+        "Screen shake y partículas",
+        "Sub-pasos de colisión anti-tunneling"
+      ]
+    }
+  ]
+}

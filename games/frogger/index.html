@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Frogger — Arcade Hub</title>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('arcadehub_theme') ||
+        (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+    </script>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='28' r='14' fill='%2344ff44'/%3E%3Ccircle cx='42' cy='23' r='3' fill='%23fff'/%3E%3Ccircle cx='58' cy='23' r='3' fill='%23fff'/%3E%3Ccircle cx='43' cy='23' r='1.5' fill='%23000'/%3E%3Ccircle cx='59' cy='23' r='1.5' fill='%23000'/%3E%3Cellipse cx='30' cy='52' rx='12' ry='6' fill='%2344aa44' opacity='0.5'/%3E%3Cellipse cx='70' cy='52' rx='12' ry='6' fill='%2344aa44' opacity='0.5'/%3E%3Crect x='15' y='72' width='16' height='8' rx='2' fill='%23ff6b6b'/%3E%3Crect x='55' y='72' width='16' height='8' rx='2' fill='%23ff6b6b'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>◈ Cargando...</span>
+    </div>
+    <canvas id="gc"></canvas>
+
+    <div id="hud">
+      <div class="sg">
+        <div class="sb score">
+          <div class="label">Pts</div>
+          <div class="value" id="sc">0</div>
+        </div>
+        <div class="sp">·</div>
+        <div class="sb lives"><div class="value" id="lv">●●●</div></div>
+        <div class="sp">·</div>
+        <div class="sb level">
+          <div class="label">Ronda</div>
+          <div class="value" id="lv2">1</div>
+        </div>
+        <div class="sp">·</div>
+        <div class="sb best">
+          <div class="label">Récord</div>
+          <div class="value" id="bst">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <h1><span class="accent">🐸</span> FROGGER <span class="accent">🐸</span></h1>
+      <p id="ot">
+        Cruzá la calle esquivando autos y camiones, después cruzá el río saltando sobre troncos.
+        ¡Llegá a las 5 zonas seguras para ganar!
+      </p>
+      <p id="fs" style="display: none"></p>
+      <p class="hint" id="he">
+        <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> mover &nbsp;·&nbsp; empezar
+      </p>
+      <div class="vb">2D · canvas · sin dependencias</div>
+    </div>
+
+    <div id="tc">
+      <div class="dp">
+        <div class="empty"></div>
+        <button id="bU" aria-label="Arriba">▲</button>
+        <div class="empty"></div>
+        <button id="bL" aria-label="Izquierda">◀</button>
+        <div id="bM" class="empty" style="visibility: hidden"></div>
+        <button id="bR" aria-label="Derecha">▶</button>
+        <div class="empty"></div>
+        <button id="bD" aria-label="Abajo">▼</button>
+        <div class="empty"></div>
+      </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+    <div id="gameBar">
+      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
+        ← Arcade
+      </button>
+      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
+    </div>
+  </body>
+</html>

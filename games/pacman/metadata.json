@@ -1,0 +1,28 @@
+{
+  "id": "pacman",
+  "title": "Pac-Man",
+  "version": "1.1.0",
+  "created": "2026-06-18",
+  "lastModified": "2026-07-28",
+  "description": "Comé todos los puntos del laberinto esquivando fantasmas con 4 IAs distintas.",
+  "genre": "laberinto",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-18",
+      "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor a carpeta individual",
+        "Botón ayuda + Volver al hub",
+        "Screen shake y partículas"
+      ]
+    }
+  ]
+}

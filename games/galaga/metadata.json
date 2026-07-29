@@ -1,0 +1,28 @@
+{
+  "id": "galaga",
+  "title": "Galaga",
+  "version": "1.1.0",
+  "created": "2026-07-15",
+  "lastModified": "2026-07-28",
+  "description": "Destruí oleadas de invasores en formación con picados en espiral.",
+  "genre": "space-shooter",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-15",
+      "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor a carpeta individual",
+        "Botón ayuda + Volver al hub",
+        "Screen shake y partículas"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "frogger",
+  "title": "Frogger",
+  "version": "1.1.0",
+  "created": "2026-06-22",
+  "lastModified": "2026-07-28",
+  "description": "Cruzá la calle y el río esquivando autos y cayendo al agua.",
+  "genre": "arcade",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-22",
+      "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor a carpeta individual",
+        "Botón ayuda + Volver al hub",
+        "Partículas refactorizadas a shared/effects.js"
+      ]
+    }
+  ]
+}

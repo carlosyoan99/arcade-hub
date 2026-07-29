@@ -1,0 +1,1929 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arcade Hub — 10 clásicos recreados</title>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('arcadehub_theme') ||
+        (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+    </script>
+    <link rel="icon" type="image/svg+xml" href="./asset/icons/favicon.svg" />
+
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:title" content="Arcade Hub — 10 clásicos recreados" />
+    <meta
+      property="og:description"
+      content="10 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Arcade Hub" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:image" content="./asset/icons/favicon.svg" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Arcade Hub — 10 clásicos recreados" />
+    <meta
+      name="twitter:description"
+      content="10 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
+    />
+    <meta name="twitter:image" content="./asset/icons/favicon.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ═══════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════ */
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #0a0a1a;
+        --text: #e8e8f0;
+        --text-dim: #8888aa;
+        --card-bg: rgba(255, 255, 255, 0.04);
+        --card-border: rgba(255, 255, 255, 0.07);
+        --card-hover-border: rgba(255, 255, 255, 0.18);
+        --glow-cyan: #00f0ff;
+        --glow-magenta: #f0f;
+        --glow-green: #00ff88;
+        --glow-amber: #ffbb00;
+        --card-hover-bg: rgba(10, 10, 26, 0.85);
+        --toggle-bg: rgba(255, 255, 255, 0.06);
+        --toggle-border: rgba(255, 255, 255, 0.1);
+        --toggle-hover: rgba(255, 255, 255, 0.12);
+        --toggle-color: #e8e8f0;
+        --hero-badge-bg: linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(255, 0, 255, 0.12));
+        --hero-badge-border: rgba(0, 240, 255, 0.2);
+        color-scheme: dark;
+      }
+      [data-theme='light'] {
+        color-scheme: light;
+        --bg: #e8e8f0;
+        --text: #1a1a2e;
+        --text-dim: #666688;
+        --card-bg: rgba(255, 255, 255, 0.7);
+        --card-border: rgba(0, 0, 0, 0.07);
+        --card-hover-border: rgba(0, 0, 0, 0.18);
+        --card-hover-bg: rgba(240, 240, 250, 0.85);
+        --toggle-bg: rgba(0, 0, 0, 0.06);
+        --toggle-border: rgba(0, 0, 0, 0.1);
+        --toggle-hover: rgba(0, 0, 0, 0.12);
+        --toggle-color: #1a1a2e;
+        --hero-badge-bg: linear-gradient(135deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.06));
+        --hero-badge-border: rgba(0, 0, 0, 0.15);
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* ═══════════════════════════════════
+   SMOOTH THEME TRANSITION
+   ═══════════════════════════════════ */
+      /* Se activa solo cuando se hace toggle de tema, nunca en carga de página */
+      html.theme-transition,
+      html.theme-transition *,
+      html.theme-transition *::before,
+      html.theme-transition *::after {
+        transition:
+          background-color 0.4s ease,
+          background 0.4s ease,
+          color 0.4s ease,
+          border-color 0.4s ease,
+          box-shadow 0.4s ease,
+          opacity 0.4s ease !important;
+      }
+      /* El canvas animado transiciona via JS (lerp de colores), no CSS */
+
+      /* ═══════════════════════════════════
+   ANIMATED BACKGROUND
+   ═══════════════════════════════════ */
+      #bg-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      /* Scanline overlay (very subtle CRT feel) */
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.04) 2px,
+          rgba(0, 0, 0, 0.04) 4px
+        );
+      }
+
+      /* ═══════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════ */
+      .hero {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 80px 24px 40px;
+        animation: heroFadeIn 1.2s ease-out forwards;
+        opacity: 0;
+      }
+      @keyframes heroFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .hero .badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        background: var(--hero-badge-bg);
+        border: 1px solid var(--hero-badge-border);
+        color: var(--glow-cyan);
+        margin-bottom: 20px;
+        animation: badgePulse 3s ease-in-out infinite;
+      }
+      @keyframes badgePulse {
+        0%,
+        100% {
+          box-shadow: 0 0 8px rgba(0, 240, 255, 0.1);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+        }
+      }
+
+      .hero h1 {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(32px, 6vw, 64px);
+        font-weight: 900;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        background: linear-gradient(135deg, #f0f 0%, #00f0ff 40%, #00ff88 70%, #ffbb00 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.15));
+        margin-bottom: 16px;
+        line-height: 1.1;
+      }
+
+      .hero .subtitle {
+        font-size: clamp(13px, 2vw, 16px);
+        color: var(--text-dim);
+        font-weight: 300;
+        letter-spacing: 2px;
+        max-width: 520px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+      .hero .subtitle strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .hero .stats {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+      }
+      .hero .stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .hero .stat-value {
+        font-family: 'Orbitron', monospace;
+        font-size: 28px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--glow-cyan), var(--glow-magenta));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero .stat-label {
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-top: 4px;
+      }
+
+      /* ═══════════════════════════════════
+   GAME GRID
+   ═══════════════════════════════════ */
+      /* ═══════════════════════════════════
+   TOOLBAR
+   ═══════════════════════════════════ */
+      .toolbar {
+        position: relative;
+        z-index: 2;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 24px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .toolbar-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* ── Search input ── */
+      .search-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .search-wrap .search-icon {
+        position: absolute;
+        left: 10px;
+        font-size: 12px;
+        pointer-events: none;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+      }
+      .search-wrap:focus-within .search-icon {
+        opacity: 1;
+      }
+      #searchInput {
+        padding: 6px 10px 6px 30px;
+        border-radius: 8px;
+        border: 1px solid var(--toggle-border);
+        background: var(--toggle-bg);
+        color: var(--toggle-color);
+        font-size: 11px;
+        font-family: 'Inter', system-ui, sans-serif;
+        outline: none;
+        width: 160px;
+        transition: all 0.25s ease;
+        letter-spacing: 1px;
+      }
+      #searchInput::placeholder {
+        color: var(--text-dim);
+        opacity: 0.6;
+      }
+      #searchInput:hover {
+        border-color: var(--card-hover-border);
+      }
+      #searchInput:focus {
+        border-color: var(--glow-cyan);
+        box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.1);
+        width: 200px;
+      }
+      #searchInput::-webkit-search-cancel-button,
+      #searchInput::-webkit-search-decoration {
+        -webkit-appearance: none;
+      }
+      .toolbar select {
+        padding: 5px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--toggle-border);
+        background: var(--toggle-bg);
+        color: var(--toggle-color);
+        font-size: 11px;
+        font-family: 'Inter', system-ui, sans-serif;
+        cursor: pointer;
+        outline: none;
+        letter-spacing: 1px;
+        transition: border-color 0.2s;
+        -webkit-appearance: none;
+        appearance: none;
+        padding-right: 24px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0,0l5,6l5-6' fill='none' stroke='%238888aa' stroke-width='1.5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+      }
+      .toolbar select:hover {
+        border-color: var(--card-hover-border);
+      }
+      .toolbar .view-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid var(--toggle-border);
+        background: var(--toggle-bg);
+        color: var(--toggle-color);
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+        font-family: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .toolbar .view-btn:hover {
+        background: var(--toggle-hover);
+      }
+      .toolbar .view-btn.active {
+        background: rgba(0, 240, 255, 0.1);
+        border-color: rgba(0, 240, 255, 0.2);
+        color: var(--glow-cyan);
+      }
+
+      main {
+        position: relative;
+        z-index: 2;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 16px 24px 80px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+        transition: grid-template-columns 0.3s ease;
+      }
+      main.list-view {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      /* ═══════════════════════════════════
+   GAME CARDS
+   ═══════════════════════════════════ */
+      .card {
+        display: block;
+        position: relative;
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 24px;
+        text-decoration: none;
+        color: inherit;
+        transition:
+          transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+          border-color 0.35s ease,
+          box-shadow 0.35s ease;
+        animation: cardEnter 0.6s ease-out both;
+        opacity: 0;
+        overflow: hidden;
+      }
+
+      /* List view card */
+      .list-view .card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        animation: cardEnter 0.4s ease-out both;
+      }
+      .list-view .card .icon {
+        font-size: 28px;
+        margin-bottom: 0;
+        width: 40px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .list-view .card h2 {
+        font-size: 14px;
+        margin-bottom: 0;
+        white-space: nowrap;
+      }
+      .list-view .card h2::after {
+        display: none;
+      }
+      .list-view .card p {
+        flex: 1;
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .list-view .card .status {
+        margin-top: 0;
+        flex-shrink: 0;
+        padding: 4px 10px;
+        font-size: 9px;
+      }
+      .list-view .card.ready:hover {
+        transform: translateY(-3px) scale(1.01);
+      }
+      .list-view .card.ready:hover .icon {
+        transform: scale(1.1) rotate(-3deg);
+      }
+
+      /* Staggered entrance — set via JS inline style delay */
+      @keyframes cardEnter {
+        from {
+          opacity: 0;
+          transform: translateY(40px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* Glow border overlay on hover */
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: 17px;
+        background: linear-gradient(135deg, var(--card-glow, #00f0ff), var(--card-glow2, #f0f));
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .card::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: 14px;
+        background: var(--bg);
+        z-index: 1;
+        pointer-events: none;
+        transition: background 0.4s ease;
+      }
+      .list-view .card::after {
+        border-radius: 11px;
+      }
+
+      .card > * {
+        position: relative;
+        z-index: 2;
+      }
+
+      .card.ready:hover {
+        transform: translateY(-6px) scale(1.02);
+        border-color: transparent;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+      }
+      .card.ready:hover::before {
+        opacity: 1;
+      }
+      .card.ready:hover::after {
+        background: var(--card-hover-bg, rgba(10, 10, 26, 0.85));
+      }
+
+      /* ── Card contents ── */
+      .card .icon {
+        font-size: 36px;
+        display: block;
+        margin-bottom: 14px;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .card.ready:hover .icon {
+        transform: scale(1.15) rotate(-4deg);
+      }
+
+      .card h2 {
+        font-family: 'Orbitron', monospace;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+        position: relative;
+      }
+      .card h2::after {
+        content: '';
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--card-glow, #00f0ff), transparent);
+        margin-top: 8px;
+        border-radius: 2px;
+        transition: width 0.35s ease;
+      }
+      .card.ready:hover h2::after {
+        width: 48px;
+      }
+      .card p {
+        font-size: 13px;
+        color: var(--text-dim);
+        line-height: 1.6;
+        font-weight: 300;
+      }
+
+      /* ── Card footer (status + plays) ── */
+      .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 16px;
+        gap: 8px;
+      }
+
+      .plays-count {
+        font-size: 10px;
+        color: var(--text-dim);
+        letter-spacing: 1px;
+        font-weight: 400;
+        flex-shrink: 0;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+      }
+      .card.ready:hover .plays-count {
+        opacity: 1;
+      }
+
+      /* Neutralizar margin-top del status dentro del footer flex */
+      .card-footer .status {
+        margin-top: 0;
+      }
+
+      /* List view footer */
+      .list-view .card-footer {
+        margin-top: 0;
+        flex-shrink: 0;
+      }
+
+      /* ── Status badge ── */
+      .card .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 16px;
+        font-family: 'Orbitron', monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+      }
+
+      .card.ready .status {
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 240, 255, 0.1));
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        color: var(--glow-green);
+      }
+      .card.ready:hover .status {
+        background: linear-gradient(135deg, rgba(0, 255, 136, 0.18), rgba(0, 240, 255, 0.18));
+        border-color: rgba(0, 255, 136, 0.3);
+        box-shadow: 0 0 16px rgba(0, 255, 136, 0.08);
+      }
+
+      .card.ready .status::after {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--glow-green);
+        animation: dotPulse 2s ease-in-out infinite;
+      }
+      @keyframes dotPulse {
+        0%,
+        100% {
+          opacity: 1;
+          box-shadow: 0 0 4px var(--glow-green);
+        }
+        50% {
+          opacity: 0.4;
+          box-shadow: none;
+        }
+      }
+
+      /* ── Pending cards ── */
+      .card.pending {
+        cursor: default;
+        opacity: 0.45;
+        filter: grayscale(0.6);
+      }
+      .card.pending .status {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text-dim);
+      }
+
+      @media (max-width: 600px) {
+        .toolbar {
+          padding: 0 16px 8px;
+          gap: 8px;
+        }
+        .list-view .card p {
+          display: none;
+        }
+        .list-view .card .icon {
+          width: 32px;
+          font-size: 22px;
+        }
+        #searchInput {
+          width: 140px;
+        }
+        #searchInput:focus {
+          width: 160px;
+        }
+      }
+      @media (max-width: 480px) {
+        #searchInput {
+          width: 110px;
+          font-size: 10px;
+        }
+        #searchInput:focus {
+          width: 130px;
+        }
+        .search-icon {
+          font-size: 10px;
+          left: 8px;
+        }
+        #searchInput {
+          padding: 5px 8px 5px 24px;
+        }
+      }
+
+      /* ═══════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════ */
+      footer {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 32px 24px 40px;
+        color: var(--text-dim);
+        font-size: 12px;
+        font-weight: 300;
+        letter-spacing: 1px;
+      }
+      footer span {
+        display: inline-block;
+        animation: footerGlow 4s ease-in-out infinite;
+      }
+      @keyframes footerGlow {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* ═══════════════════════════════════
+   ACHIEVEMENTS SECTION
+   ═══════════════════════════════════ */
+      .achievements-section {
+        position: relative;
+        z-index: 2;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 24px 40px;
+      }
+      .achievements-section h2 {
+        font-family: 'Orbitron', monospace;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .achievements-section h2 .count {
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: var(--glow-cyan);
+        font-weight: 400;
+        background: rgba(0, 240, 255, 0.08);
+        border: 1px solid rgba(0, 240, 255, 0.15);
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+      .achievements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 10px;
+      }
+      .ach-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        transition: all 0.3s ease;
+        opacity: 0;
+        animation: cardEnter 0.5s ease-out both;
+      }
+      .ach-card.unlocked {
+        border-color: rgba(0, 255, 136, 0.2);
+        background: rgba(0, 255, 136, 0.04);
+      }
+      .ach-card.locked {
+        opacity: 0.4;
+        filter: grayscale(0.5);
+      }
+      .ach-icon {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--card-border);
+      }
+      .ach-card.unlocked .ach-icon {
+        background: rgba(0, 255, 136, 0.1);
+        border-color: rgba(0, 255, 136, 0.2);
+      }
+      .ach-info {
+        min-width: 0;
+      }
+      .ach-info .name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: 1px;
+      }
+      .ach-card.unlocked .ach-info .name {
+        color: var(--glow-green);
+      }
+      .ach-info .desc {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-top: 2px;
+        line-height: 1.4;
+      }
+      .ach-info .game-label {
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-top: 3px;
+        opacity: 0.6;
+        font-family: 'Orbitron', monospace;
+      }
+
+      @media (max-width: 600px) {
+        .achievements-section {
+          padding: 0 16px 32px;
+        }
+        .achievements-section h2 {
+          font-size: 12px;
+        }
+        .achievements-grid {
+          grid-template-columns: 1fr;
+        }
+        .ach-card {
+          padding: 10px 12px;
+        }
+        .ach-icon {
+          width: 34px;
+          height: 34px;
+          font-size: 20px;
+        }
+      }
+
+      /* ═══════════════════════════════════
+   STATS SECTION
+   ═══════════════════════════════════ */
+      .stats-section {
+        position: relative;
+        z-index: 2;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 24px 40px;
+      }
+      .stats-section h2 {
+        font-family: 'Orbitron', monospace;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .stats-section h2 .count {
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: var(--glow-amber);
+        font-weight: 400;
+        background: rgba(255, 187, 0, 0.08);
+        border: 1px solid rgba(255, 187, 0, 0.15);
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 8px;
+      }
+      .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        transition: all 0.3s ease;
+        opacity: 0;
+        animation: cardEnter 0.5s ease-out both;
+      }
+      .stat-card:hover {
+        border-color: var(--card-hover-border);
+        transform: translateY(-2px);
+      }
+      .stat-card.most-played {
+        border-color: rgba(255, 107, 157, 0.3);
+        background: rgba(255, 107, 157, 0.06);
+        position: relative;
+        overflow: hidden;
+      }
+      .stat-card.most-played::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, rgba(255, 107, 157, 0.25), rgba(255, 187, 0, 0.1));
+        z-index: 0;
+        pointer-events: none;
+      }
+      .stat-icon {
+        font-size: 20px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--card-border);
+        position: relative;
+      }
+      .stat-icon.icon-most {
+        border-color: rgba(255, 107, 157, 0.3);
+        background: rgba(255, 107, 157, 0.12);
+      }
+      .crown-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 10px;
+        filter: drop-shadow(0 0 3px rgba(255, 107, 157, 0.5));
+        animation: crownFloat 2.5s ease-in-out infinite;
+      }
+      @keyframes crownFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-2px);
+        }
+      }
+      .most-label {
+        font-size: 9px;
+        letter-spacing: 1px;
+        color: #ff6b9d;
+        font-family: 'Orbitron', monospace;
+        font-weight: 400;
+      }
+      .stat-plays {
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-top: 1px;
+        letter-spacing: 1px;
+      }
+      .stat-info {
+        min-width: 0;
+      }
+      .stat-info .name {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: 1px;
+      }
+      .stat-info .score {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--glow-cyan);
+        font-family: 'Orbitron', monospace;
+        font-variant-numeric: tabular-nums;
+        margin-top: 1px;
+      }
+      .stat-info .score.none {
+        color: var(--text-dim);
+        font-size: 11px;
+        font-weight: 300;
+        font-family: 'Inter', sans-serif;
+      }
+      .stat-summary {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      .stat-summary .sum-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+      }
+      .stat-summary .sum-item .sum-val {
+        font-family: 'Orbitron', monospace;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--glow-amber);
+      }
+      .stat-summary .sum-item .sum-label {
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+
+      /* Top 3 ranking */
+      .top3-section {
+        margin-bottom: 16px;
+      }
+      .top3-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 10px;
+        font-family: 'Orbitron', monospace;
+      }
+      .top3-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .top3-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        transition: all 0.3s ease;
+        animation: cardEnter 0.5s ease-out both;
+      }
+      .top3-card:hover {
+        border-color: var(--card-hover-border);
+        transform: translateY(-2px);
+      }
+      .top3-card.pos1 {
+        border-color: rgba(255, 215, 0, 0.3);
+        background: rgba(255, 215, 0, 0.06);
+      }
+      .top3-card.pos2 {
+        border-color: rgba(192, 192, 192, 0.25);
+        background: rgba(192, 192, 192, 0.04);
+      }
+      .top3-card.pos3 {
+        border-color: rgba(205, 127, 50, 0.2);
+        background: rgba(205, 127, 50, 0.04);
+      }
+      .top3-medal {
+        font-size: 24px;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--card-border);
+      }
+      .top3-card.pos1 .top3-medal {
+        background: rgba(255, 215, 0, 0.12);
+        border-color: rgba(255, 215, 0, 0.25);
+      }
+      .top3-card.pos2 .top3-medal {
+        background: rgba(192, 192, 192, 0.1);
+        border-color: rgba(192, 192, 192, 0.2);
+      }
+      .top3-card.pos3 .top3-medal {
+        background: rgba(205, 127, 50, 0.1);
+        border-color: rgba(205, 127, 50, 0.2);
+      }
+      .top3-info {
+        min-width: 0;
+      }
+      .top3-info .name {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: 1px;
+      }
+      .top3-info .count {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--glow-amber);
+        font-family: 'Orbitron', monospace;
+        font-variant-numeric: tabular-nums;
+        margin-top: 1px;
+      }
+      .top3-empty {
+        font-size: 11px;
+        color: var(--text-dim);
+        font-style: italic;
+        padding: 8px 0;
+      }
+
+      @media (max-width: 600px) {
+        .top3-grid {
+          grid-template-columns: 1fr;
+        }
+        .top3-card {
+          padding: 8px 10px;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .stats-section {
+          padding: 0 16px 32px;
+        }
+        .stats-section h2 {
+          font-size: 12px;
+        }
+        .stats-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .stat-card {
+          padding: 8px 10px;
+        }
+        .stat-info .score {
+          font-size: 14px;
+        }
+        .stat-summary {
+          gap: 12px;
+        }
+      }
+
+      /* ═══════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════ */
+      #empty {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 14px;
+        padding: 60px 24px;
+        display: none;
+        grid-column: 1 / -1;
+      }
+
+      /* ═══════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════ */
+      @media (max-width: 600px) {
+        .hero {
+          padding: 48px 16px 24px;
+        }
+        .hero .stats {
+          gap: 20px;
+        }
+        main {
+          grid-template-columns: 1fr;
+          padding: 12px 16px 48px;
+          gap: 14px;
+        }
+        .card {
+          padding: 18px;
+        }
+        .card .icon {
+          font-size: 28px;
+        }
+        .card h2 {
+          font-size: 14px;
+        }
+        .card p {
+          font-size: 12px;
+        }
+      }
+
+      /* ═══════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════ */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══ ANIMATED BACKGROUND (Canvas) ═══ -->
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <!-- ═══ HERO ═══ -->
+    <header class="hero">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+        "
+      >
+        <div class="badge" style="margin-bottom: 0">✦ 10 juegos clásicos</div>
+        <button
+          id="themeToggle"
+          aria-label="Cambiar tema"
+          style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--toggle-border);
+            background: var(--toggle-bg);
+            color: var(--toggle-color);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.25s ease;
+            font-family: inherit;
+          "
+          onmouseenter="this.style.background = 'var(--toggle-hover)'"
+          onmouseleave="this.style.background = 'var(--toggle-bg)'"
+        >
+          🌙
+        </button>
+      </div>
+      <h1>Arcade Hub</h1>
+      <p class="subtitle">
+        <strong>10 clásicos</strong> recreados con estética 2D / 2.5D — un archivo HTML
+        autocontenido por juego
+      </p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value" id="ready-count">0</span>
+          <span class="stat-label">Disponibles</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="total-count">0</span>
+          <span class="stat-label">Total juegos</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══ TOOLBAR ═══ -->
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <div class="search-wrap">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar juego…"
+            aria-label="Buscar por nombre"
+            autocomplete="off"
+          />
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+      <div class="toolbar-group">
+        <label
+          for="sortSelect"
+          style="
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            font-family: 'Orbitron', monospace;
+          "
+          >Orden</label
+        >
+        <select id="sortSelect">
+          <option value="default">Por defecto</option>
+          <option value="name">Nombre A-Z</option>
+          <option value="newest">Más nuevos</option>
+          <option value="most-played">Más jugados</option>
+        </select>
+        <button class="view-btn active" id="viewGridBtn" aria-label="Vista grilla" title="Grilla">
+          ▦
+        </button>
+        <button class="view-btn" id="viewListBtn" aria-label="Vista lista" title="Lista">☰</button>
+      </div>
+    </div>
+
+    <!-- ═══ GAME GRID ═══ -->
+    <main id="grid">
+      <p id="empty">Todavía no hay juegos listos. Revisá TODO.md para ver qué sigue.</p>
+    </main>
+
+    <!-- ═══ ACHIEVEMENTS ═══ -->
+    <section class="achievements-section" id="achSection">
+      <h2>
+        🏆 Logros
+        <span class="count" id="achCount">0 / 11</span>
+      </h2>
+      <div class="achievements-grid" id="achGrid"></div>
+    </section>
+
+    <!-- ═══ STATS ═══ -->
+    <section class="stats-section" id="statsSection">
+      <h2>
+        📊 Estadísticas
+        <span class="count" id="gamesPlayedCount">0 jugados</span>
+      </h2>
+      <div class="stat-summary" id="statSummary"></div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer>
+      <span>✦ Sin frameworks &middot; Sin build step &middot; Abrir y jugar ✦</span>
+    </footer>
+
+    <script type="module">
+        import { games } from './games.js';
+
+        /* ── Animated canvas background (theme-aware) ── */
+        const bgCanvas = (function initBg() {
+          const canvas = document.getElementById('bg-canvas');
+          const ctx = canvas.getContext('2d');
+          let w, h, t = 0;
+
+          const C = (r, g, b, a = 1) => ({ r, g, b, a });
+          const DARK = {
+            bg: [C(15,10,40), C(10,8,26), C(6,4,16)],
+            neb1: C(0,240,255,0.035),
+            neb2: C(255,0,255,0.025),
+            neb3: C(255,187,0,0.02),
+            grid: C(255,255,255,0.02),
+            star: C(255,255,255,0.2),
+            starOp: [0.2, 0.7],
+          };
+          const LIGHT = {
+            bg: [C(235,233,242), C(240,238,245), C(245,244,248)],
+            neb1: C(80,180,255,0.02),
+            neb2: C(200,80,200,0.015),
+            neb3: C(200,160,60,0.01),
+            grid: C(0,0,0,0.012),
+            star: C(0,0,0,0.06),
+            starOp: [0.04, 0.12],
+          };
+
+      let colors = DARK;
+      let curTheme = 'dark';
+      let trans = { active: false, from: null, to: null, startTime: 0, duration: 0.4 };
+
+          function lerpColor(c1, c2, t) {
+            return {
+              r: c1.r + (c2.r - c1.r) * t,
+              g: c1.g + (c2.g - c1.g) * t,
+              b: c1.b + (c2.b - c1.b) * t,
+              a: c1.a + (c2.a - c1.a) * t,
+            };
+          }
+          function rgba(c) {
+            return `rgba(${Math.round(c.r)},${Math.round(c.g)},${Math.round(c.b)},${c.a})`;
+          }
+          function lerpPalette(from, to, t) {
+            return {
+              bg: from.bg.map((c, i) => lerpColor(c, to.bg[i], t)),
+              neb1: lerpColor(from.neb1, to.neb1, t),
+              neb2: lerpColor(from.neb2, to.neb2, t),
+              neb3: lerpColor(from.neb3, to.neb3, t),
+              grid: lerpColor(from.grid, to.grid, t),
+              star: lerpColor(from.star, to.star, t),
+              starOp: [
+                from.starOp[0] + (to.starOp[0] - from.starOp[0]) * t,
+                from.starOp[1] + (to.starOp[1] - from.starOp[1]) * t,
+              ],
+            };
+          }
+
+          function setTheme(theme, instant) {
+            const target = theme === 'dark' ? DARK : LIGHT;
+            if (instant || curTheme === theme) {
+              colors = target;
+              curTheme = theme;
+              trans.active = false;
+              return;
+            }
+        trans.active = true;
+        trans.from = colors;
+        trans.to = target;
+        trans.startTime = performance.now();
+        curTheme = theme;
+          }
+
+          // Initialize with actual theme
+          setTheme(document.documentElement.dataset.theme || 'dark', true);
+
+          function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+          }
+          window.addEventListener('resize', resize);
+          resize();
+
+          const stars = Array.from({ length: 120 }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            size: Math.random() * 1.5 + 0.3,
+            speed: Math.random() * 0.15 + 0.02,
+            seed: Math.random(),
+          }));
+
+          function draw() {
+            t += 0.003;
+
+        // Advance theme transition (real-time via performance.now)
+        if (trans.active) {
+          const elapsed = (performance.now() - trans.startTime) / 1000;
+          const p = Math.min(1, elapsed / trans.duration);
+          const ease = 1 - Math.pow(1 - p, 3);
+          colors = lerpPalette(trans.from, trans.to, ease);
+          if (p >= 1) { colors = trans.to; trans.active = false; }
+        }
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Deep space gradient
+            const grad1 = ctx.createRadialGradient(
+              w * 0.5 + Math.sin(t * 0.4) * w * 0.2,
+              h * 0.5 + Math.cos(t * 0.3) * h * 0.15,
+              0,
+              w * 0.5, h * 0.5, w * 0.8
+            );
+            grad1.addColorStop(0, rgba(colors.bg[0]));
+            grad1.addColorStop(0.4, rgba(colors.bg[1]));
+            grad1.addColorStop(1, rgba(colors.bg[2]));
+            ctx.fillStyle = grad1;
+            ctx.fillRect(0, 0, w, h);
+
+            // Nebula glow 1 — cyan
+            const g2 = ctx.createRadialGradient(
+              w * 0.35 + Math.sin(t * 0.2) * w * 0.12,
+              h * 0.4 + Math.cos(t * 0.25) * h * 0.1,
+              0,
+              w * 0.35, h * 0.4, w * 0.35
+            );
+            g2.addColorStop(0, rgba(colors.neb1));
+            g2.addColorStop(1, rgba({ ...colors.neb1, a: 0 }));
+            ctx.fillStyle = g2;
+            ctx.fillRect(0, 0, w, h);
+
+            // Nebula glow 2 — magenta
+            const g3 = ctx.createRadialGradient(
+              w * 0.7 + Math.cos(t * 0.15) * w * 0.1,
+              h * 0.65 + Math.sin(t * 0.2) * h * 0.08,
+              0,
+              w * 0.7, h * 0.65, w * 0.3
+            );
+            g3.addColorStop(0, rgba(colors.neb2));
+            g3.addColorStop(1, rgba({ ...colors.neb2, a: 0 }));
+            ctx.fillStyle = g3;
+            ctx.fillRect(0, 0, w, h);
+
+            // Nebula glow 3 — amber
+            const g4 = ctx.createRadialGradient(
+              w * 0.2 + Math.sin(t * 0.18) * w * 0.08,
+              h * 0.8 + Math.cos(t * 0.22) * h * 0.06,
+              0,
+              w * 0.2, h * 0.8, w * 0.25
+            );
+            g4.addColorStop(0, rgba(colors.neb3));
+            g4.addColorStop(1, rgba({ ...colors.neb3, a: 0 }));
+            ctx.fillStyle = g4;
+            ctx.fillRect(0, 0, w, h);
+
+            // Grid pattern
+            ctx.strokeStyle = rgba(colors.grid);
+            ctx.lineWidth = 1;
+            const gridSize = 48;
+            const offsetX = (t * 8) % gridSize;
+            const offsetY = (t * 5) % gridSize;
+            for (let x = -gridSize + offsetX; x < w + gridSize; x += gridSize) {
+              ctx.beginPath();
+              ctx.moveTo(x, 0);
+              ctx.lineTo(x, h);
+              ctx.stroke();
+            }
+            for (let y = -gridSize + offsetY; y < h + gridSize; y += gridSize) {
+              ctx.beginPath();
+              ctx.moveTo(0, y);
+              ctx.lineTo(w, y);
+              ctx.stroke();
+            }
+
+            // Floating stars with theme-aware color
+            ctx.fillStyle = rgba(colors.star);
+            const [opMin, opMax] = colors.starOp;
+            for (const s of stars) {
+              const sx = (s.x + t * 4 * s.speed * (s.x / w - 0.5) + w) % w;
+              const sy = (s.y + t * 2 * s.speed * (s.y / h - 0.5) + h) % h;
+              const baseOp = opMin + s.seed * (opMax - opMin);
+              ctx.globalAlpha = baseOp * (0.6 + 0.4 * Math.sin(t * 2 + s.x));
+              ctx.beginPath();
+              ctx.arc(sx, sy, s.size, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            requestAnimationFrame(draw);
+          }
+          draw();
+          return { setTheme };
+        })();
+
+        /* ── Per-game accent colors ── */
+        const palette = [
+          ['#00f0ff', '#f0f'],      // Pong     — cyan → magenta
+          ['#ffbb00', '#ff6600'],   // Breakout — amber → orange
+          ['#00ff88', '#00cc66'],   // Snake    — green
+          ['#ff6600', '#ff3300'],   // Dino R.  — orange → red
+          ['#ff00aa', '#6600ff'],   // Asteroids— pink → purple
+          ['#00ff44', '#00ccaa'],   // S.Invad. — lime → teal
+          ['#ffcc00', '#ff8800'],   // Flappy   — gold
+          ['#ffdd00', '#ff6600'],   // Pac-Man  — yellow
+          ['#00ccff', '#0066ff'],   // Tetris   — sky blue
+          ['#44ff44', '#00cc44'],   // Frogger  — frog green
+        ];
+
+        function hashId(id) {
+          let h = 0;
+          for (let i = 0; i < id.length; i++) {
+            h = ((h << 5) - h) + id.charCodeAt(i);
+            h |= 0;
+          }
+          return Math.abs(h);
+        }
+
+        /* ── Theme toggle ── */
+        (function initTheme() {
+          const saved = localStorage.getItem('arcadehub_theme');
+          const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+          const theme = saved || (prefersLight ? 'light' : 'dark');
+          document.documentElement.dataset.theme = theme;
+          const btn = document.getElementById('themeToggle');
+          if (btn) {
+            btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+            btn.addEventListener('click', () => {
+              const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+              // Activar transiciones suaves solo durante el cambio de tema
+              document.documentElement.classList.add('theme-transition');
+              document.documentElement.dataset.theme = next;
+              localStorage.setItem('arcadehub_theme', next);
+              btn.textContent = next === 'dark' ? '🌙' : '☀️';
+              // Iniciar transición del canvas bg
+              bgCanvas.setTheme(next);
+              // Mantener la clase el tiempo suficiente para que las transiciones
+              // CSS (0.4s) se completen, luego remover para no interferir con hovers
+              setTimeout(() => {
+                document.documentElement.classList.remove('theme-transition');
+              }, 450);
+            });
+          }
+        })();
+
+        /* ── Sort / View state ── */
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const viewGridBtn = document.getElementById('viewGridBtn');
+        const viewListBtn = document.getElementById('viewListBtn');
+        const grid = document.getElementById('grid');
+        const emptyMsg = document.getElementById('empty');
+
+        const ready = games.filter(g => g.status === 'listo');
+        const pending = games.filter(g => g.status !== 'listo');
+
+        document.getElementById('ready-count').textContent = ready.length;
+        document.getElementById('total-count').textContent = games.length;
+
+        if (ready.length === 0 && pending.length === 0) {
+          emptyMsg.style.display = 'block';
+        }
+
+        // Restore sort/view preferences
+        const savedSort = localStorage.getItem('arcadehub_sort') || 'default';
+        const savedView = localStorage.getItem('arcadehub_view') || 'grid';
+        sortSelect.value = savedSort;
+        if (savedView === 'list') {
+          grid.classList.add('list-view');
+          viewGridBtn.classList.remove('active');
+          viewListBtn.classList.add('active');
+        }
+
+        function sortGames() {
+          const sort = sortSelect.value;
+          const allGames = [...ready, ...pending];
+          const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+
+          // Game creation order (fallback for 'newest' - metadata.json based)
+          const creationOrder = {
+            'missile-command': 14, 'digdug': 13, 'centipede': 12, 'galaga': 11,
+            'frogger': 10, 'tetris': 9, 'pacman': 8, 'flappy-bird': 7,
+            'space-invaders': 6, 'asteroids': 5, 'dino-runner': 4, 'snake': 3,
+            'breakout': 2, 'pong': 1
+          };
+
+          switch (sort) {
+            case 'name':
+              allGames.sort((a, b) => a.title.localeCompare(b.title));
+              break;
+            case 'newest':
+              allGames.sort((a, b) => (creationOrder[b.id] || 0) - (creationOrder[a.id] || 0));
+              break;
+            case 'most-played':
+              allGames.sort((a, b) => (playsData[b.id] || 0) - (playsData[a.id] || 0));
+              break;
+            default: // 'default': ready first (preserving game.js order), then pending
+              allGames.sort((a, b) => {
+                if (a.status !== b.status) return a.status === 'listo' ? -1 : 1;
+                return games.indexOf(a) - games.indexOf(b);
+              });
+          }
+          return allGames;
+        }
+
+        function renderCard(game, index, playsData = {}) {
+          const isReady = game.status === 'listo';
+          const el = document.createElement(isReady ? 'a' : 'div');
+          el.className = `card ${isReady ? 'ready' : 'pending'}`;
+
+          // Staggered entrance delay
+          const delay = 0.08 * index;
+          el.style.animationDelay = `${delay}s`;
+
+          // Per-game accent color
+          const idx = hashId(game.id) % palette.length;
+          const [glow1, glow2] = palette[idx];
+          el.style.setProperty('--card-glow', glow1);
+          el.style.setProperty('--card-glow2', glow2);
+
+          if (isReady) {
+            el.href = game.file;
+          }
+
+          const plays = playsData[game.id] || 0;
+          const playsHtml = plays > 0
+            ? `<span class="plays-count">🎮 ${plays}</span>`
+            : '';
+
+          el.innerHTML = `
+            <span class="icon">${game.icon ?? '🎮'}</span>
+            <h2>${game.title}</h2>
+            <p>${game.description}</p>
+            <div class="card-footer">
+              <span class="status">${isReady ? 'Jugar' : 'En desarrollo'}</span>
+              ${playsHtml}
+            </div>
+          `;
+          return el;
+        }
+
+        function renderGrid() {
+          const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+          // Clear grid keeping emptyMsg
+          while (grid.firstChild) grid.removeChild(grid.firstChild);
+          if (emptyMsg.parentNode !== grid) grid.appendChild(emptyMsg);
+
+          const searchTerm = searchInput.value.trim().toLowerCase();
+          const sorted = sortGames();
+
+          // Filter by search term
+          const filtered = searchTerm
+            ? sorted.filter(g => g.title.toLowerCase().includes(searchTerm) || g.description.toLowerCase().includes(searchTerm))
+            : sorted;
+
+          if (filtered.length === 0) {
+            emptyMsg.style.display = 'block';
+            emptyMsg.textContent = searchTerm
+              ? `No se encontraron juegos para "${searchInput.value.trim()}"`
+              : 'Todavía no hay juegos listos. Revisá TODO.md para ver qué sigue.';
+          } else {
+            emptyMsg.style.display = 'none';
+            emptyMsg.textContent = 'Todavía no hay juegos listos. Revisá TODO.md para ver qué sigue.';
+          }
+
+          for (const [i, game] of filtered.entries()) {
+            grid.appendChild(renderCard(game, i, playsData));
+          }
+        }
+
+        renderGrid();
+
+        // Search handler — filtra en tiempo real al escribir
+        let searchTimer;
+        searchInput.addEventListener('input', () => {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(renderGrid, 120);
+        });
+        searchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            searchInput.value = '';
+            renderGrid();
+            searchInput.blur();
+          }
+        });
+
+        // Sort change handler
+        sortSelect.addEventListener('change', () => {
+          localStorage.setItem('arcadehub_sort', sortSelect.value);
+          renderGrid();
+        });
+
+        // View toggle
+        function setView(view) {
+          if (view === 'list') {
+            grid.classList.add('list-view');
+            viewGridBtn.classList.remove('active');
+            viewListBtn.classList.add('active');
+          } else {
+            grid.classList.remove('list-view');
+            viewGridBtn.classList.add('active');
+            viewListBtn.classList.remove('active');
+          }
+          localStorage.setItem('arcadehub_view', view);
+        }
+        viewGridBtn.addEventListener('click', () => setView('grid'));
+        viewListBtn.addEventListener('click', () => setView('list'));
+
+        /* ── Achievements panel ── */
+        (function renderAchievements() {
+          const achData = JSON.parse(localStorage.getItem('ach_data') || '{}');
+          const achGrid = document.getElementById('achGrid');
+          const achCount = document.getElementById('achCount');
+
+          const allAchievements = [
+            { id: 'pong_first_win',      icon: '🏓', name: 'Primera victoria',      desc: 'Ganá tu primera partida de Pong',                     game: 'Pong' },
+            { id: 'pong_win_streak',     icon: '🏆', name: 'Invencible',             desc: 'Acumulá 5 victorias en Pong',                        game: 'Pong' },
+            { id: 'breakout_thousand',   icon: '🧱', name: 'Rompe-récords',         desc: 'Alcanzá los 1.000 puntos en Breakout',               game: 'Breakout' },
+            { id: 'snake_decathlon',     icon: '🐍', name: 'Decatlón',              desc: 'Llegá a 10 puntos en Snake',                         game: 'Snake' },
+            { id: 'dino_fivehundo',      icon: '🦖', name: 'Corredor incansable',   desc: 'Sobreviví 500 unidades en Dino Runner',             game: 'Dino Runner' },
+            { id: 'asteroids_thousand',  icon: '🚀', name: 'Cazador de asteroides', desc: 'Alcanzá los 1.000 puntos en Asteroids',              game: 'Asteroids' },
+            { id: 'invaders_twothousand',icon: '👾', name: 'Invasión frustrada',    desc: 'Alcanzá los 2.000 puntos en Space Invaders',        game: 'Space Invaders' },
+            { id: 'tetris_fivehundo',    icon: '🧊', name: 'Maestro del Tetris',    desc: 'Alcanzá los 500 puntos en Tetris',                   game: 'Tetris' },
+            { id: 'flappy_decathlon',    icon: '🐤', name: 'Volador implacable',    desc: 'Alcanzá 10 puntos en Flappy Bird',                  game: 'Flappy Bird' },
+            { id: 'pacman_twothousand',  icon: '🟡', name: 'Comecocos experto',     desc: 'Alcanzá los 2.000 puntos en Pac-Man',               game: 'Pac-Man' },
+            { id: 'frogger_thousand',    icon: '🐸', name: 'Cruzador de ríos',      desc: 'Alcanzá los 1.000 puntos en Frogger',               game: 'Frogger' },
+            { id: 'galaga_twothousand',  icon: '🛸', name: 'Comandante estelar',    desc: 'Alcanzá los 2.000 puntos en Galaga',                game: 'Galaga' },
+            { id: 'centipede_thousand',  icon: '🐛', name: 'Exterminador',           desc: 'Alcanzá los 1.000 puntos en Centipede',             game: 'Centipede' },
+            { id: 'digdug_thousand',     icon: '⛏️', name: 'Excavador implacable',   desc: 'Alcanzá los 1.000 puntos en Dig Dug',               game: 'Dig Dug' },
+            { id: 'missile_thousand',    icon: '🚀', name: 'Defensor de ciudades',   desc: 'Alcanzá los 1.000 puntos en Missile Command',       game: 'Missile Command' },
+          ];
+
+          let unlockedCount = 0;
+
+          for (const [i, ach] of allAchievements.entries()) {
+            const isUnlocked = !!achData[ach.id];
+            if (isUnlocked) unlockedCount++;
+
+            const el = document.createElement('div');
+            el.className = `ach-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+            el.style.animationDelay = `${0.05 * i}s`;
+            el.innerHTML = `
+              <div class="ach-icon">${isUnlocked ? ach.icon : '🔒'}</div>
+              <div class="ach-info">
+                <div class="name">${isUnlocked ? ach.name : '???'}</div>
+                <div class="desc">${isUnlocked ? ach.desc : 'Jugá para descubrir este logro'}</div>
+                <div class="game-label">${ach.game}</div>
+              </div>
+            `;
+            achGrid.appendChild(el);
+          }
+
+          achCount.textContent = `${unlockedCount} / ${allAchievements.length}`;
+        })();
+
+        /* ── Stats panel ── */
+        (function renderStats() {
+          const gamesList = [
+            { id: 'pong',        icon: '🏓', name: 'Pong',         key: 'pong2d_wins',        label: 'Victorias', isWins: true },
+            { id: 'breakout',    icon: '🧱', name: 'Breakout',     key: 'breakout2d_best',    label: 'Mejor' },
+            { id: 'snake',       icon: '🐍', name: 'Snake',        key: 'snake2d_best',       label: 'Mejor' },
+            { id: 'dino-runner', icon: '🦖', name: 'Dino Runner',  key: 'dinorunner2d_best',  label: 'Mejor' },
+            { id: 'asteroids',   icon: '🚀', name: 'Asteroids',    key: 'asteroids2d_best',   label: 'Mejor' },
+            { id: 'space-invaders',icon: '👾', name: 'Space Inv.', key: 'spaceinv2d_best',    label: 'Mejor' },
+            { id: 'flappy-bird', icon: '🐤', name: 'Flappy Bird',  key: 'flappy2d_best',      label: 'Mejor' },
+            { id: 'pacman',      icon: '🟡', name: 'Pac-Man',      key: 'pacman2d_best',      label: 'Mejor' },
+            { id: 'tetris',      icon: '🧊', name: 'Tetris',       key: 'tetris2d_best',      label: 'Mejor' },
+            { id: 'frogger',     icon: '🐸', name: 'Frogger',      key: 'frogger2d_best',     label: 'Mejor' },
+            { id: 'galaga',      icon: '🛸', name: 'Galaga',       key: 'galaga2d_best',      label: 'Mejor' },
+            { id: 'centipede',   icon: '🐛', name: 'Centipede',    key: 'centipede2d_best',   label: 'Mejor' },
+            { id: 'digdug',      icon: '⛏️', name: 'Dig Dug',      key: 'digdug2d_best',      label: 'Mejor' },
+            { id: 'missile-command', icon: '🚀', name: 'Missile Cmd', key: 'missile2d_best', label: 'Mejor' },
+          ];
+
+          const grid = document.getElementById('statsGrid');
+          let playedCount = 0;
+          let totalScore = 0;
+          let maxScore = 0;
+          let maxGame = '';
+
+          // Read play counts from localStorage
+          const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+          let maxPlays = 0;
+          let mostPlayedId = '';
+          for (const [id, count] of Object.entries(playsData)) {
+            if (count > maxPlays) { maxPlays = count; mostPlayedId = id; }
+          }
+
+          for (const [i, g] of gamesList.entries()) {
+            const val = Number(localStorage.getItem(g.key) || 0);
+            const hasData = val > 0;
+            if (hasData) {
+              playedCount++;
+              if (!g.isWins) {
+                totalScore += val;
+                if (val > maxScore) { maxScore = val; maxGame = g.name; }
+              }
+            }
+
+            const plays = playsData[g.id] || 0;
+            const isMostPlayed = mostPlayedId && maxPlays > 0 && g.id === mostPlayedId;
+
+            const el = document.createElement('div');
+            el.className = `stat-card${isMostPlayed ? ' most-played' : ''}`;
+            el.style.animationDelay = `${0.04 * i}s`;
+
+            let scoreHtml;
+            if (hasData) {
+              const displayVal = g.isWins ? val : val.toLocaleString();
+              scoreHtml = `<div class="score">${displayVal}</div>`;
+            } else {
+              scoreHtml = `<div class="score none">—</div>`;
+            }
+
+            const playsLabel = plays > 0 ? `<div class="stat-plays">🎮 ${plays} ${plays === 1 ? 'partida' : 'partidas'}</div>` : '';
+
+            el.innerHTML = `
+              <div class="stat-icon${isMostPlayed ? ' icon-most' : ''}">${g.icon}${isMostPlayed ? '<span class="crown-badge">👑</span>' : ''}</div>
+              <div class="stat-info">
+                <div class="name">${g.name}${isMostPlayed ? ' <span class="most-label">★ Más jugado</span>' : ''}</div>
+                ${scoreHtml}
+                ${playsLabel}
+              </div>
+            `;
+            grid.appendChild(el);
+          }
+
+          // Summary
+          const summary = document.getElementById('statSummary');
+          document.getElementById('gamesPlayedCount').textContent = playedCount + ' jugados';
+          const mostPlayedName = mostPlayedId ? gamesList.find(g => g.id === mostPlayedId)?.name || '' : '';
+          summary.innerHTML = `
+            <div class="sum-item"><span class="sum-val">${playedCount}</span><span class="sum-label">Juegos con récord</span></div>
+            <div class="sum-item"><span class="sum-val">${totalScore.toLocaleString()}</span><span class="sum-label">Puntos totales</span></div>
+            ${maxGame ? `<div class="sum-item"><span class="sum-val">${maxGame}</span><span class="sum-label">Mejor puntaje</span></div>` : ''}
+            ${mostPlayedName && maxPlays > 0 ? `  <div class="sum-item" style="border-color:rgba(255,107,157,0.2);background:rgba(255,107,157,0.06)"><span class="sum-val" style="color:#ff6b9d">${mostPlayedName}</span><span class="sum-label">👑 Más jugado (${maxPlays})</span></div>` : ''}
+          `;
+
+          // Top 3 ranking
+          const top3Container = document.createElement('div');
+          top3Container.className = 'top3-section';
+          const hasPlays = Object.keys(playsData).length > 0;
+          if (hasPlays) {
+            // Sort games by play count descending
+            const sorted = gamesList
+              .map(g => ({ ...g, plays: playsData[g.id] || 0 }))
+              .filter(g => g.e = `stat-card${isMostPlayed ? ' most-played' : ''}`;
+            el.style.animationDelay = `${0.04 * i}s`;
+
+            let scoreHtml;
+            if (hasData) {
+              const displayVal = g.isWins ? val : val.toLocaleString();
+              scoreHtml = `<div class="score">${displayVal}</div>`;
+            } else {
+              scoreHtml = `<div class="score none">—</div>`;
+            }
+
+            const playsLabel = plays > 0 ? `<div class="stat-plays">🎮 ${plays} ${plays === 1 ? 'partida' : 'partidas'}</div>` : '';
+
+            el.innerHTML = `
+              <div class="stat-icon${isMostPlayed ? ' icon-most' : ''}">${g.icon}${isMostPlayed ? '<span class="crown-badge">👑</span>' : ''}</div>
+              <div class="stat-info">
+                <div class="name">${g.name}${isMostPlayed ? ' <span class="most-label">★ Más jugado</span>' : ''}</div>
+                ${scoreHtml}
+                ${playsLabel}
+              </div>
+            `;
+            grid.appendChild(el);
+          }
+
+          // Summary
+          const summary = document.getElementById('statSummary');
+          document.getElementById('gamesPlayedCount').textContent = playedCount + ' jugados';
+          const mostPlayedName = mostPlayedId ? gamesList.find(g => g.id === mostPlayedId)?.name || '' : '';
+          summary.innerHTML = `
+            <div class="sum-item"><span class="sum-val">${playedCount}</span><span class="sum-label">Juegos con récord</span></div>
+            <div class="sum-item"><span class="sum-val">${totalScore.toLocaleString()}</span><span class="sum-label">Puntos totales</span></div>
+            ${maxGame ? `<div class="sum-item"><span class="sum-val">${maxGame}</span><span class="sum-label">Mejor puntaje</span></div>` : ''}
+            ${mostPlayedName && maxPlays > 0 ? `  <div class="sum-item" style="border-color:rgba(255,107,157,0.2);background:rgba(255,107,157,0.06)"><span class="sum-val" style="color:#ff6b9d">${mostPlayedName}</span><span class="sum-label">👑 Más jugado (${maxPlays})</span></div>` : ''}
+          `;
+
+          // Top 3 ranking
+          const top3Container = document.createElement('div');
+          top3Container.className = 'top3-section';
+          const hasPlays = Object.keys(playsData).length > 0;
+          if (hasPlays) {
+            // Sort games by play count descending
+            const sorted = gamesList
+              .map(g => ({ ...g, plays: playsData[g.id] || 0 }))
+              .filter(g => g.plays > 0)
+              .sort((a, b) => b.plays - a.plays)
+              .slice(0, 3);
+
+            const medals = ['🥇', '🥈', '🥉'];
+            const posClasses = ['pos1', 'pos2', 'pos3'];
+
+            const title = document.createElement('div');
+            title.className = 'top3-title';
+            title.textContent = '🏆 Ranking — Más jugados';
+            top3Container.appendChild(title);
+
+            const topGrid = document.createElement('div');
+            topGrid.className = 'top3-grid';
+
+            for (let i = 0; i < sorted.length; i++) {
+              const s = sorted[i];
+              const card = document.createElement('div');
+              card.className = `top3-card ${posClasses[i]}`;
+              card.style.animationDelay = `${0.08 * i}s`;
+              card.innerHTML = `
+                <div class="top3-medal">${medals[i]}</div>
+                <div class="top3-info">
+                  <div class="name">${s.icon} ${s.name}</div>
+                  <div class="count">${s.plays} ${s.plays === 1 ? 'partida' : 'partidas'}</div>
+                </div>
+              `;
+              topGrid.appendChild(card);
+            }
+            top3Container.appendChild(topGrid);
+          } else {
+            const empty = document.createElement('div');
+            empty.className = 'top3-empty';
+            empty.textContent = 'Todavía no hay datos de partidas. ¡Jugá para generar estadísticas!';
+            top3Container.appendChild(empty);
+          }
+
+          // Insert top 3 after summary, before stats grid
+          summary.after(top3Container);
+        })();
+    </script>
+
+    <script>
+      /* ── Service Worker ── */
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('./sw.js')
+          .catch((err) => console.warn('SW registration failed:', err));
+      }
+    </script>
+  </body>
+</html>

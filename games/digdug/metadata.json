@@ -1,0 +1,19 @@
+{
+  "id": "digdug",
+  "title": "Dig Dug",
+  "version": "1.0.0",
+  "created": "2026-07-25",
+  "lastModified": "2026-07-28",
+  "description": "Excavá túneles, inflá enemigos hasta que exploten o derrumbá rocas sobre ellos.",
+  "genre": "arcade",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-25",
+      "changes": ["Versión inicial del juego"]
+    }
+  ]
+}

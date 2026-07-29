@@ -1,0 +1,29 @@
+{
+  "id": "asteroids",
+  "title": "Asteroids",
+  "version": "1.1.0",
+  "created": "2026-06-10",
+  "lastModified": "2026-07-28",
+  "description": "Navegá por el espacio destruyendo asteroides que se fragmentan.",
+  "genre": "space-shooter",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlos/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-10",
+      "changes": ["Versión inicial del juego"]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Refactor a carpeta individual",
+        "Botón ayuda + Volver al hub",
+        "Sub-pasos de colisión anti-tunneling",
+        "Screen shake y partículas"
+      ]
+    }
+  ]
+}
