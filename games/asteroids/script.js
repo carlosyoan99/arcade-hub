@@ -1,5 +1,5 @@
 import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import {
   triggerShake,
@@ -8,7 +8,6 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
-  clearParticles,
 } from '../../shared/effects.js';
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 /* ============================================================
@@ -89,9 +88,6 @@ function playFireSound() {
 function playExplosionSound() {
   beep({ freq: 200, freqEnd: 40, duration: 0.2, type: 'sawtooth', volume: 0.18 });
   triggerShake(3);
-}
-function playThrustSound() {
-  beep({ freq: 120, freqEnd: 90, duration: 0.06, type: 'sawtooth', volume: 0.05 });
 }
 function playDeathSound() {
   triggerShake(8);
@@ -335,7 +331,7 @@ btnFire?.addEventListener('mouseup', () => {
 });
 
 // Tap en canvas
-canvas.addEventListener('pointerdown', (e) => {
+canvas.addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
 

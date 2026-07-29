@@ -1,72 +1,177 @@
-# Arcade Hub
+# 🕹️ Arcade Hub
 
-Un hub que reúne **10 recreaciones de juegos clásicos** (Pong, Breakout, Snake, Asteroids, Space Invaders, Flappy Bird, Dino Runner, Pac-Man, Tetris y Frogger) con **estética 2D o ligeramente 2.5D**. Cada juego es un único archivo HTML autocontenido; el hub (`index.html`) solo enlaza a cada uno.
+**16 juegos clásicos recreados** con estética 2D/2.5D neon. Un archivo HTML por juego, cero dependencias, sin build step. Abrí y jugá.
 
-## Filosofía
+---
 
-- **Cero dependencias de build.** Se abre `index.html` en el navegador y listo.
-- **Un archivo por juego.** Cada `games/*.html` es HTML + CSS + JS vanilla en un solo archivo, sin imports entre juegos. Se puede compartir o abrir suelto sin necesitar el resto del proyecto.
-- **Estética 2D / 2.5D.** Los juegos usan `<canvas>` 2D (o, cuando aporta profundidad real, una ligera perspectiva/paralaje). Nada de motores 3D: la carpeta `games/legacy-3d/` guarda las primeras versiones (Dino Runner, Pong, Breakout) hechas con Three.js — quedan documentadas como referencia de patrones de gameplay, pero no son parte del hub activo porque no encajan con la dirección visual del proyecto.
+## ✨ Filosofía
 
-## Cómo correrlo
+- **Cero dependencias.** Se abre `index.html` en el navegador y listo.
+- **Sin build step.** No hay npm install, no hay bundlers, no hay toolchain.
+- **Un archivo por juego.** Cada juego es autocontenido en su carpeta (`games/pong/`, etc.). Se puede compartir o abrir suelto sin el hub.
+- **Estética 2D/2.5D.** Canvas 2D con paralaje, sombras proyectadas y partículas. Nada de motores 3D (las versiones Three.js antiguas están archivadas en `games/legacy-3d/`).
+- **Cada juego importa módulos compartidos** (`shared/audio.js`, `shared/effects.js`, `shared/achievements.js`, `shared/base.css`) para sonido, partículas, logros y estilos base.
 
-No requiere instalación. Alcanza con:
+---
+
+## 🚀 Cómo correrlo
 
 ```bash
-# cualquier servidor estático simple, por ejemplo:
+# Servidor estático simple:
 python3 -m http.server 8000
+# O con Node:
+npx serve .
 ```
 
-y abrir `http://localhost:8000`. También funciona abriendo `index.html` directo desde el filesystem (`file://`), salvo en los juegos que usen `type="module"` con rutas relativas, que en algunos navegadores requieren servirse por HTTP.
+Abrir `http://localhost:8000`. También funciona con `file://` directo, aunque algunos navegadores requieren HTTP para los `type="module"`.
 
-## Estructura
+---
+
+## 🏗️ Estructura del proyecto
 
 ```
 arcade-hub/
-├── index.html       # el hub: lee games.js y arma la grilla de tarjetas
-├── games.js         # manifiesto de juegos (metadata, no lógica de juego)
-├── games/           # un .html autocontenido por juego
-│   ├── legacy-3d/   # versiones 3D previas, fuera del roster activo
-│   └── game/        # juego 2d completo
-│       ├── index.html    # punto de entrada de cada juego
-│       ├── metadata.json # metadatos de cada juego
-│       ├── script.js     # javascript
-│       └── style.css     # estilo CSS del juego
-├── asset/           # contenido multimedia
-│   └── icons/       # iconos del juego
-├── README.md
-├── CLAUDE.md        # convenciones técnicas para trabajar con IA en este repo
-└── TODO.md          # próximas tareas a realizar
+├── index.html              # Hub principal — grilla de juegos, toolbar, stats
+├── games.js                # Manifiesto: metadata de cada juego (id, title, icon, status)
+├── sw.js                   # Service Worker — cache-first, offline
+│
+├── shared/                 # Módulos compartidos entre todos los juegos
+│   ├── base.css            # Variables CSS (neon palette), overlay, HUD, touch controls
+│   ├── audio.js            # Web Audio API: beep(), startAmbient(), stopAmbient()
+│   ├── effects.js          # Screen shake, partículas, flash, roundRect
+│   ├── achievements.js     # Sistema de logros persistidos en localStorage
+│   └── help.js             # Modal de ayuda contextual
+│
+├── games/                  # Un directorio por juego
+│   ├── pong/
+│   │   ├── index.html      # HTML del juego (estructura + etiquetas)
+│   │   ├── style.css       # Estilos específicos del juego
+│   │   ├── script.js       # Lógica completa del juego (ES module)
+│   │   ├── metadata.json   # Versión, fechas, changelog
+│   │   └── README.md       # Controles, descripción, features
+│   ├── breakout/
+│   │   └── ...
+│   ├── snake/
+│   │   └── ...
+│   └── ... (16 juegos en total)
+│
+├── .agents/                # Skills instalados para trabajo con IA
+│   └── skills/
+│       └── frontend-design.md
+│
+└── README.md, CLAUDE.md, TODO.md
 ```
 
-## Agregar un juego nuevo
+## 📦 Cada juego contiene
 
-1. Crear `games/<nombre>.html` — un solo archivo, JS vanilla, sin dependencias externas salvo que sea estrictamente necesario y esté justificado.
-2. Agregar una entrada en `games.js` con `status: 'listo'`.
-3. Listo — el hub lo va a mostrar automáticamente en la próxima carga.
+| Archivo | Propósito |
+|---------|-----------|
+| `index.html` | Estructura HTML: loading, canvas, HUD, overlay, touch controls, game bar. Sin CSS ni JS inline. |
+| `style.css` | Estilos específicos del juego. Usa variables de `shared/base.css`. |
+| `script.js` | Módulo ES (`type="module"`). Importa de `../../shared/*.js`. |
+| `metadata.json` | Versión, fechas, changelog para el modal de ayuda. |
+| `README.md` | Descripción, controles (teclado/gamepad/táctil), características. |
 
-Ver `CLAUDE.md` para las convenciones de código, sonido, controles y
-persistencia que deberían mantener todos los juegos del hub.
+---
 
-## Estado actual
+## 🎮 Juegos disponibles (16)
 
-Todos los **10 juegos planeados están implementados y jugables** ✅
+| # | Juego | Género | Descripción |
+|---|-------|--------|-------------|
+| 1 | 🏓 **Pong** | Deportes | Tenis de mesa con IA. Primero en llegar a 7 puntos gana. |
+| 2 | 🧱 **Breakout** | Arcade | Rompe ladrillos con la pelota. 5 filas, niveles progresivos. |
+| 3 | 🐍 **Snake** | Arcade | La serpiente clásica. Crece al comer, game over al chocar. |
+| 4 | 🦖 **Dino Runner** | Plataformas | Side-scroller. Saltá y agachate para esquivar obstáculos. |
+| 5 | 🚀 **Asteroids** | Space Shooter | Asteroides que se fragmentan, nave con inercia y wrapping. |
+| 6 | 👾 **Space Invaders** | Space Shooter | Oleadas de invasores, escudos, nave misteriosa. |
+| 7 | 🐤 **Flappy Bird** | Arcade | Volá esquivando tubos con gravedad y aleteo. |
+| 8 | 🟡 **Pac-Man** | Laberinto | 4 IAs de fantasmas distintas, power pellets, fruta bonus. |
+| 9 | 🧊 **Tetris** | Puzzle | 7 piezas, ghost piece, next preview, niveles progresivos. |
+| 10 | 🐸 **Frogger** | Arcade | Cruzá calle y río, 5 zonas seguras, temporizador. |
+| 11 | 🛸 **Galaga** | Space Shooter | Invasores en formación con picados en espiral. |
+| 12 | 🐛 **Centipede** | Arcade | Ciempiés, hongos, araña, pulgas, escorpiones venenosos. |
+| 13 | ⛏️ **Dig Dug** | Arcade | Excavá túneles, inflá enemigos, derrumbá rocas. |
+| 14 | 🚀 **Missile Command** | Defensa | Defendé ciudades con interceptores, misiles inteligentes. |
+| 15 | ◈ **Neon Nexus** | Tower Defense Roguelike | Defiende tu torre, mejora con estrellas, elige cartas de poder. |
+| 16 | 🟣 **Cell Swarm** | Battle Royale | Crecé comiendo células, dividite, eyectá masa. ¡Sé el más grande! |
 
-| #   | Juego                 | Descripción                                          |
-| --- | --------------------- | ---------------------------------------------------- |
-| 1   | 🏓 **Pong**           | Tenis de mesa con IA, partículas, 3 modos de control |
-| 2   | 🧱 **Breakout**       | Rompe ladrillos con 5 filas, niveles progresivos     |
-| 3   | 🐍 **Snake**          | La serpiente clásica, crece al comer                 |
-| 4   | 🦖 **Dino Runner**    | Side-scroller, esquivá cactus y pterodáctilos        |
-| 5   | 🚀 **Asteroids**      | Asteroides que se fragmentan, nave con inercia       |
-| 6   | 👾 **Space Invaders** | Oleadas de invasores, escudos, nave misteriosa       |
-| 7   | 🐤 **Flappy Bird**    | Volá esquivando tubos con gravedad                   |
-| 8   | 🟡 **Pac-Man**        | Laberinto con 4 IAs de fantasmas, power pellets      |
-| 9   | 🧊 **Tetris**         | 7 piezas, ghost piece, hold, next preview            |
-| 10  | 🐸 **Frogger**        | Cruzá calle y río, 5 zonas seguras                   |
+---
 
-Cada juego soporta **teclado, táctil y gamepad**, incluye sonido sintetizado con Web Audio API, partículas y persistencia de récords en localStorage.
+## 🧩 Cómo agregar un juego nuevo
 
-Las versiones 3D (Three.js) de Pong, Breakout y Dino Runner están archivadas en `games/legacy-3d/` como referencia técnica, pero no forman parte del hub activo.
+### 1. Crear la carpeta del juego
 
-Ver `TODO.md` para el backlog de mejoras futuras.
+```bash
+mkdir games/mi-juego
+```
+
+### 2. Crear los archivos
+
+```
+games/mi-juego/
+├── index.html        # Estructura HTML + import de shared/base.css + script.js
+├── style.css         # Variables neon (--accent, --accent-glow), estilos específicos
+├── script.js         # Módulo ES: import { beep } from '../../shared/audio.js'
+├── metadata.json     # Versión, fechas, changelog
+└── README.md         # Descripción y controles
+```
+
+### 3. Seguir las convenciones
+
+Ver `CLAUDE.md` para reglas detalladas. Resumen rápido:
+
+- **Canvas 2D** — nada de Three.js ni motores 3D
+- **Paleta neon** — usar variables `var(--neon-cyan)`, `var(--neon-pink)`, etc. de `shared/base.css`
+- **3 modos de entrada** — teclado (flechas/WASD + acción), táctil (`.is-pressed` + media query), gamepad (polling en el loop)
+- **Módulos compartidos** — importar `audio.js`, `effects.js`, `achievements.js` desde `../../shared/`
+- **Persistencia** — `localStorage` con key namespaced: `<gameId>_<key>`
+- **Overlay** — usar la estructura `#overlay` de `shared/base.css` con variable `--accent`
+- **Ayuda** — importar `showHelp` de `../../shared/help.js` y llamarlo desde `helpBtn`
+
+### 4. Registrar el juego
+
+- Agregar entrada en `games.js` con `status: 'listo'` o `'en-desarrollo'`
+- Agregar la ruta al `index.html` en `FILES` de `sw.js`
+- Listo — el hub lo muestra automáticamente
+
+### 5. Validar
+
+```bash
+npm run lint          # ESLint — sin errores
+npm run format        # Prettier — formato consistente
+npm run check         # Ambos
+```
+
+---
+
+## 🧠 Stack técnico
+
+| Componente | Tecnología |
+|------------|------------|
+| Renderizado | `<canvas>` 2D |
+| Sonido | Web Audio API (osciladores sintetizados) |
+| Estilos | CSS vanilla con variables + neon palette |
+| Persistencia | `localStorage` |
+| Logros | `shared/achievements.js` |
+| Service Worker | `sw.js` para offline |
+| Tipografía | Bungee (display) + Inter (body) en el hub, Courier New en juegos |
+| Sin dependencias | Sin frameworks, sin librerías externas |
+
+---
+
+## 📐 Diseño visual
+
+El hub está diseñado con la skill `frontend-design` (`.agents/skills/frontend-design.md`) que define:
+
+- **Paleta**: 4 colores intencionales (cyan-neon `#00f0ff`, pink-neon `#ff2d78`, gold-neon `#ffb800`, green-neon `#39ff14`)
+- **Tipografía**: Bungee para display, Inter para body en el hub
+- **Elemento signature**: Marquee chase-light border animado en el título del hub
+- **Riesgo estético**: Contadores animados tipo máquina tragamonedas en las stats del hero
+
+Cada juego tiene su propio color de acento (`--accent`) heredado del sistema de tokens.
+
+---
+
+## 📄 Licencia
+
+MIT — Arcade Hub

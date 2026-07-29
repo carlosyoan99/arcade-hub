@@ -1,5 +1,5 @@
 import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import {
   triggerShake,
@@ -9,7 +9,6 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
-  clearParticles,
 } from '../../shared/effects.js';
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 /* ============================================================
@@ -208,7 +207,7 @@ btnDuck.addEventListener('mouseleave', () => {
 });
 
 // Click/tap en canvas y overlay
-canvas.addEventListener('pointerdown', (e) => {
+canvas.addEventListener('pointerdown', () => {
   if (!state.running) startGame();
   else jump();
 });

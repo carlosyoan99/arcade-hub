@@ -9,7 +9,6 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
-  clearParticles,
 } from '../../shared/effects.js';
 /* ============================================================
    TETRIS 2D — Arcade Hub
@@ -440,8 +439,8 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gamepadIndex = null,
-  prevGamepad = { rot: false, start: false };
+let gamepadIndex = null;
+const prevGamepad = { rot: false, start: false };
 window.addEventListener('gamepadconnected', (e) => (gamepadIndex = e.gamepad.index));
 window.addEventListener('gamepaddisconnected', (e) => {
   if (gamepadIndex === e.gamepad.index) gamepadIndex = null;

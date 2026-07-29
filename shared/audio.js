@@ -62,7 +62,7 @@ export function startAmbient() {
     o1.start();
     o2.start();
     ambientNodes = { osc1: o1, osc2: o2, gain: g, filter: f };
-  } catch (e) {
+  } catch {
     /* AudioContext may be closed */
   }
 }
@@ -72,19 +72,19 @@ export function stopAmbient() {
   if (audioCtx) {
     try {
       ambientNodes.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-    } catch (_e) {
+    } catch {
       /* AudioContext may be closed */
     }
   }
   setTimeout(() => {
     try {
       ambientNodes.osc1.stop();
-    } catch (_e) {
+    } catch {
       /* AudioContext may be closed */
     }
     try {
       ambientNodes.osc2.stop();
-    } catch (_e) {
+    } catch {
       /* AudioContext may be closed */
     }
     ambientNodes = null;

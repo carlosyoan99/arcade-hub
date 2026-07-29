@@ -1,9 +1,12 @@
-/* ═══════════════════════════════════
-   shared/base.css — Base styles
-   Reset, theme variables, loading spinner, kbd
-   ═══════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   shared/base.css — Base styles for all Arcade Hub games
+   Theme variables, neon palette, overlay, HUD, touch controls
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Theme Variables ── */
 :root {
   color-scheme: dark;
+  /* UI Panel colors */
   --bg-body: #0a0a14;
   --bg-panel: rgba(0, 0, 0, 0.55);
   --bg-panel-alt: rgba(0, 0, 0, 0.4);
@@ -16,7 +19,26 @@
   --loader-bg: #0a0a14;
   --tc-btn-bg: rgba(255, 255, 255, 0.06);
   --tc-btn-border: rgba(255, 255, 255, 0.15);
+
+  /* ── Neon Palette (per-game accent overrides) ── */
+  --neon-cyan: #00f0ff;
+  --neon-pink: #ff2d78;
+  --neon-gold: #ffb800;
+  --neon-green: #39ff14;
+  --neon-purple: #c084fc;
+  --neon-red: #ff5e7a;
+  --neon-orange: #ff8a65;
+  --neon-blue: #6ec6ff;
+  --neon-yellow: #ffe066;
+  --neon-white: #ffffff;
+
+  /* Accent — each game overrides this */
+  --accent: #6ee7b7;
+  --accent-glow: rgba(110, 231, 183, 0.3);
+  --overlay-grad-start: rgba(15, 20, 35, 0.85);
+  --overlay-grad-end: rgba(8, 8, 16, 0.92);
 }
+
 [data-theme='light'] {
   color-scheme: light;
   --bg-body: #e8e8ee;
@@ -31,8 +53,12 @@
   --loader-bg: #e8e8ee;
   --tc-btn-bg: rgba(0, 0, 0, 0.06);
   --tc-btn-border: rgba(0, 0, 0, 0.15);
+  --accent-glow: rgba(0, 150, 80, 0.2);
+  --overlay-grad-start: rgba(200, 200, 220, 0.85);
+  --overlay-grad-end: rgba(220, 220, 235, 0.92);
 }
 
+/* ── Reset ── */
 * {
   margin: 0;
   padding: 0;
@@ -56,6 +82,7 @@ canvas {
   height: 100%;
 }
 
+/* ── Utilities ── */
 kbd {
   display: inline-block;
   padding: 2px 7px;
@@ -67,6 +94,7 @@ kbd {
   background: var(--kbd-bg);
 }
 
+/* ── Loading Spinner ── */
 #loading {
   position: fixed;
   inset: 0;
@@ -79,23 +107,27 @@ kbd {
   background: var(--loader-bg);
   transition: opacity 0.4s ease;
 }
+
 #loading.hidden {
   opacity: 0;
   pointer-events: none;
 }
+
 #loading .spinner {
   width: 36px;
   height: 36px;
   border: 3px solid rgba(255, 255, 255, 0.08);
-  border-top-color: #6ec6ff;
+  border-top-color: var(--neon-cyan);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
 #loading span {
   color: rgba(255, 255, 255, 0.3);
   font-size: 12px;
@@ -103,18 +135,7 @@ kbd {
   font-family: 'Courier New', monospace;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ═══════════════════════════════════
-   GAME BAR — Volver / Pantalla completa / Ayuda
-   ═══════════════════════════════════ */
+/* ── Game Bar ── */
 #gameBar {
   position: fixed;
   top: 10px;
@@ -124,6 +145,7 @@ kbd {
   gap: 5px;
   pointer-events: none;
 }
+
 #gameBar button {
   pointer-events: auto;
   padding: 4px 10px;
@@ -142,15 +164,354 @@ kbd {
     background 0.2s,
     transform 0.15s;
 }
+
 #gameBar button:active {
   transform: scale(0.92);
 }
+
 #gameBar button:hover {
   background: rgba(128, 128, 128, 0.15);
 }
+
 @media (max-width: 480px) {
   #gameBar button {
     font-size: 10px;
     padding: 3px 8px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SHARED OVERLAY PATTERN
+   ════════════════════════════════════════════════════════════ */
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: radial-gradient(
+    circle at 50% 40%,
+    var(--overlay-grad-start),
+    var(--overlay-grad-end)
+  );
+  color: var(--text-primary);
+  text-align: center;
+  z-index: 20;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+#overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.92) translateY(-8px);
+}
+
+#overlay h1 {
+  font-size: 32px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px var(--accent-glow);
+}
+
+#overlay h1 .accent {
+  color: var(--accent);
+}
+
+#overlay p {
+  opacity: 0.8;
+  font-size: 13px;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+#overlay .hint {
+  font-size: 11px;
+  opacity: 0.45;
+  margin-top: 4px;
+  line-height: 1.8;
+}
+
+#overlay .version-badge,
+#overlay .vb {
+  position: absolute;
+  bottom: 20px;
+  font-size: 10px;
+  opacity: 0.2;
+  letter-spacing: 1px;
+}
+
+#finalScore {
+  font-size: 14px;
+  opacity: 0.85;
+  margin-top: -4px;
+}
+
+@media (max-width: 480px) {
+  #overlay h1 {
+    font-size: 24px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SHARED HUD PATTERN
+   ════════════════════════════════════════════════════════════ */
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 18px 24px 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Standard class names (used by pong, breakout, snake, dino-runner) */
+#hud .score-group {
+  display: flex;
+  align-items: center;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 8px 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#hud .score-block {
+  text-align: center;
+  min-width: 60px;
+}
+
+#hud .score-block .label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+#hud .score-block .value {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+#hud .score-sep {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  padding: 0 10px;
+  padding-top: 8px;
+}
+
+/* Compact class names (used by newer games) */
+#hud .sg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 6px 16px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#hud .sb {
+  text-align: center;
+  min-width: 40px;
+}
+
+#hud .sb .label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+#hud .sb .value {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp {
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+/* Corner badge (level, speed, wins — right or left side) */
+#hud .hud-corner {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-subtler);
+  border-radius: 8px;
+  padding: 4px 14px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#hud .hud-corner.left {
+  left: 24px;
+  right: auto;
+}
+
+#hud .hud-corner .label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+#hud .hud-corner .value {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--neon-yellow);
+}
+
+@media (min-width: 600px) {
+  #hud .hud-corner {
+    display: block;
+  }
+}
+
+/* ── HUD responsive tweaks ── */
+@media (max-width: 520px) {
+  #hud .sg {
+    padding: 4px 10px;
+    gap: 6px;
+  }
+  #hud .sb .value {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  #hud {
+    padding: 14px 16px 0;
+  }
+  #hud .score-group {
+    padding: 6px 14px;
+  }
+  #hud .score-block .value {
+    font-size: 22px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SHARED TOUCH CONTROLS PATTERN
+   ════════════════════════════════════════════════════════════ */
+#touchControls,
+#tc {
+  position: fixed;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  display: none;
+  justify-content: center;
+  gap: 16px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+#touchControls button,
+#tc button {
+  pointer-events: auto;
+  width: 80px;
+  height: 72px;
+  border-radius: 14px;
+  border: 1px solid var(--tc-btn-border);
+  background: var(--tc-btn-bg);
+  color: #fff;
+  font-size: 22px;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.08s ease,
+    transform 0.08s ease;
+  touch-action: none;
+  cursor: pointer;
+}
+
+#touchControls button:active,
+#touchControls button.is-pressed,
+#tc button:active,
+#tc button.is-pressed {
+  background: rgba(110, 231, 183, 0.2);
+  border-color: rgba(110, 231, 183, 0.35);
+  transform: scale(0.92);
+}
+
+/* D-pad grid layout */
+#touchControls .dpad,
+#tc .dp {
+  display: grid;
+  grid-template-columns: 72px 72px 72px;
+  grid-template-rows: 72px 72px 72px;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+#touchControls .dpad button,
+#tc .dp button {
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#touchControls .dpad .empty,
+#tc .dp .empty {
+  visibility: hidden;
+}
+
+/* Show touch controls on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  #touchControls,
+  #tc {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  #touchControls button,
+  #tc button {
+    width: 68px;
+    height: 62px;
+    font-size: 18px;
+  }
+  #touchControls .dpad,
+  #tc .dp {
+    grid-template-columns: 60px 60px 60px;
+    grid-template-rows: 60px 60px 60px;
+  }
+  #touchControls .dpad button,
+  #tc .dp button {
+    font-size: 12px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   REDUCED MOTION
+   ════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -1,25 +1,21 @@
-/* ============================================================
-   CELL SWARM — Estilos para battle royale de células
-   ============================================================ */
+:root {
+  --accent: var(--neon-cyan);
+  --accent-glow: rgba(0, 245, 255, 0.3);
+  --overlay-grad-start: rgba(8, 8, 30, 0.92);
+  --overlay-grad-end: rgba(4, 4, 12, 0.97);
+}
 
 /* ── HUD ── */
 #hud {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
   justify-content: center;
   padding: 12px 16px 0;
-  pointer-events: none;
-  z-index: 10;
 }
 
 #hud .hud-group {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 5px 14px;
   backdrop-filter: blur(6px);
@@ -45,13 +41,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-#hud .hud-item.mass .value {
-  color: #00f5ff;
-}
-
-#hud .hud-item.rank .value {
-  color: #ffd93d;
-}
+#hud .hud-item.mass .value { color: var(--neon-cyan); }
+#hud .hud-item.rank .value { color: var(--neon-yellow); }
 
 #hud .hud-divider {
   width: 1px;
@@ -95,9 +86,7 @@
   border-color: rgba(0, 245, 255, 0.25);
 }
 
-.action-btn:active {
-  transform: scale(0.93);
-}
+.action-btn:active { transform: scale(0.93); }
 
 /* ── Leaderboard ── */
 #leaderboard {
@@ -163,9 +152,7 @@
   margin: 0 -4px;
 }
 
-.lb-entry.is-player .lb-name {
-  color: #00f5ff;
-}
+.lb-entry.is-player .lb-name { color: var(--neon-cyan); }
 
 /* ── Name Entry ── */
 #nameOverlay {
@@ -183,10 +170,7 @@
   transition: opacity 0.4s ease;
 }
 
-#nameOverlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+#nameOverlay.hidden { opacity: 0; pointer-events: none; }
 
 #nameOverlay h1 {
   font-size: 30px;
@@ -194,21 +178,9 @@
   text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
 }
 
-#nameOverlay h1 .accent {
-  color: #00f5ff;
-}
-
-#nameOverlay p {
-  font-size: 13px;
-  opacity: 0.7;
-  max-width: 320px;
-  line-height: 1.5;
-}
-
-#nameOverlay .hint {
-  font-size: 11px;
-  opacity: 0.35;
-}
+#nameOverlay h1 .accent { color: var(--neon-cyan); }
+#nameOverlay p { font-size: 13px; opacity: 0.7; max-width: 320px; line-height: 1.5; }
+#nameOverlay .hint { font-size: 11px; opacity: 0.35; }
 
 #nameInput {
   background: rgba(255, 255, 255, 0.06);
@@ -230,16 +202,14 @@
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.06);
 }
 
-#nameInput::placeholder {
-  color: rgba(255, 255, 255, 0.2);
-}
+#nameInput::placeholder { color: rgba(255, 255, 255, 0.2); }
 
 #btnStart {
   background: rgba(0, 245, 255, 0.12);
   border: 1px solid rgba(0, 245, 255, 0.25);
   border-radius: 10px;
   padding: 10px 36px;
-  color: #00f5ff;
+  color: var(--neon-cyan);
   font-family: inherit;
   font-size: 15px;
   letter-spacing: 3px;
@@ -253,91 +223,10 @@
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
 }
 
-#btnStart:active {
-  transform: scale(0.95);
-}
-
-/* ── Game Over ── */
-#overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  background: radial-gradient(circle at 50% 40%, rgba(20, 8, 30, 0.85), rgba(4, 4, 12, 0.95));
-  color: #fff;
-  text-align: center;
-  z-index: 20;
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  cursor: pointer;
-}
-
-#overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.92) translateY(-8px);
-}
-
-#overlay h1 {
-  font-size: 28px;
-  letter-spacing: 4px;
-  text-shadow: 0 0 30px rgba(255, 94, 122, 0.3);
-  color: #ff5e7a;
-}
-
-#overlay p {
-  opacity: 0.8;
-  font-size: 13px;
-  max-width: 360px;
-  line-height: 1.6;
-}
-
-#overlay .hint {
-  font-size: 11px;
-  opacity: 0.4;
-}
-
-#finalScore {
-  font-size: 15px;
-  opacity: 0.85;
-}
+/* ── Overline game over overlay ── */
+#overlay h1 { color: var(--neon-red); }
 
 /* ── Touch controls ── */
-#touchControls {
-  position: fixed;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  display: none;
-  justify-content: center;
-  gap: 20px;
-  z-index: 15;
-  pointer-events: none;
-}
-
-#touchControls button {
-  pointer-events: auto;
-  width: 56px;
-  height: 52px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  font-size: 18px;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background 0.08s ease,
-    transform 0.08s ease;
-  touch-action: none;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
 #touchControls button:active,
 #touchControls button.is-pressed {
   background: rgba(0, 245, 255, 0.2);
@@ -346,34 +235,13 @@
 }
 
 @media (hover: none) and (pointer: coarse) {
-  #touchControls {
-    display: flex;
-  }
-  #actions {
-    display: none;
-  }
+  #actions { display: none; }
 }
 
 @media (max-width: 480px) {
-  #leaderboard {
-    top: 52px;
-    right: 8px;
-    min-width: 100px;
-    padding: 6px 10px;
-  }
-  .lb-entry {
-    font-size: 10px;
-  }
-  #nameOverlay h1 {
-    font-size: 22px;
-  }
-  #nameInput {
-    font-size: 16px;
-    width: 200px;
-  }
-  #touchControls button {
-    width: 50px;
-    height: 46px;
-    font-size: 16px;
-  }
+  #leaderboard { top: 52px; right: 8px; min-width: 100px; padding: 6px 10px; }
+  .lb-entry { font-size: 10px; }
+  #nameOverlay h1 { font-size: 22px; }
+  #nameInput { font-size: 16px; width: 200px; }
+  #touchControls button { width: 50px; height: 46px; font-size: 16px; }
 }

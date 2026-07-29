@@ -1,5 +1,5 @@
 import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import {
   triggerShake,
@@ -9,7 +9,6 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
-  clearParticles,
 } from '../../shared/effects.js';
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 /* ============================================================
@@ -93,9 +92,6 @@ function playDeath() {
 function playMystery() {
   beep({ freq: 600, freqEnd: 900, duration: 0.08, type: 'triangle', volume: 0.12 });
 }
-function playWall() {
-  beep({ freq: 260, freqEnd: 200, duration: 0.06, type: 'sine', volume: 0.08 });
-}
 function playWin() {
   [660, 880, 1100, 1320].forEach((f, i) =>
     setTimeout(() => beep({ freq: f, duration: 0.1, type: 'triangle', volume: 0.16 }), i * 90),
@@ -112,8 +108,7 @@ let invs = [],
   shields = [];
 let invDir = 1,
   invTimer = 0,
-  fireTimer = 0,
-  lastShots = [];
+  fireTimer = 0;
 let mysteryShip = null,
   mysteryTimer = 0;
 let invaderAnimPhase = 0;
@@ -145,7 +140,6 @@ function buildInvaders() {
 function buildShields() {
   shields = [];
   const sw = 60,
-    sh = 30,
     gap = (CW - SHIELDS * sw) / (SHIELDS + 1);
   for (let i = 0; i < SHIELDS; i++) {
     const sx = gap + i * (sw + gap);
@@ -180,7 +174,6 @@ function resetGame() {
   ship.x = CW / 2;
   plyBullets = [];
   enBullets = [];
-  lastShots = [];
   fireTimer = 0;
   invaderAnimPhase = 0;
   invadersReachedBottom = false;

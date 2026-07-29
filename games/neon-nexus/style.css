@@ -1,27 +1,23 @@
-/* ============================================================
-   NEON NEXUS — Estilos neon para tower defense roguelike
-   ============================================================ */
+:root {
+  --accent: var(--neon-cyan);
+  --accent-glow: rgba(0, 245, 255, 0.3);
+  --overlay-grad-start: rgba(10, 10, 35, 0.85);
+  --overlay-grad-end: rgba(4, 4, 12, 0.95);
+}
 
-/* ── HUD ── */
+/* ── HUD (Neon Nexus has unique HUD layout) ── */
 #hud {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
   flex-direction: column;
   align-items: center;
   padding: 12px 16px 0;
-  pointer-events: none;
-  z-index: 10;
   gap: 6px;
 }
 
 #hud .hud-group {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 6px 16px;
   backdrop-filter: blur(8px);
@@ -49,17 +45,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-#hud .hud-item.wave .value {
-  color: #00f5ff;
-}
-
-#hud .hud-item.stars .value {
-  color: #ffd93d;
-}
-
-#hud .hud-item.coins .value {
-  color: #c084fc;
-}
+#hud .hud-item.wave .value { color: var(--neon-cyan); }
+#hud .hud-item.stars .value { color: var(--neon-yellow); }
+#hud .hud-item.coins .value { color: var(--neon-purple); }
 
 #hud .hud-divider {
   width: 1px;
@@ -79,7 +67,7 @@
 
 #hud .hp-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ff5e7a, #ff8a7a);
+  background: linear-gradient(90deg, var(--neon-red), #ff8a7a);
   border-radius: 3px;
   transition: width 0.2s ease;
 }
@@ -90,7 +78,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── HUD Actions (upgrade buttons) ── */
 #hud .hud-actions {
   display: flex;
   gap: 6px;
@@ -119,31 +106,20 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.upgrade-btn:active {
-  transform: scale(0.95);
-}
+.upgrade-btn:active { transform: scale(0.95); }
 
-.upgrade-btn .upg-icon {
-  font-size: 14px;
-}
-
-.upgrade-btn .upg-label {
-  font-weight: bold;
-  letter-spacing: 1px;
-}
+.upgrade-btn .upg-icon { font-size: 14px; }
+.upgrade-btn .upg-label { font-weight: bold; letter-spacing: 1px; }
 
 .upgrade-btn .upg-cost {
   font-size: 9px;
-  color: #ffd93d;
+  color: var(--neon-yellow);
   padding: 1px 5px;
   background: rgba(255, 217, 61, 0.12);
   border-radius: 4px;
 }
 
-/* ── Card Badge in HUD ── */
-#hud .hud-cards {
-  pointer-events: auto;
-}
+#hud .hud-cards { pointer-events: auto; }
 
 .card-badge {
   display: none;
@@ -152,89 +128,23 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   font-size: 11px;
-  color: #00f5ff;
+  color: var(--neon-cyan);
   cursor: pointer;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: badgePulse 2s ease-in-out infinite;
 }
 
-.card-badge:hover {
-  border-color: #00f5ff;
-}
+.card-badge:hover { border-color: var(--neon-cyan); }
 
 @keyframes badgePulse {
-  0%,
-  100% {
-    box-shadow: 0 0 4px rgba(0, 245, 255, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 12px rgba(0, 245, 255, 0.3);
-  }
+  0%, 100% { box-shadow: 0 0 4px rgba(0, 245, 255, 0.1); }
+  50% { box-shadow: 0 0 12px rgba(0, 245, 255, 0.3); }
 }
 
-/* ── Main Overlay ── */
-#overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  background: radial-gradient(circle at 50% 40%, rgba(10, 10, 35, 0.85), rgba(4, 4, 12, 0.95));
-  color: var(--text-primary);
-  text-align: center;
-  z-index: 20;
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  cursor: pointer;
-}
-
-#overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.92) translateY(-8px);
-}
-
-#overlay h1 {
-  font-size: 30px;
-  letter-spacing: 6px;
-  text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
-}
-
-#overlay h1 .accent {
-  color: #00f5ff;
-}
-
-#overlay p {
-  opacity: 0.8;
-  font-size: 13px;
-  max-width: 400px;
-  line-height: 1.6;
-}
-
-#overlay .hint {
-  font-size: 11px;
-  opacity: 0.45;
-  margin-top: 4px;
-  line-height: 1.8;
-}
-
-#overlay .version-badge {
-  position: absolute;
-  bottom: 20px;
-  font-size: 10px;
-  opacity: 0.2;
-  letter-spacing: 1px;
-}
-
-#finalScore {
-  font-size: 14px;
-  opacity: 0.85;
-  margin-top: -4px;
-}
+/* ── Overrides for overlays ── */
+#overlay h1 { letter-spacing: 6px; }
+#overlay p { max-width: 400px; }
 
 /* ── Card Selection Overlay ── */
 #cardOverlay {
@@ -250,15 +160,12 @@
   transition: opacity 0.35s ease;
 }
 
-#cardOverlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+#cardOverlay.hidden { opacity: 0; pointer-events: none; }
 
 #cardOverlay h2 {
   font-size: 20px;
   letter-spacing: 4px;
-  color: #00f5ff;
+  color: var(--neon-cyan);
   text-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
 }
 
@@ -270,7 +177,7 @@
   padding: 0 20px;
 }
 
-.card {
+#cardOverlay .card {
   width: 170px;
   min-height: 190px;
   background: rgba(0, 0, 0, 0.6);
@@ -288,35 +195,27 @@
   touch-action: manipulation;
 }
 
-.card::before {
+#cardOverlay .card::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 14px;
   padding: 1px;
   background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.08) 100%);
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   -webkit-mask-composite: xor;
   pointer-events: none;
 }
 
-.card:hover {
+#cardOverlay .card:hover {
   transform: translateY(-4px) scale(1.03);
   border-color: rgba(0, 245, 255, 0.3);
   box-shadow: 0 8px 30px rgba(0, 245, 255, 0.12);
 }
 
-.card:active {
-  transform: translateY(-1px) scale(0.98);
-}
-
-.card .card-rarity {
+#cardOverlay .card .card-rarity {
   position: absolute;
   top: 6px;
   right: 8px;
@@ -326,58 +225,32 @@
   opacity: 0.6;
 }
 
-.card .card-icon {
+#cardOverlay .card .card-icon {
   font-size: 36px;
   line-height: 1;
   margin-bottom: 4px;
   filter: drop-shadow(0 0 8px currentColor);
 }
 
-.card .card-name {
+#cardOverlay .card .card-name {
   font-size: 15px;
   font-weight: bold;
   letter-spacing: 1px;
 }
 
-.card .card-desc {
+#cardOverlay .card .card-desc {
   font-size: 11px;
   opacity: 0.65;
   line-height: 1.5;
   text-align: center;
 }
 
-.card.rarity-common .card-name {
-  color: #7dd3fc;
-}
-.card.rarity-common .card-icon {
-  color: #7dd3fc;
-}
-.card.rarity-common:hover {
-  border-color: rgba(125, 211, 252, 0.3);
-  box-shadow: 0 8px 30px rgba(125, 211, 252, 0.1);
-}
-
-.card.rarity-rare .card-name {
-  color: #c084fc;
-}
-.card.rarity-rare .card-icon {
-  color: #c084fc;
-}
-.card.rarity-rare:hover {
-  border-color: rgba(192, 132, 252, 0.3);
-  box-shadow: 0 8px 30px rgba(192, 132, 252, 0.15);
-}
-
-.card.rarity-epic .card-name {
-  color: #ffd93d;
-}
-.card.rarity-epic .card-icon {
-  color: #ffd93d;
-}
-.card.rarity-epic:hover {
-  border-color: rgba(255, 217, 61, 0.3);
-  box-shadow: 0 8px 30px rgba(255, 217, 61, 0.2);
-}
+#cardOverlay .card.rarity-common .card-name,
+#cardOverlay .card.rarity-common .card-icon { color: #7dd3fc; }
+#cardOverlay .card.rarity-rare .card-name,
+#cardOverlay .card.rarity-rare .card-icon { color: var(--neon-purple); }
+#cardOverlay .card.rarity-epic .card-name,
+#cardOverlay .card.rarity-epic .card-icon { color: var(--neon-yellow); }
 
 /* ── Shop Overlay ── */
 #shopOverlay {
@@ -393,22 +266,16 @@
   transition: opacity 0.3s ease;
 }
 
-#shopOverlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+#shopOverlay.hidden { opacity: 0; pointer-events: none; }
 
 #shopOverlay h2 {
   font-size: 20px;
   letter-spacing: 4px;
-  color: #c084fc;
+  color: var(--neon-purple);
   text-shadow: 0 0 20px rgba(192, 132, 252, 0.2);
 }
 
-.shop-balance {
-  font-size: 15px;
-  color: #c084fc;
-}
+.shop-balance { font-size: 15px; color: var(--neon-purple); }
 
 #shopItems {
   display: flex;
@@ -436,28 +303,9 @@
   background: rgba(192, 132, 252, 0.06);
 }
 
-.shop-item:active {
-  transform: scale(0.97);
-}
-
-.shop-item.owned {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.shop-item .shop-item-name {
-  font-size: 13px;
-}
-
-.shop-item .shop-item-cost {
-  font-size: 12px;
-  color: #c084fc;
-  font-weight: bold;
-}
-
-.shop-footer {
-  margin-top: 8px;
-}
+.shop-item.owned { opacity: 0.4; pointer-events: none; }
+.shop-item .shop-item-name { font-size: 13px; }
+.shop-item .shop-item-cost { font-size: 12px; color: var(--neon-purple); font-weight: bold; }
 
 #shopClose {
   background: rgba(255, 255, 255, 0.06);
@@ -471,42 +319,9 @@
   transition: all 0.15s ease;
 }
 
-#shopClose:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
+#shopClose:hover { background: rgba(255, 255, 255, 0.1); }
 
-/* ── Touch Controls ── */
-#touchControls {
-  position: fixed;
-  bottom: 24px;
-  left: 0;
-  right: 0;
-  display: none;
-  justify-content: center;
-  gap: 16px;
-  z-index: 15;
-  pointer-events: none;
-}
-
-#touchControls button {
-  pointer-events: auto;
-  width: 64px;
-  height: 64px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  font-size: 20px;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background 0.08s ease,
-    transform 0.08s ease;
-  touch-action: none;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
+/* ── Touch controls ── */
 #touchControls button:active,
 #touchControls button.is-pressed {
   background: rgba(0, 245, 255, 0.2);
@@ -520,73 +335,32 @@
   font-size: 12px;
   letter-spacing: 2px;
   font-weight: bold;
-  color: #00f5ff;
+  color: var(--neon-cyan);
 }
 
 #touchControls .tc-fire:active,
 #touchControls .tc-fire.is-pressed {
   background: rgba(0, 245, 255, 0.25);
-  border-color: #00f5ff;
+  border-color: var(--neon-cyan);
 }
 
 @media (hover: none) and (pointer: coarse) {
-  #touchControls {
-    display: flex;
-  }
-
-  #hud .hud-group {
-    padding: 4px 10px;
-  }
-
-  #hud .hud-item .value {
-    font-size: 15px;
-  }
-
-  .upgrade-btn {
-    padding: 3px 8px;
-    font-size: 10px;
-  }
+  #hud .hud-group { padding: 4px 10px; }
+  #hud .hud-item .value { font-size: 15px; }
+  .upgrade-btn { padding: 3px 8px; font-size: 10px; }
 }
 
 @media (max-width: 480px) {
-  #overlay h1 {
-    font-size: 22px;
-  }
-
-  #cardContainer {
-    gap: 10px;
-  }
-
-  .card {
+  #cardContainer { gap: 10px; }
+  #cardOverlay .card {
     width: 140px;
     min-height: 160px;
     padding: 14px 12px;
   }
-
-  .card .card-icon {
-    font-size: 28px;
-  }
-
-  .card .card-name {
-    font-size: 13px;
-  }
-
-  #touchControls button {
-    width: 56px;
-    height: 56px;
-    font-size: 17px;
-  }
-
-  #touchControls .tc-fire {
-    padding: 0 14px;
-    font-size: 11px;
-  }
-
-  #hud .hp-bar-wrap {
-    width: 60px;
-  }
-
-  #hud .hud-divider {
-    margin: 0 2px;
-  }
+  #cardOverlay .card .card-icon { font-size: 28px; }
+  #cardOverlay .card .card-name { font-size: 13px; }
+  #touchControls button { width: 56px; height: 56px; font-size: 17px; }
+  #touchControls .tc-fire { padding: 0 14px; font-size: 11px; }
+  #hud .hp-bar-wrap { width: 60px; }
+  #hud .hud-divider { margin: 0 2px; }
 }

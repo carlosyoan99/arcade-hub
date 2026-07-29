@@ -224,7 +224,6 @@ function checkCollisions() {
 // ============================================================
 // ENTRADA
 // ============================================================
-const input = { flap: false };
 
 window.addEventListener('keydown', (e) => {
   if (e.code === 'Space' || e.code === 'ArrowUp') {
@@ -264,7 +263,7 @@ bF?.addEventListener('mousedown', (e) => {
   else flap();
 });
 
-document.getElementById('gc').addEventListener('pointerdown', (e) => {
+document.getElementById('gc').addEventListener('pointerdown', () => {
   if (!state.running) startGame();
   else flap();
 });
@@ -273,8 +272,8 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gI = null,
-  gP = { f: false };
+let gI = null;
+const gP = { f: false };
 window.addEventListener('gamepadconnected', (e) => (gI = e.gamepad.index));
 window.addEventListener('gamepaddisconnected', (e) => {
   if (gI === e.gamepad.index) gI = null;

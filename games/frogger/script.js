@@ -100,10 +100,6 @@ resize();
 function pHop() {
   beep({ freq: 400, freqEnd: 500, duration: 0.05, type: 'square', volume: 0.08 });
 }
-function pSplash() {
-  beep({ freq: 200, freqEnd: 80, duration: 0.15, type: 'sawtooth', volume: 0.15 });
-  triggerShake(3);
-}
 function pHit() {
   triggerShake(5);
   beep({ freq: 300, freqEnd: 60, duration: 0.3, type: 'sawtooth', volume: 0.2 });
@@ -418,8 +414,8 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gI = null,
-  gP = { s: false };
+let gI = null;
+const gP = { s: false };
 window.addEventListener('gamepadconnected', (e) => (gI = e.gamepad.index));
 window.addEventListener('gamepaddisconnected', (e) => {
   if (gI === e.gamepad.index) gI = null;
