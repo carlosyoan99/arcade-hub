@@ -3,6 +3,7 @@ import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
+import { createGameLoop } from '../../shared/loop.js';
 import {
   updateShake,
   getShakeOffset,

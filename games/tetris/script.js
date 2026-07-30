@@ -3,6 +3,7 @@ import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
+import { createGameLoop } from '../../shared/loop.js';
 import {
   updateShake,
   getShakeOffset,
@@ -771,25 +772,20 @@ function updateHUD() {
 // ============================================================
 // MAIN LOOP
 // ============================================================
-let animFrameId = null;
-let lastTime = 0;
-function tick(t) {
-  const dt = Math.min((t - lastTime) / 1000, 0.05);
-  lastTime = t;
+const loop = createGameLoop((dt) => {
   pollGamepad();
   updateShake(dt);
   if (state.running && !state.gameOver && !state.paused) updateGame(dt);
   updateSquashes(dt);
   updateParticles(dt);
   draw();
-  animFrameId = requestAnimationFrame(tick);
-}
+});
 
 resetGame();
 updateHUD();
 
 function cleanup() {
-  if (animFrameId) cancelAnimationFrame(animFrameId);
+  loop.stop();
   document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
@@ -797,10 +793,7 @@ function cleanup() {
 window.addEventListener('beforeunload', cleanup);
 window.addEventListener('pagehide', cleanup);
 document.getElementById('loading').classList.add('hidden');
-animFrameId = requestAnimationFrame((t) => {
-  lastTime = t;
-  tick(t);
-});
+loop.start();
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {

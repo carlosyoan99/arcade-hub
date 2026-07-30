@@ -3,6 +3,7 @@ import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
+import { createGameLoop } from '../../shared/loop.js';
 import {
   updateShake,
   getShakeOffset,
@@ -521,11 +522,7 @@ function updateHUD() {
 }
 
 // BUCLE PRINCIPAL
-let animFrameId = null;
-let lastTime = 0;
-function tick(time) {
-  const dt = Math.min((time - lastTime) / 1000, 0.05);
-  lastTime = time;
+const loop = createGameLoop((dt) => {
   pollGamepad();
   updateShake(dt);
   if (state.running && !state.gameOver) {
@@ -536,8 +533,7 @@ function tick(time) {
   updateSquashes(dt);
   updateParticles(dt);
   draw();
-  animFrameId = requestAnimationFrame(tick);
-}
+});
 playerPaddle.x = PADDLE_X_OFFSET + PADDLE_WIDTH / 2;
 playerPaddle.y = COURT_H / 2;
 aiPaddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;
@@ -547,7 +543,7 @@ ball.y = COURT_H / 2;
 updateHUD();
 
 function cleanup() {
-  if (animFrameId) cancelAnimationFrame(animFrameId);
+  loop.stop();
   document.removeEventListener('keydown', trapTab);
   stopAmbient();
   closeAudio();
@@ -555,10 +551,7 @@ function cleanup() {
 window.addEventListener('beforeunload', cleanup);
 window.addEventListener('pagehide', cleanup);
 document.getElementById('loading').classList.add('hidden');
-animFrameId = requestAnimationFrame((t) => {
-  lastTime = t;
-  tick(t);
-});
+loop.start();
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
