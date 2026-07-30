@@ -3,6 +3,7 @@ import { ensureAudio, beep, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
+import { createGameLoop } from '../../shared/loop.js';
 import {
   updateShake,
   getShakeOffset,
@@ -688,11 +689,7 @@ function updateHUD() {
 // ============================================================
 // MAIN LOOP
 // ============================================================
-let animFrameId = null;
-let lt = 0;
-function tick(t) {
-  const dt = Math.min((t - lt) / 1000, 0.05);
-  lt = t;
+const loop = createGameLoop((dt) => {
   pG();
   updateShake(dt);
 
@@ -722,25 +719,21 @@ function tick(t) {
   updateSquashes(dt);
   updateParticles(dt);
   draw();
-  animFrameId = requestAnimationFrame(tick);
-}
+});
 
 resetFrog();
 buildObstacles();
 updateHUD();
 
 function cleanup() {
-  if (animFrameId) cancelAnimationFrame(animFrameId);
+  loop.stop();
   document.removeEventListener('keydown', trapTab);
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
 window.addEventListener('pagehide', cleanup);
 document.getElementById('loading').classList.add('hidden');
-animFrameId = requestAnimationFrame((t) => {
-  lt = t;
-  tick(t);
-});
+loop.start();
 
 // Game Bar
 document.getElementById('hubBtn')?.addEventListener('click', () => {
