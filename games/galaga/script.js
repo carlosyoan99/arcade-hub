@@ -43,6 +43,12 @@ const START_LIVES = 3;
 const BULLET_SPEED = 520,
   ENEMY_BULLET_SPEED = 200;
 const FIRE_CD = 0.28;
+const SHIP_MARGIN = 15;
+const MIN_DIVE_INTERVAL = 0.8;
+const DIVE_WAVE_REDUCTION = 0.08;
+const DIVE_SPEED_MULT = 0.6;
+const MAX_DIVERS = 2;
+const DIVERS_PER_GROUP = 3;
 
 const ROW_POINTS = [150, 100, 80, 60, 40];
 const ROW_COLORS = ['#ff6b6b', '#ffa76b', '#ffe066', '#6ee7b7', '#6ec6ff'];
@@ -370,14 +376,14 @@ function updateFormation(dt) {
   diveTimer -= dt;
   if (diveTimer <= 0 && alive.length > 3) {
     startDive();
-    diveTimer = Math.max(0.8, diveInterval - state.wave * 0.08);
+    diveTimer = Math.max(MIN_DIVE_INTERVAL, diveInterval - state.wave * DIVE_WAVE_REDUCTION);
   }
 }
 
 function startDive() {
   const alive = enemies.filter((e) => e.alive && !e.diving);
   if (alive.length < 2) return;
-  const count = Math.min(2, Math.floor(alive.length / 3));
+  const count = Math.min(MAX_DIVERS, Math.floor(alive.length / DIVERS_PER_GROUP));
   pDive();
   for (let i = 0; i < count; i++) {
     const idx = Math.floor(Math.random() * alive.length);
@@ -396,7 +402,7 @@ function updateDiving(dt) {
     // Sine-wave swoop
     const targetX = ship.x;
     const dx = targetX - e.x;
-    e.x += Math.sign(dx) * Math.min(Math.abs(dx), speed * dt * 0.6);
+    e.x += Math.sign(dx) * Math.min(Math.abs(dx), speed * dt * DIVE_SPEED_MULT);
     e.x += Math.sin(Date.now() / 200 + e.col) * 30 * dt;
     e.y += speed * dt;
 
@@ -438,7 +444,7 @@ function nextWave() {
 function updatePlayer(dt) {
   if (state.invincibleTimer > 0) state.invincibleTimer -= dt;
   ship.x += (input.left ? -SHIP_SPEED * dt : 0) + (input.right ? SHIP_SPEED * dt : 0);
-  ship.x = Math.max(15, Math.min(CW - 15, ship.x));
+  ship.x = Math.max(SHIP_MARGIN, Math.min(CW - SHIP_MARGIN, ship.x));
 
   // Fire
   if (state.fireTimer > 0) state.fireTimer -= dt;

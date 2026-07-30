@@ -37,6 +37,7 @@ const CPAD = 10;
 
 const LEVELS = 5; // safe zones to fill
 const START_LIVES = 3;
+const TRUCK_SPEED_THRESHOLD = 125;
 
 // Lane types
 const ROAD = 'road',
@@ -127,7 +128,7 @@ function buildObstacles() {
       const count = 2 + Math.floor(Math.random() * 2);
       for (let i = 0; i < count; i++) {
         const x = Math.random() * CW;
-        const isTruck = lane.speed > 125;
+        const isTruck = lane.speed > TRUCK_SPEED_THRESHOLD;
         obstacles.push({
           row: r,
           x,

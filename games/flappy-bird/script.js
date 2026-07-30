@@ -36,6 +36,12 @@ const PIPE_W = 50;
 const PIPE_GAP = 140;
 const PIPE_SPEED = 200;
 const PIPE_SPAWN_INTERVAL = 1.6;
+const PIPE_SPAWN_MIN = 0.8;
+const PIPE_SPAWN_VAR = 0.4;
+const PIPE_MARGIN = 60;
+const PIPE_REMOVE = -20;
+const BIRD_R = 10;
+const INIT_PIPE_DELAY = 1.2;
 const BIRD_X = 150;
 const GROUND_H = 30;
 
@@ -91,7 +97,7 @@ function resetGame() {
   bird.rot = 0;
   bird.wingPhase = 0;
   pipes = [];
-  pipeTimer = 1.2;
+  pipeTimer = INIT_PIPE_DELAY;
   document.getElementById('fs').style.display = 'none';
   updateHUD();
 }
@@ -161,8 +167,8 @@ function updateBird(dt) {
 }
 
 function spawnPipe() {
-  const minY = 60;
-  const maxY = CH - PIPE_GAP - GROUND_H - 60;
+  const minY = PIPE_MARGIN;
+  const maxY = CH - PIPE_GAP - GROUND_H - PIPE_MARGIN;
   const gapY = minY + Math.random() * (maxY - minY);
   pipes.push({
     x: CW + PIPE_W,
@@ -175,7 +181,7 @@ function updatePipes(dt) {
   pipeTimer -= dt;
   if (pipeTimer <= 0) {
     spawnPipe();
-    pipeTimer = PIPE_SPAWN_INTERVAL * (0.8 + Math.random() * 0.4);
+    pipeTimer = PIPE_SPAWN_INTERVAL * (PIPE_SPAWN_MIN + Math.random() * PIPE_SPAWN_VAR);
   }
 
   for (let i = pipes.length - 1; i >= 0; i--) {
@@ -191,7 +197,7 @@ function updatePipes(dt) {
       updateHUD();
     }
 
-    if (p.x + PIPE_W < -20) {
+    if (p.x + PIPE_W < PIPE_REMOVE) {
       pipes.splice(i, 1);
     }
   }
@@ -200,7 +206,7 @@ function updatePipes(dt) {
 function checkCollisions() {
   const bx = BIRD_X,
     by = bird.y;
-  const br = 10; // radio del pájaro
+  const br = BIRD_R;
   const groundY = CH - GROUND_H;
 
   for (const p of pipes) {

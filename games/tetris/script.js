@@ -33,6 +33,9 @@ const COLS = 10,
 const CW = COLS * CS,
   CH = ROWS * CS;
 const CPAD = 10;
+const BASE_DROP_SPEED = 1;
+const SPEED_PER_LEVEL = 0.08;
+const MIN_DROP_SPEED = 0.05;
 
 const PIECES = {
   I: {
@@ -192,7 +195,7 @@ function playGameOver() {
 // TETROMINÓS
 // ============================================================
 function getDropInterval() {
-  return Math.max(0.05, 1 - (state.level - 1) * 0.08);
+  return Math.max(MIN_DROP_SPEED, BASE_DROP_SPEED - (state.level - 1) * SPEED_PER_LEVEL);
 }
 
 function randomPiece() {
