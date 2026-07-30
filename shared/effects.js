@@ -4,38 +4,45 @@
    ═══════════════════════════════════════════════ */
 
 // ──────────────────────────────────────────────
-// SCREEN SHAKE
+// SCREEN SHAKE — modelo de trauma (suave, sin random por frame)
 // ──────────────────────────────────────────────
-let shakeX = 0,
-  shakeY = 0,
-  shakeIntensity = 0;
+// trauma 0..1, shake = trauma^2 * max_offset * sin(t), decay lineal.
+// No usa Math.random() por frame — evita el "buzz" estático.
+
+let _trauma = 0;
+let _shakeTime = 0;
+let _shakeScale = 1; // ← para accesibilidad (reduce-shake)
+
+const MAX_OFFSET_X = 12;
+const MAX_OFFSET_Y = 8;
+const DECAY_RATE = 1.3; // trauma perdido por segundo
 
 /**
- * Activa un screen shake. La intensidad se acumula (se usa el máximo).
- * Llamar desde sonidos de impacto, colisiones, etc.
+ * Activa un screen shake con modelo de trauma (suave, auto-decreciente).
+ * La intensidad se ACUMULA (no se reemplaza).
+ * Normaliza valores legacy (~1-8) al rango trauma [0,1].
+ * @param {number} intensity - 0..1 ideal (0.15=leve, 0.4=medio, 0.8=fuerte).
+ *   También acepta valores legacy ~1-8 (se normalizan automáticamente).
  */
 export function triggerShake(intensity) {
-  shakeIntensity = Math.max(shakeIntensity, intensity);
+  // Normalizar: valores legacy ~1-8 → trauma [0,1]; valores <1 se usan directo
+  const normalized = intensity <= 1 ? intensity : intensity * 0.12;
+  _trauma = Math.min(1, _trauma + normalized);
 }
 
 /**
- * Decae la intensidad del shake. Llamar una vez por frame en el bucle
- * principal antes de renderizar.
+ * Actualiza el trauma y genera offset suave con ondas sinusoidales.
+ * Llamar una vez por frame antes de renderizar.
  */
 export function updateShake(dt) {
-  if (shakeIntensity > 0) {
-    shakeX = (Math.random() - 0.5) * shakeIntensity * 2;
-    shakeY = (Math.random() - 0.5) * shakeIntensity * 2;
-    shakeIntensity *= Math.pow(0.001, dt);
-    if (shakeIntensity < 0.3) {
-      shakeIntensity = 0;
-      shakeX = 0;
-      shakeY = 0;
-    }
-  } else {
-    shakeX = 0;
-    shakeY = 0;
-  }
+  if (_trauma <= 0) return;
+  _trauma = Math.max(0, _trauma - DECAY_RATE * dt);
+  _shakeTime += dt * 30;
+  const shake = _trauma * _trauma * _shakeScale; // quadratic: golpes leves apenas se sienten
+  // Ondas sinusoidales a frecuencias inconmensurables — suaves, no estáticas
+  const _shakeX = MAX_OFFSET_X * shake * Math.sin(_shakeTime * 1.7);
+  const _shakeY = MAX_OFFSET_Y * shake * Math.sin(_shakeTime * 2.3);
+  return { x: _shakeX, y: _shakeY };
 }
 
 /**
@@ -43,7 +50,89 @@ export function updateShake(dt) {
  * Uso: ctx.save(); const so = getShakeOffset(); ctx.translate(so.x, so.y);
  */
 export function getShakeOffset() {
-  return { x: shakeX, y: shakeY };
+  if (_trauma <= 0) return { x: 0, y: 0 };
+  const shake = _trauma * _trauma * _shakeScale;
+  return {
+    x: MAX_OFFSET_X * shake * Math.sin(_shakeTime * 1.7),
+    y: MAX_OFFSET_Y * shake * Math.sin(_shakeTime * 2.3),
+  };
+}
+
+/**
+ * Escala global del screen shake (para accesibilidad).
+ * @param {number} scale - 0 (sin shake) a 1 (100%)
+ */
+export function setShakeScale(scale) {
+  _shakeScale = Math.max(0, Math.min(1, scale));
+}
+
+// ──────────────────────────────────────────────
+// HIT-STOP / FREEZE FRAME
+// ──────────────────────────────────────────────
+// Congela el juego por N ms (tiempo real) para "vender" impacto.
+// NO usa random ni bloquea el event loop.
+
+let _hitStopUntil = 0;
+
+/**
+ * Activa un freeze frame (hit-stop) con duración en tiempo real.
+ * @param {number} duration - Segundos de pausa (0.04=leve, 0.08=medio, 0.15=fuerte)
+ */
+export function hitStop(duration = 0.08) {
+  const end = performance.now() + duration * 1000;
+  if (end > _hitStopUntil) _hitStopUntil = end;
+}
+
+/**
+ * Verifica si el juego está congelado por hit-stop.
+ * Si lo está, el bucle principal debe SALTAR el update() pero seguir renderizando.
+ */
+export function isHitStopped() {
+  return performance.now() < _hitStopUntil;
+}
+
+// ──────────────────────────────────────────────
+// FEEDBACK BUNDLE — jugosidad por tiers
+// ──────────────────────────────────────────────
+// Combina shake + hit-stop + partículas + flash + sonido en una llamada.
+// Cada juego decide qué tier usar para cada evento.
+
+/**
+ * Dispara un bundle completo de feedback según el tier.
+ *
+ * @param {'small'|'medium'|'large'} tier
+ * @param {number} x - Coordenada X para partículas
+ * @param {number} y - Coordenada Y para partículas
+ * @param {object} [opts]
+ * @param {string} [opts.color='#ffffff'] - Color de partículas
+ * @param {function} [opts.onBeep] - Callback para sonido: onBeep(freq, duration, type, volume)
+ * @param {boolean} [opts.noFlash] - Omitir destello blanco incluso en tier large
+ */
+export function feedbackBundle(tier, x, y, opts = {}) {
+  const { color = '#ffffff', onBeep, noFlash } = opts;
+
+  switch (tier) {
+    case 'small':
+      triggerShake(0.15);
+      spawnParticles(x, y, color, 4, { spd: 40, life: 0.2, sm: 1, smx: 2 });
+      if (onBeep) onBeep(660, 0.06, 'square', 0.04);
+      break;
+
+    case 'medium':
+      triggerShake(0.4);
+      hitStop(0.05);
+      spawnParticles(x, y, color, 10, { spd: 70, life: 0.3, sm: 1.5, smx: 3 });
+      if (onBeep) onBeep(400, 0.08, 'sawtooth', 0.1);
+      break;
+
+    case 'large':
+      triggerShake(0.8);
+      hitStop(0.12);
+      spawnParticles(x, y, color, 24, { spd: 120, life: 0.45, sm: 2, smx: 5 });
+      if (!noFlash) triggerFlash(0.3);
+      if (onBeep) onBeep(120, 0.15, 'sawtooth', 0.15);
+      break;
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -228,6 +317,127 @@ export function drawGlow(ctx, x, y, r, color, glowAlpha = 0.15, glowMultiplier =
   ctx.fill();
   ctx.globalAlpha = 1;
 }
+
+// ──────────────────────────────────────────────
+// SQUASH & STRETCH — tween con overshoot
+// ──────────────────────────────────────────────
+// Sistema de animación de escala con overshoot (TRANS_BACK-like).
+// Cada entidad puede tener un squash activo que decae en el tiempo.
+
+let _squashItems = [];
+const SQUASH_POOL_MAX = 100;
+
+/**
+ * Activa un squash & stretch en una posición.
+ * @param {number} duration - Duración total en segundos (0.15-0.3 típico)
+ * @param {number} scaleX - Escala horizontal objetivo inicial (ej: 1.3)
+ * @param {number} scaleY - Escala vertical objetivo inicial (ej: 0.7)
+ * @param {number} [overshoot=0.3] - Factor de overshoot al recuperar (0=sin overshoot)
+ * @returns {number} Índice del squash (para tracking)
+ */
+export function triggerSquash(duration = 0.2, scaleX = 1.3, scaleY = 0.7, overshoot = 0.3) {
+  for (let i = 0; i < _squashItems.length; i++) {
+    if (!_squashItems[i].alive) {
+      _squashItems[i].alive = true;
+      _squashItems[i].timer = 0;
+      _squashItems[i].duration = duration;
+      _squashItems[i].startSX = scaleX;
+      _squashItems[i].startSY = scaleY;
+      _squashItems[i].overshoot = overshoot;
+      _squashItems[i].done = false;
+      return i;
+    }
+  }
+  if (_squashItems.length >= SQUASH_POOL_MAX) return -1;
+  const idx = _squashItems.length;
+  _squashItems.push({
+    alive: true,
+    timer: 0,
+    duration,
+    startSX: scaleX,
+    startSY: scaleY,
+    overshoot,
+    done: false,
+  });
+  return idx;
+}
+
+/**
+ * Actualiza todos los squashes activos. Llamar una vez por frame.
+ */
+export function updateSquashes(dt) {
+  for (let i = 0; i < _squashItems.length; i++) {
+    const s = _squashItems[i];
+    if (!s.alive) continue;
+    s.timer += dt;
+    if (s.timer >= s.duration) {
+      s.alive = false;
+      s.done = true;
+    }
+  }
+}
+
+/**
+ * Obtiene la escala actual de un squash por su índice.
+ * @param {number} index - Índice devuelto por triggerSquash()
+ * @returns {{sx: number, sy: number} | null}
+ */
+export function getSquash(index) {
+  if (index < 0 || index >= _squashItems.length) return null;
+  const s = _squashItems[index];
+  if (!s.alive) return null;
+  const t = s.timer / s.duration; // 0..1
+  // Ease-out con overshoot: back = 1 + overshoot * (1-t)^2 * t
+  const back = 1 + s.overshoot * (1 - t * t) * (1 - t);
+  const sx = 1 + (s.startSX - 1) * (1 - t) * back;
+  const sy = 1 + (s.startSY - 1) * (1 - t) * back;
+  return { sx, sy };
+}
+
+/**
+ * Helper rápido: dibuja un círculo/arc con squash aplicado en ctx.
+ * Aplica transform de escala centrada en (x, y) para el draw.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x - Centro X
+ * @param {number} y - Centro Y
+ * @param {number} r - Radio base
+ * @param {number} squashIndex - Índice del squash activo
+ * @param {function} drawFn - Función que dibuja (recibe ctx, radio escalado)
+ */
+export function drawWithSquash(ctx, x, y, r, squashIndex, drawFn) {
+  const sq = getSquash(squashIndex);
+  if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(sq.sx, sq.sy);
+    ctx.translate(-x, -y);
+    drawFn(ctx, r);
+    ctx.restore();
+  } else {
+    drawFn(ctx, r);
+  }
+}
+
+/**
+ * Limpia todos los squashes activos (útil al reiniciar).
+ */
+export function clearSquashes() {
+  for (let i = 0; i < _squashItems.length; i++) {
+    _squashItems[i].alive = false;
+  }
+}
+
+// ── AUTO-INIT: preferencias de accesibilidad (G6) ──
+// Respeta prefers-reduced-motion del sistema al cargar
+(function initAccessibility() {
+  const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mql.matches) {
+    setShakeScale(0);
+  }
+  mql.addEventListener('change', (e) => {
+    setShakeScale(e.matches ? 0 : 1);
+  });
+})();
 
 // ──────────────────────────────────────────────
 // ROUND RECT

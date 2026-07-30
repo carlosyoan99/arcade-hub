@@ -4,13 +4,17 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
   spawnParticles,
   updateParticles,
   drawParticles,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  drawWithSquash,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -47,7 +51,7 @@ const state = {
 };
 const playerPaddle = { x: 0, z: 0 };
 const aiPaddle = { x: 0, z: 0 };
-const ball = { x: 0, z: 0, vx: 0, vz: 0, speed: BALL_BASE_SPEED };
+const ball = { x: 0, z: 0, vx: 0, vz: 0, speed: BALL_BASE_SPEED, squashIdx: -1 };
 
 // CANVAS SETUP
 const canvas = document.getElementById('gameCanvas');
@@ -62,31 +66,47 @@ const {
 
 // SONIDOS DEL JUEGO
 function playPaddleHit() {
-  beep({ freq: 340, freqEnd: 440, duration: 0.07, type: 'square', volume: 0.16 });
-  triggerShake(2);
+  ball.squashIdx = triggerSquash(0.18, 0.6, 1.5);
+  feedbackBundle('medium', ball.x, ball.z, {
+    color: '#6ee7b7',
+    onBeep: (f, d, t, v) => beep({ freq: f, duration: d, type: t, volume: v }),
+  });
 }
 function playWallBounce() {
+  ball.squashIdx = triggerSquash(0.12, 0.7, 1.3);
   beep({ freq: 220, freqEnd: 260, duration: 0.05, type: 'sine', volume: 0.1 });
-  triggerShake(1.2);
 }
 function playScoreSound(playerScored) {
-  beep({
-    freq: playerScored ? 500 : 220,
-    freqEnd: playerScored ? 780 : 120,
-    duration: 0.28,
-    type: 'sawtooth',
-    volume: 0.18,
+  const color = playerScored ? '#6ee7b7' : '#ff8a65';
+  feedbackBundle('large', COURT_W / 2, COURT_H / 2, {
+    color,
+    onBeep: (f, d, t, v) =>
+      beep({
+        freq: playerScored ? 500 : 220,
+        freqEnd: playerScored ? 780 : 120,
+        duration: d,
+        type: t,
+        volume: v,
+      }),
+    noFlash: true,
   });
-  triggerShake(5);
 }
 function playWinFanfare() {
-  triggerShake(8);
+  feedbackBundle('large', COURT_W / 2, COURT_H / 2, {
+    color: '#6ee7b7',
+    noFlash: false,
+    onBeep: () => {},
+  });
   [660, 880, 1100, 1320].forEach((freq, i) => {
     setTimeout(() => beep({ freq, duration: 0.12, type: 'triangle', volume: 0.18 }), i * 100);
   });
 }
 function playLoseTone() {
-  triggerShake(6);
+  feedbackBundle('large', ball.x, ball.z, {
+    color: '#ff8a65',
+    noFlash: true,
+    onBeep: () => {},
+  });
   [440, 330, 220].forEach((freq, i) => {
     setTimeout(() => beep({ freq, duration: 0.18, type: 'sawtooth', volume: 0.16 }), i * 130);
   });
@@ -229,6 +249,7 @@ function serveBall(towardPlayer) {
   ball.vz /= len;
 }
 function resetGame() {
+  clearSquashes();
   state.playerScore = 0;
   state.aiScore = 0;
   state.gameOver = false;
@@ -465,25 +486,28 @@ function drawPaddle(x, y, h, w, color) {
   ctx.fill();
 }
 function drawBall(x, y, r) {
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.beginPath();
-  ctx.arc(x + 3 * scale, y + 3 * scale, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowColor = '#8de8ff';
-  ctx.shadowBlur = 24 * scale;
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  const bg = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 0, x, y, r);
-  bg.addColorStop(0, '#ffffff');
-  bg.addColorStop(0.5, '#c8f0ff');
-  bg.addColorStop(1, '#8de8ff');
-  ctx.fillStyle = bg;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
+  const drawFn = (ctx, rad) => {
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.arc(x + 3 * scale, y + 3 * scale, rad, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = '#8de8ff';
+    ctx.shadowBlur = 24 * scale;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    const bg = ctx.createRadialGradient(x - rad * 0.3, y - rad * 0.3, 0, x, y, rad);
+    bg.addColorStop(0, '#ffffff');
+    bg.addColorStop(0.5, '#c8f0ff');
+    bg.addColorStop(1, '#8de8ff');
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  drawWithSquash(ctx, x, y, r, ball.squashIdx, drawFn);
 }
 
 // HUD
@@ -509,6 +533,7 @@ function tick(time) {
     updateAiPaddle(dt);
     updateBall(dt);
   }
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

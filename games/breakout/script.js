@@ -11,6 +11,11 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  drawWithSquash,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -78,7 +83,7 @@ const state = {
 const paddle = { x: COURT_W / 2, z: PADDLE_Z };
 
 // Pelota
-const ball = { x: 0, z: 0, vx: 0, vz: 0, prevX: 0, prevZ: 0 };
+const ball = { x: 0, z: 0, vx: 0, vz: 0, prevX: 0, prevZ: 0, squashIdx: -1 };
 
 // Ladrillos: array de { x, z, w, h, points, color, glowColor, alive }
 let bricks = [];
@@ -104,18 +109,25 @@ function playWallBounce() {
   triggerShake(1);
 }
 function playPaddleHit() {
-  beep({ freq: 340, freqEnd: 440, duration: 0.07, type: 'square', volume: 0.16 });
-  triggerShake(2);
+  ball.squashIdx = triggerSquash(0.16, 0.65, 1.4);
+  feedbackBundle('medium', ball.x, ball.z, {
+    color: '#6ec6ff',
+    onBeep: (f, d, t, v) => beep({ freq: f, duration: d, type: t, volume: v }),
+  });
 }
 function playBrickBreak(points) {
-  beep({
-    freq: 500 + points * 4,
-    freqEnd: 800 + points * 4,
-    duration: 0.08,
-    type: 'triangle',
-    volume: 0.16,
+  ball.squashIdx = triggerSquash(0.12, 0.7, 1.3);
+  feedbackBundle('medium', ball.x, ball.z, {
+    color: '#6ec6ff',
+    onBeep: () =>
+      beep({
+        freq: 500 + points * 4,
+        freqEnd: 800 + points * 4,
+        duration: 0.08,
+        type: 'triangle',
+        volume: 0.16,
+      }),
   });
-  triggerShake(1.5);
 }
 function playLaunchSound() {
   beep({ freq: 300, freqEnd: 500, duration: 0.1, type: 'square', volume: 0.14 });
@@ -361,6 +373,7 @@ function launchBall() {
 }
 
 function resetGame() {
+  clearSquashes();
   state.score = 0;
   state.lives = START_LIVES;
   state.level = 1;
@@ -716,30 +729,28 @@ function drawPaddle(x, y, width, height, color) {
 }
 
 function drawBall(x, y, r) {
-  // Sombra
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.beginPath();
-  ctx.arc(x + 3 * scale, y + 3 * scale, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Glow exterior
-  ctx.shadowColor = '#ffdca0';
-  ctx.shadowBlur = 20 * scale;
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Brillo interior
-  const bg = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 0, x, y, r);
-  bg.addColorStop(0, '#ffffff');
-  bg.addColorStop(0.5, '#fff5e0');
-  bg.addColorStop(1, '#ffdca0');
-  ctx.fillStyle = bg;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
+  const drawFn = (ctx, rad) => {
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.arc(x + 3 * scale, y + 3 * scale, rad, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = '#ffdca0';
+    ctx.shadowBlur = 20 * scale;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    const bg = ctx.createRadialGradient(x - rad * 0.3, y - rad * 0.3, 0, x, y, rad);
+    bg.addColorStop(0, '#ffffff');
+    bg.addColorStop(0.5, '#fff5e0');
+    bg.addColorStop(1, '#ffdca0');
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  drawWithSquash(ctx, x, y, r, ball.squashIdx, drawFn);
 }
 
 // ============================================================
@@ -776,6 +787,7 @@ function tick(time) {
     updateBall(dt);
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

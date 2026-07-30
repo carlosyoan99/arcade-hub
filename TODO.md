@@ -197,12 +197,12 @@
 
 | #   | Tarea                                   | Archivos impactados                           | Detalle técnico                                                                                          |
 | --- | --------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| G1  | **Sistema de feedback por tiers**       | `shared/effects.js`                           | Crear `feedbackBundle(eventPos, tier)` con small/medium/large presets (shake+hit-stop+partículas+sonido) |
-| G2  | **Screen shake suave por trauma**       | `shared/effects.js`                           | Refactor `triggerShake()` → modelo de trauma decayente (quadratic, no rand() por frame)                  |
-| G3  | **Hit-stop / freeze frame**             | `shared/effects.js`                           | Agregar `hitStop(duration, scale)` con real-time wait. NO bloquear input                                 |
-| G4  | **Squash & stretch en saltos/landings** | Asteroids, Donkey Kong, Joust, Pong, Breakout | Tween de escala con overshoot (TRANS_BACK) en eventos de landing/impacto                                 |
-| G5  | **Feedback por juego**                  | 19 `games/*/script.js`                        | Integrar los bundles G1-G4 en cada juego: hits, pickups, deaths, boss kills                              |
-| G6  | **Accesibilidad**                       | `shared/base.css` + effects                   | Toggle "reduce juice" (reduce screen shake), respetar `prefers-reduced-motion`                           |
+| G1  | **Sistema de feedback por tiers**       | `shared/effects.js`                           | ✅ `feedbackBundle(tier, x, y, opts)` con small/medium/large presets                                      |
+| G2  | **Screen shake suave por trauma**       | `shared/effects.js`                           | ✅ Refactor a trauma decayente con ondas sinusoidales + `setShakeScale()`                                 |
+| G3  | **Hit-stop / freeze frame**             | `shared/effects.js`                           | ✅ `hitStop(duration)` + `isHitStopped()` — real-time, no bloquea input                                  |
+| G4  | **Squash & stretch en saltos/landings** | Pong, Breakout, Asteroids, DK, Joust          | ✅ `triggerSquash()`, `updateSquashes()`, `getSquash()`, `drawWithSquash()` en 5 juegos                   |
+| G5  | **Feedback por juego**                  | 19 `games/*/script.js`                        | 🔶 **5/19** — Pong, Breakout, Asteroids, DK, Joust. Faltan 14 juegos                                    |
+| G6  | **Accesibilidad**                       | `shared/effects.js`                           | ✅ `prefers-reduced-motion` → `setShakeScale(0)` + listener change en vivo                               |
 
 **Skills assets útiles:** `references/feedback-recipes.md` (recetas de feedback por tier).
 
@@ -282,7 +282,7 @@
 | Fase | Skills                          | Tareas | Estado       |
 | ---- | ------------------------------- | ------ | ------------ |
 | P0   | Rendimiento (shadowBlur+SW)     | 10     | ✅ **9/10**  |
-| G1   | `game-feel`                     | 6      | 🔲 Pendiente |
+| G1   | `game-feel`                     | 6      | ✅ **5.5/6** (G5 parcial 5/19) |
 | H1   | `premium-frontend-ui`           | 7      | 🔲 Pendiente |
 | R1   | `refactor-plan`+`refactor`      | 5      | 🔲 Pendiente |
 | D1   | `create-readme`+`doc-writter`   | 4      | 🔲 Pendiente |

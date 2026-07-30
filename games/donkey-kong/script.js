@@ -12,6 +12,11 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  getSquash,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -91,14 +96,24 @@ const {
 
 // ── SONIDOS ──
 function playJump() {
-  beep({ freq: 500, freqEnd: 700, duration: 0.08, type: 'square', volume: 0.1 });
+  feedbackBundle('medium', player.x + player.w / 2, player.y + player.h, {
+    color: '#ff8a65',
+    onBeep: () => beep({ freq: 500, freqEnd: 700, duration: 0.08, type: 'square', volume: 0.1 }),
+  });
 }
 function playDeath() {
-  beep({ freq: 200, freqEnd: 80, duration: 0.3, type: 'sawtooth', volume: 0.15 });
-  triggerShake(6);
+  feedbackBundle('large', player.x + player.w / 2, player.y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 200, freqEnd: 80, duration: 0.3, type: 'sawtooth', volume: 0.15 }),
+  });
 }
 function playLevelUp() {
-  triggerShake(4);
+  feedbackBundle('large', GAME_W / 2, TILE * 2, {
+    color: '#ffb800',
+    noFlash: false,
+    onBeep: () => {},
+  });
   [660, 880, 1100, 1320].forEach((f, i) =>
     setTimeout(() => beep({ freq: f, duration: 0.1, type: 'triangle', volume: 0.15 }), i * 80),
   );
@@ -254,6 +269,7 @@ function initPlayer() {
 }
 
 function startGame() {
+  clearSquashes();
   ensureAudio();
   startAmbient();
   state.running = true;
@@ -385,6 +401,7 @@ function updatePlayer(dt) {
     bufferTimer = 0;
     coyoteTimer = 0;
     player.onGround = false;
+    playerSquashIdx = triggerSquash(0.2, 0.7, 1.4);
     playJump();
     spawnParticles(player.x + player.w / 2, player.y + player.h, '#ff8a65', 4);
   }
@@ -521,6 +538,9 @@ function updateHUD() {
   levelEl.textContent = String(state.level);
   livesEl.textContent = String(state.lives);
 }
+
+// ── SQUASH INDEX ──
+let playerSquashIdx = -1;
 
 // ── RENDER ──
 function draw() {
@@ -672,35 +692,49 @@ function draw() {
   const pw = player.w * s;
   const ph = player.h * s;
 
-  // Sombra
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath();
-  ctx.ellipse(px + pw / 2, py + ph + 2 * s, pw * 0.5, 3 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
+  const sq = getSquash(playerSquashIdx);
+  if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+    const cx = px + pw / 2;
+    const cy = py + ph / 2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(sq.sx, sq.sy);
+    ctx.translate(-cx, -cy);
 
-  // Cuerpo (overalls azules)
-  ctx.shadowColor = 'rgba(255,0,0,0.15)';
-  ctx.shadowBlur = 10 * s;
-  ctx.fillStyle = '#e03030';
-  roundRect(ctx, px + 2 * s, py, pw - 4 * s, ph * 0.4, 3 * s);
-  ctx.fill();
+    // Sombra
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(px + pw / 2, py + ph + 2 * s, pw * 0.5, 3 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-  ctx.fillStyle = '#3050c0';
-  roundRect(ctx, px + 2 * s, py + ph * 0.35, pw - 4 * s, ph * 0.45, 2 * s);
-  ctx.fill();
+    // Cuerpo (overalls azules)
+    ctx.shadowColor = 'rgba(255,0,0,0.15)';
+    ctx.shadowBlur = 10 * s;
+    ctx.fillStyle = '#e03030';
+    roundRect(ctx, px + 2 * s, py, pw - 4 * s, ph * 0.4, 3 * s);
+    ctx.fill();
 
-  // Cabeza (skin)
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#f5d0a9';
-  ctx.beginPath();
-  ctx.arc(px + pw / 2, py + ph * 0.15, pw * 0.35, 0, Math.PI * 2);
-  ctx.fill();
+    ctx.fillStyle = '#3050c0';
+    roundRect(ctx, px + 2 * s, py + ph * 0.35, pw - 4 * s, ph * 0.45, 2 * s);
+    ctx.fill();
 
-  // Gorra roja
-  ctx.fillStyle = '#e03030';
-  roundRect(ctx, px + pw * 0.15, py - 1 * s, pw * 0.7, ph * 0.15, 2 * s);
-  ctx.fill();
+    // Cabeza (skin)
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#f5d0a9';
+    ctx.beginPath();
+    ctx.arc(px + pw / 2, py + ph * 0.15, pw * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Gorra roja
+    ctx.fillStyle = '#e03030';
+    roundRect(ctx, px + pw * 0.15, py - 1 * s, pw * 0.7, ph * 0.15, 2 * s);
+    ctx.fill();
+
+    if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+      ctx.restore();
+    }
+  }
 
   // Partículas
   drawParticles(ctx, offX, offY, scale);
@@ -741,6 +775,7 @@ function tick(time) {
     }
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

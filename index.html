@@ -165,21 +165,7 @@
         pointer-events: none;
       }
 
-      /* Scanline overlay — subtle CRT feel */
-      body::after {
-        content: '';
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        pointer-events: none;
-        background: repeating-linear-gradient(
-          0deg,
-          transparent,
-          transparent 2px,
-          rgba(0, 0, 0, 0.04) 2px,
-          rgba(0, 0, 0, 0.04) 4px
-        );
-      }
+      /* Scanline overlay — now handled by shared/base.css SVG noise */
 
       /* ═══════════════════════════════════════════════════
          HERO — MARQUEE
@@ -1580,6 +1566,136 @@
           mask: none;
           padding: 0;
         }
+        #customCursor,
+        .magnetic-wrap {
+          display: none !important;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════
+         H2 — CUSTOM CURSOR
+         ═══════════════════════════════════════════════════ */
+      #customCursor {
+        position: fixed;
+        width: 20px;
+        height: 20px;
+        border: 1.5px solid var(--cyan-neon);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        will-change: transform;
+        transition:
+          width 0.2s ease,
+          height 0.2s ease,
+          border-color 0.2s ease,
+          background 0.2s ease;
+        mix-blend-mode: difference;
+      }
+      #customCursor.hovering {
+        width: 32px;
+        height: 32px;
+        border-color: var(--pink-neon);
+        background: rgba(255, 45, 120, 0.08);
+      }
+      @media (hover: none) and (pointer: coarse) {
+        #customCursor {
+          display: none !important;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════
+         H4 — SCROLL-AWARE HEADER
+         ═══════════════════════════════════════════════════ */
+      .hero.hero-hidden {
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
+        animation: none;
+        transition:
+          transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.3s ease;
+      }
+      .hero.hero-visible {
+        transform: translateY(0);
+        opacity: 1;
+        animation: none;
+        transition:
+          transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+          opacity 0.4s ease;
+      }
+
+      /* ═══════════════════════════════════════════════════
+         H5 — MAGNETIC WRAPPER
+         ═══════════════════════════════════════════════════ */
+      .magnetic-wrap {
+        display: inline-flex;
+        position: relative;
+        transition: transform 0.08s ease-out;
+        will-change: transform;
+      }
+      @media (hover: none) and (pointer: coarse) {
+        .magnetic-wrap {
+          transition: none;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════
+         H1 — SPLIT-DOOR ENTRY OVERLAY
+         ═══════════════════════════════════════════════════ */
+      .split-door-left,
+      .split-door-right {
+        position: fixed;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        z-index: 202;
+        background: #05031a;
+        transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        pointer-events: none;
+        display: none;
+      }
+      .split-door-left {
+        left: 0;
+        transform: translateX(0);
+      }
+      .split-door-right {
+        right: 0;
+        transform: translateX(0);
+      }
+      .split-door-left.open {
+        transform: translateX(-100%);
+      }
+      .split-door-right.open {
+        transform: translateX(100%);
+      }
+      .split-door-left.visible,
+      .split-door-right.visible {
+        display: block;
+      }
+
+      /* ═══════════════════════════════════════════════════
+         H6 — PAGE TRANSITIONS
+         ═══════════════════════════════════════════════════ */
+      #gameContainer {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: var(--bg-deep);
+        display: flex;
+        flex-direction: column;
+        transition:
+          opacity 0.4s ease,
+          transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      #gameContainer.hidden {
+        pointer-events: none;
+        opacity: 0;
+        transform: scale(0.96) translateY(12px);
+      }
+      #gameContainer.game-entering {
+        opacity: 0;
+        transform: scale(0.92) translateY(20px);
       }
 
       /* ═══════════════════════════════════════════════════
@@ -1917,6 +2033,13 @@
     </style>
   </head>
   <body>
+    <!-- ═══ CUSTOM CURSOR (H2) — pointer:fine only ═══ -->
+    <div id="customCursor" aria-hidden="true"></div>
+
+    <!-- ═══ SPLIT DOORS (H1) — entry sequence ═══ -->
+    <div class="split-door-left" aria-hidden="true"></div>
+    <div class="split-door-right" aria-hidden="true"></div>
+
     <!-- ═══ ANIMATED BACKGROUND (Canvas) ═══ -->
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
@@ -2374,14 +2497,25 @@
           localStorage.setItem('arcadehub_coin_inserted', '1');
           cleanListeners();
           playInsertSound();
+          // H1: Split-door reveal
+          const leftDoor = document.querySelector('.split-door-left');
+          const rightDoor = document.querySelector('.split-door-right');
+          if (leftDoor) leftDoor.classList.add('visible');
+          if (rightDoor) rightDoor.classList.add('visible');
           coinGlitch.classList.add('active');
           setTimeout(() => {
             coinGlitch.classList.remove('active');
-            coinOverlay.classList.add('dismissed');
-            document.body.style.overflow = '';
+            if (leftDoor) leftDoor.classList.add('open');
+            if (rightDoor) rightDoor.classList.add('open');
             setTimeout(() => {
-              coinOverlay.remove();
-            }, 650);
+              coinOverlay.classList.add('dismissed');
+              document.body.style.overflow = '';
+              setTimeout(() => {
+                coinOverlay.remove();
+                leftDoor.remove();
+                rightDoor.remove();
+              }, 850);
+            }, 800);
           }, 100);
         }
 
@@ -2942,9 +3076,17 @@
       const fsGameBtn = document.getElementById('fsGameBtn');
 
       function showGame(game) {
+        // H6: Staggered page transition
         gameContainer.classList.remove('hidden');
+        gameContainer.classList.add('game-entering');
         gameContainer.setAttribute('aria-hidden', 'false');
-        gameFrame.src = game.file;
+        // Defer iframe load for smoother transition
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            gameFrame.src = game.file;
+            gameContainer.classList.remove('game-entering');
+          });
+        });
         gameTitle.textContent = game.icon + ' ' + game.title;
         document.title = 'Arcade Hub — ' + game.icon + ' ' + game.title;
         document.getElementById('og-title').content =
@@ -2967,9 +3109,13 @@
       }
 
       function hideGame() {
+        // H6: Fade out transition
         gameContainer.classList.add('hidden');
         gameContainer.setAttribute('aria-hidden', 'true');
-        gameFrame.src = '';
+        // Delay iframe clear to let transition play
+        setTimeout(() => {
+          gameFrame.src = '';
+        }, 400);
         document.title = 'Arcade Hub — 19 clásicos recreados';
         document.getElementById('og-title').content = 'Arcade Hub — 19 clásicos recreados';
         document.getElementById('og-desc').content =
@@ -3019,6 +3165,101 @@
           document.documentElement.requestFullscreen().catch(() => {});
         else document.exitFullscreen().catch(() => {});
       });
+
+      /* ═══════════════════════════════════════════════════
+         H2 — CUSTOM CURSOR LERP
+         ═══════════════════════════════════════════════════ */
+      (function initCursor() {
+        const cursor = document.getElementById('customCursor');
+        if (!cursor || matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+        let mx = -100,
+          my = -100;
+        let cx = -100,
+          cy = -100;
+        let ticking = false;
+
+        document.addEventListener('mousemove', (e) => {
+          mx = e.clientX;
+          my = e.clientY;
+          if (!ticking) {
+            requestAnimationFrame(() => {
+              ticking = false;
+              cx += (mx - cx) * 0.2;
+              cy += (my - cy) * 0.2;
+              cursor.style.transform = `translate(${cx - 10}px, ${cy - 10}px)`;
+            });
+            ticking = true;
+          }
+        });
+
+        // Magnetic hover effect on interactive elements
+        const interactiveEls = document.querySelectorAll('.view-btn, #themeToggle, .card.ready');
+        for (const el of interactiveEls) {
+          el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+          el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+        }
+      })();
+
+      /* ═══════════════════════════════════════════════════
+         H4 — SCROLL-AWARE HEADER
+         ═══════════════════════════════════════════════════ */
+      (function initScrollAware() {
+        if (matchMedia('(max-width: 600px)').matches) return;
+        const hero = document.querySelector('.hero');
+        if (!hero) return;
+        let lastScroll = 0;
+        let ticking = false;
+
+        window.addEventListener(
+          'scroll',
+          () => {
+            if (!ticking) {
+              requestAnimationFrame(() => {
+                ticking = false;
+                const currentScroll = window.scrollY;
+                if (currentScroll > 120 && currentScroll > lastScroll + 10) {
+                  hero.classList.add('hero-hidden');
+                  hero.classList.remove('hero-visible');
+                } else if (currentScroll < lastScroll - 10 || currentScroll < 80) {
+                  hero.classList.remove('hero-hidden');
+                  hero.classList.add('hero-visible');
+                }
+                lastScroll = currentScroll;
+              });
+              ticking = true;
+            }
+          },
+          { passive: true },
+        );
+      })();
+
+      /* ═══════════════════════════════════════════════════
+         H5 — MAGNETIC MICRO-INTERACTIONS
+         ═══════════════════════════════════════════════════ */
+      (function initMagnetic() {
+        if (matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+        const els = document.querySelectorAll('.view-btn, #themeToggle');
+        for (const el of els) {
+          el.classList.add('magnetic-wrap');
+          el.addEventListener('mousemove', (e) => {
+            const rect = el.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = e.clientX - cx;
+            const dy = e.clientY - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 80) {
+              const pull = (1 - dist / 80) * 6;
+              el.style.transform = `translate(${(dx * pull) / 80}px, ${(dy * pull) / 80}px)`;
+            } else {
+              el.style.transform = '';
+            }
+          });
+          el.addEventListener('mouseleave', () => {
+            el.style.transform = '';
+          });
+        }
+      })();
 
       if (window.location.hash) handleHash();
     </script>

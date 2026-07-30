@@ -13,6 +13,11 @@ import {
   drawParticles,
   clearParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  getSquash,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
@@ -76,6 +81,7 @@ const player = {
   flapCooldown: 0,
   flapAnim: 0,
   invincible: 0,
+  squashIdx: -1,
 };
 
 let enemies = [];
@@ -98,16 +104,27 @@ const {
 function playFlap() {
   beep({ freq: 400, freqEnd: 600, duration: 0.06, type: 'square', volume: 0.08 });
 }
-function playJoust() {
-  beep({ freq: 600, freqEnd: 1200, duration: 0.12, type: 'triangle', volume: 0.12 });
-  triggerShake(4);
+function playJoust(x, y) {
+  player.squashIdx = triggerSquash(0.2, 0.6, 1.5);
+  feedbackBundle('medium', x, y, {
+    color: '#c084fc',
+    onBeep: () =>
+      beep({ freq: 600, freqEnd: 1200, duration: 0.12, type: 'triangle', volume: 0.12 }),
+  });
 }
-function playDeath() {
-  beep({ freq: 200, freqEnd: 60, duration: 0.35, type: 'sawtooth', volume: 0.15 });
-  triggerShake(8);
+function playDeath(x, y) {
+  player.squashIdx = triggerSquash(0.25, 0.5, 1.6);
+  feedbackBundle('large', x, y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 200, freqEnd: 60, duration: 0.35, type: 'sawtooth', volume: 0.15 }),
+  });
 }
-function playEgg() {
-  beep({ freq: 880, freqEnd: 1320, duration: 0.1, type: 'sine', volume: 0.1 });
+function playEgg(x, y) {
+  feedbackBundle('small', x, y, {
+    color: '#ffb800',
+    onBeep: () => beep({ freq: 880, freqEnd: 1320, duration: 0.1, type: 'sine', volume: 0.1 }),
+  });
 }
 function playWave() {
   triggerShake(3);
@@ -266,6 +283,7 @@ function startGame() {
   enemies = [];
   eggs = [];
   clearParticles();
+  clearSquashes();
   achievements.incrementPlays('joust');
   initPlayer();
   overlay.classList.add('hidden');
@@ -317,7 +335,7 @@ function spawnEnemy() {
 }
 
 function loseLife() {
-  playDeath();
+  playDeath(player.x + player.w / 2, player.y + player.h / 2);
   state.lives -= 1;
   if (state.lives <= 0) {
     endGame();
@@ -416,6 +434,7 @@ function updatePlayer(dt) {
     player.flapCooldown = 0.15;
     player.flapAnim = 0.3;
     player.onGround = false;
+    player.squashIdx = triggerSquash(0.15, 0.7, 1.4);
     playFlap();
     spawnParticles(player.x + player.w / 2, player.y + player.h, 'rgba(192,132,252,0.5)', 3, {
       spd: 40,
@@ -535,7 +554,7 @@ function updateEnemies(dt) {
             state.firstJoustDone = true;
             achievements.unlock('joust_first_joust');
           }
-          playJoust();
+          playJoust(e.x + e.w / 2, e.y + e.h / 2);
           spawnParticles(e.x + e.w / 2, e.y + e.h / 2, '#c084fc', 12, { spd: 100, life: 0.5 });
           // Crear huevo
           eggs.push({
@@ -647,7 +666,7 @@ function updateEggs(dt) {
       }
       const bonus = Math.min(state.combo, 4) * 250;
       state.score += bonus;
-      playEgg();
+      playEgg(egg.x, egg.y);
       spawnParticles(egg.x, egg.y, '#ffb800', 8, { spd: 60, life: 0.4 });
       eggs.splice(i, 1);
       updateHUD();
@@ -917,6 +936,16 @@ function draw() {
     const pw = player.w * s;
     const ph = player.h * s;
 
+    const sq = getSquash(player.squashIdx);
+    if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+      const cx = px + pw / 2;
+      const cy = py + ph / 2;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(sq.sx, sq.sy);
+      ctx.translate(-cx, -cy);
+    }
+
     // Sombra
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
@@ -1017,6 +1046,13 @@ function draw() {
     ctx.fill();
   }
 
+  if (player.invincible <= 0 || Math.floor(animTime * 10) % 2 === 0) {
+    const sq = getSquash(player.squashIdx);
+    if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+      ctx.restore();
+    }
+  }
+
   // Partículas
   drawParticles(ctx, offX, offY, scale);
 
@@ -1055,6 +1091,7 @@ function tick(time) {
     }
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

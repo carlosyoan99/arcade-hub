@@ -11,6 +11,11 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  drawWithSquash,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -79,13 +84,19 @@ const {
 function playFireSound() {
   beep({ freq: 800, freqEnd: 1200, duration: 0.05, type: 'square', volume: 0.1 });
 }
-function playExplosionSound() {
-  beep({ freq: 200, freqEnd: 40, duration: 0.2, type: 'sawtooth', volume: 0.18 });
-  triggerShake(3);
+function playExplosionSound(x, y) {
+  feedbackBundle('medium', x, y, {
+    color: '#6ec6ff',
+    onBeep: () => beep({ freq: 200, freqEnd: 40, duration: 0.2, type: 'sawtooth', volume: 0.18 }),
+  });
 }
-function playDeathSound() {
-  triggerShake(8);
-  beep({ freq: 300, freqEnd: 30, duration: 0.5, type: 'sawtooth', volume: 0.2 });
+function playDeathSound(x, y) {
+  ship.squashIdx = triggerSquash(0.25, 0.4, 1.6);
+  feedbackBundle('large', x, y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 300, freqEnd: 30, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function playLevelClearSound() {
   [660, 880, 1100].forEach((f, i) =>
@@ -99,7 +110,7 @@ function playLevelClearSound() {
 // ============================================================
 // ENTIDADES: Nave, Asteroides, Balas
 // ============================================================
-const ship = { x: COURT_W / 2, y: COURT_H / 2, vx: 0, vy: 0, angle: -Math.PI / 2 };
+const ship = { x: COURT_W / 2, y: COURT_H / 2, vx: 0, vy: 0, angle: -Math.PI / 2, squashIdx: -1 };
 let bullets = [];
 let asteroids = [];
 let fireTimer = 0;
@@ -386,6 +397,7 @@ overlay.addEventListener('click', () => {
 // LÓGICA DEL JUEGO
 // ============================================================
 function resetGame() {
+  clearSquashes();
   state.score = 0;
   state.lives = START_LIVES;
   state.gameOver = false;
@@ -417,7 +429,7 @@ function startGame() {
 
 function loseLife() {
   state.lives -= 1;
-  playDeathSound();
+  playDeathSound(ship.x, ship.y);
   spawnParticles(ship.x, ship.y, '#6ec6ff', 35, { spd: 150, life: 0.8, smx: 5, friction: 0.97 });
   updateHUD();
   if (state.lives <= 0) {
@@ -506,7 +518,7 @@ function updateBullets(dt) {
           const a = asteroids[ai];
           if (Math.hypot(b.x - a.x, b.y - a.y) < a.radius) {
             state.score += a.points;
-            playExplosionSound();
+            playExplosionSound(a.x, a.y);
             spawnParticles(a.x, a.y, '#6ec6ff', 15, { spd: 100, life: 0.4, friction: 0.97 });
             breakAsteroid(a);
             bullets.splice(i, 1);
@@ -552,7 +564,7 @@ function checkCollisions() {
       const a = asteroids[ai];
       if (Math.hypot(b.x - a.x, b.y - a.y) < a.radius) {
         state.score += a.points;
-        playExplosionSound();
+        playExplosionSound(a.x, a.y);
         spawnParticles(a.x, a.y, '#6ec6ff', 15, { spd: 100, life: 0.4, friction: 0.97 });
         breakAsteroid(a);
         bullets.splice(bi, 1);
@@ -745,6 +757,7 @@ function tick(time) {
     updateAsteroids(dt);
     checkCollisions();
   }
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);
