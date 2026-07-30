@@ -34,9 +34,9 @@ const COURT_W = 700; // ancho lógico
 const COURT_H = 500; // alto lógico
 const PADDLE_HALF_W = 45; // media anchura de la paleta
 const PADDLE_WIDTH = 10; // grosor de la paleta (en eje Z)
-const PADDLE_Z = COURT_H - 28; // posición Z de la paleta
+const PADDLE_Y = COURT_H - 28; // posición Y de la paleta
 const PADDLE_SPEED = 380;
-const LOSE_Z = COURT_H + 15; // si la pelota pasa esto, se pierde vida
+const LOSE_Y = COURT_H + 15; // si la pelota pasa esto, se pierde vida
 
 const BALL_RADIUS = 6;
 const BALL_LAUNCH_SPEED_BASE = 290;
@@ -80,10 +80,10 @@ const state = {
 };
 
 // Paleta
-const paddle = { x: COURT_W / 2, z: PADDLE_Z };
+const paddle = { x: COURT_W / 2, y: PADDLE_Y };
 
 // Pelota
-const ball = { x: 0, z: 0, vx: 0, vz: 0, prevX: 0, prevZ: 0, squashIdx: -1 };
+const ball = { x: 0, y: 0, vx: 0, vy: 0, prevX: 0, prevY: 0, squashIdx: -1 };
 
 // Ladrillos: array de { x, z, w, h, points, color, glowColor, alive }
 let bricks = [];
@@ -110,14 +110,14 @@ function playWallBounce() {
 }
 function playPaddleHit() {
   ball.squashIdx = triggerSquash(0.16, 0.65, 1.4);
-  feedbackBundle('medium', ball.x, ball.z, {
+  feedbackBundle('medium', ball.x, ball.y, {
     color: '#6ec6ff',
     onBeep: (f, d, t, v) => beep({ freq: f, duration: d, type: t, volume: v }),
   });
 }
 function playBrickBreak(points) {
   ball.squashIdx = triggerSquash(0.12, 0.7, 1.3);
-  feedbackBundle('medium', ball.x, ball.z, {
+  feedbackBundle('medium', ball.x, ball.y, {
     color: '#6ec6ff',
     onBeep: () =>
       beep({
@@ -338,7 +338,7 @@ function buildBricks() {
     for (let col = 0; col < BRICK_COLS; col++) {
       bricks.push({
         x: startX + col * (BRICK_W + BRICK_GAP),
-        z: startZ + row * (BRICK_H + BRICK_GAP),
+        y: startZ + row * (BRICK_H + BRICK_GAP),
         w: BRICK_W,
         h: BRICK_H,
         halfW: BRICK_W / 2,
@@ -354,9 +354,9 @@ function buildBricks() {
 
 function parkBallOnPaddle() {
   ball.x = paddle.x;
-  ball.z = paddle.z - 18;
+  ball.y = paddle.y - 18;
   ball.vx = 0;
-  ball.vz = 0;
+  ball.vy = 0;
   state.waitingToLaunch = true;
 }
 
@@ -365,10 +365,10 @@ function launchBall() {
   state.waitingToLaunch = false;
   const angle = (Math.random() - 0.5) * 0.6;
   ball.vx = Math.sin(angle);
-  ball.vz = -Math.cos(angle);
-  const len = Math.hypot(ball.vx, ball.vz) || 1;
+  ball.vy = -Math.cos(angle);
+  const len = Math.hypot(ball.vx, ball.vy) || 1;
   ball.vx /= len;
-  ball.vz /= len;
+  ball.vy /= len;
   playLaunchSound();
 }
 
@@ -414,7 +414,7 @@ function loseLife() {
     return;
   }
   playLifeLostSound();
-  spawnParticles(ball.x, paddle.z, '#ff6b6b', 14, {
+  spawnParticles(ball.x, paddle.y, '#ff6b6b', 14, {
     spd: 160,
     life: 0.5,
     gravity: true,
@@ -433,7 +433,7 @@ function endGame() {
   }
 
   playGameOverTone();
-  spawnParticles(ball.x, ball.z, '#ff6b6b', 20, {
+  spawnParticles(ball.x, ball.y, '#ff6b6b', 20, {
     spd: 150,
     life: 0.65,
     sm: 2.5,
@@ -491,16 +491,16 @@ function updateBall(dt) {
 // Devuelve true si debe cortarse el frame
 function updateBallStep(dt) {
   ball.prevX = ball.x;
-  ball.prevZ = ball.z;
+  ball.prevY = ball.y;
   ball.x += ball.vx * state.ballSpeed * dt;
-  ball.z += ball.vz * state.ballSpeed * dt;
+  ball.y += ball.vy * state.ballSpeed * dt;
 
   // Rebote en pared izquierda
   if (ball.x - BALL_RADIUS < 0) {
     ball.x = BALL_RADIUS;
     ball.vx *= -1;
     playWallBounce();
-    spawnParticles(0, ball.z, '#7a5cff', 4, { spd: 80, life: 0.3, friction: 0.97 });
+    spawnParticles(0, ball.y, '#7a5cff', 4, { spd: 80, life: 0.3, friction: 0.97 });
   }
 
   // Rebote en pared derecha
@@ -508,34 +508,34 @@ function updateBallStep(dt) {
     ball.x = COURT_W - BALL_RADIUS;
     ball.vx *= -1;
     playWallBounce();
-    spawnParticles(COURT_W, ball.z, '#7a5cff', 4, { spd: 80, life: 0.3, friction: 0.97 });
+    spawnParticles(COURT_W, ball.y, '#7a5cff', 4, { spd: 80, life: 0.3, friction: 0.97 });
   }
 
   // Rebote en pared superior
-  if (ball.z - BALL_RADIUS < 0) {
-    ball.z = BALL_RADIUS;
-    ball.vz *= -1;
+  if (ball.y - BALL_RADIUS < 0) {
+    ball.y = BALL_RADIUS;
+    ball.vy *= -1;
     playWallBounce();
     spawnParticles(ball.x, 0, '#7a5cff', 4, { spd: 80, life: 0.3, friction: 0.97 });
   }
 
   // Colisión con la paleta
   if (
-    ball.vz > 0 &&
-    ball.z + BALL_RADIUS >= paddle.z - PADDLE_WIDTH / 2 &&
-    ball.z + BALL_RADIUS < paddle.z + PADDLE_WIDTH &&
+    ball.vy > 0 &&
+    ball.y + BALL_RADIUS >= paddle.y - PADDLE_WIDTH / 2 &&
+    ball.y + BALL_RADIUS < paddle.y + PADDLE_WIDTH &&
     Math.abs(ball.x - paddle.x) <= PADDLE_HALF_W + BALL_RADIUS
   ) {
     const offset = (ball.x - paddle.x) / PADDLE_HALF_W;
     const angle = offset * 0.7;
     ball.vx = Math.sin(angle);
-    ball.vz = -Math.cos(angle);
-    const len = Math.hypot(ball.vx, ball.vz) || 1;
+    ball.vy = -Math.cos(angle);
+    const len = Math.hypot(ball.vx, ball.vy) || 1;
     ball.vx /= len;
-    ball.vz /= len;
+    ball.vy /= len;
     state.ballSpeed = Math.min(BALL_MAX_SPEED, state.ballSpeed * BALL_HIT_GROWTH);
     playPaddleHit();
-    spawnParticles(ball.x, paddle.z - 4, '#6ec6ff', 6, { spd: 100, life: 0.35, friction: 0.97 });
+    spawnParticles(ball.x, paddle.y - 4, '#6ec6ff', 6, { spd: 100, life: 0.35, friction: 0.97 });
   }
 
   // Colisión con ladrillos
@@ -544,13 +544,13 @@ function updateBallStep(dt) {
     if (!b.alive) continue;
 
     const withinX = Math.abs(ball.x - b.x) <= b.halfW + BALL_RADIUS;
-    const withinZ = Math.abs(ball.z - b.z) <= b.halfH + BALL_RADIUS;
+    const withinY = Math.abs(ball.y - b.y) <= b.halfH + BALL_RADIUS;
 
-    if (withinX && withinZ) {
+    if (withinX && withinY) {
       // Determinar eje de rebote usando posición previa
       const wasWithinXPrev = Math.abs(ball.prevX - b.x) <= b.halfW + BALL_RADIUS;
       if (wasWithinXPrev) {
-        ball.vz *= -1; // golpe por arriba/abajo
+        ball.vy *= -1; // golpe por arriba/abajo
       } else {
         ball.vx *= -1; // golpe por un costado
       }
@@ -558,7 +558,7 @@ function updateBallStep(dt) {
       b.alive = false;
       state.score += b.points;
       playBrickBreak(b.points);
-      spawnParticles(b.x, b.z, b.color, 10);
+      spawnParticles(b.x, b.y, b.color, 10);
       updateHUD();
 
       if (bricks.every((br) => !br.alive)) {
@@ -570,7 +570,7 @@ function updateBallStep(dt) {
   }
 
   // ¿Se perdió la pelota?
-  if (ball.z > LOSE_Z) {
+  if (ball.y > LOSE_Y) {
     loseLife();
     return true;
   }
@@ -619,13 +619,13 @@ function draw() {
   // --- Ladrillos ---
   for (const b of bricks) {
     if (!b.alive) continue;
-    drawBrick(ox + b.x * s, oy + b.z * s, b.w * s, b.h * s, b.color, b.glowColor);
+    drawBrick(ox + b.x * s, oy + b.y * s, b.w * s, b.h * s, b.color, b.glowColor);
   }
 
   // --- Paleta ---
   drawPaddle(
     ox + paddle.x * s,
-    oy + paddle.z * s,
+    oy + paddle.y * s,
     PADDLE_HALF_W * 2 * s,
     PADDLE_WIDTH * s,
     '#6ec6ff',
@@ -633,7 +633,7 @@ function draw() {
 
   // --- Pelota ---
   if (state.running || !state.gameOver) {
-    drawBall(ox + ball.x * s, oy + ball.z * s, BALL_RADIUS * s);
+    drawBall(ox + ball.x * s, oy + ball.y * s, BALL_RADIUS * s);
   }
 
   // --- Partículas ---
@@ -795,7 +795,7 @@ function tick(time) {
 
 // State init
 paddle.x = COURT_W / 2;
-paddle.z = PADDLE_Z;
+paddle.y = PADDLE_Y;
 buildBricks();
 parkBallOnPaddle();
 updateHUD();

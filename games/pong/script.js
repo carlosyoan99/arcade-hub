@@ -67,7 +67,7 @@ const {
 // SONIDOS DEL JUEGO
 function playPaddleHit() {
   ball.squashIdx = triggerSquash(0.18, 0.6, 1.5);
-  feedbackBundle('medium', ball.x, ball.z, {
+  feedbackBundle('medium', ball.x, ball.y, {
     color: '#6ee7b7',
     onBeep: (f, d, t, v) => beep({ freq: f, duration: d, type: t, volume: v }),
   });
@@ -102,7 +102,7 @@ function playWinFanfare() {
   });
 }
 function playLoseTone() {
-  feedbackBundle('large', ball.x, ball.z, {
+  feedbackBundle('large', ball.x, ball.y, {
     color: '#ff8a65',
     noFlash: true,
     onBeep: () => {},
@@ -238,23 +238,23 @@ function trapTab(e) {
 // LÓGICA
 function serveBall(towardPlayer) {
   ball.x = COURT_W / 2;
-  ball.z = COURT_H / 2;
+  ball.y = COURT_H / 2;
   ball.speed = BALL_BASE_SPEED;
   const dir = towardPlayer ? -1 : 1;
   const angle = (Math.random() - 0.5) * 0.7;
   ball.vx = Math.cos(angle) * dir;
-  ball.vz = Math.sin(angle);
-  const len = Math.hypot(ball.vx, ball.vz) || 1;
+  ball.vy = Math.sin(angle);
+  const len = Math.hypot(ball.vx, ball.vy) || 1;
   ball.vx /= len;
-  ball.vz /= len;
+  ball.vy /= len;
 }
 function resetGame() {
   clearSquashes();
   state.playerScore = 0;
   state.aiScore = 0;
   state.gameOver = false;
-  playerPaddle.z = COURT_H / 2;
-  aiPaddle.z = COURT_H / 2;
+  playerPaddle.y = COURT_H / 2;
+  aiPaddle.y = COURT_H / 2;
   finalScoreEl.style.display = 'none';
   serveBall(Math.random() > 0.5);
   updateHUD();
@@ -278,11 +278,11 @@ function endGame(playerWon) {
     state.wins += 1;
     localStorage.setItem('pong2d_wins', String(state.wins));
     playWinFanfare();
-    spawnParticles(ball.x, ball.z, '#6ee7b7', 24);
+    spawnParticles(ball.x, ball.y, '#6ee7b7', 24);
     if (state.wins >= 5) achievements.unlock('pong_win_streak');
   } else {
     playLoseTone();
-    spawnParticles(ball.x, ball.z, '#ff8a65', 24);
+    spawnParticles(ball.x, ball.y, '#ff8a65', 24);
   }
   overlayText.textContent = playerWon ? '¡Ganaste! 🏆' : 'Perdiste 💀';
   finalScoreEl.style.display = 'block';
@@ -301,18 +301,18 @@ function updatePlayerPaddle(dt) {
   if (keys.up) dir -= 1;
   if (keys.down) dir += 1;
   if (gamepadAxis !== 0) dir = Math.sign(gamepadAxis);
-  playerPaddle.z += dir * PADDLE_SPEED * dt;
-  playerPaddle.z = Math.max(PADDLE_HALF_LEN, Math.min(COURT_H - PADDLE_HALF_LEN, playerPaddle.z));
+  playerPaddle.y += dir * PADDLE_SPEED * dt;
+  playerPaddle.y = Math.max(PADDLE_HALF_LEN, Math.min(COURT_H - PADDLE_HALF_LEN, playerPaddle.y));
   playerPaddle.x = PADDLE_X_OFFSET + PADDLE_WIDTH / 2;
 }
 function updateAiPaddle(dt) {
-  const target = ball.vx > 0 ? ball.z : COURT_H / 2 + (ball.z - COURT_H / 2) * 0.3;
-  const diff = target - aiPaddle.z;
-  aiPaddle.z = Math.max(
+  const target = ball.vx > 0 ? ball.y : COURT_H / 2 + (ball.y - COURT_H / 2) * 0.3;
+  const diff = target - aiPaddle.y;
+  aiPaddle.y = Math.max(
     PADDLE_HALF_LEN,
     Math.min(
       COURT_H - PADDLE_HALF_LEN,
-      aiPaddle.z + Math.max(-AI_SPEED * dt, Math.min(AI_SPEED * dt, diff)),
+      aiPaddle.y + Math.max(-AI_SPEED * dt, Math.min(AI_SPEED * dt, diff)),
     ),
   );
   aiPaddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;
@@ -332,15 +332,15 @@ function updateBall(dt) {
 }
 function updateBallSub(dt) {
   ball.x += ball.vx * ball.speed * dt;
-  ball.z += ball.vz * ball.speed * dt;
-  if (ball.z - BALL_RADIUS < 0) {
-    ball.z = BALL_RADIUS;
-    ball.vz *= -1;
+  ball.y += ball.vy * ball.speed * dt;
+  if (ball.y - BALL_RADIUS < 0) {
+    ball.y = BALL_RADIUS;
+    ball.vy *= -1;
     playWallBounce();
     spawnParticles(ball.x, 0, '#5568ff', 5);
-  } else if (ball.z + BALL_RADIUS > COURT_H) {
-    ball.z = COURT_H - BALL_RADIUS;
-    ball.vz *= -1;
+  } else if (ball.y + BALL_RADIUS > COURT_H) {
+    ball.y = COURT_H - BALL_RADIUS;
+    ball.vy *= -1;
     playWallBounce();
     spawnParticles(ball.x, COURT_H, '#5568ff', 5);
   }
@@ -351,10 +351,10 @@ function updateBallSub(dt) {
     ball.x - BALL_RADIUS <= pLx + PADDLE_WIDTH / 2 &&
     ball.x - BALL_RADIUS > pLx - PADDLE_WIDTH - 4
   ) {
-    if (Math.abs(ball.z - playerPaddle.z) <= PADDLE_HALF_LEN + BALL_RADIUS) {
+    if (Math.abs(ball.y - playerPaddle.y) <= PADDLE_HALF_LEN + BALL_RADIUS) {
       bounceOffPaddle(playerPaddle, 1);
       playPaddleHit();
-      spawnParticles(pLx + PADDLE_WIDTH / 2, ball.z, '#6ee7b7', 8);
+      spawnParticles(pLx + PADDLE_WIDTH / 2, ball.y, '#6ee7b7', 8);
     }
   }
   if (
@@ -362,16 +362,16 @@ function updateBallSub(dt) {
     ball.x + BALL_RADIUS >= pRx - PADDLE_WIDTH / 2 &&
     ball.x + BALL_RADIUS < pRx + PADDLE_WIDTH + 4
   ) {
-    if (Math.abs(ball.z - aiPaddle.z) <= PADDLE_HALF_LEN + BALL_RADIUS) {
+    if (Math.abs(ball.y - aiPaddle.y) <= PADDLE_HALF_LEN + BALL_RADIUS) {
       bounceOffPaddle(aiPaddle, -1);
       playPaddleHit();
-      spawnParticles(pRx - PADDLE_WIDTH / 2, ball.z, '#ff8a65', 8);
+      spawnParticles(pRx - PADDLE_WIDTH / 2, ball.y, '#ff8a65', 8);
     }
   }
   if (ball.x < -BALL_RADIUS * 2) {
     state.aiScore += 1;
     playScoreSound(false);
-    spawnParticles(0, ball.z, '#ff8a65', 14);
+    spawnParticles(0, ball.y, '#ff8a65', 14);
     updateHUD();
     if (state.aiScore >= WIN_SCORE) {
       endGame(false);
@@ -381,7 +381,7 @@ function updateBallSub(dt) {
   } else if (ball.x > COURT_W + BALL_RADIUS * 2) {
     state.playerScore += 1;
     playScoreSound(true);
-    spawnParticles(COURT_W, ball.z, '#6ee7b7', 14);
+    spawnParticles(COURT_W, ball.y, '#6ee7b7', 14);
     updateHUD();
     if (state.playerScore >= WIN_SCORE) {
       endGame(true);
@@ -391,14 +391,14 @@ function updateBallSub(dt) {
   }
 }
 function bounceOffPaddle(paddle, xDir) {
-  const offset = (ball.z - paddle.z) / PADDLE_HALF_LEN;
+  const offset = (ball.y - paddle.y) / PADDLE_HALF_LEN;
   const angle = offset * 0.6;
   ball.speed = Math.min(BALL_MAX_SPEED, ball.speed * BALL_SPEED_GROWTH);
   ball.vx = Math.cos(angle) * xDir;
-  ball.vz = Math.sin(angle) + offset * 0.3;
-  const len = Math.hypot(ball.vx, ball.vz) || 1;
+  ball.vy = Math.sin(angle) + offset * 0.3;
+  const len = Math.hypot(ball.vx, ball.vy) || 1;
   ball.vx /= len;
-  ball.vz /= len;
+  ball.vy /= len;
 }
 
 // RENDER
@@ -445,19 +445,19 @@ function draw() {
   ctx.stroke();
   drawPaddle(
     ox + playerPaddle.x * s,
-    oy + playerPaddle.z * s,
+    oy + playerPaddle.y * s,
     PADDLE_HALF_LEN * 2 * s,
     PADDLE_WIDTH * s,
     '#6ee7b7',
   );
   drawPaddle(
     ox + aiPaddle.x * s,
-    oy + aiPaddle.z * s,
+    oy + aiPaddle.y * s,
     PADDLE_HALF_LEN * 2 * s,
     PADDLE_WIDTH * s,
     '#ff8a65',
   );
-  drawBall(ox + ball.x * s, oy + ball.z * s, BALL_RADIUS * s);
+  drawBall(ox + ball.x * s, oy + ball.y * s, BALL_RADIUS * s);
   drawParticles(ctx, offX, offY, scale);
   ctx.restore();
 }
@@ -539,11 +539,11 @@ function tick(time) {
   animFrameId = requestAnimationFrame(tick);
 }
 playerPaddle.x = PADDLE_X_OFFSET + PADDLE_WIDTH / 2;
-playerPaddle.z = COURT_H / 2;
+playerPaddle.y = COURT_H / 2;
 aiPaddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;
-aiPaddle.z = COURT_H / 2;
+aiPaddle.y = COURT_H / 2;
 ball.x = COURT_W / 2;
-ball.z = COURT_H / 2;
+ball.y = COURT_H / 2;
 updateHUD();
 
 function cleanup() {

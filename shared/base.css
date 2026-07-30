@@ -523,6 +523,21 @@ kbd {
 }
 
 /* ════════════════════════════════════════════════════════════
+   SHARED ANIMATIONS — shimmerFlow (neon-nexus, cell-swarm, etc.)
+   ════════════════════════════════════════════════════════════ */
+@keyframes shimmerFlow {
+  0%,
+  100% {
+    background-position: 0% 0;
+    opacity: 0.5;
+  }
+  50% {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
    REDUCED MOTION
    ════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
