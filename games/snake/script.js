@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
@@ -12,6 +11,10 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -85,15 +88,20 @@ const {
 // SONIDO (usando shared/audio.js)
 // ============================================================
 function playEatSound() {
-  beep({ freq: 440, freqEnd: 660, duration: 0.08, type: 'triangle', volume: 0.18 });
-  triggerShake(1.5);
+  feedbackBundle('medium', snake[0].x, snake[0].y, {
+    color: '#6ee7b7',
+    onBeep: () => beep({ freq: 440, freqEnd: 660, duration: 0.08, type: 'triangle', volume: 0.18 }),
+  });
 }
 function playTurnSound() {
   beep({ freq: 260, freqEnd: 310, duration: 0.04, type: 'sine', volume: 0.08 });
 }
 function playDeathSound() {
-  triggerShake(6);
-  beep({ freq: 300, freqEnd: 60, duration: 0.5, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', snake[0].x, snake[0].y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 300, freqEnd: 60, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function playPauseSound() {
   beep({ freq: 300, freqEnd: 400, duration: 0.06, type: 'square', volume: 0.1 });
@@ -678,6 +686,7 @@ function tick(time) {
     updateGame(dt);
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

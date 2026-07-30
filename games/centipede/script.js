@@ -11,6 +11,10 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -73,15 +77,19 @@ function pFire() {
 }
 function pHitSeg() {
   beep({ freq: 400, freqEnd: 100, duration: 0.08, type: 'sawtooth', volume: 0.12 });
-  triggerShake(1.5);
 }
 function pDeath() {
-  triggerShake(6);
-  beep({ freq: 300, freqEnd: 40, duration: 0.4, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', mouseX, mouseY, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 300, freqEnd: 40, duration: 0.4, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function pSpider() {
-  beep({ freq: 1200, freqEnd: 600, duration: 0.08, type: 'triangle', volume: 0.1 });
-  triggerShake(2);
+  feedbackBundle('medium', mouseX, mouseY, {
+    color: '#ff8a65',
+    onBeep: () => beep({ freq: 1200, freqEnd: 600, duration: 0.08, type: 'triangle', volume: 0.1 }),
+  });
 }
 function pFlea() {
   beep({ freq: 400, freqEnd: 1000, duration: 0.06, type: 'square', volume: 0.08 });
@@ -89,7 +97,6 @@ function pFlea() {
 }
 function pScorpion() {
   beep({ freq: 200, freqEnd: 80, duration: 0.12, type: 'sawtooth', volume: 0.14 });
-  triggerShake(2);
 }
 function pWin() {
   [660, 880, 1100, 1320].forEach((ff, i) =>
@@ -1148,6 +1155,7 @@ function tick(t) {
     updateSpider(dt);
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

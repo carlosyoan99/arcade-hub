@@ -12,6 +12,10 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -89,8 +93,11 @@ function pHop() {
   beep({ freq: 400, freqEnd: 500, duration: 0.05, type: 'square', volume: 0.08 });
 }
 function pHit() {
-  triggerShake(5);
-  beep({ freq: 300, freqEnd: 60, duration: 0.3, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', frog.x, frog.y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 300, freqEnd: 60, duration: 0.3, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function pGoal() {
   beep({ freq: 600, freqEnd: 1000, duration: 0.12, type: 'triangle', volume: 0.16 });
@@ -710,6 +717,7 @@ function tick(t) {
     }
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

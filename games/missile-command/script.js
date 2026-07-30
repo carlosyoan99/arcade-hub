@@ -11,6 +11,10 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -78,8 +82,11 @@ function pExplode() {
   triggerShake(2);
 }
 function pHitCity() {
-  triggerShake(3);
-  beep({ freq: 300, freqEnd: 30, duration: 0.3, type: 'sawtooth', volume: 0.18 });
+  feedbackBundle('large', CANVAS_W / 2, CANVAS_H / 2, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 300, freqEnd: 30, duration: 0.3, type: 'sawtooth', volume: 0.18 }),
+  });
 }
 function pWaveStart() {
   beep({ freq: 220, freqEnd: 440, duration: 0.15, type: 'triangle', volume: 0.12 });

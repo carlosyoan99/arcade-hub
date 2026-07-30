@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
@@ -12,6 +11,10 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -77,11 +80,13 @@ function playFire() {
 }
 function playExplosion() {
   beep({ freq: 200, freqEnd: 40, duration: 0.18, type: 'sawtooth', volume: 0.16 });
-  triggerShake(2);
 }
 function playDeath() {
-  triggerShake(6);
-  beep({ freq: 300, freqEnd: 30, duration: 0.4, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', ship.x, ship.y, {
+    color: '#6ec6ff',
+    noFlash: true,
+    onBeep: () => beep({ freq: 300, freqEnd: 30, duration: 0.4, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function playMystery() {
   beep({ freq: 600, freqEnd: 900, duration: 0.08, type: 'triangle', volume: 0.12 });
@@ -808,6 +813,7 @@ function tick(t) {
       endGame(true);
     }
   }
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

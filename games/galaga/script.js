@@ -4,13 +4,16 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   spawnParticles,
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -72,11 +75,13 @@ function pFire() {
 }
 function pExplode() {
   beep({ freq: 200, freqEnd: 40, duration: 0.2, type: 'sawtooth', volume: 0.18 });
-  triggerShake(3);
 }
 function pDeath() {
-  triggerShake(6);
-  beep({ freq: 400, freqEnd: 30, duration: 0.4, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', ship.x, SHIP_Y, {
+    color: '#6ec6ff',
+    noFlash: true,
+    onBeep: () => beep({ freq: 400, freqEnd: 30, duration: 0.4, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function pDive() {
   beep({ freq: 220, freqEnd: 400, duration: 0.1, type: 'triangle', volume: 0.1 });
@@ -762,6 +767,7 @@ function tick(t) {
     }
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

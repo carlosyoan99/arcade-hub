@@ -4,13 +4,16 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   spawnParticles,
   updateParticles,
   drawParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -124,12 +127,18 @@ function playPellet() {
   beep({ freq: 300, freqEnd: 800, duration: 0.15, type: 'square', volume: 0.12 });
 }
 function playGhost() {
-  beep({ freq: 800, freqEnd: 1600, duration: 0.08, type: 'triangle', volume: 0.16 });
-  triggerShake(3);
+  feedbackBundle('medium', pacman.x, pacman.y, {
+    color: '#6ec6ff',
+    onBeep: () =>
+      beep({ freq: 800, freqEnd: 1600, duration: 0.08, type: 'triangle', volume: 0.16 }),
+  });
 }
 function playDeath() {
-  triggerShake(6);
-  beep({ freq: 400, freqEnd: 50, duration: 0.5, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', pacman.x, pacman.y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 400, freqEnd: 50, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function playFright() {
   beep({ freq: 200, freqEnd: 400, duration: 0.3, type: 'sine', volume: 0.1 });
@@ -967,6 +976,7 @@ function tick(t) {
     // Check if dots = 0 (from updatePac)
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

@@ -4,13 +4,16 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
   spawnParticles,
   updateParticles,
   drawParticles,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -165,10 +168,8 @@ function playRotate() {
 }
 function playDrop() {
   beep({ freq: 150, freqEnd: 80, duration: 0.08, type: 'square', volume: 0.1 });
-  triggerShake(2);
 }
 function playClear(count) {
-  triggerShake(3);
   beep({
     freq: 500 + count * 100,
     freqEnd: 800 + count * 100,
@@ -178,8 +179,11 @@ function playClear(count) {
   });
 }
 function playGameOver() {
-  triggerShake(6);
-  beep({ freq: 400, freqEnd: 40, duration: 0.5, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', BOARD_W / 2, BOARD_H / 2, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 400, freqEnd: 40, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 
 // ============================================================
@@ -774,6 +778,7 @@ function tick(t) {
   pollGamepad();
   updateShake(dt);
   if (state.running && !state.gameOver && !state.paused) updateGame(dt);
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

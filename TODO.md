@@ -201,7 +201,7 @@
 | G2  | **Screen shake suave por trauma**       | `shared/effects.js`                           | ✅ Refactor a trauma decayente con ondas sinusoidales + `setShakeScale()`                                 |
 | G3  | **Hit-stop / freeze frame**             | `shared/effects.js`                           | ✅ `hitStop(duration)` + `isHitStopped()` — real-time, no bloquea input                                  |
 | G4  | **Squash & stretch en saltos/landings** | Pong, Breakout, Asteroids, DK, Joust          | ✅ `triggerSquash()`, `updateSquashes()`, `getSquash()`, `drawWithSquash()` en 5 juegos                   |
-| G5  | **Feedback por juego**                  | 19 `games/*/script.js`                        | 🔶 **5/19** — Pong, Breakout, Asteroids, DK, Joust. Faltan 14 juegos                                    |
+| G5  | **Feedback por juego**                  | 19 `games/*/script.js`                        | ✅ **19/19** — feedbackBundle integrado en todos los juegos con updateSquashes en game loops             |
 | G6  | **Accesibilidad**                       | `shared/effects.js`                           | ✅ `prefers-reduced-motion` → `setShakeScale(0)` + listener change en vivo                               |
 
 **Skills assets útiles:** `references/feedback-recipes.md` (recetas de feedback por tier).
@@ -282,7 +282,7 @@
 | Fase | Skills                          | Tareas | Estado       |
 | ---- | ------------------------------- | ------ | ------------ |
 | P0   | Rendimiento (shadowBlur+SW)     | 10     | ✅ **9/10**  |
-| G1   | `game-feel`                     | 6      | ✅ **5.5/6** (G5 parcial 5/19) |
+| G1   | `game-feel`                     | 6      | ✅ **6/6 COMPLETADO** |
 | H1   | `premium-frontend-ui`           | 7      | 🔲 Pendiente |
 | R1   | `refactor-plan`+`refactor`      | 5      | 🔲 Pendiente |
 | D1   | `create-readme`+`doc-writter`   | 4      | 🔲 Pendiente |

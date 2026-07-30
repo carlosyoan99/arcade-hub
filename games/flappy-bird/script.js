@@ -11,6 +11,10 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -468,6 +472,7 @@ function tick(t) {
     checkCollisions();
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

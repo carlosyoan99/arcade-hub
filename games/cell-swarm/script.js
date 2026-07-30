@@ -12,6 +12,10 @@ import {
   drawParticles,
   clearParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -170,8 +174,11 @@ function sfxEject() {
   beep({ freq: 500, freqEnd: 300, duration: 0.05, type: 'sine', volume: 0.08 });
 }
 function sfxDeath() {
-  beep({ freq: 400, freqEnd: 80, duration: 0.5, type: 'sawtooth', volume: 0.2 });
-  triggerShake(8);
+  feedbackBundle('large', player.x, player.y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 400, freqEnd: 80, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function sfxMerge() {
   beep({ freq: 500, freqEnd: 800, duration: 0.1, type: 'triangle', volume: 0.1 });

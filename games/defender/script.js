@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
@@ -13,6 +12,10 @@ import {
   drawParticles,
   clearParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
@@ -138,22 +141,26 @@ function playFire() {
 }
 function playHit() {
   beep({ freq: 200, freqEnd: 80, duration: 0.15, type: 'sawtooth', volume: 0.12 });
-  triggerShake(3);
 }
 function playExplosion() {
   beep({ freq: 100, freqEnd: 30, duration: 0.3, type: 'sawtooth', volume: 0.15 });
-  triggerShake(2);
 }
 function playRescue() {
   beep({ freq: 600, freqEnd: 1200, duration: 0.15, type: 'triangle', volume: 0.1 });
 }
 function playBomb() {
-  beep({ freq: 50, freqEnd: 20, duration: 0.5, type: 'sawtooth', volume: 0.2 });
-  triggerShake(8);
+  feedbackBundle('large', ship.x, ship.y, {
+    color: '#ff8a65',
+    noFlash: true,
+    onBeep: () => beep({ freq: 50, freqEnd: 20, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function playDeath() {
-  beep({ freq: 400, freqEnd: 60, duration: 0.4, type: 'sawtooth', volume: 0.15 });
-  triggerShake(6);
+  feedbackBundle('large', ship.x, ship.y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 400, freqEnd: 60, duration: 0.4, type: 'sawtooth', volume: 0.15 }),
+  });
 }
 function playGameOver() {
   [440, 350, 220, 110].forEach((f, i) =>
@@ -1408,6 +1415,7 @@ function tick(time) {
     }
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
 

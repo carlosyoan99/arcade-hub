@@ -12,6 +12,10 @@ import {
   drawParticles,
   roundRect,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -75,8 +79,11 @@ function pRock() {
   triggerShake(5);
 }
 function pDeath() {
-  triggerShake(6);
-  beep({ freq: 400, freqEnd: 40, duration: 0.4, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', player.c * GS + GS / 2, player.r * GS + GS / 2, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 400, freqEnd: 40, duration: 0.4, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function pFruit() {
   [880, 1100, 1320].forEach((ff, i) =>
@@ -1019,6 +1026,7 @@ function tick(t) {
     updateFruits(dt);
   }
 
+  updateSquashes(dt);
   updateParticles(dt);
   draw();
   animFrameId = requestAnimationFrame(tick);

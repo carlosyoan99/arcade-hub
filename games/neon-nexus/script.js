@@ -13,6 +13,10 @@ import {
   drawParticles,
   clearParticles,
   drawGlow,
+  feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  clearSquashes,
 } from '../../shared/effects.js';
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 
@@ -172,11 +176,12 @@ function sfxHit() {
 }
 function sfxKill() {
   beep({ freq: 600, freqEnd: 900, duration: 0.08, type: 'triangle', volume: 0.12 });
-  triggerShake(2);
 }
 function sfxTowerHit() {
-  beep({ freq: 150, freqEnd: 60, duration: 0.2, type: 'sawtooth', volume: 0.15 });
-  triggerShake(4);
+  feedbackBundle('medium', GAME_W / 2, GAME_H / 2, {
+    color: '#ff4444',
+    onBeep: () => beep({ freq: 150, freqEnd: 60, duration: 0.2, type: 'sawtooth', volume: 0.15 }),
+  });
 }
 function sfxClickHit() {
   beep({ freq: 700, freqEnd: 1000, duration: 0.05, type: 'sine', volume: 0.1 });
@@ -189,7 +194,6 @@ function sfxWaveClear() {
 }
 function sfxCardPick() {
   beep({ freq: 500, freqEnd: 1200, duration: 0.15, type: 'triangle', volume: 0.16 });
-  triggerShake(3);
 }
 function sfxUpgrade() {
   beep({ freq: 400, freqEnd: 700, duration: 0.1, type: 'square', volume: 0.12 });
