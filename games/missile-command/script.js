@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -9,6 +11,8 @@ import {
   updateParticles,
   drawParticles,
 } from '../../shared/effects.js';
+
+injectCommonElements();
 
 /* ============================================================
    MISSILE COMMAND 2D — Arcade Hub
@@ -58,28 +62,9 @@ const state = {
 // ============================================================
 // CANVAS
 // ============================================================
-const c = document.getElementById('gc'),
-  ctx = c.getContext('2d', { alpha: false });
-let cw = 0,
-  ch = 0,
-  sc = 1,
-  ox = 0,
-  oy = 0;
-function resize() {
-  const dpr = window.devicePixelRatio || 1;
-  cw = window.innerWidth;
-  ch = window.innerHeight;
-  c.width = cw * dpr;
-  c.height = ch * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const sx = (cw - 10 * 2) / CW,
-    sy = (ch - 10 * 2) / CH;
-  sc = Math.min(sx, sy);
-  ox = (cw - CW * sc) / 2;
-  oy = (ch - CH * sc) / 2;
-}
-window.addEventListener('resize', resize);
-resize();
+const canvas = document.getElementById('gameCanvas'),
+  ctx = canvas.getContext('2d', { alpha: false });
+const { w: cw, h: ch, s: sc, x: ox, y: oy } = setupCanvas(canvas, ctx, CW, CH, 10);
 
 // ============================================================
 // SONIDO
@@ -345,12 +330,12 @@ function nextWave() {
 // ============================================================
 
 // Mouse / pointer
-c.addEventListener('mousemove', (e) => {
+canvas.addEventListener('mousemove', (e) => {
   const rect = c.getBoundingClientRect();
   crosshair.x = (e.clientX - rect.left - ox) / sc;
   crosshair.y = (e.clientY - rect.top - oy) / sc;
 });
-c.addEventListener('click', (e) => {
+canvas.addEventListener('click', (e) => {
   if (!state.running) {
     startGame();
     return;
@@ -366,7 +351,7 @@ c.addEventListener('click', (e) => {
     fireABM(tx, ty);
   }
 });
-c.addEventListener(
+canvas.addEventListener(
   'touchstart',
   (e) => {
     e.preventDefault();
@@ -987,18 +972,18 @@ function draw() {
 // ============================================================
 // HUD
 // ============================================================
-const scEl = document.getElementById('sc'),
-  ctEl = document.getElementById('ct');
-const amEl = document.getElementById('am'),
-  wvEl = document.getElementById('wv');
-const bsEl = document.getElementById('bst');
+const scoreEl = document.getElementById('scoreValue'),
+  citiesEl = document.getElementById('citiesValue');
+const ammoEl = document.getElementById('ammoValue'),
+  waveEl = document.getElementById('waveValue');
+const bestEl = document.getElementById('bestValue');
 const gdEl = document.getElementById('gdBadge');
 function updateHUD() {
-  scEl.textContent = String(state.score);
-  ctEl.textContent = '●'.repeat(state.cityCount) + '○'.repeat(NUM_CITIES - state.cityCount);
-  amEl.textContent = String(state.ammo);
-  wvEl.textContent = String(state.wave);
-  bsEl.textContent = String(state.best);
+  scoreEl.textContent = String(state.score);
+  citiesEl.textContent = '●'.repeat(state.cityCount) + '○'.repeat(NUM_CITIES - state.cityCount);
+  ammoEl.textContent = String(state.ammo);
+  waveEl.textContent = String(state.wave);
+  bestEl.textContent = String(state.best);
   if (gdEl) gdEl.style.display = state.guidedCharge > 0 ? 'inline-flex' : 'none';
   if (state.score >= 1000) achievements.unlock('missile_thousand');
 }

@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -9,6 +11,9 @@ import {
   updateParticles,
   drawParticles,
 } from '../../shared/effects.js';
+
+injectCommonElements();
+
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 /* ============================================================
    ASTEROIDS 2D — Arcade Hub
@@ -62,27 +67,13 @@ const state = {
 // ============================================================
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
-let canvasW = 0,
-  canvasH = 0;
-let scale = 1;
-let offX = 0,
-  offY = 0;
-
-function resizeCanvas() {
-  const dpr = window.devicePixelRatio || 1;
-  canvasW = window.innerWidth;
-  canvasH = window.innerHeight;
-  canvas.width = canvasW * dpr;
-  canvas.height = canvasH * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const sx = (canvasW - COURT_PADDING * 2) / COURT_W;
-  const sy = (canvasH - COURT_PADDING * 2) / COURT_H;
-  scale = Math.min(sx, sy);
-  offX = (canvasW - COURT_W * scale) / 2;
-  offY = (canvasH - COURT_H * scale) / 2;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+const {
+  w: canvasW,
+  h: canvasH,
+  s: scale,
+  x: offX,
+  y: offY,
+} = setupCanvas(canvas, ctx, COURT_W, COURT_H, COURT_PADDING);
 // SONIDO (usando shared/audio.js)
 function playFireSound() {
   beep({ freq: 800, freqEnd: 1200, duration: 0.05, type: 'square', volume: 0.1 });

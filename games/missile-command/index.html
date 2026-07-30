@@ -18,38 +18,32 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div id="loading">
-      <div class="spinner"></div>
-      <span>◈ Cargando...</span>
-    </div>
-    <canvas id="gc" aria-label="Missile Command - Arcade Hub"></canvas>
-    <div id="announce" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-
+    <canvas id="gameCanvas" aria-label="Missile Command - Arcade Hub"></canvas>
     <div id="hud">
       <div class="sg">
         <div class="sb score">
           <div class="label">Puntaje</div>
-          <div class="value" id="sc">0</div>
+          <div class="value" id="scoreValue">0</div>
         </div>
         <div class="sp">·</div>
         <div class="sb cities">
           <div class="label">Ciudades</div>
-          <div class="value" id="ct">●●●●●●</div>
+          <div class="value" id="citiesValue">●●●●●●</div>
         </div>
         <div class="sp">·</div>
         <div class="sb ammo">
           <div class="label">Munición</div>
-          <div class="value" id="am">30</div>
+          <div class="value" id="ammoValue">30</div>
         </div>
         <div class="sp">·</div>
         <div class="sb wave">
           <div class="label">Oleada</div>
-          <div class="value" id="wv">1</div>
+          <div class="value" id="waveValue">1</div>
         </div>
         <div class="sp">·</div>
         <div class="sb best">
           <div class="label">Récord</div>
-          <div class="value" id="bst">0</div>
+          <div class="value" id="bestValue">0</div>
         </div>
         <div id="gdBadge" class="hud-badge" style="display: none">⚡ GUIADO</div>
       </div>
@@ -73,13 +67,5 @@
     </div>
 
     <script type="module" src="./script.js"></script>
-
-    <div id="gameBar">
-      <button id="hubBtn" aria-label="Volver al Arcade Hub" title="Volver al Arcade Hub">
-        ← Arcade
-      </button>
-      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
-      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>
-    </div>
   </body>
 </html>

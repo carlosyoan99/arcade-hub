@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -10,6 +12,8 @@ import {
   updateParticles,
   drawParticles,
 } from '../../shared/effects.js';
+
+injectCommonElements();
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 /* ============================================================
    FLAPPY BIRD 2D — Arcade Hub
@@ -44,28 +48,9 @@ const state = {
 // ============================================================
 // CANVAS
 // ============================================================
-const c = document.getElementById('gc'),
-  ctx = c.getContext('2d', { alpha: false });
-let cw = 0,
-  ch = 0,
-  sc = 1,
-  ox = 0,
-  oy = 0;
-function resize() {
-  const dpr = window.devicePixelRatio || 1;
-  cw = window.innerWidth;
-  ch = window.innerHeight;
-  c.width = cw * dpr;
-  c.height = ch * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const sx = (cw - CPAD * 2) / CW,
-    sy = (ch - CPAD * 2) / CH;
-  sc = Math.min(sx, sy);
-  ox = (cw - CW * sc) / 2;
-  oy = (ch - CH * sc) / 2;
-}
-window.addEventListener('resize', resize);
-resize();
+const canvas = document.getElementById('gameCanvas'),
+  ctx = canvas.getContext('2d', { alpha: false });
+const { w: cw, h: ch, s: sc, x: ox, y: oy } = setupCanvas(canvas, ctx, CW, CH, CPAD);
 
 // SONIDO (usando shared/audio.js)
 function pFlap() {
@@ -269,7 +254,7 @@ bF?.addEventListener('mousedown', (e) => {
   else flap();
 });
 
-document.getElementById('gc').addEventListener('pointerdown', () => {
+canvas.addEventListener('pointerdown', () => {
   if (!state.running) startGame();
   else flap();
 });
@@ -459,11 +444,11 @@ function drawPipe(x, y, w, h) {
 // ============================================================
 // HUD
 // ============================================================
-const scEl = document.getElementById('sc'),
-  bsEl = document.getElementById('bst');
+const scoreEl = document.getElementById('scoreValue'),
+  bestEl = document.getElementById('bestValue');
 function updateHUD() {
-  scEl.textContent = String(state.score);
-  bsEl.textContent = String(state.best);
+  scoreEl.textContent = String(state.score);
+  bestEl.textContent = String(state.best);
 }
 
 // ============================================================

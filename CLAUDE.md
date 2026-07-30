@@ -7,6 +7,7 @@ Este archivo documenta cómo trabajar en este repo. **Léelo antes de crear o mo
 ## 🎯 Regla de oro: estética 2D/2.5D, no 3D
 
 Los juegos usan **`<canvas>` 2D** como base. Técnicas 2.5D permitidas:
+
 - Paralaje de fondos (capas a distinta velocidad)
 - Sombras proyectadas dibujadas a mano
 - Perspectiva simulada (escalar sprites por "distancia")
@@ -27,14 +28,16 @@ arcade-hub/
 ├── shared/               # Módulos compartidos (import relativo desde cada juego)
 │   ├── base.css          #   Neon palette, overlay, HUD, touch controls, game bar
 │   ├── audio.js          #   Web Audio API: beep(), startAmbient(), stopAmbient()
-│   ├── effects.js        #   Screen shake, partículas, flash, roundRect
+│   ├── effects.js        #   Screen shake, partículas, pool, flash, roundRect
 │   ├── achievements.js   #   Logros + contador de partidas (localStorage)
-│   └── help.js           #   Modal de ayuda contextual con metadata y changelog
+│   ├── help.js           #   Modal de ayuda contextual con metadata y changelog
+│   ├── display.js        #   setupCanvas() con DPR + letterboxing
+│   └── dom.js            #   injectCommonElements() — loading, announce, gameBar
 │
-├── games/                # 16 juegos, cada uno con 5 archivos
+├── games/                # 19 juegos, cada uno con 5 archivos
 │   ├── pong/             → index.html, style.css, script.js, metadata.json, README.md
 │   ├── breakout/         → (misma estructura)
-│   ├── ...               → 16 en total
+│   ├── ...               → 19 en total
 │   └── legacy-3d/        → Versiones Three.js archivadas (solo referencia)
 │
 └── .agents/skills/       → Skills instalados para trabajo con IA
@@ -48,16 +51,16 @@ arcade-hub/
 ### Variables CSS compartidas (`shared/base.css`)
 
 ```css
---neon-cyan:   #00f0ff;   /* Acento primario del hub */
---neon-pink:   #ff2d78;   /* Acento secundario */
---neon-gold:   #ffb800;   /* Acento terciario */
---neon-green:  #39ff14;   /* Verde arcade (status listo) */
+--neon-cyan: #00f0ff; /* Acento primario del hub */
+--neon-pink: #ff2d78; /* Acento secundario */
+--neon-gold: #ffb800; /* Acento terciario */
+--neon-green: #39ff14; /* Verde arcade (status listo) */
 --neon-purple: #c084fc;
---neon-red:    #ff5e7a;
+--neon-red: #ff5e7a;
 --neon-orange: #ff8a65;
---neon-blue:   #6ec6ff;
+--neon-blue: #6ec6ff;
 --neon-yellow: #ffe066;
---neon-white:  #ffffff;
+--neon-white: #ffffff;
 ```
 
 ### Cada juego define solo su acento
@@ -74,15 +77,15 @@ arcade-hub/
 
 `shared/base.css` ya incluye estilos para todo lo común:
 
-| Componente | Selectores |
-|-----------|------------|
-| Overlay | `#overlay` con `--accent`, `--accent-glow`, `--overlay-grad-start/end` |
-| HUD | `.score-group`/`.sg`, `.score-block`/`.sb`, `.score-sep`/`.sp` |
-| Touch controls | `#touchControls`/`#tc`, `.dpad`/`.dp` |
-| Game bar | `#gameBar` con botones estilo panel translúcido |
-| Loading | `#loading` con spinner animado |
-| Reduced motion | `@media (prefers-reduced-motion)` |
-| Responsive | Media queries para 520px, 480px |
+| Componente     | Selectores                                                             |
+| -------------- | ---------------------------------------------------------------------- |
+| Overlay        | `#overlay` con `--accent`, `--accent-glow`, `--overlay-grad-start/end` |
+| HUD            | `.score-group`/`.sg`, `.score-block`/`.sb`, `.score-sep`/`.sp`         |
+| Touch controls | `#touchControls`/`#tc`, `.dpad`/`.dp`                                  |
+| Game bar       | `#gameBar` con botones estilo panel translúcido                        |
+| Loading        | `#loading` con spinner animado                                         |
+| Reduced motion | `@media (prefers-reduced-motion)`                                      |
+| Responsive     | Media queries para 520px, 480px                                        |
 
 Cada `style.css` solo necesita elementos únicos: colores de score blocks, touch control accents, leaderboard, name entry, shop, cards...
 
@@ -92,12 +95,12 @@ Cada `style.css` solo necesita elementos únicos: colores de score blocks, touch
 
 Todo juego debe soportar desde el primer build:
 
-| Modo | Cómo |
-|------|------|
-| ⌨️ **Teclado** | Flechas/WASD + tecla de acción (`Espacio`) + `R` reinicio |
-| 👆 **Táctil** | Botones visibles solo en táctil (`@media (hover: none) and (pointer: coarse)`) con feedback (`.is-pressed` + `:active`) |
-| 🕹️ **Gamepad** | Polling en loop principal: stick/D-pad para movimiento, botón para acción |
-| 🔄 **Reinicio** | Tecla `R` + tap en overlay + botón de acción principal |
+| Modo            | Cómo                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| ⌨️ **Teclado**  | Flechas/WASD + tecla de acción (`Espacio`) + `R` reinicio                                                               |
+| 👆 **Táctil**   | Botones visibles solo en táctil (`@media (hover: none) and (pointer: coarse)`) con feedback (`.is-pressed` + `:active`) |
+| 🕹️ **Gamepad**  | Polling en loop principal: stick/D-pad para movimiento, botón para acción                                               |
+| 🔄 **Reinicio** | Tecla `R` + tap en overlay + botón de acción principal                                                                  |
 
 ---
 
@@ -141,24 +144,24 @@ skill("nombre-de-la-skill")
 
 ### Core (más usadas)
 
-| Skill | Cuándo usarla |
-|-------|---------------|
-| `frontend-design` | Rediseñar hub o juego — paleta, tipografía, layout, elemento signature |
-| `game-feel` | Agregar juicio: screen shake, hit-stop, squash & stretch, knockback |
-| `game-engine` | Construir o mejorar juegos Canvas 2D — game loop, físicas, colisiones, sprites |
-| `refactor` | Refactorizar código: extraer funciones, mejorar tipos, eliminar code smells |
-| `git-commit` | Hacer commits con mensajes convencionales semánticos |
+| Skill             | Cuándo usarla                                                                  |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `frontend-design` | Rediseñar hub o juego — paleta, tipografía, layout, elemento signature         |
+| `game-feel`       | Agregar juicio: screen shake, hit-stop, squash & stretch, knockback            |
+| `game-engine`     | Construir o mejorar juegos Canvas 2D — game loop, físicas, colisiones, sprites |
+| `refactor`        | Refactorizar código: extraer funciones, mejorar tipos, eliminar code smells    |
+| `git-commit`      | Hacer commits con mensajes convencionales semánticos                           |
 
 ### Complementarias
 
-| Skill | Cuándo usarla |
-|-------|---------------|
-| `premium-frontend-ui` | Diseño UI inmersivo de alto nivel (animaciones, tipografía, micro-interacciones) |
-| `create-implementation-plan` | Planificar implementaciones multi-paso antes de codificar |
-| `refactor-plan` | Planificar refactors multi-archivo de forma segura |
-| `create-readme` | Generar README.md para nuevos juegos |
-| `create-specification` | Crear especificaciones técnicas detalladas |
-| `documentation-writter` | Redactar documentación técnica |
+| Skill                        | Cuándo usarla                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------------- |
+| `premium-frontend-ui`        | Diseño UI inmersivo de alto nivel (animaciones, tipografía, micro-interacciones) |
+| `create-implementation-plan` | Planificar implementaciones multi-paso antes de codificar                        |
+| `refactor-plan`              | Planificar refactors multi-archivo de forma segura                               |
+| `create-readme`              | Generar README.md para nuevos juegos                                             |
+| `create-specification`       | Crear especificaciones técnicas detalladas                                       |
+| `documentation-writter`      | Redactar documentación técnica                                                   |
 
 ---
 

@@ -39,25 +39,25 @@
 
 | Juego              | Estado   | Versión |
 | ------------------ | -------- | ------- |
-| 🏓 Pong            | ✅ listo | 1.2.0   |
-| 🧱 Breakout        | ✅ listo | 1.2.0   |
-| 🐍 Snake           | ✅ listo | 1.2.0   |
-| 🦖 Dino Runner     | ✅ listo | 1.2.0   |
-| 🚀 Asteroids       | ✅ listo | 1.2.0   |
-| 👾 Space Invaders  | ✅ listo | 1.2.0   |
-| 🐤 Flappy Bird     | ✅ listo | 1.2.0   |
-| 🟡 Pac-Man         | ✅ listo | 1.2.0   |
-| 🧊 Tetris          | ✅ listo | 1.2.0   |
-| 🐸 Frogger         | ✅ listo | 1.2.0   |
-| 🛸 Galaga          | ✅ listo | 1.2.0   |
-| 🐛 Centipede       | ✅ listo | 1.2.0   |
-| ⛏️ Dig Dug         | ✅ listo | 1.1.0   |
-| 🚀 Missile Command | ✅ listo | 1.1.0   |
-| ◈ Neon Nexus       | ✅ listo | 1.1.0   |
-| 🟣 Cell Swarm      | ✅ listo | 1.1.0   |
-| 🦍 Donkey Kong     | ✅ listo | 1.0.0   |
-| 🚀 Defender        | ✅ listo | 1.0.0   |
-| 🦅 **Joust**       | ✅ listo | 1.0.0   |
+| 🏓 Pong            | ✅ listo | 1.3.0   |
+| 🧱 Breakout        | ✅ listo | 1.3.0   |
+| 🐍 Snake           | ✅ listo | 1.3.0   |
+| 🦖 Dino Runner     | ✅ listo | 1.3.0   |
+| 🚀 Asteroids       | ✅ listo | 1.3.0   |
+| 👾 Space Invaders  | ✅ listo | 1.3.0   |
+| 🐤 Flappy Bird     | ✅ listo | 1.3.0   |
+| 🟡 Pac-Man         | ✅ listo | 1.3.0   |
+| 🧊 Tetris          | ✅ listo | 1.3.0   |
+| 🐸 Frogger         | ✅ listo | 1.3.0   |
+| 🛸 Galaga          | ✅ listo | 1.3.0   |
+| 🐛 Centipede       | ✅ listo | 1.3.0   |
+| ⛏️ Dig Dug         | ✅ listo | 1.2.0   |
+| 🚀 Missile Command | ✅ listo | 1.2.0   |
+| ◈ Neon Nexus       | ✅ listo | 1.2.0   |
+| 🟣 Cell Swarm      | ✅ listo | 1.2.0   |
+| 🦍 Donkey Kong     | ✅ listo | 1.1.0   |
+| 🚀 Defender        | ✅ listo | 1.1.0   |
+| 🦅 **Joust**       | ✅ listo | 1.1.0   |
 
 ### Refactor CSS — base.css + paleta neon
 
@@ -109,45 +109,61 @@
 
 ### ✅ Completados (ronda rendimiento + accesibilidad)
 
-| #  | Tarea | Archivos | Logrado |
-|----|-------|----------|---------|
-| 1  | **High-DPI scaling (Retina)** | 19 `games/*/script.js` | `devicePixelRatio` en todos los canvas. Eliminado blur en Retina. |
-| 2  | **Alpha channel desactivado** | 19 `games/*/script.js` | `{ alpha: false }` en todos los contextos 2D. Optimización compositor. |
-| 3  | **Memory leaks — cleanup** | asteroids, frogger, tetris | `cleanup()` + `stopAmbient()` + `closeAudio()` en `beforeunload`/`pagehide`. |
-| 4  | **Object pooling partículas** | `shared/effects.js` | Pool de 500 partículas, `allocParticle()` recicla. Sin GC pressure. |
-| 5  | **Accesibilidad canvas** | 19 `games/*/` + `index.html` | `aria-label`, `aria-live`, focus trapping con `trapTab()`, `say()` helper. |
-| 6  | **Anti-tunneling inconsistente** | 7 juegos rápidos | Sub-pasos en Asteroids, Defender, Space Invaders, Galaga, Centipede, Neon Nexus. Joust dt cap 0.03→0.05 unificado. |
-| 7  | **Service Worker — estrategias** | `sw.js` | Network-first para metadata, cache-first para assets. Múltiples cachés. |
-| 8  | **Hash routing hub↔juego** | `index.html` + 19 scripts | `#game/{id}` → iframe. Escape para cerrar. Ctrl+click para new tab. |
-| 9  | **Variable `particles` local muerta** | cell-swarm, neon-nexus, digdug | Eliminadas declaraciones locales que sombreaban el pool. |
-| 10 | **Modo claro — contraste WCAG AA** | `shared/base.css`, `index.html` | `--text-secondary` 0.4→0.55 (~4.58:1). `--text-dim` #6a6890→#5d5b7a (~5.45:1). |
+| #   | Tarea                                 | Archivos                        | Logrado                                                                                                            |
+| --- | ------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | **High-DPI scaling (Retina)**         | 19 `games/*/script.js`          | `devicePixelRatio` en todos los canvas. Eliminado blur en Retina.                                                  |
+| 2   | **Alpha channel desactivado**         | 19 `games/*/script.js`          | `{ alpha: false }` en todos los contextos 2D. Optimización compositor.                                             |
+| 3   | **Memory leaks — cleanup**            | asteroids, frogger, tetris      | `cleanup()` + `stopAmbient()` + `closeAudio()` en `beforeunload`/`pagehide`.                                       |
+| 4   | **Object pooling partículas**         | `shared/effects.js`             | Pool de 500 partículas, `allocParticle()` recicla. Sin GC pressure.                                                |
+| 5   | **Accesibilidad canvas**              | 19 `games/*/` + `index.html`    | `aria-label`, `aria-live`, focus trapping con `trapTab()`, `say()` helper.                                         |
+| 6   | **Anti-tunneling inconsistente**      | 7 juegos rápidos                | Sub-pasos en Asteroids, Defender, Space Invaders, Galaga, Centipede, Neon Nexus. Joust dt cap 0.03→0.05 unificado. |
+| 7   | **Service Worker — estrategias**      | `sw.js`                         | Network-first para metadata, cache-first para assets. Múltiples cachés.                                            |
+| 8   | **Hash routing hub↔juego**            | `index.html` + 19 scripts       | `#game/{id}` → iframe. Escape para cerrar. Ctrl+click para new tab.                                                |
+| 9   | **Variable `particles` local muerta** | cell-swarm, neon-nexus, digdug  | Eliminadas declaraciones locales que sombreaban el pool.                                                           |
+| 10  | **Modo claro — contraste WCAG AA**    | `shared/base.css`, `index.html` | `--text-secondary` 0.4→0.55 (~4.58:1). `--text-dim` #6a6890→#5d5b7a (~5.45:1).                                     |
 
 ### ✅ Completados (ronda hub — UX)
 
-| #  | Tarea | Archivos | Logrado |
-|----|-------|----------|---------|
-| 11 | **Título HTML dinámico** | `index.html` | `document.title` se actualiza con el nombre del juego al abrir vía hash routing. |
-| 12 | **Meta tags OG dinámicos** | `index.html` | `og:title`, `og:description`, `twitter:title`, `twitter:description` cambian por juego. |
-| 15 | **Botón Sorpresa** | `index.html` | 🎲 en toolbar → juego al azar de los disponibles. |
-| 16 | **Hover sonoro** | `index.html` | Sine tone 660±220Hz, gain 0.04, 0.08s. AudioContext lazy, throttle 100ms. |
+| #   | Tarea                      | Archivos     | Logrado                                                                                 |
+| --- | -------------------------- | ------------ | --------------------------------------------------------------------------------------- |
+| 11  | **Título HTML dinámico**   | `index.html` | `document.title` se actualiza con el nombre del juego al abrir vía hash routing.        |
+| 12  | **Meta tags OG dinámicos** | `index.html` | `og:title`, `og:description`, `twitter:title`, `twitter:description` cambian por juego. |
+| 15  | **Botón Sorpresa**         | `index.html` | 🎲 en toolbar → juego al azar de los disponibles.                                       |
+| 16  | **Hover sonoro**           | `index.html` | Sine tone 660±220Hz, gain 0.04, 0.08s. AudioContext lazy, throttle 100ms.               |
 
 ### ✅ Completados (ronda SEO + nostalgia)
 
-| #  | Tarea | Archivos | Logrado |
-|----|-------|----------|---------|
-| 14 | **Animación \"inserción de moneda\"** | `index.html` | Overlay retro con cabinet arcade, 🪙 animada, INSERT COIN parpadeante, glitch flash. Solo una vez (localStorage). |
-| 17 | **Schema.org / JSON-LD** | `index.html` | WebSite + VideoGame (dinámico por juego) + ItemList. Rich snippets de Google. |
-| 18 | **Sitemap XML + robots.txt** | `sitemap.xml`, `robots.txt`, `index.html` | 20 URLs (hub + 19 juegos). Prioridades, frecuencias, lastmod. Link en `<head>`. |
+| #   | Tarea                                 | Archivos                                  | Logrado                                                                                                           |
+| --- | ------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 14  | **Animación \"inserción de moneda\"** | `index.html`                              | Overlay retro con cabinet arcade, 🪙 animada, INSERT COIN parpadeante, glitch flash. Solo una vez (localStorage). |
+| 17  | **Schema.org / JSON-LD**              | `index.html`                              | WebSite + VideoGame (dinámico por juego) + ItemList. Rich snippets de Google.                                     |
+| 18  | **Sitemap XML + robots.txt**          | `sitemap.xml`, `robots.txt`, `index.html` | 20 URLs (hub + 19 juegos). Prioridades, frecuencias, lastmod. Link en `<head>`.                                   |
 
 ### 🟡 Próximas (media prioridad)
 
-| #  | Tarea | Archivos | Detalle |
-|----|-------|----------|---------|
-| 13 | **Pantalla de carga progresiva** | `index.html` | Barra de progreso al cargar módulos del hub (mejora perceived performance). |
+| #   | Tarea                            | Archivos     | Detalle                                                                     |
+| --- | -------------------------------- | ------------ | --------------------------------------------------------------------------- |
+| 13  | **Pantalla de carga progresiva** | `index.html` | Barra de progreso al cargar módulos del hub (mejora perceived performance). |
 
 ### 🟢 Ideas / Mejora continua
 
-| #  | Tarea | Archivos | Detalle |
-|----|-------|----------|---------|
-| 19 | **Ícono/thumbnail real por juego** | `games/*/` | SVG/PNG por juego. |
-| 20 | **Tema visual más distintivo por juego** | `games/*/style.css` | Temas propios más diferenciados. |
+| #   | Tarea                                    | Archivos            | Detalle                          |
+| --- | ---------------------------------------- | ------------------- | -------------------------------- |
+| 19  | **Ícono/thumbnail real por juego**       | `games/*/`          | SVG/PNG por juego.               |
+| 20  | **Tema visual más distintivo por juego** | `games/*/style.css` | Temas propios más diferenciados. |
+
+### ✅ Completados (Fase de refactor — shared modules)
+
+| #   | Tarea                                   | Archivos                       | Logrado                                                                                      |
+| --- | --------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| F1  | **Canvas ID unificado + setupCanvas()** | `shared/display.js`, 18 juegos | Unificado #gc→#gameCanvas + extraído resizeCanvas() a setupCanvas(). ~150 líneas eliminadas. |
+| F2  | **HUD IDs unificados**                  | 9 juegos (HTML+JS)             | sc→scoreValue, lv→livesValue, bst→bestValue, etc. Nombres legibles.                          |
+| F3  | **HTML compartido inyectado via DOM**   | `shared/dom.js`, 19 juegos     | loading+announce+gameBar inyectados vía JS. ~228 líneas HTML eliminadas.                     |
+
+### 📦 metadata.json actualizados (19 juegos)
+
+| Versión     | Juegos                                                                                                                  |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1.2.0→1.3.0 | pong, asteroids, snake, dino-runner, space-invaders, flappy-bird, pac-man, tetris, breakout, centipede, galaga, frogger |
+| 1.1.0→1.2.0 | digdug, missile-command, cell-swarm, neon-nexus                                                                         |
+| 1.0.0→1.1.0 | defender, donkey-kong, joust                                                                                            |

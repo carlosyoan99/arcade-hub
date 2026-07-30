@@ -8,13 +8,13 @@ Abrí y jugá.
 
 ## ✨ Filosofía
 
-| Principio | Por qué |
-|-----------|---------|
-| **Cero dependencias** | Se abre en el navegador y listo. No hay `npm install`, no hay bundlers, no hay toolchain. |
-| **Sin build step** | Cada juego es HTML + CSS + JS estáticos. Editar y recargar. |
-| **Modular** | Cada juego vive en su carpeta (`games/pong/`) e importa módulos compartidos (`shared/`). Para jugar necesitás servir la carpeta raíz con un servidor HTTP local. |
-| **Canvas 2D / 2.5D** | `canvas` 2D con paralaje, sombras proyectadas y partículas. Nada de motores 3D. |
-| **Módulos compartidos** | Sonido, partículas, logros, estilos base y ayuda se importan desde `shared/`. |
+| Principio               | Por qué                                                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cero dependencias**   | Se abre en el navegador y listo. No hay `npm install`, no hay bundlers, no hay toolchain.                                                                        |
+| **Sin build step**      | Cada juego es HTML + CSS + JS estáticos. Editar y recargar.                                                                                                      |
+| **Modular**             | Cada juego vive en su carpeta (`games/pong/`) e importa módulos compartidos (`shared/`). Para jugar necesitás servir la carpeta raíz con un servidor HTTP local. |
+| **Canvas 2D / 2.5D**    | `canvas` 2D con paralaje, sombras proyectadas y partículas. Nada de motores 3D.                                                                                  |
+| **Módulos compartidos** | Sonido, partículas, logros, estilos base y ayuda se importan desde `shared/`.                                                                                    |
 
 ---
 
@@ -40,13 +40,17 @@ arcade-hub/
 ├── index.html              # Hub — grilla de juegos con toolbar y stats
 ├── games.js                # Manifiesto — metadata de cada juego
 ├── sw.js                   # Service Worker — offline cache-first
+├── sitemap.xml             # Sitemap XML para buscadores
+├── robots.txt              # Robots exclusion rules
 │
 ├── shared/                 # ← Módulos compartidos entre todos los juegos
 │   ├── base.css            #   Variables neon, overlay, HUD, touch controls
 │   ├── audio.js            #   Web Audio API: beep(), startAmbient()
-│   ├── effects.js          #   Screen shake, partículas, flash, roundRect
+│   ├── effects.js          #   Screen shake, partículas, pool, flash, roundRect
 │   ├── achievements.js     #   Logros persistidos en localStorage
-│   └── help.js             #   Modal de ayuda contextual
+│   ├── help.js             #   Modal de ayuda contextual
+│   ├── display.js          #   setupCanvas() con DPR+letterboxing compartido
+│   └── dom.js              #   injectCommonElements() para HTML compartido
 │
 ├── games/                  # ← Un directorio por juego
 │   ├── pong/
@@ -71,36 +75,39 @@ arcade-hub/
 
 Cada juego tiene exactamente **5 archivos**:
 
-| Archivo | Rol | Contenido típico |
-|---------|-----|------------------|
-| `index.html` | Estructura | Canvas, loading spinner, HUD, overlay, game bar, touch controls, módulos compartidos |
-| `style.css` | Estilo específico | Solo `:root { --accent: ... }` y elementos únicos del juego |
-| `script.js` | Lógica | Módulo ES con constantes, estado, entrada, física, render y bucle principal |
-| `metadata.json` | Metadatos | Versión, fechas, changelog (se muestra en el modal de ayuda) |
-| `README.md` | Documentación | Descripción, tabla de controles (teclado + gamepad + táctil), características |
+| Archivo         | Rol               | Contenido típico                                                                     |
+| --------------- | ----------------- | ------------------------------------------------------------------------------------ |
+| `index.html`    | Estructura        | Canvas, loading spinner, HUD, overlay, game bar, touch controls, módulos compartidos |
+| `style.css`     | Estilo específico | Solo `:root { --accent: ... }` y elementos únicos del juego                          |
+| `script.js`     | Lógica            | Módulo ES con constantes, estado, entrada, física, render y bucle principal          |
+| `metadata.json` | Metadatos         | Versión, fechas, changelog (se muestra en el modal de ayuda)                         |
+| `README.md`     | Documentación     | Descripción, tabla de controles (teclado + gamepad + táctil), características        |
 
 ---
 
 ## 🎮 Juegos disponibles
 
-| # | Juego | Género | Descripción |
-|---|-------|--------|-------------|
-| 1 | 🏓 **Pong** | Deportes | Tenis de mesa con IA. Primero en llegar a 7 puntos gana. |
-| 2 | 🧱 **Breakout** | Arcade | Rompe ladrillos con la pelota. 5 filas, niveles progresivos. |
-| 3 | 🐍 **Snake** | Arcade | La serpiente clásica. Crece al comer, game over al chocar. |
-| 4 | 🦖 **Dino Runner** | Plataformas | Side-scroller. Saltá y agachate para esquivar obstáculos. |
-| 5 | 🚀 **Asteroids** | Space Shooter | Asteroides que se fragmentan, nave con inercia y wrapping. |
-| 6 | 👾 **Space Invaders** | Space Shooter | Oleadas de invasores, escudos, nave misteriosa. |
-| 7 | 🐤 **Flappy Bird** | Arcade | Volá esquivando tubos con gravedad y aleteo. |
-| 8 | 🟡 **Pac-Man** | Laberinto | 4 IAs de fantasmas, power pellets, fruta bonus. |
-| 9 | 🧊 **Tetris** | Puzzle | 7 piezas, ghost piece, next preview, niveles. |
-| 10 | 🐸 **Frogger** | Arcade | Cruzá calle y río, 5 zonas seguras. |
-| 11 | 🛸 **Galaga** | Space Shooter | Invasores en formación con picados en espiral. |
-| 12 | 🐛 **Centipede** | Arcade | Ciempiés, hongos, araña, pulgas, escorpiones. |
-| 13 | ⛏️ **Dig Dug** | Arcade | Excavá túneles, inflá enemigos, derrumbá rocas. |
-| 14 | 🚀 **Missile Command** | Defensa | Defendé ciudades con interceptores y misiles inteligentes. |
-| 15 | ◈ **Neon Nexus** | Tower Defense Roguelike | Defiende tu torre, mejora con estrellas, elige cartas de poder. |
-| 16 | 🟣 **Cell Swarm** | Battle Royale | Crecé comiendo células, dividite, eyectá masa. |
+| #   | Juego                  | Género                  | Descripción                                                     |
+| --- | ---------------------- | ----------------------- | --------------------------------------------------------------- |
+| 1   | 🏓 **Pong**            | Deportes                | Tenis de mesa con IA. Primero en llegar a 7 puntos gana.        |
+| 2   | 🧱 **Breakout**        | Arcade                  | Rompe ladrillos con la pelota. 5 filas, niveles progresivos.    |
+| 3   | 🐍 **Snake**           | Arcade                  | La serpiente clásica. Crece al comer, game over al chocar.      |
+| 4   | 🦖 **Dino Runner**     | Plataformas             | Side-scroller. Saltá y agachate para esquivar obstáculos.       |
+| 5   | 🚀 **Asteroids**       | Space Shooter           | Asteroides que se fragmentan, nave con inercia y wrapping.      |
+| 6   | 👾 **Space Invaders**  | Space Shooter           | Oleadas de invasores, escudos, nave misteriosa.                 |
+| 7   | 🐤 **Flappy Bird**     | Arcade                  | Volá esquivando tubos con gravedad y aleteo.                    |
+| 8   | 🟡 **Pac-Man**         | Laberinto               | 4 IAs de fantasmas, power pellets, fruta bonus.                 |
+| 9   | 🧊 **Tetris**          | Puzzle                  | 7 piezas, ghost piece, next preview, niveles.                   |
+| 10  | 🐸 **Frogger**         | Arcade                  | Cruzá calle y río, 5 zonas seguras.                             |
+| 11  | 🛸 **Galaga**          | Space Shooter           | Invasores en formación con picados en espiral.                  |
+| 12  | 🐛 **Centipede**       | Arcade                  | Ciempiés, hongos, araña, pulgas, escorpiones.                   |
+| 13  | ⛏️ **Dig Dug**         | Arcade                  | Excavá túneles, inflá enemigos, derrumbá rocas.                 |
+| 14  | 🚀 **Missile Command** | Defensa                 | Defendé ciudades con interceptores y misiles inteligentes.      |
+| 15  | ◈ **Neon Nexus**       | Tower Defense Roguelike | Defiende tu torre, mejora con estrellas, elige cartas de poder. |
+| 16  | 🟣 **Cell Swarm**      | Battle Royale           | Crecé comiendo células, dividite, eyectá masa.                  |
+| 17  | 🦍 **Donkey Kong**     | Plataformas             | Escalá la obra esquivando barriles que lanza Donkey Kong.       |
+| 18  | 🚀 **Defender**        | Shooter                 | Side-scrolling shooter. Rescatá humanos de los alienígenas.     |
+| 19  | 🦅 **Joust**           | Acción                  | Justas aéreas sobre avestruz. Golpeá desde arriba para vencer.  |
 
 > Todos los juegos son **100% funcionales** (status: `listo`).
 
@@ -128,17 +135,17 @@ README.md         → descripción y tabla de controles
 
 ### 2. Seguir las convenciones técnicas
 
-| Aspecto | Regla |
-|---------|-------|
-| **Renderizado** | `<canvas>` 2D — nada de Three.js ni WebGL |
-| **Paleta neon** | Usar variables `var(--neon-cyan)`, `var(--neon-pink)`, etc. de `shared/base.css` |
-| **Entrada** | Teclado (flechas/WASD + acción) + Táctil (`.is-pressed` + `@media hover:none`) + Gamepad (polling en loop) |
-| **Overlay** | Estructura `#overlay` de `base.css` con `--accent` y `--overlay-grad-start` |
-| **Ayuda** | Importar `showHelp` de `../../shared/help.js` y conectarlo al `#helpBtn` |
-| **Módulos** | Importar desde `../../shared/` — no importar de otros juegos |
-| **Persistencia** | `localStorage` con key namespaced: `<gameId>_<clave>` |
-| **Sonido** | `beep({freq, duration, type, volume})` desde `shared/audio.js` — nunca archivos externos |
-| **Partículas** | `spawnParticles()` + `updateParticles()` + `drawParticles()` desde `shared/effects.js` |
+| Aspecto          | Regla                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Renderizado**  | `<canvas>` 2D — nada de Three.js ni WebGL                                                                  |
+| **Paleta neon**  | Usar variables `var(--neon-cyan)`, `var(--neon-pink)`, etc. de `shared/base.css`                           |
+| **Entrada**      | Teclado (flechas/WASD + acción) + Táctil (`.is-pressed` + `@media hover:none`) + Gamepad (polling en loop) |
+| **Overlay**      | Estructura `#overlay` de `base.css` con `--accent` y `--overlay-grad-start`                                |
+| **Ayuda**        | Importar `showHelp` de `../../shared/help.js` y conectarlo al `#helpBtn`                                   |
+| **Módulos**      | Importar desde `../../shared/` — no importar de otros juegos                                               |
+| **Persistencia** | `localStorage` con key namespaced: `<gameId>_<clave>`                                                      |
+| **Sonido**       | `beep({freq, duration, type, volume})` desde `shared/audio.js` — nunca archivos externos                   |
+| **Partículas**   | `spawnParticles()` + `updateParticles()` + `drawParticles()` desde `shared/effects.js`                     |
 
 ### 3. Registrar el juego en el hub
 
@@ -159,6 +166,7 @@ En `games.js` agregar una entrada como esta:
 ### 4. Agregar al Service Worker
 
 En `sw.js`:
+
 - Agregar la ruta `'./games/mi-juego/index.html'` al array `FILES`
 - Incrementar la versión en `CACHE` si ya hay usuarios en producción
 
@@ -198,6 +206,8 @@ shared/effects.js     → spawnParticles(), updateParticles(), drawParticles(),
                         triggerShake(), getShakeOffset(), triggerFlash(), drawFlash()
 shared/achievements.js → unlockAchievement(), getAchievements(), trackPlay()
 shared/help.js        → showHelp(gameId)
+shared/display.js     → setupCanvas() — DPR-aware + letterboxing
+shared/dom.js         → injectCommonElements() — loading, announce, gameBar
 shared/base.css       → Variables neon, overlay, HUD, touch controls, game bar
 ```
 
@@ -218,13 +228,13 @@ El hub (`index.html`) es una página estática que:
 
 El proyecto usa un sistema de tokens visuales:
 
-| Variable | Valor | Uso |
-|----------|-------|-----|
-| `--neon-cyan` | `#00f0ff` | Acento primario del hub |
-| `--neon-pink` | `#ff2d78` | Acento secundario |
-| `--neon-gold` | `#ffb800` | Acento terciario |
-| `--neon-green` | `#39ff14` | Estado "jugable" |
-| `--accent` | *(por juego)* | Color principal del juego |
+| Variable       | Valor         | Uso                       |
+| -------------- | ------------- | ------------------------- |
+| `--neon-cyan`  | `#00f0ff`     | Acento primario del hub   |
+| `--neon-pink`  | `#ff2d78`     | Acento secundario         |
+| `--neon-gold`  | `#ffb800`     | Acento terciario          |
+| `--neon-green` | `#39ff14`     | Estado "jugable"          |
+| `--accent`     | _(por juego)_ | Color principal del juego |
 
 **Tipografía**: Bungee (display, solo títulos) + Inter (body) en el hub.  
 **Courier New** (monoespaciada, estilo terminal) en los juegos.
@@ -233,14 +243,14 @@ El proyecto usa un sistema de tokens visuales:
 
 ## 🧠 Stack técnico
 
-| Componente | Tecnología |
-|------------|------------|
-| Renderizado | `<canvas>` 2D |
-| Sonido | Web Audio API (osciladores sintetizados) |
-| Estilos | CSS vanilla con variables + neon palette |
-| Persistencia | `localStorage` |
-| Service Worker | `sw.js` — cache-first offline |
-| Sin dependencias | Sin frameworks, sin librerías externas |
+| Componente       | Tecnología                               |
+| ---------------- | ---------------------------------------- |
+| Renderizado      | `<canvas>` 2D                            |
+| Sonido           | Web Audio API (osciladores sintetizados) |
+| Estilos          | CSS vanilla con variables + neon palette |
+| Persistencia     | `localStorage`                           |
+| Service Worker   | `sw.js` — cache-first offline            |
+| Sin dependencias | Sin frameworks, sin librerías externas   |
 
 ---
 

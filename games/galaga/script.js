@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -9,6 +11,8 @@ import {
   updateParticles,
   drawParticles,
 } from '../../shared/effects.js';
+
+injectCommonElements();
 
 /* ============================================================
    GALAGA 2D — Arcade Hub
@@ -55,28 +59,9 @@ const state = {
 // ============================================================
 // CANVAS
 // ============================================================
-const c = document.getElementById('gc'),
-  ctx = c.getContext('2d', { alpha: false });
-let cw = 0,
-  ch = 0,
-  sc = 1,
-  ox = 0,
-  oy = 0;
-function resize() {
-  const dpr = window.devicePixelRatio || 1;
-  cw = window.innerWidth;
-  ch = window.innerHeight;
-  c.width = cw * dpr;
-  c.height = ch * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const sx = (cw - CPAD * 2) / CW,
-    sy = (ch - CPAD * 2) / CH;
-  sc = Math.min(sx, sy);
-  ox = (cw - CW * sc) / 2;
-  oy = (ch - CH * sc) / 2;
-}
-window.addEventListener('resize', resize);
-resize();
+const canvas = document.getElementById('gameCanvas'),
+  ctx = canvas.getContext('2d', { alpha: false });
+const { w: cw, h: ch, s: sc, x: ox, y: oy } = setupCanvas(canvas, ctx, CW, CH, CPAD);
 
 // ============================================================
 // SONIDO (usando shared/audio.js)
@@ -302,7 +287,7 @@ bF?.addEventListener('touchcancel', () => {
   input.fire = false;
 });
 
-document.getElementById('gc').addEventListener('pointerdown', () => {
+canvas.addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
 const announce = document.getElementById('announce');
@@ -744,16 +729,16 @@ function drawPlayerShip(x, y, w, h) {
 // ============================================================
 // HUD
 // ============================================================
-const scEl = document.getElementById('sc'),
-  lvEl = document.getElementById('lv');
-const wvEl = document.getElementById('wv'),
-  bsEl = document.getElementById('bst');
+const scoreEl = document.getElementById('scoreValue'),
+  livesEl = document.getElementById('livesValue');
+const waveEl = document.getElementById('waveValue'),
+  bestEl = document.getElementById('bestValue');
 function updateHUD() {
-  scEl.textContent = String(state.score);
-  lvEl.textContent =
+  scoreEl.textContent = String(state.score);
+  livesEl.textContent =
     '●'.repeat(Math.max(0, state.lives)) + '○'.repeat(Math.max(0, START_LIVES - state.lives));
-  wvEl.textContent = String(state.wave);
-  bsEl.textContent = String(state.best);
+  waveEl.textContent = String(state.wave);
+  bestEl.textContent = String(state.best);
 }
 
 // ============================================================

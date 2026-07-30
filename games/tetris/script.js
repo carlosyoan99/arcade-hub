@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -10,6 +12,8 @@ import {
   updateParticles,
   drawParticles,
 } from '../../shared/effects.js';
+
+injectCommonElements();
 /* ============================================================
    TETRIS 2D — Arcade Hub
    Canvas 2D, sin dependencias externas.
@@ -125,7 +129,7 @@ let lockTimer = 0;
 // ============================================================
 // CANVAS
 // ============================================================
-const canvas = document.getElementById('gc'),
+const canvas = document.getElementById('gameCanvas'),
   ctx = canvas.getContext('2d', { alpha: false });
 let canvasW = 0,
   canvasH = 0,
@@ -433,7 +437,7 @@ bTouch('bDrop', () => {
   else if (!state.gameOver) hardDrop();
 });
 
-document.getElementById('gc').addEventListener('pointerdown', () => {
+canvas.addEventListener('pointerdown', () => {
   if (!state.running) startGame();
 });
 const announce = document.getElementById('announce');
@@ -748,10 +752,10 @@ function drawBlock(x, y, size, color, s) {
 // ============================================================
 // HUD
 // ============================================================
-const scoreEl = document.getElementById('sc'),
-  linesEl = document.getElementById('ln');
-const levelEl = document.getElementById('lv'),
-  bestEl = document.getElementById('bst');
+const scoreEl = document.getElementById('scoreValue'),
+  linesEl = document.getElementById('linesValue');
+const levelEl = document.getElementById('levelValue'),
+  bestEl = document.getElementById('bestValue');
 function updateHUD() {
   scoreEl.textContent = String(state.score);
   linesEl.textContent = String(state.lines);

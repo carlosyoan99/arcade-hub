@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -150,28 +152,13 @@ const cardBadgeEl = document.getElementById('cardBadge');
 // ============================================================
 // CANVAS SETUP
 // ============================================================
-let canvasW = 0,
-  canvasH = 0;
-let scale = 1,
-  offX = 0,
-  offY = 0;
-
-function resizeCanvas() {
-  const dpr = window.devicePixelRatio || 1;
-  canvasW = window.innerWidth;
-  canvasH = window.innerHeight;
-  canvas.width = canvasW * dpr;
-  canvas.height = canvasH * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const pad = 20;
-  const sx = (canvasW - pad * 2) / 800;
-  const sy = (canvasH - pad * 2) / 800;
-  scale = Math.min(sx, sy);
-  offX = (canvasW - 800 * scale) / 2;
-  offY = (canvasH - 800 * scale) / 2;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+const {
+  w: canvasW,
+  h: canvasH,
+  s: scale,
+  x: offX,
+  y: offY,
+} = setupCanvas(canvas, ctx, 800, 800, 20);
 
 // ============================================================
 // SONIDO

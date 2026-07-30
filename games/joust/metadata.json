@@ -1,9 +1,9 @@
 {
   "id": "joust",
   "title": "Joust",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "created": "2026-07-29",
-  "lastModified": "2026-07-29",
+  "lastModified": "2026-07-30",
   "description": "Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas. Golpeá desde arriba para vencer, recolectá huevos y sobreviví oleadas cada vez más difíciles.",
   "genre": "plataformas-accion",
   "author": "Arcade Hub",
@@ -22,6 +22,14 @@
         "Oleadas progresivas con dificultad creciente",
         "Plataformas flotantes y lago de lava",
         "Soporte para teclado, táctil y gamepad"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Canvas ID unificado + setupCanvas() vía shared/display.js",
+        "HTML compartido inyectado via shared/dom.js"
       ]
     }
   ]

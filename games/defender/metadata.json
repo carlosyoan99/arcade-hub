@@ -1,9 +1,9 @@
 {
   "id": "defender",
   "title": "Defender",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "created": "2026-07-28",
-  "lastModified": "2026-07-28",
+  "lastModified": "2026-07-30",
   "description": "Side-scrolling shooter. Defendé a los humanos de la invasión alienígena en un mundo scrolleante.",
   "genre": "shooter",
   "author": "Arcade Hub",
@@ -21,6 +21,14 @@
         "Mutantes que persiguen al jugador",
         "Smart bombs, radar, niveles progresivos",
         "Soporte para teclado, táctil y gamepad"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Canvas ID unificado + setupCanvas() vía shared/display.js",
+        "HTML compartido inyectado via shared/dom.js"
       ]
     }
   ]

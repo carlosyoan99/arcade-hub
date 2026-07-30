@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -10,6 +12,8 @@ import {
   updateParticles,
   drawParticles,
 } from '../../shared/effects.js';
+
+injectCommonElements();
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 /* ============================================================
    SPACE INVADERS 2D — Arcade Hub
@@ -58,26 +62,13 @@ const state = {
 // ============================================================
 const canvas = document.getElementById('gameCanvas'),
   ctx = canvas.getContext('2d', { alpha: false });
-let canvasW = 0,
-  canvasH = 0,
-  scale = 1,
-  offX = 0,
-  offY = 0;
-function resize() {
-  const dpr = window.devicePixelRatio || 1;
-  canvasW = window.innerWidth;
-  canvasH = window.innerHeight;
-  canvas.width = canvasW * dpr;
-  canvas.height = canvasH * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const sx = (canvasW - CPAD * 2) / CW,
-    sy = (canvasH - CPAD * 2) / CH;
-  scale = Math.min(sx, sy);
-  offX = (canvasW - CW * scale) / 2;
-  offY = (canvasH - CH * scale) / 2;
-}
-window.addEventListener('resize', resize);
-resize();
+const {
+  w: canvasW,
+  h: canvasH,
+  s: scale,
+  x: offX,
+  y: offY,
+} = setupCanvas(canvas, ctx, CW, CH, CPAD);
 
 // SONIDO (usando shared/audio.js)
 function playFire() {
@@ -620,9 +611,9 @@ function drawInvader(x, y, w, h, color, phase) {
 // ============================================================
 // HUD
 // ============================================================
-const scoreEl = document.getElementById('sc'),
-  livesEl = document.getElementById('lv'),
-  bestEl = document.getElementById('bst');
+const scoreEl = document.getElementById('scoreValue'),
+  livesEl = document.getElementById('livesValue'),
+  bestEl = document.getElementById('bestValue');
 function updateHUD() {
   scoreEl.textContent = String(state.score);
   livesEl.textContent =

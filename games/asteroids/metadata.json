@@ -1,9 +1,9 @@
 {
   "id": "asteroids",
   "title": "Asteroids",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "created": "2026-06-10",
-  "lastModified": "2026-07-28",
+  "lastModified": "2026-07-30",
   "description": "Navegá por el espacio destruyendo asteroides que se fragmentan.",
   "genre": "space-shooter",
   "author": "Arcade Hub",
@@ -31,6 +31,14 @@
       "changes": [
         "Refactor CSS: estética neon compartida en base.css",
         "README.md con controles y descripción"
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Canvas ID unificado + setupCanvas() vía shared/display.js",
+        "HTML compartido inyectado via shared/dom.js"
       ]
     }
   ]

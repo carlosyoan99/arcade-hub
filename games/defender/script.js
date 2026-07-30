@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -86,27 +88,13 @@ let bombsUsed = 0;
 // ── CANVAS SETUP ──
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let canvasW = 0,
-  canvasH = 0;
-let scale = 1,
-  offX = 0,
-  offY = 0;
-
-function resizeCanvas() {
-  const dpr = window.devicePixelRatio || 1;
-  canvasW = window.innerWidth;
-  canvasH = window.innerHeight;
-  canvas.width = canvasW * dpr;
-  canvas.height = canvasH * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const sx = (canvasW - 16) / GAME_W;
-  const sy = (canvasH - 16) / GAME_H;
-  scale = Math.min(sx, sy);
-  offX = (canvasW - GAME_W * scale) / 2;
-  offY = (canvasH - GAME_H * scale) / 2;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+const {
+  w: canvasW,
+  h: canvasH,
+  s: scale,
+  x: offX,
+  y: offY,
+} = setupCanvas(canvas, ctx, GAME_W, GAME_H, 8);
 
 // ── GENERAR TERRENO ──
 function generateTerrain() {

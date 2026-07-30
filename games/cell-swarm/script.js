@@ -1,6 +1,8 @@
 import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
+import { injectCommonElements } from '../../shared/dom.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   triggerShake,
   updateShake,
@@ -10,6 +12,9 @@ import {
   drawParticles,
   clearParticles,
 } from '../../shared/effects.js';
+
+injectCommonElements();
+
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 
 /* ============================================================

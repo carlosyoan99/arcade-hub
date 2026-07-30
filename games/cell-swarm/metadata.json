@@ -1,9 +1,9 @@
 {
   "id": "cell-swarm",
   "title": "Cell Swarm",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created": "2026-07-28",
-  "lastModified": "2026-07-28",
+  "lastModified": "2026-07-30",
   "description": "Battle royale de células. Crece comiendo comida y células más pequeñas, huye de las más grandes. ¡Divide, eyecta y conviértete en la célula más grande del mapa!",
   "genre": "battle-royale",
   "author": "Arcade Hub",
@@ -25,6 +25,14 @@
         "Esquiva de proyectiles para bots",
         "Skins especiales por nombre (países, emojis, degradados)",
         "Fix botón de ayuda en shared/help.js"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Canvas ID unificado + setupCanvas() vía shared/display.js",
+        "HTML compartido inyectado via shared/dom.js"
       ]
     }
   ]

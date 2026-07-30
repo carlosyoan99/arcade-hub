@@ -1,9 +1,9 @@
 {
   "id": "digdug",
   "title": "Dig Dug",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created": "2026-07-25",
-  "lastModified": "2026-07-28",
+  "lastModified": "2026-07-30",
   "description": "Excavá túneles, inflá enemigos hasta que exploten o derrumbá rocas sobre ellos.",
   "genre": "arcade",
   "author": "Arcade Hub",
@@ -22,6 +22,15 @@
         "Refactor CSS: estética neon compartida en base.css",
         "README.md con controles y descripción",
         "Correcciones ESLint"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Canvas ID unificado + setupCanvas() vía shared/display.js",
+        "HUD IDs unificados a nombres legibles",
+        "HTML compartido inyectado via shared/dom.js"
       ]
     }
   ]
