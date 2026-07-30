@@ -11,6 +11,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -528,10 +529,8 @@ function draw() {
     const bx = cx + b.x * s,
       by = cy + b.y * s;
     ctx.fillStyle = '#ffdd88';
-    ctx.shadowColor = '#ffdd88';
-    ctx.shadowBlur = 8 * s;
     ctx.fillRect(bx, by, 3 * s, 10 * s);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, bx, by, 3 * s, '#ffdd88', 0.1, 4);
   }
 
   // Enemy bullets
@@ -539,12 +538,10 @@ function draw() {
     const bx = cx + b.x * s,
       by = cy + b.y * s;
     ctx.fillStyle = '#ff6666';
-    ctx.shadowColor = '#ff6666';
-    ctx.shadowBlur = 6 * s;
     ctx.beginPath();
     ctx.arc(bx, by, 2.5 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, bx, by, 2.5 * s, '#ff6666', 0.12, 4);
   }
 
   // Ship
@@ -581,12 +578,9 @@ function draw() {
 
 function drawInvader(x, y, w, h, color, phase) {
   ctx.fillStyle = color;
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 8 * scale;
-  // Body
   roundRect(ctx, x - w / 2, y - h / 2, w, h, 3 * scale);
   ctx.fill();
-  ctx.shadowBlur = 0;
+  drawGlow(ctx, x, y, w * 0.4, color, 0.08, 3);
   // Eyes
   ctx.fillStyle = 'rgba(255,255,255,0.8)';
   ctx.beginPath();

@@ -12,6 +12,7 @@ import {
   updateParticles,
   drawParticles,
   clearParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 
@@ -1263,24 +1264,20 @@ function draw() {
     const ry = oy + r.y * s;
     const rs = r.size * s;
     const bri = 0.6 + Math.sin(r.phase + r.life * 5) * 0.3;
-    ctx.shadowColor = 'rgba(255,217,61,0.5)';
-    ctx.shadowBlur = 8 * s;
     ctx.fillStyle = `rgba(255,217,61,${bri})`;
     drawStar(rx, ry, rs);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, rx, ry, rs * 2, 'rgba(255,217,61,0.3)', 0.06, 3);
   }
 
   // ── Proyectiles ──
   for (const p of projectiles) {
     const px = ox + p.x * s;
     const py = oy + p.y * s;
-    ctx.shadowColor = 'rgba(0,245,255,0.6)';
-    ctx.shadowBlur = 10 * s;
     ctx.fillStyle = '#00f5ff';
     ctx.beginPath();
     ctx.arc(px, py, 3 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, px, py, 3 * s, '#00f5ff', 0.12, 4);
   }
 
   // ── Enemigos ──
@@ -1293,8 +1290,6 @@ function draw() {
     ctx.translate(ex, ey);
     ctx.rotate(e.rot);
 
-    ctx.shadowColor = e.glow;
-    ctx.shadowBlur = 12 * s;
     ctx.fillStyle = e.color;
 
     ctx.beginPath();
@@ -1308,7 +1303,7 @@ function draw() {
     }
     ctx.closePath();
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, ex, ey, er * 0.6, e.glow, 0.06, 3);
 
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 1 * s;

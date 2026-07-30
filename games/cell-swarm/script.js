@@ -11,6 +11,7 @@ import {
   updateParticles,
   drawParticles,
   clearParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -1122,14 +1123,12 @@ function draw() {
     const r = f.radius * cam.zoom;
     if (s.x < -10 || s.x > canvasW + 10 || s.y < -10 || s.y > canvasH + 10) continue;
 
-    ctx.shadowColor = f.color;
-    ctx.shadowBlur = 6 * cam.zoom;
     ctx.fillStyle = f.color;
     ctx.beginPath();
     ctx.arc(s.x, s.y, Math.max(1.5, r), 0, Math.PI * 2);
     ctx.fill();
+    drawGlow(ctx, s.x, s.y, Math.max(1.5, r), f.color, 0.06, 3);
   }
-  ctx.shadowBlur = 0;
 
   // Bots
   for (const bot of bots) {
@@ -1169,10 +1168,6 @@ function drawCell(cell) {
   const skin = cell.skin || {};
   const skinType = skin.type || 'solid';
 
-  // Glow outer
-  ctx.shadowColor = cell.color;
-  ctx.shadowBlur = isPlayer ? 20 * cam.zoom : 8 * cam.zoom;
-
   // ── Cell body ──
   if (skinType === 'gradient' && skin.gradColors && r > 12) {
     const gColors = skin.gradColors;
@@ -1205,8 +1200,9 @@ function drawCell(cell) {
     ctx.fill();
   }
 
+  drawGlow(ctx, s.x, s.y, r, cell.color, isPlayer ? 0.15 : 0.06, isPlayer ? 3.5 : 3);
+
   // Inner highlight overlay
-  ctx.shadowBlur = 0;
   const hiGrad = ctx.createRadialGradient(s.x - r * 0.3, s.y - r * 0.3, 0, s.x, s.y, r);
   hiGrad.addColorStop(0, 'rgba(255,255,255,0.25)');
   hiGrad.addColorStop(0.5, 'rgba(255,255,255,0.05)');

@@ -12,6 +12,7 @@ import {
   updateParticles,
   drawParticles,
   clearParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
@@ -750,8 +751,6 @@ function draw() {
     const ph = p.h * s;
 
     // Piedra principal
-    ctx.shadowColor = 'rgba(192,132,252,0.08)';
-    ctx.shadowBlur = 12 * s;
     const pg = ctx.createLinearGradient(px, py, px, py + ph);
     pg.addColorStop(0, '#6b5b8a');
     pg.addColorStop(0.4, '#4a3d6b');
@@ -760,8 +759,9 @@ function draw() {
     roundRect(ctx, px, py, pw, ph, 3 * s);
     ctx.fill();
 
+    drawGlow(ctx, px + pw / 2, py + ph / 2, pw * 0.5, 'rgba(192,132,252,0.08)', 0.06, 2.5);
+
     // Borde superior brillante
-    ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(192,132,252,0.15)';
     roundRect(ctx, px, py, pw, 3 * s, 2 * s);
     ctx.fill();
@@ -789,8 +789,7 @@ function draw() {
     ctx.fill();
 
     // Huevo
-    ctx.shadowColor = nearHatch ? 'rgba(255,50,50,0.4)' : 'rgba(192,132,252,0.2)';
-    ctx.shadowBlur = nearHatch ? 16 * s : 8 * s;
+    const eggGlowColor = nearHatch ? 'rgba(255,50,50,0.3)' : 'rgba(192,132,252,0.12)';
     const eg = ctx.createRadialGradient(ex - r * 0.3, ey - r * 0.3, 0, ex, ey, r);
     if (nearHatch) {
       eg.addColorStop(0, '#ff6666');
@@ -805,6 +804,8 @@ function draw() {
     ctx.beginPath();
     ctx.ellipse(ex, ey, r, r * 1.25, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    drawGlow(ctx, ex, ey, r * 0.6, eggGlowColor, 0.08, 3);
 
     // Brillito
     ctx.shadowBlur = 0;
@@ -858,9 +859,6 @@ function draw() {
       glowColor = 'rgba(204,68,68,0.3)';
     }
 
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = 10 * s;
-
     // Cuerpo (buzzard)
     const bg = ctx.createLinearGradient(ex, ey, ex, ey + eh);
     bg.addColorStop(0, bodyColor);
@@ -868,6 +866,8 @@ function draw() {
     ctx.fillStyle = bg;
     roundRect(ctx, ex + 4 * s, ey + 10 * s, ew - 8 * s, eh - 14 * s, 4 * s);
     ctx.fill();
+
+    drawGlow(ctx, ex + ew / 2, ey + eh / 2, ew * 0.6, glowColor, 0.08, 3);
 
     // Alas
     ctx.shadowBlur = 6 * s;

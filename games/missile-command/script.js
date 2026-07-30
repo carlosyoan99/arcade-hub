@@ -10,6 +10,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -793,15 +794,13 @@ function draw() {
     if (!city.alive) continue;
     const x = cx + city.x * s,
       y = cy + GROUND_Y * s;
-    ctx.shadowColor = '#6ec6ff';
-    ctx.shadowBlur = 6 * s;
     ctx.fillStyle = '#6ec6ff';
     ctx.fillRect(x - 6 * s, y - 12 * s, 12 * s, 12 * s);
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.fillRect(x - 4 * s, y - 10 * s, 8 * s, 4 * s);
     ctx.fillStyle = '#44aadd';
     ctx.fillRect(x - 7 * s, y - 1 * s, 14 * s, 3 * s);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, x, y - 6 * s, 6 * s, '#6ec6ff', 0.04, 3);
   }
 
   // Bases
@@ -827,13 +826,11 @@ function draw() {
     }
     ctx.globalAlpha = 1;
     // Head
-    ctx.shadowColor = '#ff4444';
-    ctx.shadowBlur = 6 * s;
     ctx.fillStyle = '#ff4444';
     ctx.beginPath();
     ctx.arc(cx + m.x * s, cy + m.y * s, 2.5 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, cx + m.x * s, cy + m.y * s, 2.5 * s, '#ff4444', 0.08, 3);
   }
 
   // Smart missile trails
@@ -847,25 +844,21 @@ function draw() {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    ctx.shadowColor = '#ff8800';
-    ctx.shadowBlur = 8 * s;
     ctx.fillStyle = '#ff8800';
     ctx.beginPath();
     ctx.arc(cx + m.x * s, cy + m.y * s, 3 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, cx + m.x * s, cy + m.y * s, 3 * s, '#ff8800', 0.08, 3);
   }
 
   // Satellites
   for (const s_ of satellites) {
     const sx = cx + s_.x * sc,
       sy = cy + s_.y * sc;
-    ctx.shadowColor = '#8888ff';
-    ctx.shadowBlur = 4 * s;
     ctx.fillStyle = '#8888ff';
     ctx.fillRect(sx - 6 * s, sy - 2 * s, 12 * s, 4 * s);
     ctx.fillRect(sx - 2 * s, sy - 6 * s, 4 * s, 12 * s);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, sx, sy, 6 * s, '#8888ff', 0.04, 3);
   }
 
   // ABM trails
@@ -879,13 +872,11 @@ function draw() {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    ctx.shadowColor = '#ffdd88';
-    ctx.shadowBlur = 6 * s;
     ctx.fillStyle = '#ffdd88';
     ctx.beginPath();
     ctx.arc(cx + a.x * s, cy + a.y * s, 2 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, cx + a.x * s, cy + a.y * s, 2 * s, '#ffdd88', 0.08, 3);
   }
 
   // Explosions

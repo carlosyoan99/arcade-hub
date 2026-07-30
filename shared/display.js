@@ -32,6 +32,8 @@ export function setupCanvas(canvas, ctx, gameW, gameH, padding = 20) {
     _x = 0,
     _y = 0;
 
+  let resizeTimer = null;
+
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     _w = window.innerWidth;
@@ -46,7 +48,12 @@ export function setupCanvas(canvas, ctx, gameW, gameH, padding = 20) {
     _y = (_h - gameH * _s) / 2;
   }
 
-  window.addEventListener('resize', resize);
+  function debouncedResize() {
+    if (resizeTimer) cancelAnimationFrame(resizeTimer);
+    resizeTimer = requestAnimationFrame(resize);
+  }
+
+  window.addEventListener('resize', debouncedResize);
   resize();
 
   return {
@@ -66,7 +73,8 @@ export function setupCanvas(canvas, ctx, gameW, gameH, padding = 20) {
       return _y;
     },
     destroy() {
-      window.removeEventListener('resize', resize);
+      if (resizeTimer) cancelAnimationFrame(resizeTimer);
+      window.removeEventListener('resize', debouncedResize);
     },
   };
 }

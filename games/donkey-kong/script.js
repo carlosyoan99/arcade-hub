@@ -11,6 +11,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -564,8 +565,6 @@ function draw() {
     const ph = p.h * TILE * s;
 
     // Viga principal
-    ctx.shadowColor = 'rgba(255,138,101,0.15)';
-    ctx.shadowBlur = 16 * s;
     const g1 = ctx.createLinearGradient(px, py, px, py + ph);
     g1.addColorStop(0, '#ff6600');
     g1.addColorStop(0.5, '#cc5500');
@@ -574,8 +573,9 @@ function draw() {
     roundRect(ctx, px, py, pw, ph, 3 * s);
     ctx.fill();
 
+    drawGlow(ctx, px + pw / 2, py + ph / 2, pw * 0.3, 'rgba(255,138,101,0.08)', 0.04, 2.5);
+
     // Remaches
-    ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(255,200,150,0.25)';
     const rivetSize = 3 * s;
     for (let rx = px + 6 * s; rx < px + pw - 4 * s; rx += TILE * s) {
@@ -644,8 +644,6 @@ function draw() {
     const by = oy + b.y * s;
     const r = BARREL_RADIUS * s;
 
-    ctx.shadowColor = 'rgba(200,68,0,0.3)';
-    ctx.shadowBlur = 14 * s;
     const bg = ctx.createRadialGradient(bx - r * 0.3, by - r * 0.3, 0, bx, by, r);
     bg.addColorStop(0, '#ff6633');
     bg.addColorStop(0.6, '#cc4400');
@@ -655,7 +653,7 @@ function draw() {
     ctx.arc(bx, by, r, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, bx, by, r, 'rgba(200,68,0,0.2)', 0.06, 3);
     ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineWidth = 1.5 * s;
     ctx.stroke();

@@ -11,6 +11,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -583,20 +584,17 @@ function draw() {
     ctx.fill();
 
     // Cuerpo con glow
-    ctx.shadowColor = i === 0 ? 'rgba(110,231,183,0.4)' : 'rgba(110,231,183,0.15)';
-    ctx.shadowBlur = i === 0 ? 10 * s : 4 * s;
+    const glowColor = i === 0 ? 'rgba(110,231,183,0.15)' : 'rgba(110,231,183,0.06)';
     ctx.fillStyle = color;
     roundRect(ctx, cx, cy, cellSize, cellSize, 3 * s);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, cx + cellSize / 2, cy + cellSize / 2, cellSize * 0.5, glowColor, 0.06, 2.5);
 
     // Ojos en la cabeza
     if (i === 0) {
       const eyeR = 2 * s;
       const eyeOff = 3 * s;
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 4 * s;
       let ex1, ez1, ex2, ez2;
       const half = cs / 2;
       if (direction.dx === 1) {
@@ -630,7 +628,6 @@ function draw() {
       ctx.beginPath();
       ctx.arc(ex2, ez2, eyeR, 0, Math.PI * 2);
       ctx.fill();
-      ctx.shadowBlur = 0;
     }
   }
 

@@ -10,6 +10,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -876,10 +877,7 @@ function draw() {
       r = 5 * s;
     const isPoisoned = m.poisoned;
     const capColor = isPoisoned ? '#aa44ff' : '#6ee7b7';
-    const glowColor = isPoisoned ? 'rgba(170,68,255,0.4)' : '#6ee7b7';
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = 4 * s;
-    if (isPoisoned) ctx.shadowColor = 'rgba(170,68,255,0.4)';
+    const glowColor = isPoisoned ? 'rgba(170,68,255,0.15)' : 'rgba(110,231,183,0.12)';
     // Stem
     ctx.fillStyle = isPoisoned ? 'rgba(200,150,255,0.15)' : 'rgba(255,255,255,0.1)';
     ctx.fillRect(mx - 1.5 * s, my - 2 * s, 3 * s, 6 * s);
@@ -891,6 +889,8 @@ function draw() {
     ctx.beginPath();
     ctx.arc(mx, my - 2 * s, r * 0.7, 0, Math.PI, false);
     ctx.fill();
+    // Glow
+    drawGlow(ctx, mx, my - 2 * s, r * 0.4, glowColor, 0.08, 3);
     // Dots
     ctx.fillStyle = isPoisoned ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)';
     ctx.beginPath();
@@ -899,7 +899,6 @@ function draw() {
     ctx.beginPath();
     ctx.arc(mx + r * 0.25, my - r * 0.35, 0.7 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 
   // Centipede segments
@@ -910,13 +909,12 @@ function draw() {
       r = GS * 0.4 * s;
     const isHead = seg.isHead;
     const color = isHead ? '#ff6b6b' : '#6ee7b7';
-    const glow = isHead ? 'rgba(255,107,107,0.4)' : 'rgba(110,231,183,0.3)';
-    ctx.shadowColor = glow;
-    ctx.shadowBlur = 6 * s;
+    const glow = isHead ? 'rgba(255,107,107,0.15)' : 'rgba(110,231,183,0.1)';
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(sx, sy, r, 0, Math.PI * 2);
     ctx.fill();
+    drawGlow(ctx, sx, sy, r, glow, 0.08, 3);
     // Body detail
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.beginPath();
@@ -950,7 +948,6 @@ function draw() {
       ctx.lineTo(sx + r, sy - r * 1.3);
       ctx.stroke();
     }
-    ctx.shadowBlur = 0;
   }
 
   // Player ship
@@ -989,22 +986,19 @@ function draw() {
     const bx = cx + b.x * s,
       by = cy + b.y * s;
     ctx.fillStyle = '#ffdd88';
-    ctx.shadowColor = '#ffdd88';
-    ctx.shadowBlur = 5 * s;
     ctx.fillRect(bx - 1.5 * s, by, 3 * s, 8 * s);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, bx, by, 3 * s, '#ffdd88', 0.1, 4);
   }
 
   // Flea
   if (flea && flea.alive) {
     const fx = cx + flea.x * s,
       fy = cy + flea.y * s;
-    ctx.shadowColor = '#ff8800';
-    ctx.shadowBlur = 6 * s;
     ctx.fillStyle = '#ff8800';
     ctx.beginPath();
     ctx.arc(fx, fy, 4 * s, 0, Math.PI * 2);
     ctx.fill();
+    drawGlow(ctx, fx, fy, 4 * s, '#ff8800', 0.12, 3);
     // Wings
     ctx.fillStyle = 'rgba(255,200,100,0.3)';
     ctx.beginPath();
@@ -1028,19 +1022,17 @@ function draw() {
     ctx.beginPath();
     ctx.arc(fx + 2 * s, fy - 1 * s, 0.7 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 
   // Scorpion
   if (scorpion && scorpion.alive) {
     const sx = cx + scorpion.x * s,
       sy = cy + scorpion.y * s;
-    ctx.shadowColor = '#aa44ff';
-    ctx.shadowBlur = 6 * s;
     ctx.fillStyle = '#aa44ff';
     ctx.beginPath();
     ctx.ellipse(sx, sy, 5 * s, 3.5 * s, 0, 0, Math.PI * 2);
     ctx.fill();
+    drawGlow(ctx, sx, sy, 5 * s, '#aa44ff', 0.1, 3);
     // Tail
     ctx.strokeStyle = '#aa44ff';
     ctx.lineWidth = 2.5 * s;
@@ -1068,20 +1060,18 @@ function draw() {
     ctx.beginPath();
     ctx.arc(sx + 2 * s, sy - 1 * s, 1.5 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 
   // Spider
   if (spider && spider.alive) {
     const spx = cx + spider.x * s,
       spy = cy + spider.y * s;
-    ctx.shadowColor = '#ff6b6b';
-    ctx.shadowBlur = 6 * s;
     // Body
     ctx.fillStyle = '#ff6b6b';
     ctx.beginPath();
     ctx.ellipse(spx, spy, 6 * s, 4 * s, 0, 0, Math.PI * 2);
     ctx.fill();
+    drawGlow(ctx, spx, spy, 6 * s, '#ff6b6b', 0.08, 3);
     // Legs (8)
     ctx.strokeStyle = 'rgba(255,107,107,0.5)';
     ctx.lineWidth = 1.5 * s;
@@ -1118,7 +1108,6 @@ function draw() {
     ctx.beginPath();
     ctx.arc(spx + 2.5 * s, spy - 0.5 * s, 0.7 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 
   // Particles

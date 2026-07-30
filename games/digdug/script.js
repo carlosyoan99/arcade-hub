@@ -11,6 +11,7 @@ import {
   updateParticles,
   drawParticles,
   roundRect,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -828,12 +829,10 @@ function draw() {
     const fx = cx + fallingRock.c * GS * s,
       fy = cy + fallingRock.r * GS * s;
     ctx.fillStyle = '#6a5a4a';
-    ctx.shadowColor = 'rgba(200,100,50,0.3)';
-    ctx.shadowBlur = 8 * s;
     ctx.fillRect(fx, fy, GS * s * 2, GS * s);
     ctx.fillStyle = '#7a6a5a';
     ctx.fillRect(fx + 3 * s, fy + 3 * s, GS * s * 2 - 6 * s, GS * s - 6 * s);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, fx + GS * s, fy + GS * s * 0.5, GS * s, 'rgba(200,100,50,0.15)', 0.04, 3);
   }
 
   // Fruits
@@ -860,8 +859,6 @@ function draw() {
     if (e.type === 'pooka') {
       // Round red enemy
       const inflate = e.inflation;
-      ctx.shadowColor = 'rgba(255,100,100,0.3)';
-      ctx.shadowBlur = 4 * s;
       // Body (stretches as inflated)
       const iw = hs * (0.5 + inflate * 0.5);
       const ih = hs * (1.5 - inflate * 0.5);
@@ -884,11 +881,9 @@ function draw() {
       ctx.beginPath();
       ctx.arc(ex + hs + 3.5 * s, ey + ih - 1.5 * s, 1 * s, 0, Math.PI * 2);
       ctx.fill();
-      ctx.shadowBlur = 0;
+      drawGlow(ctx, ex + hs, ey + hs, hs * 0.5, 'rgba(255,100,100,0.15)', 0.05, 3);
     } else {
       // Fygar - dragon-like
-      ctx.shadowColor = 'rgba(100,200,100,0.3)';
-      ctx.shadowBlur = 4 * s;
       ctx.fillStyle = e.inflation > 0.5 ? '#88dd88' : '#6ee7b7';
       // Body
       roundRect(ctx, ex + 2 * s, ey + 3 * s, GS * s - 4 * s, GS * s - 6 * s, 3 * s);
@@ -924,7 +919,7 @@ function draw() {
         ctx.closePath();
         ctx.fill();
       }
-      ctx.shadowBlur = 0;
+      drawGlow(ctx, ex + hs, ey + hs, hs * 0.5, 'rgba(100,200,100,0.15)', 0.05, 3);
     }
 
     // Inflation pump hose (visual)

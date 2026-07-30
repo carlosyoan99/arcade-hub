@@ -12,6 +12,7 @@ import {
   updateParticles,
   drawParticles,
   clearParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
@@ -1111,8 +1112,6 @@ function drawEnemies() {
     switch (e.type) {
       case 'lander': {
         // Diamond alien shape
-        ctx.shadowColor = 'rgba(255, 94, 122, 0.3)';
-        ctx.shadowBlur = 12 * s;
         ctx.fillStyle = '#cc3355';
         ctx.beginPath();
         ctx.moveTo(ex, ey - es);
@@ -1122,12 +1121,10 @@ function drawEnemies() {
         ctx.closePath();
         ctx.fill();
 
+        // Glow
+        drawGlow(ctx, ex, ey, es * 0.6, 'rgba(255, 94, 122, 0.3)', 0.2, 3);
+
         // Inner glow
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(255, 94, 122, 0.3)';
-        ctx.beginPath();
-        ctx.arc(ex, ey, es * 0.4, 0, Math.PI * 2);
-        ctx.fill();
 
         // Eye
         ctx.fillStyle = '#fff';
@@ -1139,13 +1136,12 @@ function drawEnemies() {
 
       case 'bomber': {
         // Wider, flatter alien ship
-        ctx.shadowColor = 'rgba(255, 184, 0, 0.3)';
-        ctx.shadowBlur = 12 * s;
         ctx.fillStyle = '#aa8800';
         roundRect(ctx, ex - es * 1.2, ey - es * 0.5, es * 2.4, es, es * 0.3);
         ctx.fill();
 
-        ctx.shadowBlur = 0;
+        drawGlow(ctx, ex, ey, es * 0.6, 'rgba(255, 184, 0, 0.3)', 0.15, 3);
+
         ctx.fillStyle = 'rgba(255, 184, 0, 0.3)';
         roundRect(ctx, ex - es * 0.8, ey - es * 0.3, es * 1.6, es * 0.6, es * 0.2);
         ctx.fill();
@@ -1160,8 +1156,6 @@ function drawEnemies() {
 
       case 'mutant': {
         // Small fast orb with glow
-        ctx.shadowColor = 'rgba(255, 94, 122, 0.5)';
-        ctx.shadowBlur = 18 * s;
         const mg = ctx.createRadialGradient(ex - es * 0.3, ey - es * 0.3, 0, ex, ey, es);
         mg.addColorStop(0, '#ff5e7a');
         mg.addColorStop(0.6, '#cc2244');
@@ -1170,7 +1164,8 @@ function drawEnemies() {
         ctx.beginPath();
         ctx.arc(ex, ey, es, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
+
+        drawGlow(ctx, ex, ey, es, 'rgba(255, 94, 122, 0.4)', 0.12, 3.5);
 
         // Angry eyes
         ctx.fillStyle = '#fff';
@@ -1217,19 +1212,18 @@ function drawHumans() {
     }
 
     // Body
-    ctx.shadowColor = 'rgba(57, 255, 20, 0.15)';
-    ctx.shadowBlur = 6 * s;
     ctx.fillStyle = h.saved ? 'rgba(57, 255, 20, 0.14)' : 'rgba(57, 255, 20, 0.25)';
     ctx.beginPath();
     ctx.arc(sx, sy, hs, 0, Math.PI * 2);
     ctx.fill();
+
+    drawGlow(ctx, sx, sy, hs, 'rgba(57, 255, 20, 0.15)', 0.12, 2.5);
 
     // Head
     ctx.fillStyle = h.saved ? 'rgba(57, 255, 20, 0.18)' : 'rgba(57, 255, 20, 0.35)';
     ctx.beginPath();
     ctx.arc(sx, sy - hs * 0.5, hs * 0.5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 }
 
@@ -1267,19 +1261,12 @@ function drawEnemyLasers() {
     const sy = oy + b.y * s;
     const br = 3 * s;
 
-    ctx.shadowColor = 'rgba(255, 94, 122, 0.5)';
-    ctx.shadowBlur = 12 * s;
     ctx.fillStyle = '#ff5e7a';
     ctx.beginPath();
     ctx.arc(sx, sy, br, 0, Math.PI * 2);
     ctx.fill();
 
-    // Glow
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(255, 94, 122, 0.2)';
-    ctx.beginPath();
-    ctx.arc(sx, sy, br * 2.5, 0, Math.PI * 2);
-    ctx.fill();
+    drawGlow(ctx, sx, sy, br, 'rgba(255, 94, 122, 0.4)', 0.15, 2.5);
   }
   ctx.shadowBlur = 0;
 }

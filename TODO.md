@@ -17,7 +17,16 @@
 - [x] `shared/achievements.js` — Sistema de logros persistido
 - [x] `shared/help.js` — Modal de ayuda contextual con metadata y changelog
 - [x] `shared/base.css` — Variables neon, overlay, HUD, touch controls, game bar
-- [x] `.agents/skills/frontend-design.md` — Skill de diseño visual instalada
+- [x] `shared/display.js` — setupCanvas() con DPR + letterboxing
+- [x] `shared/dom.js` — injectCommonElements() — loading, announce, gameBar
+
+### Skills instalados (14 disponibles)
+
+- [x] `frontend-design`, `game-engine`, `game-feel`, `premium-frontend-ui`
+- [x] `refactor`, `refactor-plan`, `git-commit`
+- [x] `create-implementation-plan`, `create-readme`, `create-specification`, `documentation-writter`
+- [x] `audit-integrity`, `context-map`, `create-agentsmd`
+- [x] 5 assets (templates de juegos) + 17 referencias técnicas
 
 ### Hub — diseño y experiencia
 
@@ -57,7 +66,7 @@
 | 🟣 Cell Swarm      | ✅ listo | 1.2.0   |
 | 🦍 Donkey Kong     | ✅ listo | 1.1.0   |
 | 🚀 Defender        | ✅ listo | 1.1.0   |
-| 🦅 **Joust**       | ✅ listo | 1.1.0   |
+| 🦅 Joust           | ✅ listo | 1.1.0   |
 
 ### Refactor CSS — base.css + paleta neon
 
@@ -92,8 +101,8 @@
 - [x] README.md del proyecto con descripción, estructura, guía de nuevo juego
 - [x] CLAUDE.md con convenciones, skills y flujo de trabajo
 - [x] TODO.md con tareas completadas y pendientes priorizados
-- [x] 18 README.md por juego con controles y descripción
-- [x] 18 metadata.json actualizados con versiones y changelog
+- [x] 19 README.md por juego con controles y descripción
+- [x] 19 metadata.json actualizados con versiones y changelog
 
 ---
 
@@ -133,24 +142,157 @@
 
 ### ✅ Completados (ronda SEO + nostalgia)
 
-| #   | Tarea                                 | Archivos                                  | Logrado                                                                                                           |
-| --- | ------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 14  | **Animación \"inserción de moneda\"** | `index.html`                              | Overlay retro con cabinet arcade, 🪙 animada, INSERT COIN parpadeante, glitch flash. Solo una vez (localStorage). |
-| 17  | **Schema.org / JSON-LD**              | `index.html`                              | WebSite + VideoGame (dinámico por juego) + ItemList. Rich snippets de Google.                                     |
-| 18  | **Sitemap XML + robots.txt**          | `sitemap.xml`, `robots.txt`, `index.html` | 20 URLs (hub + 19 juegos). Prioridades, frecuencias, lastmod. Link en `<head>`.                                   |
+| #   | Tarea                               | Archivos                                  | Logrado                                                                                                           |
+| --- | ----------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 14  | **Animación "inserción de moneda"** | `index.html`                              | Overlay retro con cabinet arcade, 🪙 animada, INSERT COIN parpadeante, glitch flash. Solo una vez (localStorage). |
+| 17  | **Schema.org / JSON-LD**            | `index.html`                              | WebSite + VideoGame (dinámico por juego) + ItemList. Rich snippets de Google.                                     |
+| 18  | **Sitemap XML + robots.txt**        | `sitemap.xml`, `robots.txt`, `index.html` | 20 URLs (hub + 19 juegos). Prioridades, frecuencias, lastmod. Link en `<head>`.                                   |
 
-### 🟡 Próximas (media prioridad)
+### ✅ Completados (Fase de refactor — shared modules)
 
-| #   | Tarea                            | Archivos     | Detalle                                                                     |
-| --- | -------------------------------- | ------------ | --------------------------------------------------------------------------- |
-| 13  | **Pantalla de carga progresiva** | `index.html` | Barra de progreso al cargar módulos del hub (mejora perceived performance). |
+| #   | Tarea                                   | Archivos                       | Logrado                                                                                      |
+| --- | --------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| F1  | **Canvas ID unificado + setupCanvas()** | `shared/display.js`, 18 juegos | Unificado #gc→#gameCanvas + extraído resizeCanvas() a setupCanvas(). ~150 líneas eliminadas. |
+| F2  | **HUD IDs unificados**                  | 9 juegos (HTML+JS)             | sc→scoreValue, lv→livesValue, bst→bestValue, etc. Nombres legibles.                          |
+| F3  | **HTML compartido inyectado via DOM**   | `shared/dom.js`, 19 juegos     | loading+announce+gameBar inyectados vía JS. ~228 líneas HTML eliminadas.                     |
 
-### 🟢 Ideas / Mejora continua
+### 📦 metadata.json actualizados (19 juegos)
 
-| #   | Tarea                                    | Archivos            | Detalle                          |
-| --- | ---------------------------------------- | ------------------- | -------------------------------- |
-| 19  | **Ícono/thumbnail real por juego**       | `games/*/`          | SVG/PNG por juego.               |
-| 20  | **Tema visual más distintivo por juego** | `games/*/style.css` | Temas propios más diferenciados. |
+| Versión     | Juegos                                                                                                                  |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1.2.0→1.3.0 | pong, asteroids, snake, dino-runner, space-invaders, flappy-bird, pac-man, tetris, breakout, centipede, galaga, frogger |
+| 1.1.0→1.2.0 | digdug, missile-command, cell-swarm, neon-nexus                                                                         |
+| 1.0.0→1.1.0 | defender, donkey-kong, joust                                                                                            |
+
+---
+
+## 🔥 Fase P0 — Rendimiento: shadowBlur, resize debounce y SW
+
+> Auditoría de rendimiento (julio 2026). **Problema crítico:** 192 usos de `ctx.shadowBlur` en 19 juegos. En 5 juegos se activa **dentro de loops por entidad**, haciendo que el costo del blur escale con la cantidad de enemigos. Se agrava en pantallas DPR altas. **Fix:** reemplazar por glow translúcido con doble `arc()+fill()`, misma técnica que ya usa `shared/effects.js`.
+
+| #   | Tarea                                             | Archivos                         | Detalle técnico                                                                                                           |
+| --- | ------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| P1  | **Reemplazar shadowBlur en defender**             | `games/defender/script.js`       | ✅ 22 usos reemplazados por drawGlow() en drawEnemies(), drawHumans(), drawEnemyLasers().                                 |
+| P2  | **Reemplazar shadowBlur en galaga**               | `games/galaga/script.js`         | ✅ 12 usos reemplazados en formación, diving, bullets loops.                                                              |
+| P3  | **Reemplazar shadowBlur en centipede**            | `games/centipede/script.js`      | ✅ 15+ usos reemplazados en mushrooms, segments, bullets, flea, scorpion, spider.                                         |
+| P4  | **Reemplazar shadowBlur en space-invaders**       | `games/space-invaders/script.js` | ✅ 12 usos reemplazados en drawInvader() (per-invader) y bullets loops.                                                   |
+| P5  | **Reemplazar shadowBlur en joust**                | `games/joust/script.js`          | ✅ 15+ usos reemplazados en plataformas, huevos, enemigos loops.                                                          |
+| P6  | **Crear drawGlow() helper en shared/effects.js**  | `shared/effects.js`              | ✅ `drawGlow(ctx, x, y, r, color, alpha, mult)` — doble `arc()+fill()` sin shadowBlur.                                    |
+| P7  | **Debounce en resize de display.js**              | `shared/display.js`              | ✅ RAF-based debounce + fix destroy() (elimina listener correcto + cancela timer pendiente).                              |
+| P8  | **Agregar shared/display.js y dom.js a SW FILES** | `sw.js`                          | ✅ Agregados al array FILES. STATIC_CACHE v4→v5. Arregla offline.                                                         |
+| P9  | **Migrar shadowBlur en otros 9 juegos**           | 9 `games/*/script.js`            | ✅ snake, asteroids, pacman, frogger, digdug, missile-command, donkey-kong, cell-swarm, neon-nexus migrados a drawGlow(). |
+| P10 | **Probar rendimiento**                            | Todos los juegos                 | 🔲 Pendiente — abrir con Chrome DevTools Performance tab para verificar frame drops en oleadas altas.                     |
+
+---
+
+## 🚀 Plan de mejoras — Skills aplicados
+
+> Basado en auditoría de los **14 skills** disponibles en `.agents/skills/`. Cada fase usa `skill("nombre")` antes de implementar.
+
+### 🔴 Fase G1 — Game Feel: jugosidad en los 19 juegos
+
+**Skill a cargar:** `game-feel` → agrega screen shake, hit-stop, squash & stretch, knockback y retroalimentación visual multicapa.
+
+**Objetivo:** Transformar mecánicas funcionales → experiencias satisfactorias.
+
+| #   | Tarea                                   | Archivos impactados                           | Detalle técnico                                                                                          |
+| --- | --------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| G1  | **Sistema de feedback por tiers**       | `shared/effects.js`                           | Crear `feedbackBundle(eventPos, tier)` con small/medium/large presets (shake+hit-stop+partículas+sonido) |
+| G2  | **Screen shake suave por trauma**       | `shared/effects.js`                           | Refactor `triggerShake()` → modelo de trauma decayente (quadratic, no rand() por frame)                  |
+| G3  | **Hit-stop / freeze frame**             | `shared/effects.js`                           | Agregar `hitStop(duration, scale)` con real-time wait. NO bloquear input                                 |
+| G4  | **Squash & stretch en saltos/landings** | Asteroids, Donkey Kong, Joust, Pong, Breakout | Tween de escala con overshoot (TRANS_BACK) en eventos de landing/impacto                                 |
+| G5  | **Feedback por juego**                  | 19 `games/*/script.js`                        | Integrar los bundles G1-G4 en cada juego: hits, pickups, deaths, boss kills                              |
+| G6  | **Accesibilidad**                       | `shared/base.css` + effects                   | Toggle "reduce juice" (reduce screen shake), respetar `prefers-reduced-motion`                           |
+
+**Skills assets útiles:** `references/feedback-recipes.md` (recetas de feedback por tier).
+
+---
+
+### 🔴 Fase H1 — Premium Hub: UI inmersiva de alto nivel
+
+**Skill a cargar:** `premium-frontend-ui` → entry sequence, micro-interacciones, glassmorphism, navegación fluida.
+
+**Objetivo:** Elevar el hub de "funcional" a "inolvidable" con detalles de estudio AAA.
+
+| #   | Tarea                                      | Archivos          | Detalle técnico                                                                                            |
+| --- | ------------------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| H1  | **Entry sequence cinemática**              | `index.html`      | Reemplazar coin-insert por preloader animado con split-door reveal + logo scale-up + staggered text sweep  |
+| H2  | **Cursor personalizado con interpolación** | `index.html`      | Custom cursor con lerp suave, magnetic hover en botones (pointer-fine only). `will-change: transform`      |
+| H3  | **Glassmorphism en overlays y gameBar**    | `shared/base.css` | `backdrop-filter: blur(12px)` + bordes semitransparentes + noise overlay sutil (`mix-blend-mode: overlay`) |
+| H4  | **Navegación scroll-aware**                | `index.html`      | Header sticky se oculta al scrollear abajo, reaparece al scrollear arriba (no en móvil)                    |
+| H5  | **Micro-interacciones magnéticas**         | `index.html`      | Botones del toolbar y tarjetas: se acercan al cursor dentro de un radio de 80px con lerp suave             |
+| H6  | **Transiciones de página con stagger**     | `index.html`      | Al abrir/cerrar un juego: overlay con fade + scale. Elemtos del hub entran con cascade delay               |
+| H7  | **Grain overlay CRT mejorado**             | `index.html`      | SVG noise overlay sutil (opacity 0.02-0.04) para eliminar esterilidad digital. Respetar reduced-motion     |
+
+**⚠️ Rendimiento:** Solo animar `transform` y `opacity`. Usar `will-change` con moderación. Todo cursor magnetico envuelto en `@media (hover: hover) and (pointer: fine)`.
+
+---
+
+### 🟡 Fase R1 — Refactor: limpieza de deuda técnica
+
+**Skills a cargar:** `refactor-plan` (planificar) → `refactor` (ejecutar).
+
+**Objetivo:** Eliminar code smells y unificar patrones entre juegos.
+
+| #   | Tarea                                  | Archivos impactados            | Detalle técnico                                                                         |
+| --- | -------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------- |
+| R1  | **Renombrar vars 3D: ball.z → ball.y** | 19 `games/*/script.js`         | Buscar `ball.z`, `paddle.z`, `player.z` → renombrar a `.y` (eran vestigios de Three.js) |
+| R2  | **Extraer game loop compartido**       | `shared/`                      | Unificar patrón `requestAnimationFrame` + `dt` + `update()` + `draw()` en un helper     |
+| R3  | **Eliminar magic numbers**             | 19 `games/*/script.js`         | Constantes nombradas para velocidades, tamaños, colores, timers                         |
+| R4  | **CSS selector cleanup**               | `shared/base.css`, game styles | Detectar y corregir selectores que se cancelan entre sí (especificidad conflictiva)     |
+| R5  | **Unificar naming de game state**      | 19 `games/*/script.js`         | Estandarizar objeto de estado: `state.score`, `state.lives`, `state.best` en todos      |
+
+**Invocar** `skill("refactor-plan")` antes de empezar R1 para crear un plan estructurado multi-archivo.
+
+---
+
+### 🟡 Fase D1 — Documentación: READMEs actualizados
+
+**Skills a cargar:** `create-readme` (por juego) + `documentation-writter` (documentación general).
+
+**Objetivo:** READMEs de los 19 juegos reflejando la arquitectura actual (display.js, dom.js, Fases 1-3).
+
+| #   | Tarea                                       | Archivos                | Detalle técnico                                                      |
+| --- | ------------------------------------------- | ----------------------- | -------------------------------------------------------------------- |
+| D1  | **Actualizar READMEs de 19 juegos**         | `games/*/README.md`     | Reflejar shared modules, controles actualizados, changelog por juego |
+| D2  | **Actualizar CLAUDE.md**                    | `CLAUDE.md`             | Skills reales listados (14), estructura actual, convenciones         |
+| D3  | **Actualizar README principal**             | `README.md`             | Skills disponibles, guía de nuevo juego actualizada, badges          |
+| D4  | **Actualizar metadata.json si corresponde** | `games/*/metadata.json` | Version bump + changelog por cada fase completada                    |
+
+---
+
+### 🟢 Fase N1 — Nuevos juegos (futuro)
+
+**Skills a cargar:** `game-engine` (usar templates de `assets/`) + `frontend-design` (identidad visual).
+
+**Objetivo:** Agregar juegos usando los 5 templates disponibles.
+
+| Template en `assets/`       | Ideal para                         |
+| --------------------------- | ---------------------------------- |
+| `paddle-game-template.md`   | Breakout-like, Pong variants       |
+| `2d-maze-game.md`           | Maze / laberinto                   |
+| `2d-platform-game.md`       | Platformer (Phaser)                |
+| `gameBase-template-repo.md` | Estructura base para juegos nuevos |
+| `simple-2d-engine.md`       | Motor 2D custom                    |
+
+---
+
+## 📊 Progreso general
+
+| Fase | Skills                          | Tareas | Estado       |
+| ---- | ------------------------------- | ------ | ------------ |
+| P0   | Rendimiento (shadowBlur+SW)     | 10     | ✅ **9/10**  |
+| G1   | `game-feel`                     | 6      | 🔲 Pendiente |
+| H1   | `premium-frontend-ui`           | 7      | 🔲 Pendiente |
+| R1   | `refactor-plan`+`refactor`      | 5      | 🔲 Pendiente |
+| D1   | `create-readme`+`doc-writter`   | 4      | 🔲 Pendiente |
+| N1   | `game-engine`+`frontend-design` | —      | 🟢 Futuro    |
+
+**Total tareas planificadas:** 32 | **Completadas:** 9/32
+
+---
+
+## ✅ Completados anteriores
 
 ### ✅ Completados (Fase de refactor — shared modules)
 

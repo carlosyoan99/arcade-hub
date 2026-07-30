@@ -10,6 +10,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -846,8 +847,6 @@ function draw() {
       ctx.fill();
     } else {
       const col = g.mode === 'fright' ? (frightFlash ? '#fff' : '#44aaff') : g.color;
-      ctx.shadowColor = col;
-      ctx.shadowBlur = 8 * s;
       ctx.fillStyle = col;
       // Ghost body
       const bw = 14 * s,
@@ -862,7 +861,7 @@ function draw() {
         ctx.arc(gx - bw / 2 + ((i + 0.5) * bw) / 3, gy + bh / 2 - 2 * s, bw / 6, 0, Math.PI);
         ctx.fill();
       }
-      ctx.shadowBlur = 0;
+      drawGlow(ctx, gx, gy, bw * 0.5, col, 0.06, 3);
       // Eyes
       if (g.mode !== 'fright') {
         ctx.fillStyle = '#fff';

@@ -10,6 +10,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -584,12 +585,9 @@ function draw() {
       ey = cy + e.y * s,
       ew = ENEMY_W * s,
       eh = ENEMY_H * s;
-    ctx.shadowColor = e.color;
-    ctx.shadowBlur = 6 * s;
     ctx.fillStyle = e.color;
-    // Enemy shape: wings + body
     drawEnemy(ex, ey, ew, eh);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, ex, ey, ew * 0.5, e.color, 0.1, 3);
   }
 
   // Diving enemies
@@ -598,11 +596,9 @@ function draw() {
       ey = cy + e.y * s,
       ew = ENEMY_W * s,
       eh = ENEMY_H * s;
-    ctx.shadowColor = e.color;
-    ctx.shadowBlur = 10 * s;
     ctx.fillStyle = e.color;
     drawEnemy(ex, ey, ew, eh);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, ex, ey, ew * 0.6, e.color, 0.15, 3.5);
   }
 
   // Player bullets
@@ -610,10 +606,8 @@ function draw() {
     const bx = cx + b.x * s,
       by = cy + b.y * s;
     ctx.fillStyle = '#ffdd88';
-    ctx.shadowColor = '#ffdd88';
-    ctx.shadowBlur = 6 * s;
     ctx.fillRect(bx - 1.5 * s, by, 3 * s, 10 * s);
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, bx, by, 3 * s, '#ffdd88', 0.12, 4);
   }
 
   // Enemy bullets
@@ -621,12 +615,10 @@ function draw() {
     const bx = cx + b.x * s,
       by = cy + b.y * s;
     ctx.fillStyle = '#ff6666';
-    ctx.shadowColor = '#ff6666';
-    ctx.shadowBlur = 5 * s;
     ctx.beginPath();
     ctx.arc(bx, by, 2 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, bx, by, 2 * s, '#ff6666', 0.15, 4);
   }
 
   // Player ship

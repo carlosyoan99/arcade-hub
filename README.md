@@ -241,6 +241,72 @@ El proyecto usa un sistema de tokens visuales:
 
 ---
 
+## ⚡ Recomendaciones de rendimiento
+
+### Regla de oro: evitar `shadowBlur` dentro de loops
+
+`ctx.shadowBlur` es una de las operaciones **más costosas** del Canvas 2D (calcula una convolución de blur por cada forma dibujada).
+
+**❌ Mal:**
+
+```js
+// shadowBlur se activa UNA VEZ POR ENEMIGO por frame
+function drawEnemies(enemies) {
+  for (const e of enemies) {
+    ctx.shadowBlur = 10;
+    ctx.fillRect(e.x, e.y, 20, 20);
+    ctx.shadowBlur = 0;
+  }
+}
+```
+
+**✅ Bien — glow sin shadowBlur:**
+
+```js
+function drawGlow(ctx, x, y, radius, color, alpha = 0.15) {
+  // Círculo sólido
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  // Glow translúcido 3x más grande
+  ctx.globalAlpha = alpha;
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+```
+
+Usar la función `drawGlow()` de `shared/effects.js` (si está disponible) o la técnica de doble `arc()`. Esto elimina el costo del blur nativo y escala linealmente sin degradación en DPR alto.
+
+**⚠️ Si usás `shadowBlur`:**
+
+- Activarlo **fuera de loops** (una vez por frame, no por entidad)
+- Siempre parear con `ctx.shadowBlur = 0` después
+- Preferir valores bajos (< 8) si no se puede evitar
+- En juegos nuevos, **no usar `shadowBlur` en absoluto** — usar la técnica de glow translúcido
+
+### Debounce en resize
+
+El listener de `resize` de `shared/display.js` debe tener debounce (100-150ms) para evitar reasignaciones redundantes de `canvas.width/height` en mobile (rotación, teclado, barra de direcciones). Cada reasignación recrea el backing buffer del canvas.
+
+### Antipatrones a evitar
+
+| Antipatrón                             | Problema                           | Alternativa                                                   |
+| -------------------------------------- | ---------------------------------- | ------------------------------------------------------------- |
+| `shadowBlur` dentro de loops           | Blur escala con #entidades         | Glow translúcido con doble `arc()+fill()`                     |
+| `setInterval` para game loop           | Sin sincronización con el monitor  | `requestAnimationFrame`                                       |
+| `getImageData`/`putImageData`          | Lectura/escritura lenta de píxeles | Canvas 2D regular o WebGL                                     |
+| `ctx.filter`                           | Deshabilita aceleración gráfica    | Efectos manuales con `globalAlpha`/`globalCompositeOperation` |
+| `splice`/`filter` en arrays cada frame | Fragmenta memoria (GC pressure)    | Object pooling con flag `alive` (ver `shared/effects.js`)     |
+
+### Service Worker: siempre mantener actualizado
+
+Al agregar un archivo compartido nuevo (`shared/`), agregarlo al array `FILES` en `sw.js`. Olvidarlo rompe el soporte offline y puede causar errores 404 en caché.
+
+---
+
 ## 🧠 Stack técnico
 
 | Componente       | Tecnología                               |

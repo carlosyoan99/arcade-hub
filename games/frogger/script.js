@@ -11,6 +11,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -548,12 +549,10 @@ function draw() {
     const ox2 = cx + o.x * s,
       oy2 = cy + o.y * s;
     if (o.type === 'log') {
-      ctx.shadowColor = 'rgba(100,180,100,0.1)';
-      ctx.shadowBlur = 6 * s;
       ctx.fillStyle = o.color;
       roundRect(ctx, ox2 - (o.w / 2) * s, oy2 - (o.h / 2) * s, o.w * s, o.h * s, 3 * s);
       ctx.fill();
-      ctx.shadowBlur = 0;
+      drawGlow(ctx, ox2, oy2, o.w * s * 0.3, 'rgba(100,180,100,0.06)', 0.04, 3);
       // Wood grain
       ctx.strokeStyle = 'rgba(0,0,0,0.1)';
       ctx.lineWidth = 0.5 * s;
@@ -562,12 +561,10 @@ function draw() {
       ctx.lineTo(ox2 + (o.w / 2) * s - 4 * s, oy2);
       ctx.stroke();
     } else if (o.type === 'truck') {
-      ctx.shadowColor = 'rgba(255,100,50,0.2)';
-      ctx.shadowBlur = 6 * s;
       ctx.fillStyle = o.color;
       roundRect(ctx, ox2 - (o.w / 2) * s, oy2 - (o.h / 2) * s, o.w * s, o.h * s, 3 * s);
       ctx.fill();
-      ctx.shadowBlur = 0;
+      drawGlow(ctx, ox2, oy2, o.w * s * 0.3, 'rgba(255,100,50,0.1)', 0.04, 3);
       // Cab
       ctx.fillStyle = 'rgba(255,255,255,0.2)';
       ctx.fillRect(
@@ -582,12 +579,10 @@ function draw() {
       ctx.fillRect(ox2 + (o.w / 3) * s - 4 * s, oy2 + (o.h / 2) * s - 2 * s, 4 * s, 4 * s);
     } else {
       // Car
-      ctx.shadowColor = 'rgba(255,200,100,0.15)';
-      ctx.shadowBlur = 6 * s;
       ctx.fillStyle = o.color;
       roundRect(ctx, ox2 - (o.w / 2) * s, oy2 - (o.h / 2) * s, o.w * s, o.h * s, 4 * s);
       ctx.fill();
-      ctx.shadowBlur = 0;
+      drawGlow(ctx, ox2, oy2, o.w * s * 0.25, 'rgba(255,200,100,0.08)', 0.04, 3);
       // Windshield
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
       roundRect(ctx, ox2 - (o.w / 4) * s, oy2 - (o.h / 3) * s, (o.w / 2) * s, o.h * 0.5 * s, 2 * s);

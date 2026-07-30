@@ -10,6 +10,7 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
 } from '../../shared/effects.js';
 
 injectCommonElements();
@@ -635,8 +636,6 @@ function draw() {
     ctx.rotate(a.rot);
     ctx.strokeStyle = 'rgba(180,200,220,0.5)';
     ctx.lineWidth = 2 * s;
-    ctx.shadowColor = 'rgba(180,200,220,0.1)';
-    ctx.shadowBlur = 8 * s;
     ctx.beginPath();
     for (let i = 0; i < a.vertices.length; i++) {
       const v = a.vertices[i];
@@ -644,8 +643,8 @@ function draw() {
     }
     ctx.closePath();
     ctx.stroke();
-    ctx.shadowBlur = 0;
     ctx.restore();
+    drawGlow(ctx, ax, ay, a.size * s * 0.5, 'rgba(180,200,220,0.06)', 0.04, 3);
   }
 
   // Balas
@@ -653,12 +652,10 @@ function draw() {
     const bx = ox + b.x * s,
       by = oy + b.y * s;
     ctx.fillStyle = '#ffdd88';
-    ctx.shadowColor = '#ffdd88';
-    ctx.shadowBlur = 8 * s;
     ctx.beginPath();
     ctx.arc(bx, by, 2 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    drawGlow(ctx, bx, by, 2 * s, '#ffdd88', 0.08, 4);
   }
 
   // Nave

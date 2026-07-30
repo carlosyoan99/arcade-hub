@@ -199,6 +199,51 @@ Después de construir o modificar un juego:
 
 ---
 
+## ⚡ Reglas de rendimiento Canvas 2D
+
+### ❌ `shadowBlur` dentro de loops por entidad
+
+**Prohibido.** `shadowBlur` es una convolución de blur carísima que escala con el número de entidades. Se agrava en DPR alto (móvil con DPR=3 → 9x más píxeles a blurear).
+
+**Alternativa:** glow translúcido con doble `arc()+fill()`, como ya hace `drawParticles()` en `shared/effects.js`:
+
+```js
+function drawGlow(ctx, x, y, r, color, alpha = 0.15) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = alpha;
+  ctx.beginPath();
+  ctx.arc(x, y, r * 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+```
+
+### ✅ Reglas de rendimiento
+
+- **`requestAnimationFrame`** para el game loop (nunca `setInterval`)
+- **`setInterval`/`setTimeout`** solo para UI (efectos de sonido, temporizadores de juego, etc.)
+- **Object pooling** para arrays que mutan por frame (partículas, proyectiles, enemigos). Usar flag `alive` en vez de `splice`/`filter`
+- **Evitar `getImageData`/`putImageData`** y `ctx.filter` — deshabilitan aceleración gráfica
+- **Usar `{ alpha: false }`** en `getContext('2d')` para optimizar el compositor
+- **Debounce en resize** (100-150ms) para evitar reasignaciones de `canvas.width/height` en mobile
+- **Preferir `transform` y `opacity`** para animaciones CSS — no disparan layout/reflow
+- **Siempre parear** `shadowBlur = N` con `shadowBlur = 0` inmediatamente después (nunca dejar contaminado)
+
+### 🧪 Verificación de rendimiento en code review
+
+```
+1. ¿Hay shadowBlur dentro de un loop?  →  Reemplazar con drawGlow()
+2. ¿Hay splice/filter por frame?       →  Usar object pooling
+3. ¿El resize escucha sin debounce?     →  Agregar debounce 150ms
+4. ¿El SW tiene todos los shared/ files? →  display.js, dom.js
+5. ¿Alpha channel desactivado?          →  { alpha: false }
+```
+
+---
+
 ## ⚠️ Anti-tunneling
 
 Si `velocidad_máxima * dt_máximo >= grosor_mínimo_colisión`, subdividir el movimiento en sub-pasos.

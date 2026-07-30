@@ -198,6 +198,38 @@ export function drawFlash(ctx, w, h) {
 }
 
 // ──────────────────────────────────────────────
+// DRAW GLOW — glow sin shadowBlur
+// ──────────────────────────────────────────────
+
+/**
+ * Dibuja un glow translúcido sin usar ctx.shadowBlur.
+ * Técnica: círculo sólido + círculo 3x más grande con alpha bajo.
+ * Misma técnica que usa drawParticles() para sus glows.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x - Centro X
+ * @param {number} y - Centro Y
+ * @param {number} r - Radio del círculo base
+ * @param {string} color - Color CSS
+ * @param {number} [glowAlpha=0.15] - Opacidad del círculo de glow (0-1)
+ * @param {number} [glowMultiplier=3] - Tamaño del glow relativo al radio base
+ */
+export function drawGlow(ctx, x, y, r, color, glowAlpha = 0.15, glowMultiplier = 3) {
+  // Círculo sólido principal
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Glow translúcido (más grande, semitransparente)
+  ctx.globalAlpha = glowAlpha;
+  ctx.beginPath();
+  ctx.arc(x, y, r * glowMultiplier, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+// ──────────────────────────────────────────────
 // ROUND RECT
 // ──────────────────────────────────────────────
 /**
