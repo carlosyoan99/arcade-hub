@@ -10,6 +10,7 @@
         (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
     </script>
     <link rel="icon" type="image/svg+xml" href="./asset/icons/favicon.svg" />
+    <link rel="sitemap" type="application/xml" href="./sitemap.xml" />
 
     <!-- Open Graph / Social Sharing -->
     <meta id="og-title" property="og:title" content="Arcade Hub — 19 clásicos recreados" />
@@ -30,6 +31,40 @@
       content="19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
     />
     <meta name="twitter:image" content="./asset/icons/favicon.svg" />
+
+    <!-- Schema.org / JSON-LD -->
+    <script type="application/ld+json" id="website-schema">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Arcade Hub",
+        "url": "https://arcadehub.com",
+        "description": "19 juegos clásicos de arcade recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias.",
+        "inLanguage": "es-ES",
+        "applicationCategory": "Game"
+      }
+    </script>
+    <script type="application/ld+json" id="game-schema">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Arcade Hub",
+        "description": "Seleccioná un juego para empezar a jugar",
+        "applicationCategory": "Game",
+        "operatingSystem": "Any",
+        "browserRequirements": "HTML5 Canvas"
+      }
+    </script>
+    <script type="application/ld+json" id="itemlist-schema">
+      {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Juegos de Arcade Hub",
+        "description": "19 juegos clásicos de arcade disponibles para jugar",
+        "numberOfItems": 19,
+        "itemListElement": []
+      }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1434,6 +1469,267 @@
       }
 
       /* ═══════════════════════════════════════════════════
+         COIN INSERTION ANIMATION (first visit)
+         ═══════════════════════════════════════════════════ */
+      .coin-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #05031a;
+        cursor: pointer;
+        transition: opacity 0.6s ease;
+      }
+      .coin-overlay.dismissed {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* CRT scanlines on overlay */
+      .coin-overlay::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(255, 255, 255, 0.015) 2px,
+          rgba(255, 255, 255, 0.015) 4px
+        );
+      }
+
+      .coin-cabinet {
+        text-align: center;
+        padding: 48px 32px;
+        max-width: 520px;
+        width: 90%;
+        position: relative;
+        animation: cabinetAppear 0.8s ease-out forwards;
+        opacity: 0;
+      }
+
+      @keyframes cabinetAppear {
+        from {
+          opacity: 0;
+          transform: scale(0.85) translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .coin-cabinet-frame {
+        border: 2px solid rgba(0, 240, 255, 0.25);
+        border-radius: 16px;
+        padding: 4px;
+        position: relative;
+        margin-bottom: 28px;
+        box-shadow:
+          0 0 40px rgba(0, 240, 255, 0.06),
+          inset 0 0 40px rgba(0, 240, 255, 0.03);
+      }
+
+      .coin-cabinet-frame::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: 18px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 240, 255, 0.15),
+          rgba(255, 45, 120, 0.15) 50%,
+          rgba(255, 184, 0, 0.15)
+        );
+        z-index: -1;
+      }
+
+      .coin-screen {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 36px 24px 28px;
+        border: 1px solid rgba(0, 240, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* CRT glow */
+      .coin-screen::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.3) 100%);
+        pointer-events: none;
+      }
+
+      .coin-title-top {
+        font-family: 'Bungee', sans-serif;
+        font-size: clamp(24px, 5vw, 36px);
+        font-weight: 400;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        background: linear-gradient(
+          135deg,
+          var(--cyan-neon),
+          var(--pink-neon) 50%,
+          var(--gold-neon)
+        );
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.2));
+        line-height: 1.2;
+        margin-bottom: 8px;
+      }
+
+      .coin-subtitle {
+        font-family: 'Bungee', sans-serif;
+        font-size: clamp(9px, 1.5vw, 11px);
+        letter-spacing: 4px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        opacity: 0;
+        animation: fadeInText 0.5s ease-out 1.2s forwards;
+      }
+
+      .coin-divider {
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: rgba(0, 240, 255, 0.2);
+        margin: 12px 0;
+        font-family: monospace;
+      }
+
+      .coin-games-list {
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(11px, 1.8vw, 13px);
+        color: rgba(240, 238, 255, 0.5);
+        letter-spacing: 3px;
+        line-height: 1.8;
+        text-transform: uppercase;
+        font-weight: 300;
+        opacity: 0;
+        animation: fadeInText 0.6s ease-out 0.8s forwards;
+      }
+
+      @keyframes fadeInText {
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* ── Coin area ── */
+      .coin-slot-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 28px 0 18px;
+        height: 60px;
+        position: relative;
+      }
+
+      .coin-coin {
+        font-size: 32px;
+        line-height: 1;
+        position: relative;
+        animation: coinDrop 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+        opacity: 0;
+        transform: translateY(-80px) rotate(-30deg);
+        filter: drop-shadow(0 0 8px rgba(255, 184, 0, 0.5));
+      }
+
+      @keyframes coinDrop {
+        0% {
+          opacity: 1;
+          transform: translateY(-80px) rotate(-30deg);
+        }
+        60% {
+          transform: translateY(0) rotate(10deg);
+        }
+        75% {
+          transform: translateY(-8px) rotate(-5deg);
+        }
+        85% {
+          transform: translateY(0) rotate(3deg);
+        }
+        95% {
+          transform: translateY(-3px) rotate(-2deg);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) rotate(0deg);
+        }
+      }
+
+      .coin-slot {
+        width: 24px;
+        height: 36px;
+        border: 2px solid rgba(0, 240, 255, 0.2);
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.4);
+        position: relative;
+      }
+
+      .coin-slot::after {
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border-radius: 2px;
+        background: rgba(0, 240, 255, 0.08);
+      }
+
+      /* ── Insert coin blinking text ── */
+      .coin-footer-text {
+        font-family: 'Bungee', sans-serif;
+        font-size: clamp(14px, 2.5vw, 18px);
+        letter-spacing: 4px;
+        color: var(--gold-neon);
+        text-transform: uppercase;
+        animation: coinBlink 1.2s step-end infinite;
+        text-shadow: 0 0 20px rgba(255, 184, 0, 0.3);
+      }
+
+      @keyframes coinBlink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .coin-hint {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--text-dim);
+        margin-top: 16px;
+        opacity: 0.4;
+        animation: fadeInText 0.8s ease-out 2.5s forwards;
+        opacity: 0;
+      }
+
+      /* ── Glitch flash on dismiss ── */
+      .coin-glitch {
+        position: fixed;
+        inset: 0;
+        z-index: 201;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.05s ease;
+      }
+      .coin-glitch.active {
+        opacity: 0.85;
+      }
+
+      /* ═══════════════════════════════════════════════════
          GAME CONTAINER (hash routing)
          ═══════════════════════════════════════════════════ */
       #gameContainer {
@@ -1510,6 +1806,35 @@
     <!-- ═══ ANIMATED BACKGROUND (Canvas) ═══ -->
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
+    <!-- ═══ COIN INSERTION OVERLAY (first visit only) ═══ -->
+    <div id="coinInsert" class="coin-overlay" aria-hidden="true">
+      <div class="coin-cabinet">
+        <div class="coin-cabinet-frame">
+          <div class="coin-screen">
+            <div class="coin-title-top">✦ ARCADE HUB ✦</div>
+            <div class="coin-subtitle">19 clásicos recreados</div>
+            <div class="coin-divider">══════════════════════════</div>
+            <div class="coin-games-list">
+              PONG · BREAKOUT · SNAKE · DINO RUNNER<br />
+              ASTEROIDS · SPACE INVADERS · FLAPPY BIRD<br />
+              PAC-MAN · TETRIS · FROGGER · GALAGA<br />
+              CENTIPEDE · DIG DUG · MISSILE COMMAND<br />
+              NEON NEXUS · CELL SWARM · DONKEY KONG<br />
+              DEFENDER · JOUST
+            </div>
+            <div class="coin-divider">══════════════════════════</div>
+          </div>
+        </div>
+        <div class="coin-slot-area">
+          <div class="coin-coin">🪙</div>
+          <div class="coin-slot"></div>
+        </div>
+        <div class="coin-footer-text">INSERT COIN</div>
+        <div class="coin-hint">Presioná cualquier tecla o hacé clic para comenzar</div>
+      </div>
+      <div class="coin-glitch" id="coinGlitch"></div>
+    </div>
+
     <!-- ═══ HERO — MARQUEE ═══ -->
     <header class="hero">
       <div class="hero-top">
@@ -1561,7 +1886,14 @@
           ▦
         </button>
         <button class="view-btn" id="viewListBtn" aria-label="Vista lista" title="Lista">☰</button>
-        <button class="view-btn surprise" id="surpriseBtn" aria-label="Juego al azar" title="¡Sorpresa!">🎲</button>
+        <button
+          class="view-btn surprise"
+          id="surpriseBtn"
+          aria-label="Juego al azar"
+          title="¡Sorpresa!"
+        >
+          🎲
+        </button>
       </div>
     </div>
 
@@ -1864,6 +2196,95 @@
         }
       })();
 
+      /* ── Coin insertion animation (first visit) ── */
+      (function initCoinInsert() {
+        const coinOverlay = document.getElementById('coinInsert');
+        const coinGlitch = document.getElementById('coinGlitch');
+        if (!coinOverlay || localStorage.getItem('arcadehub_coin_inserted')) {
+          if (coinOverlay) coinOverlay.remove();
+          return;
+        }
+
+        // Skip if arriving directly to a game via hash (e.g. #game/pong)
+        if (window.location.hash.startsWith('#game/')) {
+          coinOverlay.remove();
+          return;
+        }
+
+        // Show the overlay
+        coinOverlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        playCoinSound();
+
+        function playCoinSound() {
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1400, ctx.currentTime);
+            osc.frequency.setValueAtTime(1800, ctx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.2);
+          } catch {}
+        }
+
+        function playInsertSound() {
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(800, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.35);
+          } catch {}
+        }
+
+        function cleanListeners() {
+          events.forEach((ev) => document.removeEventListener(ev, handler, true));
+        }
+
+        function dismissCoin() {
+          if (coinOverlay.classList.contains('dismissed')) return;
+          localStorage.setItem('arcadehub_coin_inserted', '1');
+          cleanListeners();
+          playInsertSound();
+          coinGlitch.classList.add('active');
+          setTimeout(() => {
+            coinGlitch.classList.remove('active');
+            coinOverlay.classList.add('dismissed');
+            document.body.style.overflow = '';
+            setTimeout(() => {
+              coinOverlay.remove();
+            }, 650);
+          }, 100);
+        }
+
+        const events = ['click', 'keydown', 'touchstart'];
+        const handler = (e) => {
+          if (coinOverlay.classList.contains('dismissed')) return;
+          if (e.type === 'keydown' && e.key !== ' ' && e.key !== 'Enter' && e.key !== 'Escape') {
+            return;
+          }
+          e.preventDefault();
+          dismissCoin();
+        };
+        events.forEach((ev) => document.addEventListener(ev, handler, true));
+
+        setTimeout(dismissCoin, 8000);
+      })();
+
       /* ── Animated counter ── */
       function animateCounter(el, target, duration = 800) {
         const start = 0;
@@ -1967,7 +2388,8 @@
         if (now - lastHoverSound < 100) return; // throttle
         lastHoverSound = now;
         try {
-          if (!hoverAudioCtx) hoverAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (!hoverAudioCtx)
+            hoverAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
           if (hoverAudioCtx.state === 'suspended') hoverAudioCtx.resume();
           const osc = hoverAudioCtx.createOscillator();
           const gain = hoverAudioCtx.createGain();
@@ -1978,7 +2400,9 @@
           osc.connect(gain).connect(hoverAudioCtx.destination);
           osc.start(hoverAudioCtx.currentTime);
           osc.stop(hoverAudioCtx.currentTime + 0.08);
-        } catch { /* ignore audio errors */ }
+        } catch {
+          /* ignore audio errors */
+        }
       }
 
       function renderCard(game, index, playsData = {}) {
@@ -2058,6 +2482,31 @@
         for (const [i, game] of filtered.entries()) {
           grid.appendChild(renderCard(game, i, playsData));
         }
+
+        // Update ItemList schema with current filtered/all games
+        document.getElementById('itemlist-schema').textContent = JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: 'Juegos de Arcade Hub',
+          description: searchTerm
+            ? `Resultados de búsqueda para "${searchTerm}"`
+            : sortSelect.value === 'most-played'
+              ? 'Juegos ordenados por más jugados'
+              : 'Todos los juegos clásicos de Arcade Hub',
+          numberOfItems: filtered.length,
+          itemListElement: filtered.map((g, idx) => ({
+            '@type': 'ListItem',
+            position: idx + 1,
+            item: {
+              '@type': 'VideoGame',
+              name: g.title,
+              description: g.description,
+              applicationCategory: 'Game',
+              operatingSystem: 'Any',
+              url: g.file,
+            },
+          })),
+        });
       }
 
       renderGrid();
@@ -2324,10 +2773,22 @@
         gameFrame.src = game.file;
         gameTitle.textContent = game.icon + ' ' + game.title;
         document.title = 'Arcade Hub — ' + game.icon + ' ' + game.title;
-        document.getElementById('og-title').content = 'Arcade Hub — ' + game.icon + ' ' + game.title;
+        document.getElementById('og-title').content =
+          'Arcade Hub — ' + game.icon + ' ' + game.title;
         document.getElementById('og-desc').content = game.description;
-        document.getElementById('tw-title').content = 'Arcade Hub — ' + game.icon + ' ' + game.title;
+        document.getElementById('tw-title').content =
+          'Arcade Hub — ' + game.icon + ' ' + game.title;
         document.getElementById('tw-desc').content = game.description;
+        document.getElementById('game-schema').textContent = JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'VideoGame',
+          name: game.title,
+          description: game.description,
+          applicationCategory: 'Game',
+          operatingSystem: 'Any',
+          browserRequirements: 'HTML5 Canvas',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        });
         document.body.style.overflow = 'hidden';
       }
 
@@ -2342,6 +2803,15 @@
         document.getElementById('tw-title').content = 'Arcade Hub — 19 clásicos recreados';
         document.getElementById('tw-desc').content =
           '19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias.';
+        document.getElementById('game-schema').textContent = JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'VideoGame',
+          name: 'Arcade Hub',
+          description: 'Seleccioná un juego para empezar a jugar',
+          applicationCategory: 'Game',
+          operatingSystem: 'Any',
+          browserRequirements: 'HTML5 Canvas',
+        });
         document.body.style.overflow = '';
         history.replaceState(null, '', window.location.pathname + window.location.search);
       }
@@ -2366,15 +2836,13 @@
         window.location.hash = '';
       });
       document.addEventListener('keydown', (e) => {
-        if (
-          e.key === 'Escape' &&
-          !gameContainer.classList.contains('hidden')
-        ) {
+        if (e.key === 'Escape' && !gameContainer.classList.contains('hidden')) {
           backToHubBtn.click();
         }
       });
       fsGameBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        if (!document.fullscreenElement)
+          document.documentElement.requestFullscreen().catch(() => {});
         else document.exitFullscreen().catch(() => {});
       });
 

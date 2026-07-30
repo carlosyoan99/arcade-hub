@@ -131,18 +131,23 @@
 | 15 | **Botón Sorpresa** | `index.html` | 🎲 en toolbar → juego al azar de los disponibles. |
 | 16 | **Hover sonoro** | `index.html` | Sine tone 660±220Hz, gain 0.04, 0.08s. AudioContext lazy, throttle 100ms. |
 
+### ✅ Completados (ronda SEO + nostalgia)
+
+| #  | Tarea | Archivos | Logrado |
+|----|-------|----------|---------|
+| 14 | **Animación \"inserción de moneda\"** | `index.html` | Overlay retro con cabinet arcade, 🪙 animada, INSERT COIN parpadeante, glitch flash. Solo una vez (localStorage). |
+| 17 | **Schema.org / JSON-LD** | `index.html` | WebSite + VideoGame (dinámico por juego) + ItemList. Rich snippets de Google. |
+| 18 | **Sitemap XML + robots.txt** | `sitemap.xml`, `robots.txt`, `index.html` | 20 URLs (hub + 19 juegos). Prioridades, frecuencias, lastmod. Link en `<head>`. |
+
 ### 🟡 Próximas (media prioridad)
 
 | #  | Tarea | Archivos | Detalle |
 |----|-------|----------|---------|
 | 13 | **Pantalla de carga progresiva** | `index.html` | Barra de progreso al cargar módulos del hub (mejora perceived performance). |
-| 14 | **Animación \"inserción de moneda\"** | `index.html` | Secuencia nostálgica animada al cargar el hub. |
 
 ### 🟢 Ideas / Mejora continua
 
 | #  | Tarea | Archivos | Detalle |
 |----|-------|----------|---------|
-| 17 | **Schema.org / JSON-LD (VideoGame)** | `index.html` | Schema markup para rich snippets de Google. |
-| 18 | **Sitemap XML** | Raíz del proyecto | Indexación por buscadores. |
 | 19 | **Ícono/thumbnail real por juego** | `games/*/` | SVG/PNG por juego. |
 | 20 | **Tema visual más distintivo por juego** | `games/*/style.css` | Temas propios más diferenciados. |
