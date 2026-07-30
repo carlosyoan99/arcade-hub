@@ -1,7 +1,7 @@
 {
   "id": "missile-command",
   "title": "Missile Command",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "created": "2026-07-28",
   "lastModified": "2026-07-30",
   "description": "Defendé tus ciudades de misiles enemigos con interceptores y misiles teledirigidos.",
@@ -13,7 +13,9 @@
     {
       "version": "1.0.0",
       "date": "2026-07-28",
-      "changes": ["Versión inicial del juego"]
+      "changes": [
+        "Versión inicial del juego"
+      ]
     },
     {
       "version": "1.1.0",
@@ -31,6 +33,15 @@
         "Canvas ID unificado + setupCanvas() vía shared/display.js",
         "HUD IDs unificados a nombres legibles",
         "HTML compartido inyectado via shared/dom.js"
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Compartido: shared/loop.js — game loop compartido con dt/RAF/cleanup unificados",
+        "R4: @keyframes shimmerFlow extraído a shared/base.css",
+        "P0: drawGlow() y feedbackBundle() para rendimiento y game feel"
       ]
     }
   ]

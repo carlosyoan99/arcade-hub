@@ -1,7 +1,7 @@
 {
   "id": "joust",
   "title": "Joust",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created": "2026-07-29",
   "lastModified": "2026-07-30",
   "description": "Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas. Golpeá desde arriba para vencer, recolectá huevos y sobreviví oleadas cada vez más difíciles.",
@@ -30,6 +30,15 @@
       "changes": [
         "Canvas ID unificado + setupCanvas() vía shared/display.js",
         "HTML compartido inyectado via shared/dom.js"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Compartido: shared/loop.js — game loop compartido con dt/RAF/cleanup unificados",
+        "R4: @keyframes shimmerFlow extraído a shared/base.css",
+        "P0: drawGlow() y feedbackBundle() para rendimiento y game feel"
       ]
     }
   ]
