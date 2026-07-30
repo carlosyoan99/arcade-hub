@@ -184,6 +184,7 @@ function resetGame() {
   updateHUD();
 }
 function startGame() {
+  clearSquashes();
   ensureAudio();
   startAmbient();
   if (state.best >= 2000) achievements.unlock('invaders_twothousand');

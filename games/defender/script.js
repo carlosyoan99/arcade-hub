@@ -368,6 +368,7 @@ function generateHumans() {
 
 // ── LÓGICA DEL JUEGO ──
 function startGame() {
+  clearSquashes();
   ensureAudio();
   startAmbient();
   clearParticles();

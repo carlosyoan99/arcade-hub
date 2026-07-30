@@ -226,6 +226,7 @@ function resetGame() {
 }
 
 function startGame() {
+  clearSquashes();
   ensureAudio();
   startAmbient();
   resetGame();

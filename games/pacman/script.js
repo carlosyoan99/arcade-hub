@@ -524,6 +524,7 @@ function resetGame() {
 }
 
 function startGame() {
+  clearSquashes();
   ensureAudio();
   resetGame();
   state.running = true;

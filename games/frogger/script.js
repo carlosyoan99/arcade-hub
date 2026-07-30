@@ -185,6 +185,7 @@ function resetGame() {
   updateHUD();
 }
 function startGame() {
+  clearSquashes();
   ensureAudio();
   resetGame();
   state.running = true;

@@ -749,6 +749,7 @@ function doEject() {
 // LÓGICA DE JUEGO
 // ============================================================
 function startGame() {
+  clearSquashes();
   ensureAudio();
   startAmbient();
 

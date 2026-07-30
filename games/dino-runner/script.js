@@ -301,6 +301,7 @@ function resetGame() {
   updateHUD();
 }
 function startGame() {
+  clearSquashes();
   ensureAudio();
   startAmbient();
   if (state.best >= 500) achievements.unlock('dino_fivehundo');

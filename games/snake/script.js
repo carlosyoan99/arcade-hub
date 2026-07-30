@@ -372,6 +372,7 @@ function resetGame() {
 }
 
 function startGame() {
+  clearSquashes();
   ensureAudio();
   startAmbient();
   if (state.best >= 10) achievements.unlock('snake_decathlon');
