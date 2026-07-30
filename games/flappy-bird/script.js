@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
@@ -62,11 +61,13 @@ function pFlap() {
 }
 function pScore() {
   beep({ freq: 600, freqEnd: 900, duration: 0.1, type: 'square', volume: 0.12 });
-  triggerShake(2);
 }
 function pHit() {
-  triggerShake(6);
-  beep({ freq: 200, freqEnd: 50, duration: 0.35, type: 'sawtooth', volume: 0.2 });
+  feedbackBundle('large', bird.x, bird.y, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 200, freqEnd: 50, duration: 0.35, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function pBest() {
   [660, 880, 1100, 1320].forEach((ff, i) =>

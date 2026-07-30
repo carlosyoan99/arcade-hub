@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   spawnParticles,
@@ -79,7 +78,6 @@ function pLaunch() {
 }
 function pExplode() {
   beep({ freq: 200, freqEnd: 50, duration: 0.12, type: 'sawtooth', volume: 0.12 });
-  triggerShake(2);
 }
 function pHitCity() {
   feedbackBundle('large', CANVAS_W / 2, CANVAS_H / 2, {
@@ -94,9 +92,11 @@ function pWaveStart() {
 function pGuidedLaunch() {
   beep({ freq: 600, freqEnd: 1800, duration: 0.08, type: 'sine', volume: 0.1 });
 }
-function pGuidedHit() {
-  beep({ freq: 800, freqEnd: 200, duration: 0.2, type: 'triangle', volume: 0.18 });
-  triggerShake(4);
+function pGuidedHit(bx, by) {
+  feedbackBundle('medium', bx, by, {
+    color: '#44ff88',
+    onBeep: () => beep({ freq: 800, freqEnd: 200, duration: 0.2, type: 'triangle', volume: 0.18 }),
+  });
 }
 
 // ============================================================
@@ -589,7 +589,6 @@ function updateABMs(dt) {
       });
       pExplode();
       spawnParticles(bx, by, '#ffdd88', 10, { spd: 80, life: 0.3 });
-      triggerShake(2); // Track kills for guided missile
       let killsThisBlast = 0;
       // Kill missiles in blast radius
       for (let mi = missiles.length - 1; mi >= 0; mi--) {
@@ -714,9 +713,8 @@ function updateGuidedMissile(dt) {
       timer: BLAST_DURATION * 1.5,
       maxTimer: BLAST_DURATION * 1.5,
     });
-    pGuidedHit();
+    pGuidedHit(bx, by);
     spawnParticles(bx, by, '#44ff88', 25, { spd: 120, life: 0.5, smx: 6 });
-    triggerShake(4);
     updateHUD();
   }
 }

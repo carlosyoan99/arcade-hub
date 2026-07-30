@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
@@ -187,7 +186,11 @@ function sfxClickHit() {
   beep({ freq: 700, freqEnd: 1000, duration: 0.05, type: 'sine', volume: 0.1 });
 }
 function sfxWaveClear() {
-  triggerShake(3);
+  feedbackBundle('medium', GAME_W / 2, GAME_H / 2, {
+    color: '#ffb800',
+    noFlash: true,
+    onBeep: () => {},
+  });
   [660, 880, 1100].forEach((f, i) =>
     setTimeout(() => beep({ freq: f, duration: 0.1, type: 'triangle', volume: 0.14 }), i * 80),
   );

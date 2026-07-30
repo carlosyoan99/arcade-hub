@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   spawnParticles,
@@ -164,11 +163,12 @@ function sfxEat() {
 }
 function sfxEatBig() {
   beep({ freq: 300, freqEnd: 700, duration: 0.1, type: 'triangle', volume: 0.1 });
-  triggerShake(2);
 }
 function sfxSplit() {
-  beep({ freq: 600, freqEnd: 1000, duration: 0.08, type: 'square', volume: 0.12 });
-  triggerShake(3);
+  feedbackBundle('medium', player.x, player.y, {
+    color: '#c084fc',
+    onBeep: () => beep({ freq: 600, freqEnd: 1000, duration: 0.08, type: 'square', volume: 0.12 }),
+  });
 }
 function sfxEject() {
   beep({ freq: 500, freqEnd: 300, duration: 0.05, type: 'sine', volume: 0.08 });

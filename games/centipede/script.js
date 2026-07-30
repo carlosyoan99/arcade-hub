@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   spawnParticles,
@@ -92,8 +91,10 @@ function pSpider() {
   });
 }
 function pFlea() {
-  beep({ freq: 400, freqEnd: 1000, duration: 0.06, type: 'square', volume: 0.08 });
-  triggerShake(1);
+  feedbackBundle('small', mouseX, mouseY, {
+    color: '#6ee7b7',
+    onBeep: () => beep({ freq: 400, freqEnd: 1000, duration: 0.06, type: 'square', volume: 0.08 }),
+  });
 }
 function pScorpion() {
   beep({ freq: 200, freqEnd: 80, duration: 0.12, type: 'sawtooth', volume: 0.14 });
@@ -233,7 +234,6 @@ function startGame() {
 function loseLife() {
   state.lives--;
   pDeath();
-  triggerShake(6);
   spawnParticles((COLS * GS) / 2, CH - 20, '#6ec6ff', 15, { spd: 100, life: 0.5, smx: 4 });
   updateHUD();
   if (state.lives <= 0) {

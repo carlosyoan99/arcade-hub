@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
@@ -100,14 +99,16 @@ function pHit() {
   });
 }
 function pGoal() {
-  beep({ freq: 600, freqEnd: 1000, duration: 0.12, type: 'triangle', volume: 0.16 });
-  triggerShake(2);
+  feedbackBundle('medium', frog.x, frog.y, {
+    color: '#6ee7b7',
+    onBeep: () =>
+      beep({ freq: 600, freqEnd: 1000, duration: 0.12, type: 'triangle', volume: 0.16 }),
+  });
 }
 function pWin() {
   [660, 880, 1100, 1320].forEach((ff, i) =>
     setTimeout(() => beep({ freq: ff, duration: 0.1, type: 'triangle', volume: 0.16 }), i * 90),
   );
-  triggerShake(4);
 }
 
 // ============================================================

@@ -324,7 +324,7 @@ export function drawGlow(ctx, x, y, r, color, glowAlpha = 0.15, glowMultiplier =
 // Sistema de animación de escala con overshoot (TRANS_BACK-like).
 // Cada entidad puede tener un squash activo que decae en el tiempo.
 
-let _squashItems = [];
+const _squashItems = [];
 const SQUASH_POOL_MAX = 100;
 
 /**

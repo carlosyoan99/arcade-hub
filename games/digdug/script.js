@@ -4,7 +4,6 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   spawnParticles,
@@ -68,15 +67,18 @@ function pDig() {
 }
 function pPump() {
   beep({ freq: 600, freqEnd: 800, duration: 0.04, type: 'square', volume: 0.06 });
-  triggerShake(0.5);
 }
 function pPop() {
-  beep({ freq: 300, freqEnd: 2000, duration: 0.2, type: 'sawtooth', volume: 0.15 });
-  triggerShake(3);
+  feedbackBundle('medium', player.c * GS + GS / 2, player.r * GS + GS / 2, {
+    color: '#6ec6ff',
+    onBeep: () => beep({ freq: 300, freqEnd: 2000, duration: 0.2, type: 'sawtooth', volume: 0.15 }),
+  });
 }
 function pRock() {
-  beep({ freq: 80, freqEnd: 30, duration: 0.3, type: 'sawtooth', volume: 0.2 });
-  triggerShake(5);
+  feedbackBundle('medium', player.c * GS + GS / 2, player.r * GS + GS / 2, {
+    color: '#ff8a65',
+    onBeep: () => beep({ freq: 80, freqEnd: 30, duration: 0.3, type: 'sawtooth', volume: 0.2 }),
+  });
 }
 function pDeath() {
   feedbackBundle('large', player.c * GS + GS / 2, player.r * GS + GS / 2, {
