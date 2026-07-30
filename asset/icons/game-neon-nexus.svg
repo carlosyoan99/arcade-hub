@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#0c0922"/>
+  <!-- background grid -->
+  <line x1="20" y1="64" x2="108" y2="64" stroke="rgba(0,240,255,0.06)" stroke-width="1"/>
+  <line x1="64" y1="20" x2="64" y2="108" stroke="rgba(0,240,255,0.06)" stroke-width="1"/>
+  <!-- tower (diamond) -->
+  <polygon points="64,24 96,64 64,104 32,64" fill="none" stroke="#00f0ff" stroke-width="2.5" opacity="0.8"/>
+  <polygon points="64,36 82,64 64,92 46,64" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0.6"/>
+  <polygon points="64,48 72,64 64,80 56,64" fill="none" stroke="#ffb800" stroke-width="1" opacity="0.5"/>
+  <circle cx="64" cy="64" r="4" fill="#ffb800" opacity="0.8"/>
+  <!-- orbiting enemies -->
+  <circle cx="32" cy="36" r="5" fill="#ff2d78" opacity="0.6"/>
+  <circle cx="96" cy="36" r="4" fill="#ff2d78" opacity="0.5"/>
+  <circle cx="36" cy="86" r="4" fill="#ff2d78" opacity="0.4"/>
+  <circle cx="90" cy="86" r="5" fill="#ff2d78" opacity="0.5"/>
+  <circle cx="50" cy="28" r="3" fill="#ff2d78" opacity="0.35"/>
+</svg>

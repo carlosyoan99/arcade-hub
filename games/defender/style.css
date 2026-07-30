@@ -1,10 +1,63 @@
 :root {
-  --accent: var(--neon-blue);
-  --accent-glow: rgba(110, 198, 255, 0.3);
+  --bg-body: #0a121c;
+  --accent: var(--neon-cyan);
+  --accent-glow: rgba(0, 240, 255, 0.3);
+  --overlay-grad-start: rgba(10, 15, 30, 0.88);
+  --overlay-grad-end: rgba(5, 8, 14, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #d8dce0;
+}
+
+/* ── Mountain silhouette decoration ── */
+#hud .sg {
+  position: relative;
+  overflow: hidden;
+}
+#hud .sg::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 33%,
+      rgba(0, 240, 255, 0.05) 33%,
+      rgba(0, 240, 255, 0.05) 66%,
+      transparent 66%
+    ),
+    linear-gradient(
+      225deg,
+      transparent 33%,
+      rgba(0, 240, 255, 0.03) 33%,
+      rgba(0, 240, 255, 0.03) 66%,
+      transparent 66%
+    );
+  background-size: 12px 6px;
+  background-repeat: repeat-x;
+  animation: mountainScroll 8s linear infinite;
+}
+
+@keyframes mountainScroll {
+  to {
+    background-position-x: -24px;
+  }
 }
 
 #hud .sb .value {
   font-size: 18px;
+  color: var(--neon-cyan);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
 }
 
 #touchControls .dpad button#btnFire:active,
@@ -20,6 +73,9 @@
 }
 
 @media (max-width: 520px) {
+  #hud .sg::after {
+    display: none;
+  }
   #hud .sb .value {
     font-size: 14px;
   }

@@ -1,11 +1,50 @@
 :root {
-  --accent: var(--neon-cyan);
-  --accent-glow: rgba(0, 245, 255, 0.3);
-  --overlay-grad-start: rgba(8, 8, 30, 0.92);
-  --overlay-grad-end: rgba(4, 4, 12, 0.97);
+  --bg-body: #0c0814;
+  --accent: var(--neon-purple);
+  --accent-glow: rgba(192, 132, 252, 0.3);
+  --overlay-grad-start: rgba(12, 8, 25, 0.88);
+  --overlay-grad-end: rgba(6, 4, 10, 0.95);
 }
 
-/* ── HUD ── */
+[data-theme='light'] {
+  --bg-body: #e2d8e8;
+}
+
+/* ── Bioluminescent glow accent ── */
+#hud .hud-group {
+  position: relative;
+  border-color: rgba(192, 132, 252, 0.12);
+}
+#hud .hud-group::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(192, 132, 252, 0.2) 30%,
+    rgba(192, 132, 252, 0.2) 70%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerFlow 3s ease-in-out infinite;
+}
+
+@keyframes shimmerFlow {
+  0%,
+  100% {
+    background-position: 0% 0;
+    opacity: 0.4;
+  }
+  50% {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+}
+
 #hud {
   justify-content: center;
   padding: 12px 16px 0;
@@ -41,8 +80,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-#hud .hud-item.mass .value { color: var(--neon-cyan); }
-#hud .hud-item.rank .value { color: var(--neon-yellow); }
+#hud .hud-item.mass .value {
+  color: var(--neon-purple);
+}
+#hud .hud-item.rank .value {
+  color: var(--neon-yellow);
+}
 
 #hud .hud-divider {
   width: 1px;
@@ -82,11 +125,13 @@
 }
 
 .action-btn:hover {
-  background: rgba(0, 245, 255, 0.12);
-  border-color: rgba(0, 245, 255, 0.25);
+  background: rgba(192, 132, 252, 0.12);
+  border-color: rgba(192, 132, 252, 0.25);
 }
 
-.action-btn:active { transform: scale(0.93); }
+.action-btn:active {
+  transform: scale(0.93);
+}
 
 /* ── Leaderboard ── */
 #leaderboard {
@@ -146,13 +191,15 @@
 }
 
 .lb-entry.is-player {
-  background: rgba(0, 245, 255, 0.08);
+  background: rgba(192, 132, 252, 0.08);
   border-radius: 4px;
   padding: 2px 4px;
   margin: 0 -4px;
 }
 
-.lb-entry.is-player .lb-name { color: var(--neon-cyan); }
+.lb-entry.is-player .lb-name {
+  color: var(--neon-purple);
+}
 
 /* ── Name Entry ── */
 #nameOverlay {
@@ -163,24 +210,37 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: radial-gradient(circle at 50% 40%, rgba(8, 8, 30, 0.92), rgba(4, 4, 12, 0.97));
+  background: radial-gradient(circle at 50% 40%, rgba(12, 8, 25, 0.88), rgba(6, 4, 10, 0.95));
   z-index: 30;
   color: #fff;
   text-align: center;
   transition: opacity 0.4s ease;
 }
 
-#nameOverlay.hidden { opacity: 0; pointer-events: none; }
+#nameOverlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
 
 #nameOverlay h1 {
   font-size: 30px;
   letter-spacing: 6px;
-  text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+  text-shadow: 0 0 30px rgba(192, 132, 252, 0.3);
 }
 
-#nameOverlay h1 .accent { color: var(--neon-cyan); }
-#nameOverlay p { font-size: 13px; opacity: 0.7; max-width: 320px; line-height: 1.5; }
-#nameOverlay .hint { font-size: 11px; opacity: 0.35; }
+#nameOverlay h1 .accent {
+  color: var(--neon-purple);
+}
+#nameOverlay p {
+  font-size: 13px;
+  opacity: 0.7;
+  max-width: 320px;
+  line-height: 1.5;
+}
+#nameOverlay .hint {
+  font-size: 11px;
+  opacity: 0.35;
+}
 
 #nameInput {
   background: rgba(255, 255, 255, 0.06);
@@ -198,18 +258,20 @@
 }
 
 #nameInput:focus {
-  border-color: rgba(0, 245, 255, 0.4);
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.06);
+  border-color: rgba(192, 132, 252, 0.4);
+  box-shadow: 0 0 20px rgba(192, 132, 252, 0.06);
 }
 
-#nameInput::placeholder { color: rgba(255, 255, 255, 0.2); }
+#nameInput::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
 
 #btnStart {
-  background: rgba(0, 245, 255, 0.12);
-  border: 1px solid rgba(0, 245, 255, 0.25);
+  background: rgba(192, 132, 252, 0.12);
+  border: 1px solid rgba(192, 132, 252, 0.25);
   border-radius: 10px;
   padding: 10px 36px;
-  color: var(--neon-cyan);
+  color: var(--neon-purple);
   font-family: inherit;
   font-size: 15px;
   letter-spacing: 3px;
@@ -219,29 +281,55 @@
 }
 
 #btnStart:hover {
-  background: rgba(0, 245, 255, 0.2);
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+  background: rgba(192, 132, 252, 0.2);
+  box-shadow: 0 0 20px rgba(192, 132, 252, 0.1);
 }
 
-/* ── Overline game over overlay ── */
-#overlay h1 { color: var(--neon-red); }
+/* ── Game over overlay ── */
+#overlay h1 {
+  color: var(--neon-red);
+}
 
 /* ── Touch controls ── */
 #touchControls button:active,
 #touchControls button.is-pressed {
-  background: rgba(0, 245, 255, 0.2);
-  border-color: rgba(0, 245, 255, 0.3);
+  background: rgba(192, 132, 252, 0.2);
+  border-color: rgba(192, 132, 252, 0.3);
   transform: scale(0.9);
 }
 
 @media (hover: none) and (pointer: coarse) {
-  #actions { display: none; }
+  #actions {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  #hud .hud-group::after {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
-  #leaderboard { top: 52px; right: 8px; min-width: 100px; padding: 6px 10px; }
-  .lb-entry { font-size: 10px; }
-  #nameOverlay h1 { font-size: 22px; }
-  #nameInput { font-size: 16px; width: 200px; }
-  #touchControls button { width: 50px; height: 46px; font-size: 16px; }
+  #leaderboard {
+    top: 52px;
+    right: 8px;
+    min-width: 100px;
+    padding: 6px 10px;
+  }
+  .lb-entry {
+    font-size: 10px;
+  }
+  #nameOverlay h1 {
+    font-size: 22px;
+  }
+  #nameInput {
+    font-size: 16px;
+    width: 200px;
+  }
+  #touchControls button {
+    width: 50px;
+    height: 46px;
+    font-size: 16px;
+  }
 }

@@ -1,7 +1,40 @@
 :root {
+  --bg-body: #0a120e;
   --accent: var(--neon-green);
-  --accent-glow: rgba(57, 255, 20, 0.3);
-  --overlay-grad-start: rgba(18, 40, 30, 0.8);
+  --accent-glow: rgba(57, 255, 20, 0.25);
+  --overlay-grad-start: rgba(10, 25, 18, 0.88);
+  --overlay-grad-end: rgba(4, 8, 6, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #d8e0d8;
+}
+
+/* ── Serpentine scale decoration ── */
+#hud .score-group {
+  border: 1px solid rgba(57, 255, 20, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+#hud .score-group::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(rgba(57, 255, 20, 0.03) 0% 25%, transparent 25% 50%) 0 0 /
+    8px 8px;
+  pointer-events: none;
+  border-radius: inherit;
+  animation: scalePulse 4s ease-in-out infinite;
+}
+
+@keyframes scalePulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 #hud .score-block.score .value {
@@ -44,6 +77,10 @@
   }
 }
 
+#overlay h1 {
+  letter-spacing: 6px;
+}
+
 #touchControls .dpad button:active,
 #touchControls .dpad button.is-pressed {
   background: rgba(57, 255, 20, 0.2);
@@ -56,6 +93,12 @@
   }
   #hud .score-block .value {
     font-size: 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  #hud .score-group::before {
+    display: none;
   }
 }
 

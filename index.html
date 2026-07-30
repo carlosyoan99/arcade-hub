@@ -701,15 +701,34 @@
         background: var(--surface-hover);
       }
 
-      .card .icon {
+      .card .icon,
+      .card .icon-thumb {
         font-size: 36px;
         display: block;
         margin-bottom: 14px;
         transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
 
-      .card.ready:hover .icon {
+      .card .icon-thumb {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        object-fit: cover;
+        margin-left: auto;
+        margin-right: auto;
+        background: transparent;
+      }
+
+      .card.ready:hover .icon,
+      .card.ready:hover .icon-thumb {
         transform: scale(1.15) rotate(-4deg);
+      }
+
+      .list-view .card .icon-thumb {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 0;
+        flex-shrink: 0;
       }
 
       .card h2 {
@@ -2285,6 +2304,13 @@
         setTimeout(dismissCoin, 8000);
       })();
 
+      /* ── Service Worker registration ── */
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+
       /* ── Animated counter ── */
       function animateCounter(el, target, duration = 800) {
         const start = 0;
@@ -2443,7 +2469,11 @@
 
         el.innerHTML = `
           ${newBadgeHtml}
-          <span class="icon">${game.icon ?? '🎮'}</span>
+          ${
+            game.thumbnail
+              ? `<img class="icon-thumb" src="${game.thumbnail}" alt="${game.title}" loading="lazy">`
+              : `<span class="icon">${game.icon ?? '🎮'}</span>`
+          }
           <h2>${game.title}</h2>
           <p>${game.description}</p>
           <div class="card-footer">

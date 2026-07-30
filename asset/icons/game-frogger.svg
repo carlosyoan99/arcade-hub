@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#0c0922"/>
+  <!-- road lines -->
+  <line x1="16" y1="32" x2="112" y2="32" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="6 6"/>
+  <line x1="16" y1="60" x2="112" y2="60" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="6 6"/>
+  <line x1="16" y1="88" x2="112" y2="88" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="6 6"/>
+  <!-- cars -->
+  <rect x="30" y="34" width="20" height="10" rx="3" fill="#ff2d78" opacity="0.4"/>
+  <rect x="80" y="62" width="20" height="10" rx="3" fill="#ffb800" opacity="0.4"/>
+  <!-- frog -->
+  <ellipse cx="64" cy="48" rx="12" ry="8" fill="#39ff14" opacity="0.9"/>
+  <circle cx="56" cy="42" r="4" fill="#39ff14" opacity="0.85"/>
+  <circle cx="72" cy="42" r="4" fill="#39ff14" opacity="0.85"/>
+  <circle cx="55" cy="41" r="1.5" fill="#0c0922"/>
+  <circle cx="71" cy="41" r="1.5" fill="#0c0922"/>
+  <!-- safe zones -->
+  <rect x="10" y="98" width="20" height="8" rx="2" fill="#00cc44" opacity="0.25"/>
+  <rect x="50" y="98" width="20" height="8" rx="2" fill="#00cc44" opacity="0.25"/>
+  <rect x="90" y="98" width="20" height="8" rx="2" fill="#00cc44" opacity="0.25"/>
+</svg>

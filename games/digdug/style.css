@@ -1,15 +1,62 @@
 :root {
   --bg-body: #1a0e0a;
   --loader-bg: #1a0e0a;
-  --accent: var(--neon-green);
-  --accent-glow: rgba(57, 255, 20, 0.3);
-  --overlay-grad-start: rgba(30, 15, 10, 0.85);
-  --overlay-grad-end: rgba(10, 8, 6, 0.92);
+  --accent: var(--neon-orange);
+  --accent-glow: rgba(255, 138, 101, 0.3);
+  --overlay-grad-start: rgba(30, 15, 10, 0.88);
+  --overlay-grad-end: rgba(10, 6, 4, 0.95);
 }
 
 [data-theme='light'] {
   --bg-body: #e8d8c8;
   --loader-bg: #e8d8c8;
+}
+
+/* ── Dirt/rock texture ── */
+#hud .sg {
+  position: relative;
+  border-color: rgba(255, 138, 101, 0.15);
+}
+#hud .sg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 50%, rgba(255, 138, 101, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+  border-radius: inherit;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+#hud .sg::after {
+  content: '◆';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  color: rgba(255, 138, 101, 0.15);
+  animation: diamondFloat 3s ease-in-out infinite;
+}
+
+@keyframes diamondFloat {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateX(-50%) translateY(-3px);
+    opacity: 0.3;
+  }
 }
 
 #hud .sb.score .value {
@@ -26,10 +73,14 @@
   color: var(--neon-gold);
 }
 
+#overlay h1 {
+  letter-spacing: 6px;
+}
+
 #tc button:active,
 #tc button.is-pressed {
-  background: rgba(57, 255, 20, 0.2);
-  border-color: rgba(57, 255, 20, 0.35);
+  background: rgba(255, 138, 101, 0.2);
+  border-color: rgba(255, 138, 101, 0.35);
 }
 
 #tc .btn-fire {
@@ -41,6 +92,13 @@
 #tc .btn-fire.is-pressed {
   background: rgba(255, 100, 100, 0.25);
   border-color: rgba(255, 100, 100, 0.4);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before,
+  #hud .sg::after {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {

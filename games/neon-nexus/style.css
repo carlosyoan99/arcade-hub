@@ -1,11 +1,51 @@
 :root {
+  --bg-body: #08081a;
   --accent: var(--neon-cyan);
   --accent-glow: rgba(0, 245, 255, 0.3);
-  --overlay-grad-start: rgba(10, 10, 35, 0.85);
-  --overlay-grad-end: rgba(4, 4, 12, 0.95);
+  --overlay-grad-start: rgba(8, 8, 30, 0.88);
+  --overlay-grad-end: rgba(3, 3, 10, 0.95);
 }
 
-/* ── HUD (Neon Nexus has unique HUD layout) ── */
+[data-theme='light'] {
+  --bg-body: #d8dce8;
+}
+
+/* ── Neon grid accent ── */
+#hud .hud-group {
+  position: relative;
+  border: 1px solid rgba(0, 245, 255, 0.15);
+}
+#hud .hud-group::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 10%,
+    rgba(0, 245, 255, 0.2) 30%,
+    rgba(0, 245, 255, 0.2) 70%,
+    transparent 90%
+  );
+  border-radius: 10px 10px 0 0;
+  background-size: 200% 100%;
+  animation: shimmerFlow 3s ease-in-out infinite;
+}
+
+@keyframes shimmerFlow {
+  0%,
+  100% {
+    background-position: 0% 0;
+    opacity: 0.6;
+  }
+  50% {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+}
+
 #hud {
   flex-direction: column;
   align-items: center;
@@ -45,9 +85,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-#hud .hud-item.wave .value { color: var(--neon-cyan); }
-#hud .hud-item.stars .value { color: var(--neon-yellow); }
-#hud .hud-item.coins .value { color: var(--neon-purple); }
+#hud .hud-item.wave .value {
+  color: var(--neon-cyan);
+}
+#hud .hud-item.stars .value {
+  color: var(--neon-yellow);
+}
+#hud .hud-item.coins .value {
+  color: var(--neon-purple);
+}
 
 #hud .hud-divider {
   width: 1px;
@@ -106,10 +152,17 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.upgrade-btn:active { transform: scale(0.95); }
+.upgrade-btn:active {
+  transform: scale(0.95);
+}
 
-.upgrade-btn .upg-icon { font-size: 14px; }
-.upgrade-btn .upg-label { font-weight: bold; letter-spacing: 1px; }
+.upgrade-btn .upg-icon {
+  font-size: 14px;
+}
+.upgrade-btn .upg-label {
+  font-weight: bold;
+  letter-spacing: 1px;
+}
 
 .upgrade-btn .upg-cost {
   font-size: 9px;
@@ -119,7 +172,9 @@
   border-radius: 4px;
 }
 
-#hud .hud-cards { pointer-events: auto; }
+#hud .hud-cards {
+  pointer-events: auto;
+}
 
 .card-badge {
   display: none;
@@ -135,16 +190,26 @@
   animation: badgePulse 2s ease-in-out infinite;
 }
 
-.card-badge:hover { border-color: var(--neon-cyan); }
-
-@keyframes badgePulse {
-  0%, 100% { box-shadow: 0 0 4px rgba(0, 245, 255, 0.1); }
-  50% { box-shadow: 0 0 12px rgba(0, 245, 255, 0.3); }
+.card-badge:hover {
+  border-color: var(--neon-cyan);
 }
 
-/* ── Overrides for overlays ── */
-#overlay h1 { letter-spacing: 6px; }
-#overlay p { max-width: 400px; }
+@keyframes badgePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(0, 245, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(0, 245, 255, 0.3);
+  }
+}
+
+#overlay h1 {
+  letter-spacing: 8px;
+}
+#overlay p {
+  max-width: 400px;
+}
 
 /* ── Card Selection Overlay ── */
 #cardOverlay {
@@ -160,7 +225,10 @@
   transition: opacity 0.35s ease;
 }
 
-#cardOverlay.hidden { opacity: 0; pointer-events: none; }
+#cardOverlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
 
 #cardOverlay h2 {
   font-size: 20px;
@@ -202,8 +270,12 @@
   border-radius: 14px;
   padding: 1px;
   background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.08) 100%);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   mask-composite: exclude;
   -webkit-mask-composite: xor;
   pointer-events: none;
@@ -246,11 +318,17 @@
 }
 
 #cardOverlay .card.rarity-common .card-name,
-#cardOverlay .card.rarity-common .card-icon { color: #7dd3fc; }
+#cardOverlay .card.rarity-common .card-icon {
+  color: #7dd3fc;
+}
 #cardOverlay .card.rarity-rare .card-name,
-#cardOverlay .card.rarity-rare .card-icon { color: var(--neon-purple); }
+#cardOverlay .card.rarity-rare .card-icon {
+  color: var(--neon-purple);
+}
 #cardOverlay .card.rarity-epic .card-name,
-#cardOverlay .card.rarity-epic .card-icon { color: var(--neon-yellow); }
+#cardOverlay .card.rarity-epic .card-icon {
+  color: var(--neon-yellow);
+}
 
 /* ── Shop Overlay ── */
 #shopOverlay {
@@ -266,7 +344,10 @@
   transition: opacity 0.3s ease;
 }
 
-#shopOverlay.hidden { opacity: 0; pointer-events: none; }
+#shopOverlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
 
 #shopOverlay h2 {
   font-size: 20px;
@@ -275,7 +356,10 @@
   text-shadow: 0 0 20px rgba(192, 132, 252, 0.2);
 }
 
-.shop-balance { font-size: 15px; color: var(--neon-purple); }
+.shop-balance {
+  font-size: 15px;
+  color: var(--neon-purple);
+}
 
 #shopItems {
   display: flex;
@@ -303,9 +387,18 @@
   background: rgba(192, 132, 252, 0.06);
 }
 
-.shop-item.owned { opacity: 0.4; pointer-events: none; }
-.shop-item .shop-item-name { font-size: 13px; }
-.shop-item .shop-item-cost { font-size: 12px; color: var(--neon-purple); font-weight: bold; }
+.shop-item.owned {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.shop-item .shop-item-name {
+  font-size: 13px;
+}
+.shop-item .shop-item-cost {
+  font-size: 12px;
+  color: var(--neon-purple);
+  font-weight: bold;
+}
 
 #shopClose {
   background: rgba(255, 255, 255, 0.06);
@@ -319,9 +412,10 @@
   transition: all 0.15s ease;
 }
 
-#shopClose:hover { background: rgba(255, 255, 255, 0.1); }
+#shopClose:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
 
-/* ── Touch controls ── */
 #touchControls button:active,
 #touchControls button.is-pressed {
   background: rgba(0, 245, 255, 0.2);
@@ -345,22 +439,52 @@
 }
 
 @media (hover: none) and (pointer: coarse) {
-  #hud .hud-group { padding: 4px 10px; }
-  #hud .hud-item .value { font-size: 15px; }
-  .upgrade-btn { padding: 3px 8px; font-size: 10px; }
+  #hud .hud-group {
+    padding: 4px 10px;
+  }
+  #hud .hud-item .value {
+    font-size: 15px;
+  }
+  .upgrade-btn {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 520px) {
+  #hud .hud-group::after {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
-  #cardContainer { gap: 10px; }
+  #cardContainer {
+    gap: 10px;
+  }
   #cardOverlay .card {
     width: 140px;
     min-height: 160px;
     padding: 14px 12px;
   }
-  #cardOverlay .card .card-icon { font-size: 28px; }
-  #cardOverlay .card .card-name { font-size: 13px; }
-  #touchControls button { width: 56px; height: 56px; font-size: 17px; }
-  #touchControls .tc-fire { padding: 0 14px; font-size: 11px; }
-  #hud .hp-bar-wrap { width: 60px; }
-  #hud .hud-divider { margin: 0 2px; }
+  #cardOverlay .card .card-icon {
+    font-size: 28px;
+  }
+  #cardOverlay .card .card-name {
+    font-size: 13px;
+  }
+  #touchControls button {
+    width: 56px;
+    height: 56px;
+    font-size: 17px;
+  }
+  #touchControls .tc-fire {
+    padding: 0 14px;
+    font-size: 11px;
+  }
+  #hud .hp-bar-wrap {
+    width: 60px;
+  }
+  #hud .hud-divider {
+    margin: 0 2px;
+  }
 }

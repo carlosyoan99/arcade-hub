@@ -1,6 +1,38 @@
 :root {
+  --bg-body: #0a0c14;
   --accent: var(--neon-blue);
   --accent-glow: rgba(110, 198, 255, 0.3);
+  --overlay-grad-start: rgba(10, 15, 30, 0.88);
+  --overlay-grad-end: rgba(5, 8, 12, 0.95);
+}
+
+/* ── Brick-pattern HUD border ── */
+#hud .sg {
+  border-image: repeating-linear-gradient(
+      90deg,
+      var(--neon-red) 0px,
+      var(--neon-red) 2px,
+      var(--neon-orange) 2px,
+      var(--neon-orange) 4px,
+      transparent 4px,
+      transparent 6px
+    )
+    1;
+  border-width: 1px 0;
+  border-style: solid;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  animation: brickShimmer 4s ease-in-out infinite;
+}
+
+@keyframes brickShimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 #hud .score-block.score .value {
@@ -49,6 +81,10 @@
   }
 }
 
+#overlay h1 {
+  letter-spacing: 6px;
+}
+
 #touchControls button:active,
 #touchControls button.is-pressed {
   background: rgba(110, 198, 255, 0.25);
@@ -78,6 +114,14 @@
   }
   #hud .score-block.lives .value {
     font-size: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  #hud .score-group {
+    border-image: none;
+    border-width: 0;
+    padding: 6px 14px;
   }
 }
 

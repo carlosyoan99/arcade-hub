@@ -1,7 +1,51 @@
 :root {
-  --accent: var(--neon-green);
-  --accent-glow: rgba(57, 255, 20, 0.3);
-  --overlay-grad-start: rgba(20, 35, 50, 0.85);
+  --bg-body: #0f1a24;
+  --accent: var(--neon-cyan);
+  --accent-glow: rgba(0, 240, 255, 0.25);
+  --overlay-grad-start: rgba(15, 30, 45, 0.88);
+  --overlay-grad-end: rgba(8, 12, 18, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #d8dce0;
+}
+
+/* ── Cloud puffs decoration ── */
+#hud .sg {
+  position: relative;
+  overflow: hidden;
+}
+#hud .sg::before,
+#hud .sg::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 240, 255, 0.04);
+  pointer-events: none;
+}
+#hud .sg::before {
+  width: 20px;
+  height: 12px;
+  top: -6px;
+  left: 15%;
+  animation: cloudFloat 4s ease-in-out infinite;
+}
+#hud .sg::after {
+  width: 14px;
+  height: 8px;
+  bottom: -4px;
+  right: 20%;
+  animation: cloudFloat 4s ease-in-out infinite 2s;
+}
+
+@keyframes cloudFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 #hud .sb.score .value {
@@ -14,6 +58,27 @@
 
 #hud .sg {
   gap: 14px;
+  border-radius: 50px;
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
+}
+
+#tc button:active,
+#tc button.is-pressed {
+  background: rgba(0, 240, 255, 0.25);
+  border-color: rgba(0, 240, 255, 0.4);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before,
+  #hud .sg::after {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -24,15 +89,6 @@
   #hud .sb .value {
     font-size: 20px;
   }
-}
-
-#tc button:active,
-#tc button.is-pressed {
-  background: rgba(57, 255, 20, 0.25);
-  border-color: rgba(57, 255, 20, 0.4);
-}
-
-@media (max-width: 480px) {
   #tc button {
     width: 80px;
     height: 62px;

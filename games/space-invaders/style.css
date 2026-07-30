@@ -1,10 +1,50 @@
 :root {
-  --accent: var(--neon-blue);
-  --accent-glow: rgba(110, 198, 255, 0.3);
+  --bg-body: #0a0f0a;
+  --accent: var(--neon-green);
+  --accent-glow: rgba(57, 255, 20, 0.25);
+  --overlay-grad-start: rgba(10, 20, 10, 0.88);
+  --overlay-grad-end: rgba(4, 8, 4, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #d8e0d8;
+}
+
+#hud .sg {
+  position: relative;
+}
+
+/* ── Alien scanner line ── */
+#hud .sg::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(57, 255, 20, 0.15) 20%,
+    rgba(57, 255, 20, 0.15) 80%,
+    transparent 100%
+  );
+  transform: translateY(-50%);
+  animation: scannerSweep 3s ease-in-out infinite;
+}
+
+@keyframes scannerSweep {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 #hud .sb.score .value {
-  color: var(--neon-blue);
+  color: var(--accent);
 }
 
 #hud .sb.lives .value {
@@ -17,16 +57,11 @@
   color: var(--neon-gold);
 }
 
-@media (max-width: 480px) {
-  #hud .sg {
-    padding: 6px 14px;
-  }
-  #hud .sb .value {
-    font-size: 20px;
-  }
-  #hud .sb.lives .value {
-    font-size: 14px;
-  }
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 40px rgba(57, 255, 20, 0.5);
 }
 
 #tc button:active,
@@ -47,6 +82,18 @@
 }
 
 @media (max-width: 480px) {
+  #hud .sg::after {
+    display: none;
+  }
+  #hud .sg {
+    padding: 6px 14px;
+  }
+  #hud .sb .value {
+    font-size: 20px;
+  }
+  #hud .sb.lives .value {
+    font-size: 14px;
+  }
   #tc button {
     width: 68px;
     height: 58px;

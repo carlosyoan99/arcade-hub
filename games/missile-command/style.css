@@ -3,13 +3,50 @@
   --loader-bg: #0a0a1a;
   --accent: var(--neon-red);
   --accent-glow: rgba(255, 94, 122, 0.3);
-  --overlay-grad-start: rgba(10, 10, 30, 0.85);
-  --overlay-grad-end: rgba(5, 5, 15, 0.92);
+  --overlay-grad-start: rgba(10, 10, 30, 0.88);
+  --overlay-grad-end: rgba(5, 5, 15, 0.95);
 }
 
 [data-theme='light'] {
   --bg-body: #d0d8e0;
   --loader-bg: #d0d8e0;
+}
+
+/* ── Radar blip decoration ── */
+#hud .sg {
+  position: relative;
+  overflow: hidden;
+}
+#hud .sg::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 94, 122, 0.2);
+  box-shadow:
+    0 0 6px rgba(255, 94, 122, 0.15),
+    20px -4px 0 rgba(255, 94, 122, 0.08),
+    -15px 6px 0 rgba(255, 94, 122, 0.06);
+  top: 30%;
+  right: 12px;
+  animation: blipPulse 2s ease-in-out infinite;
+}
+
+@keyframes blipPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 6px rgba(255, 94, 122, 0.15),
+      20px -4px 0 rgba(255, 94, 122, 0.08),
+      -15px 6px 0 rgba(255, 94, 122, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 12px rgba(255, 94, 122, 0.25),
+      20px -4px 0 rgba(255, 94, 122, 0.15),
+      -15px 6px 0 rgba(255, 94, 122, 0.12);
+  }
 }
 
 #hud .sb.score .value {
@@ -35,12 +72,6 @@
   color: var(--neon-gold);
 }
 
-@media (max-width: 520px) {
-  #hud .sb.wave {
-    display: none;
-  }
-}
-
 .hud-badge {
   display: inline-flex;
   align-items: center;
@@ -55,12 +86,6 @@
   text-transform: uppercase;
 }
 
-@media (max-width: 520px) {
-  .hud-badge {
-    display: none;
-  }
-}
-
 [data-theme='light'] .hud-badge {
   background: rgba(0, 150, 80, 0.08);
   border-color: rgba(0, 150, 80, 0.2);
@@ -71,10 +96,16 @@
   cursor: crosshair;
 }
 
+#overlay h1 {
+  letter-spacing: 8px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 40px rgba(255, 94, 122, 0.5);
+}
+
 #tc {
   cursor: crosshair;
 }
-
 #tc button {
   cursor: crosshair;
 }
@@ -94,6 +125,18 @@
 #tc .btn-fire.is-pressed {
   background: rgba(255, 94, 122, 0.25);
   border-color: rgba(255, 94, 122, 0.4);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before {
+    display: none;
+  }
+  #hud .sb.wave {
+    display: none;
+  }
+  .hud-badge {
+    display: none;
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#0c0922"/>
+  <!-- player ship -->
+  <path d="M54 80 L64 56 L74 80 L68 80 L64 70 L60 80 Z" fill="#00f0ff" opacity="0.9"/>
+  <path d="M48 84 L54 80 L74 80 L80 84 Z" fill="#00f0ff" opacity="0.6"/>
+  <!-- enemies -->
+  <path d="M20 24 L24 18 L32 18 L36 24 L32 30 L24 30 Z" fill="#ff2d78" opacity="0.7"/>
+  <circle cx="24" cy="22" r="1.5" fill="#fff" opacity="0.4"/>
+  <circle cx="32" cy="22" r="1.5" fill="#fff" opacity="0.4"/>
+  <path d="M50 18 L54 12 L62 12 L66 18 L62 24 L54 24 Z" fill="#ffb800" opacity="0.7"/>
+  <path d="M80 24 L84 18 L92 18 L96 24 L92 30 L84 30 Z" fill="#ff2d78" opacity="0.7"/>
+  <path d="M100 18 L104 12 L112 12 L116 18 L112 24 L104 24 Z" fill="#ffb800" opacity="0.7"/>
+</svg>

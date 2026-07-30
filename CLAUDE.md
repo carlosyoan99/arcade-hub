@@ -131,27 +131,34 @@ No importar de otros juegos ni de fuera de `shared/`.
 
 ---
 
-## 🔧 Skills locales recomendadas
+## 🔧 Skills locales instaladas
 
-Skills instaladas en `.agents/skills/`. **Cargar la skill relevante antes de ejecutar la tarea** con:
+Skills disponibles en `.agents/skills/`. **Cargar la skill antes de ejecutar la tarea** con:
 
 ```
-skill("frontend-design")
+skill("nombre-de-la-skill")
 ```
+
+### Core (más usadas)
 
 | Skill | Cuándo usarla |
 |-------|---------------|
 | `frontend-design` | Rediseñar hub o juego — paleta, tipografía, layout, elemento signature |
 | `game-feel` | Agregar juicio: screen shake, hit-stop, squash & stretch, knockback |
-| `game-ui-ux` | Diseñar HUDs, menús, overlays, navegación por foco |
-| `audio-design` | Diseño de sonido adaptativo, mezcla, ducking, variación SFX |
-| `physics-tuning` | Ajustar física: fixed timestep, CCD anti-tunneling, gravedad |
-| `input-systems` | Arquitectura de input: action mapping, rebinding, deadzones |
-| `performance-optimization` | Optimizar: object pooling, draw-call batching, GC |
-| `save-systems` | Save/load: slots, migración, escritura atómica |
-| `game-balance` | Balancear economía, dificultad, progresión, rewards |
-| `itch-publish` | Publicar en itch.io con butler |
-| `steam-publish` | Publicar en Steam con SteamPipe |
+| `game-engine` | Construir o mejorar juegos Canvas 2D — game loop, físicas, colisiones, sprites |
+| `refactor` | Refactorizar código: extraer funciones, mejorar tipos, eliminar code smells |
+| `git-commit` | Hacer commits con mensajes convencionales semánticos |
+
+### Complementarias
+
+| Skill | Cuándo usarla |
+|-------|---------------|
+| `premium-frontend-ui` | Diseño UI inmersivo de alto nivel (animaciones, tipografía, micro-interacciones) |
+| `create-implementation-plan` | Planificar implementaciones multi-paso antes de codificar |
+| `refactor-plan` | Planificar refactors multi-archivo de forma segura |
+| `create-readme` | Generar README.md para nuevos juegos |
+| `create-specification` | Crear especificaciones técnicas detalladas |
+| `documentation-writter` | Redactar documentación técnica |
 
 ---
 

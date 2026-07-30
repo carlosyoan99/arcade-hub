@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#0c0922"/>
+  <circle cx="64" cy="56" r="22" fill="#ff2d78" opacity="0.2"/>
+  <circle cx="64" cy="56" r="18" fill="none" stroke="#ff2d78" stroke-width="2" opacity="0.6"/>
+  <circle cx="58" cy="50" r="4" fill="#ff2d78" opacity="0.4"/>
+  <circle cx="70" cy="50" r="3.5" fill="#ff2d78" opacity="0.35"/>
+  <circle cx="62" cy="62" r="3" fill="#ff2d78" opacity="0.3"/>
+  <!-- enemy cells -->
+  <circle cx="30" cy="38" r="10" fill="#39ff14" opacity="0.15"/>
+  <circle cx="30" cy="38" r="8" fill="none" stroke="#39ff14" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="100" cy="46" r="8" fill="none" stroke="#ffb800" stroke-width="1.5" opacity="0.35"/>
+  <circle cx="34" cy="82" r="6" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0.3"/>
+  <!-- food dots -->
+  <circle cx="50" cy="30" r="2" fill="#ff2d78" opacity="0.3"/>
+  <circle cx="80" cy="28" r="1.5" fill="#39ff14" opacity="0.25"/>
+  <circle cx="86" cy="70" r="2" fill="#ffb800" opacity="0.2"/>
+  <circle cx="42" cy="74" r="1.5" fill="#00f0ff" opacity="0.2"/>
+</svg>

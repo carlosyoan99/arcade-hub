@@ -1,6 +1,41 @@
 :root {
+  --bg-body: #0a0c16;
   --accent: var(--neon-blue);
   --accent-glow: rgba(110, 198, 255, 0.3);
+  --overlay-grad-start: rgba(10, 15, 28, 0.88);
+  --overlay-grad-end: rgba(5, 6, 12, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #dadce2;
+}
+
+/* ── Grid matrix decoration ── */
+#hud .sg {
+  position: relative;
+  overflow: hidden;
+}
+#hud .sg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(110, 198, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 198, 255, 0.04) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  border-radius: inherit;
+  animation: gridPulse 5s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 #hud .sb.score .value {
@@ -19,17 +54,11 @@
   color: var(--neon-gold);
 }
 
-@media (max-width: 520px) {
-  #hud .sg {
-    padding: 4px 10px;
-    gap: 6px;
-  }
-  #hud .sb .value {
-    font-size: 16px;
-  }
-  #hud .sb.lines {
-    display: none;
-  }
+#overlay h1 {
+  letter-spacing: 8px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 40px rgba(110, 198, 255, 0.5);
 }
 
 #tc .dp {
@@ -49,6 +78,25 @@
 
 #tc .dp .btn-drop {
   background: rgba(255, 100, 100, 0.08);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  #hud .sg {
+    padding: 4px 10px;
+    gap: 6px;
+  }
+  #hud .sb .value {
+    font-size: 16px;
+  }
+  #hud .sb.lines {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {

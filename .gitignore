@@ -3,10 +3,4 @@ server.log
 
 # NPM package
 node_modules
-package.json
 package-lock.json
-
-# ESLint y Prettier
-.prettierignore
-.prettierrc
-eslint.config.mjs

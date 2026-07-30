@@ -1,6 +1,48 @@
 :root {
   --accent: var(--neon-green);
   --accent-glow: rgba(57, 255, 20, 0.3);
+  --overlay-grad-start: rgba(15, 30, 20, 0.88);
+  --overlay-grad-end: rgba(5, 8, 10, 0.95);
+}
+
+#hud .score-group {
+  position: relative;
+}
+
+/* ── Court center line decoration ── */
+#hud .score-group::before,
+#hud .score-group::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 40%;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--accent) 0px,
+    var(--accent) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  opacity: 0.15;
+  transform: translateY(-50%);
+  animation: linePulse 3s ease-in-out infinite;
+}
+
+@keyframes linePulse {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+#hud .score-group::before {
+  left: -8px;
+}
+#hud .score-group::after {
+  right: -8px;
 }
 
 #hud .score-block .value {
@@ -21,8 +63,12 @@
 
 #touchControls button.down:active,
 #touchControls button.down.is-pressed {
-  background: rgba(255, 138, 101, 0.25);
-  border-color: rgba(255, 138, 101, 0.4);
+  background: rgba(57, 255, 20, 0.25);
+  border-color: rgba(57, 255, 20, 0.4);
+}
+
+#overlay h1 {
+  letter-spacing: 8px;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -35,6 +81,10 @@
 }
 
 @media (max-width: 480px) {
+  #hud .score-group::before,
+  #hud .score-group::after {
+    display: none;
+  }
   #hud .wins-block {
     display: none;
   }

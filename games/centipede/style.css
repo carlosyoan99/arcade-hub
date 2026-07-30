@@ -1,7 +1,42 @@
 :root {
+  --bg-body: #0a0e0a;
   --accent: var(--neon-green);
-  --accent-glow: rgba(57, 255, 20, 0.3);
-  --overlay-grad-start: rgba(15, 10, 30, 0.85);
+  --accent-glow: rgba(57, 255, 20, 0.25);
+  --overlay-grad-start: rgba(10, 18, 10, 0.88);
+  --overlay-grad-end: rgba(4, 8, 5, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #d8e0d8;
+}
+
+/* ── Mushroom forest glow ── */
+#hud .sg {
+  position: relative;
+  border: 1px solid rgba(57, 255, 20, 0.1);
+}
+#hud .sg::before {
+  content: '✦';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 6px;
+  color: rgba(57, 255, 20, 0.2);
+  transform-origin: center;
+  animation: sporeTwinkle 3s ease-in-out infinite;
+}
+
+@keyframes sporeTwinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateX(-50%) scale(0.8);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateX(-50%) scale(1.2);
+  }
 }
 
 #hud .sb.score .value {
@@ -16,6 +51,10 @@
 
 #hud .sb.best .value {
   color: var(--neon-gold);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
 }
 
 #tc button:active,
@@ -33,6 +72,12 @@
 #tc .btn-fire.is-pressed {
   background: rgba(255, 100, 100, 0.25);
   border-color: rgba(255, 100, 100, 0.4);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {

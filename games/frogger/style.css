@@ -1,7 +1,44 @@
 :root {
+  --bg-body: #0a120a;
   --accent: var(--neon-green);
-  --accent-glow: rgba(57, 255, 20, 0.3);
-  --overlay-grad-start: rgba(20, 30, 20, 0.85);
+  --accent-glow: rgba(57, 255, 20, 0.25);
+  --overlay-grad-start: rgba(10, 20, 12, 0.88);
+  --overlay-grad-end: rgba(4, 8, 6, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #d8e0d8;
+}
+
+#hud .sg {
+  position: relative;
+}
+
+/* ── Road stripe decoration ── */
+#hud .sg {
+  border-bottom: 2px dashed rgba(57, 255, 20, 0.15);
+}
+#hud .sg::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.12) 0px,
+    rgba(255, 255, 255, 0.12) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  animation: stripeScroll 3s linear infinite;
+}
+
+@keyframes stripeScroll {
+  to {
+    background-position-x: -12px;
+  }
 }
 
 #hud .sb.score .value {
@@ -21,10 +58,20 @@
   color: var(--neon-gold);
 }
 
+#overlay h1 {
+  letter-spacing: 6px;
+}
+
 #tc .dp button:active,
 #tc .dp button.is-pressed {
   background: rgba(57, 255, 20, 0.2);
   border-color: rgba(57, 255, 20, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {

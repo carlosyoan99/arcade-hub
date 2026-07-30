@@ -1,6 +1,6 @@
 # 🕹️ Arcade Hub
 
-**16 juegos clásicos recreados** con estética 2D/2.5D neon.  
+**19 juegos clásicos recreados** con estética 2D/2.5D neon.  
 Cero dependencias, sin build step, un archivo HTML por juego.  
 Abrí y jugá.
 
@@ -12,7 +12,7 @@ Abrí y jugá.
 |-----------|---------|
 | **Cero dependencias** | Se abre en el navegador y listo. No hay `npm install`, no hay bundlers, no hay toolchain. |
 | **Sin build step** | Cada juego es HTML + CSS + JS estáticos. Editar y recargar. |
-| **Autocontenido** | Cada juego vive en su carpeta (`games/pong/`). Se puede compartir el HTML suelto sin el hub. |
+| **Modular** | Cada juego vive en su carpeta (`games/pong/`) e importa módulos compartidos (`shared/`). Para jugar necesitás servir la carpeta raíz con un servidor HTTP local. |
 | **Canvas 2D / 2.5D** | `canvas` 2D con paralaje, sombras proyectadas y partículas. Nada de motores 3D. |
 | **Módulos compartidos** | Sonido, partículas, logros, estilos base y ayuda se importan desde `shared/`. |
 

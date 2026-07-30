@@ -1,12 +1,59 @@
 :root {
+  --bg-body: #0e0814;
   --accent: var(--neon-purple);
   --accent-glow: rgba(192, 132, 252, 0.3);
-  --overlay-grad-start: rgba(15, 8, 25, 0.88);
+  --overlay-grad-start: rgba(20, 10, 30, 0.88);
+  --overlay-grad-end: rgba(8, 4, 12, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #e0d8e8;
+}
+
+/* ── Pennant/banner decoration ── */
+#hud .sg {
+  position: relative;
+  border-left: 2px solid rgba(192, 132, 252, 0.08);
+  border-right: 2px solid rgba(192, 132, 252, 0.08);
+}
+#hud .sg::before,
+#hud .sg::after {
+  content: '⚜';
+  position: absolute;
+  font-size: 7px;
+  opacity: 0.12;
+  top: 50%;
+  transform: translateY(-50%);
+}
+#hud .sg::before {
+  left: 4px;
+  animation: bannerSway 3s ease-in-out infinite;
+}
+#hud .sg::after {
+  right: 4px;
+  animation: bannerSway 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes bannerSway {
+  0%,
+  100% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-50%) rotate(3deg);
+  }
 }
 
 #hud .sb .value {
   color: var(--accent);
   font-size: 20px;
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 40px rgba(192, 132, 252, 0.5);
 }
 
 #touchControls .dpad {
@@ -18,6 +65,13 @@
 #touchControls .dpad button.is-pressed {
   background: rgba(192, 132, 252, 0.2);
   border-color: rgba(192, 132, 252, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before,
+  #hud .sg::after {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {

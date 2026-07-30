@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#0c0922"/>
+  <!-- platform -->
+  <rect x="14" y="106" width="100" height="4" rx="2" fill="rgba(255,255,255,0.08)"/>
+  <!-- player ostrich -->
+  <ellipse cx="52" cy="80" rx="14" ry="10" fill="#39ff14" opacity="0.85"/>
+  <path d="M38 80 L22 84 L38 84 Z" fill="#39ff14" opacity="0.7"/>
+  <circle cx="44" cy="74" r="4" fill="#39ff14" opacity="0.9"/>
+  <circle cx="43" cy="73" r="1.5" fill="#0c0922"/>
+  <!-- knight on top -->
+  <path d="M44 72 L40 56 L48 60 L56 56 L52 72 Z" fill="#ff2d78" opacity="0.8"/>
+  <circle cx="48" cy="54" r="5" fill="#ff2d78" opacity="0.85"/>
+  <!-- lance -->
+  <line x1="52" y1="64" x2="76" y2="64" stroke="#fff" stroke-width="2" opacity="0.7"/>
+  <!-- enemy ostrich -->
+  <ellipse cx="90" cy="82" rx="12" ry="8" fill="#ffb800" opacity="0.6"/>
+  <path d="M102 82 L116 86 L102 86 Z" fill="#ffb800" opacity="0.5"/>
+  <path d="M94 76 L90 62 L98 66 L102 62 L98 76 Z" fill="#ffb800" opacity="0.55"/>
+  <circle cx="98" cy="60" r="4" fill="#ffb800" opacity="0.6"/>
+  <!-- wings (flapping) -->
+  <path d="M36 78 L28 62 L40 72" stroke="#39ff14" stroke-width="1.5" fill="none" opacity="0.5"/>
+</svg>

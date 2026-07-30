@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#0c0922"/>
+  <path d="M32 64 A32 32 0 1 1 84 40 L64 64 Z" fill="#ffdd00" opacity="0.9"/>
+  <circle cx="50" cy="48" r="4" fill="#0c0922"/>
+  <circle cx="58" cy="80" r="3" fill="#ff6600" opacity="0.5"/>
+  <circle cx="78" cy="56" r="3" fill="#ff6600" opacity="0.5"/>
+  <circle cx="72" cy="78" r="2.5" fill="#ff6600" opacity="0.4"/>
+  <circle cx="86" cy="72" r="2" fill="#ff6600" opacity="0.35"/>
+  <!-- maze dots -->
+  <circle cx="22" cy="40" r="2" fill="#ffdd00" opacity="0.25"/>
+  <circle cx="22" cy="88" r="2" fill="#ffdd00" opacity="0.25"/>
+  <circle cx="106" cy="40" r="2" fill="#ffdd00" opacity="0.25"/>
+  <circle cx="106" cy="88" r="2" fill="#ffdd00" opacity="0.25"/>
+</svg>

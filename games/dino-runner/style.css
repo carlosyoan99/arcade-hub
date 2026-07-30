@@ -1,7 +1,44 @@
 :root {
-  --accent: var(--neon-green);
-  --accent-glow: rgba(57, 255, 20, 0.3);
-  --overlay-grad-start: rgba(20, 40, 30, 0.8);
+  --bg-body: #141008;
+  --accent: var(--neon-orange);
+  --accent-glow: rgba(255, 138, 101, 0.3);
+  --overlay-grad-start: rgba(30, 20, 10, 0.88);
+  --overlay-grad-end: rgba(10, 8, 4, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #e8e0d8;
+}
+
+/* ── Desert heat shimmer ── */
+#hud .score-group {
+  border-bottom: 1px solid var(--accent);
+  border-bottom-color: rgba(255, 138, 101, 0.15);
+  position: relative;
+}
+#hud .score-group::after {
+  content: '~~~';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  letter-spacing: 12px;
+  color: var(--accent);
+  opacity: 0.12;
+  animation: heatShimmer 3s ease-in-out infinite;
+}
+
+@keyframes heatShimmer {
+  0%,
+  100% {
+    opacity: 0.08;
+    letter-spacing: 10px;
+  }
+  50% {
+    opacity: 0.2;
+    letter-spacing: 14px;
+  }
 }
 
 #hud .score-block.dist .value {
@@ -9,7 +46,7 @@
 }
 
 #hud .score-block.speed .value {
-  color: var(--neon-yellow);
+  color: var(--neon-green);
 }
 
 #hud .score-block.best .value {
@@ -22,6 +59,35 @@
   padding-top: 6px;
 }
 
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 40px rgba(255, 138, 101, 0.4);
+}
+
+#touchControls button:active,
+#touchControls button.is-pressed {
+  background: rgba(255, 138, 101, 0.25);
+  border-color: rgba(255, 138, 101, 0.4);
+}
+
+#touchControls .btn-jump {
+  background: rgba(255, 138, 101, 0.1);
+  border-color: rgba(255, 138, 101, 0.2);
+}
+
+#touchControls .btn-jump:active,
+#touchControls .btn-jump.is-pressed {
+  background: rgba(255, 138, 101, 0.3);
+}
+
+@media (max-width: 520px) {
+  #hud .score-group::after {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   #hud .score-block.speed {
     display: none;
@@ -32,31 +98,6 @@
   #hud .score-block .value {
     font-size: 22px;
   }
-}
-
-#touchControls button:active,
-#touchControls button.is-pressed {
-  background: rgba(57, 255, 20, 0.2);
-  border-color: rgba(57, 255, 20, 0.35);
-}
-
-#touchControls .btn-jump {
-  background: rgba(57, 255, 20, 0.1);
-  border-color: rgba(57, 255, 20, 0.2);
-}
-
-#touchControls .btn-jump:active,
-#touchControls .btn-jump.is-pressed {
-  background: rgba(57, 255, 20, 0.3);
-}
-
-@media (hover: none) and (pointer: coarse) {
-  #hud .score-group {
-    padding: 6px 14px;
-  }
-}
-
-@media (max-width: 480px) {
   #touchControls button {
     width: 72px;
     height: 62px;
