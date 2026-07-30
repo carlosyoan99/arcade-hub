@@ -35,7 +35,7 @@
 - [x] Meta tags Open Graph + Twitter Card
 - [x] Per-game accent colors en tarjetas del hub
 
-### Juegos implementados (18/18)
+### Juegos implementados (19/19)
 
 | Juego              | Estado   | Versión |
 | ------------------ | -------- | ------- |
