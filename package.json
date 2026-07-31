@@ -2,14 +2,16 @@
   "name": "arcade-hub",
   "version": "1.0.0",
   "private": true,
-  "description": "Arcade Hub — 14 juegos clásicos recreados con Canvas 2D",
+  "description": "Arcade Hub — 19 juegos clásicos recreados con Canvas 2D",
   "type": "module",
   "scripts": {
     "lint": "eslint '**/*.js' --no-warn-ignored",
     "lint:fix": "eslint '**/*.js' --fix --no-warn-ignored",
     "format": "prettier --check '**/*.{js,mjs,css,html,json,md}'",
     "format:fix": "prettier --write '**/*.{js,mjs,css,html,json,md}'",
-    "check": "npm run lint && npm run format"
+    "verify": "node scripts/verify.js",
+    "test": "node --test \"test/**/*.test.js\"",
+    "check": "npm run lint && npm run format && npm run verify && npm test"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -17,6 +19,7 @@
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-prettier": "^5.0.0",
     "globals": "^16.0.0",
+    "jsdom": "^30.0.1",
     "prettier": "^3.0.0"
   }
 }

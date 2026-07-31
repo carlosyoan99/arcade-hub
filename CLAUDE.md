@@ -27,12 +27,14 @@ arcade-hub/
 │
 ├── shared/               # Módulos compartidos (import relativo desde cada juego)
 │   ├── base.css          #   Neon palette, overlay, HUD, touch controls, game bar
-│   ├── audio.js          #   Web Audio API: beep(), startAmbient(), stopAmbient()
-│   ├── effects.js        #   Screen shake, partículas, pool, flash, roundRect
+│   ├── audio.js          #   Web Audio API: beep(), ensureAudio(), startAmbient(), stopAmbient(), closeAudio()
+│   ├── effects.js        #   feedbackBundle(), shake, hit-stop, squash & stretch, partículas, drawGlow(), roundRect
 │   ├── achievements.js   #   Logros + contador de partidas (localStorage)
 │   ├── help.js           #   Modal de ayuda contextual con metadata y changelog
 │   ├── display.js        #   setupCanvas() con DPR + letterboxing
-│   └── dom.js            #   injectCommonElements() — loading, announce, gameBar
+│   ├── dom.js            #   injectCommonElements() — loading, announce, gameBar
+│   ├── loop.js           #   createGameLoop() — RAF + dt + cleanup unificado
+│   └── input.js          #   createGamepad() + bindHoldButton() — gamepad y táctil compartidos
 │
 ├── games/                # 19 juegos, cada uno con 5 archivos
 │   ├── pong/             → index.html, style.css, script.js, metadata.json, README.md
@@ -41,7 +43,9 @@ arcade-hub/
 │   └── legacy-3d/        → Versiones Three.js archivadas (solo referencia)
 │
 └── .agents/skills/       → Skills instalados para trabajo con IA
-    └── frontend-design.md
+    ├── 26 skills (game-engine, refactor, game-feel, frontend-design, git-commit, ...)
+    ├── assets/           → 5 templates de juegos
+    └── references/       → 32 referencias técnicas
 ```
 
 ---
@@ -107,9 +111,12 @@ Todo juego debe soportar desde el primer build:
 ## 🔊 Sonido y partículas
 
 - **Sonido**: `beep({freq, duration, type, volume})` desde `shared/audio.js`. Nunca archivos externos.
+- **Audio init**: `ensureAudio()` en `startGame()` (gesto de usuario) y `closeAudio()` en cleanup.
 - **Ambient**: `startAmbient()` / `stopAmbient()` para música drone de fondo.
+- **Game feel**: `feedbackBundle(tier, x, y, opts)` (sonido + partículas + flash en un solo call), `hitStop()`/`isHitStopped()` para freeze frame, `triggerSquash()/updateSquashes()/clearSquashes()` para squash & stretch — `updateSquashes(dt)` en el game loop, `clearSquashes()` en `startGame()`.
 - **Partículas**: `spawnParticles()`, `updateParticles()`, `drawParticles()` desde `shared/effects.js`. Física inline solo si es muy especial.
-- **Screen shake**: `triggerShake(intensity)` + `getShakeOffset()` desde `shared/effects.js`.
+- **Screen shake**: `triggerShake(intensity)` + `updateShake(dt)` + `getShakeOffset()` desde `shared/effects.js`. `setShakeScale(scale)` para accesibilidad (prefers-reduced-motion → 0).
+- **Glow**: `drawGlow(ctx, x, y, r, color)` en vez de `shadowBlur` dentro de loops.
 
 ---
 
@@ -157,11 +164,47 @@ skill("nombre-de-la-skill")
 | Skill                        | Cuándo usarla                                                                    |
 | ---------------------------- | -------------------------------------------------------------------------------- |
 | `premium-frontend-ui`        | Diseño UI inmersivo de alto nivel (animaciones, tipografía, micro-interacciones) |
+| `game-ui-ux`                 | UX/UI de juego — menús, HUD, flujos, accesibilidad                               |
+| `performance-optimization`   | Optimizar rendimiento Canvas 2D — draw calls, pools, DPR                         |
+| `game-ai`                    | IA de enemigos — behavior trees, pathfinding, estados                            |
+| `procedural-gen`             | Generación procedural — niveles, ruido, dungeons                                 |
+| `audio-design`               | Diseño de sonido — SFX, música adaptativa                                        |
+| `physics-tuning`             | Ajuste de físicas — gravedad, fricción, anti-tunneling                           |
+| `level-design`               | Diseño de niveles — pacing, dificultad, flow                                     |
+| `input-systems`              | Sistemas de entrada — teclado, táctil, gamepad, accesibilidad                    |
+| `dialogue-systems`           | Sistemas de diálogo — branching, misiones                                        |
+| `save-systems`               | Sistemas de guardado — localStorage, serialización                               |
+| `shader-programming`         | Shaders / efectos visuales (WebGL opcional)                                      |
+| `camera-systems`             | Cámaras — follow, shake, framing                                                 |
 | `create-implementation-plan` | Planificar implementaciones multi-paso antes de codificar                        |
 | `refactor-plan`              | Planificar refactors multi-archivo de forma segura                               |
 | `create-readme`              | Generar README.md para nuevos juegos                                             |
 | `create-specification`       | Crear especificaciones técnicas detalladas                                       |
 | `documentation-writter`      | Redactar documentación técnica                                                   |
+| `audit-integrity`            | Auditar integridad del código — consistencia, convenciones                       |
+| `context-map`                | Mapear contexto del proyecto antes de cambios grandes                            |
+| `create-agentsmd`            | Generar/actualizar AGENTS.md                                                     |
+
+### Assets y referencias
+
+- `assets/` (5): `paddle-game-template`, `gameBase-template-repo`, `2d-maze-game`, `2d-platform-game`, `simple-2d-engine`
+- `references/` (32): `noise`, `pathfinding`, `behavior-trees`, `dungeon-generation`, `timestep-and-ccd`, `pacing-and-flow`, `game-engine-core-principles`, `web-apis`, `game-publishing`, `feedback-recipes`, `self-reflection-quality-gate` y más (ver `TODO.md`)
+
+---
+
+## 🗺️ Estado de fases (resumen)
+
+> Detalle completo y verificación en `TODO.md`. `npm run check` (lint + prettier) debe pasar en 0/0.
+
+| Fase      | Estado                                                                                     |
+| --------- | ------------------------------------------------------------------------------------------ |
+| **R1–R4** | ✅ Refactor — 19/19 juegos migrados a `shared/loop.js`, 0 vestigios 3D                     |
+| **P0**    | ✅ Rendimiento — shadowBlur eliminado de loops, `drawGlow()`, SW OK (falta P10 DevTools)   |
+| **G1–G5** | ✅ Game feel — `feedbackBundle` + squash & stretch en 19/19                                |
+| **H1**    | ✅ Hub UI premium — entry sequence split-door, cursor, glassmorphism, 7/7                  |
+| **D1–D4** | 🟡 Documentación — D1-D2 ✅, D3 pendiente, D4 parcial (R1-R4 ya bumpados en metadata.json) |
+| **P10**   | 🔲 Pruebas de rendimiento con DevTools Performance tab                                     |
+| **N1**    | 🟢 Nuevos juegos (templates en `.agents/skills/assets/`)                                   |
 
 ---
 

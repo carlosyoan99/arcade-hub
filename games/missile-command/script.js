@@ -4,6 +4,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
+import { createGamepad } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -452,16 +453,11 @@ function trapTab(e) {
 }
 
 // Gamepad
-let gI = null;
+const gamepad = createGamepad();
 const gP = { f: false, s: false };
-window.addEventListener('gamepadconnected', (e) => (gI = e.gamepad.index));
-window.addEventListener('gamepaddisconnected', (e) => {
-  if (gI === e.gamepad.index) gI = null;
-});
+
 function pG() {
-  if (!navigator.getGamepads) return;
-  const pads = navigator.getGamepads();
-  const gp = (gI !== null ? pads[gI] : null) || pads[0];
+  const gp = gamepad.pad;
   if (!gp) return;
   const ax = gp.axes[0] ?? 0,
     ay = gp.axes[1] ?? 0;

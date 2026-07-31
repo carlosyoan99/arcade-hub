@@ -26,6 +26,7 @@
 - [x] `shared/display.js` — setupCanvas() con DPR + letterboxing + RAF-based resize debounce
 - [x] `shared/dom.js` — injectCommonElements() — loading, announce, gameBar (inyección vía JS)
 - [x] `shared/loop.js` — createGameLoop() — RAF + dt calculation + cleanup unificado
+- [x] `shared/input.js` — createGamepad() + bindHoldButton() — gamepad y táctil compartidos (acepta elemento o id string)
 
 ### Skills instaladas (26 disponibles + 5 assets + 32 referencias)
 
@@ -114,14 +115,42 @@
 
 ---
 
-## 🟡 PARCIALMENTE COMPLETADO — Fase D1: Documentación (3/4)
+## ✅ COMPLETADO — Fase D1: Documentación (4/4)
 
-| #   | Tarea                               | Estado       | Detalle                                                                                              |
-| --- | ----------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------- |
-| D1  | **Actualizar READMEs de 19 juegos** | ✅ Completo  | Reflejan shared modules (display.js, dom.js, loop.js, effects.js), controles y changelog actualizado |
-| D2  | **Actualizar CLAUDE.md**            | ✅ Completo  | Skills listadas (26+5+32), fases verificadas, sección de estado de fases añadida                     |
-| D3  | **Actualizar README principal**     | 🔲 Pendiente | Verificar badges y guía de nuevo juego                                                               |
-| D4  | **Actualizar metadata.json**        | ✅ Completo  | Version bump (12×1.5.0, 4×1.4.0, 3×1.3.0) + changelog G1-G5/P0/lint por juego                        |
+| #   | Tarea                               | Estado      | Detalle                                                                                              |
+| --- | ----------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- |
+| D1  | **Actualizar READMEs de 19 juegos** | ✅ Completo | Reflejan shared modules (display.js, dom.js, loop.js, effects.js), controles y changelog actualizado |
+| D2  | **Actualizar CLAUDE.md**            | ✅ Completo | Skills listadas (26+5+32), fases verificadas, sección de estado de fases añadida                     |
+| D3  | **Actualizar README principal**     | ✅ Completo | Badges añadidos, guía de juego nuevo corregida (loop.js, games.js, 19 juegos)                        |
+| D4  | **Actualizar metadata.json**        | ✅ Completo | Version bump (12×1.5.0, 4×1.4.0, 3×1.3.0) + changelog G1-G5/P0/lint por juego                        |
+
+---
+
+## ✅ COMPLETADO — Mejoras menores: validación e infraestructura (7/7)
+
+> Implementado a partir del documento de mejoras priorizadas (julio 2026). Cierra el punto "un `npm run check` completo dejaría de ser solo lint/format y pasaría a validar que el proyecto realmente funciona".
+
+| #   | Mejora                               | Estado | Detalle                                                                                                                                                                                                           |
+| --- | ------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | **`shared/input.js`** (nuevo)        | ✅     | `createGamepad()` (listeners internos + getter `pad`) y `bindHoldButton()` unificado (elemento **o** id string, `onUp?.()`) — cubre las 4 variantes de pong/breakout/pacman/space-invaders. 19/19 juegos migrados |
+| M2  | **`scripts/verify.js`** (nuevo)      | ✅     | Consistencia: juego en disco ↔ `games.js`, archivos requeridos por juego, imports `shared/*.js` ↔ `sw.js` FILES, ruta del juego en FILES + warning `staleShared`. Corre en CI antes del deploy                    |
+| M3  | **`test/smoke.test.js`** (nuevo)     | ✅     | 19 smoke tests jsdom — cada juego importa sin error y valida `#gameCanvas`/`#overlay`/`#helpBtn`. Canvas mockeado con Proxy, `window.matchMedia` parcheado, globals restaurados                                   |
+| M4  | **prefers-reduced-motion en canvas** | ✅     | `initAccessibility()` en `shared/effects.js` escucha `matchMedia` y apaga shake + partículas (`setShakeScale(0)`/`setParticlesScale(0)`) en un solo lugar (no solo CSS)                                           |
+| M5  | **`package-lock.json` versionado**   | ✅     | Quitado del `.gitignore` → instalaciones reproducibles en CI y clones                                                                                                                                             |
+| M6  | **CLAUDE.md con skills completas**   | ✅     | `audit-integrity`, `context-map`, `create-agentsmd` documentadas — 21/21 complementarias en CLAUDE.md                                                                                                             |
+| M7  | **`.prettierignore`**                | ✅     | `.agents/skills/` ignorado (docs de IA que nunca pasaron Prettier — 48 archivos); el resto del repo queda formateado                                                                                              |
+
+### 🔧 Flujo de validación (nuevo)
+
+| Script           | Qué valida                                                                   | Exit |
+| ---------------- | ---------------------------------------------------------------------------- | ---- |
+| `npm run lint`   | ESLint — 0 errores, 0 warnings                                               | 0    |
+| `npm run format` | Prettier — todos los archivos formateados (`**/*.{js,mjs,css,html,json,md}`) | 0    |
+| `npm run verify` | Consistencia: `games.js` ↔ disco ↔ imports shared ↔ `sw.js` FILES            | 0    |
+| `npm test`       | 19 smoke tests jsdom (`node --test test/**/*.test.js`)                       | 0    |
+| `npm run check`  | **lint + format + verify + test en serie**                                   | 0    |
+
+> ✅ Verificado: lint 0/0, prettier OK, verify consistente (19 juegos / 8 shared / 69 SW FILES), 19/19 tests.
 
 ---
 
@@ -158,7 +187,8 @@ Templates disponibles en `.agents/skills/assets/`:
 | **P0**    | Rendimiento           | shadowBlur+SW       | ✅ **9/10** (falta P10)                |
 | **G1–G5** | `game-feel`           | Game feel           | ✅ **Completado** (19/19)              |
 | **H1**    | `premium-frontend-ui` | Premium hub UI      | ✅ **7/7 completo**                    |
-| **D1**    | `create-readme`       | Documentación       | 🟡 **3/4** (D1-D2-D4 ✅, falta D3)     |
+| **D1**    | `create-readme`       | Documentación       | ✅ **Completado** (D1-D4)              |
+| **M**     | `audit-integrity`     | Mejoras menores     | ✅ **Completado** (7/7)                |
 | **P10**   | DevTools              | Pruebas rendimiento | 🔲 **Pendiente**                       |
 | **N1**    | `game-engine`         | Nuevos juegos       | 🟢 **Futuro**                          |
 

@@ -12,6 +12,7 @@
 let _trauma = 0;
 let _shakeTime = 0;
 let _shakeScale = 1; // ← para accesibilidad (reduce-shake)
+let _particleScale = 1; // ← para accesibilidad (reduce-motion): escala global de partículas
 
 const MAX_OFFSET_X = 12;
 const MAX_OFFSET_Y = 8;
@@ -64,6 +65,14 @@ export function getShakeOffset() {
  */
 export function setShakeScale(scale) {
   _shakeScale = Math.max(0, Math.min(1, scale));
+}
+
+/**
+ * Escala global de partículas (para accesibilidad prefers-reduced-motion).
+ * @param {number} scale - 0 (sin partículas) a 1 (100%)
+ */
+export function setParticlesScale(scale) {
+  _particleScale = Math.max(0, Math.min(1, scale));
 }
 
 // ──────────────────────────────────────────────
@@ -169,7 +178,8 @@ function allocParticle() {
  */
 export function spawnParticles(x, y, color, count = 10, opts = {}) {
   const { spd = 80, life = 0.35, sm = 1.5, smx = 3 } = opts;
-  for (let i = 0; i < count; i++) {
+  const scaled = Math.max(0, Math.round(count * _particleScale));
+  for (let i = 0; i < scaled; i++) {
     const p = allocParticle();
     if (!p) break;
     const a = Math.random() * Math.PI * 2;
@@ -433,9 +443,11 @@ export function clearSquashes() {
   const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (mql.matches) {
     setShakeScale(0);
+    setParticlesScale(0);
   }
   mql.addEventListener('change', (e) => {
     setShakeScale(e.matches ? 0 : 1);
+    setParticlesScale(e.matches ? 0 : 1);
   });
 })();
 

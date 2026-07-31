@@ -4,6 +4,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
+import { createGamepad, bindHoldButton } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -138,40 +139,6 @@ window.addEventListener('keyup', (e) => {
   if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
 });
 
-function bindHoldButton(btn, onDown, onUp) {
-  btn.addEventListener(
-    'touchstart',
-    (e) => {
-      e.preventDefault();
-      onDown();
-      btn.classList.add('is-pressed');
-    },
-    { passive: false },
-  );
-  btn.addEventListener(
-    'touchend',
-    (e) => {
-      e.preventDefault();
-      onUp();
-      btn.classList.remove('is-pressed');
-    },
-    { passive: false },
-  );
-  btn.addEventListener('touchcancel', () => {
-    onUp();
-    btn.classList.remove('is-pressed');
-  });
-  btn.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    onDown();
-  });
-  btn.addEventListener('mouseup', () => {
-    onUp();
-  });
-  btn.addEventListener('mouseleave', () => {
-    onUp();
-  });
-}
 bindHoldButton(
   document.getElementById('btnUp'),
   () => {
@@ -192,19 +159,12 @@ bindHoldButton(
 );
 
 // GAMEPAD
-let gamepadIndex = null;
+const gamepad = createGamepad();
 let prevStart = false;
 let gamepadAxis = 0;
-window.addEventListener('gamepadconnected', (e) => {
-  gamepadIndex = e.gamepad.index;
-});
-window.addEventListener('gamepaddisconnected', (e) => {
-  if (gamepadIndex === e.gamepad.index) gamepadIndex = null;
-});
+
 function pollGamepad() {
-  if (!navigator.getGamepads) return;
-  const pads = navigator.getGamepads();
-  const gp = (gamepadIndex !== null ? pads[gamepadIndex] : null) || pads[0];
+  const gp = gamepad.pad;
   if (!gp) {
     gamepadAxis = 0;
     return;

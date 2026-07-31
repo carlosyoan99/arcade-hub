@@ -4,6 +4,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
+import { createGamepad, bindHoldButton } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -651,32 +652,7 @@ function setPacDir(d) {
 }
 
 // Touch
-function bindHoldButton(id, onDown, onUp) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener(
-    'touchstart',
-    (e) => {
-      e.preventDefault();
-      el.classList.add('is-pressed');
-      onDown();
-    },
-    { passive: false },
-  );
-  el.addEventListener(
-    'touchend',
-    (e) => {
-      e.preventDefault();
-      el.classList.remove('is-pressed');
-      onUp?.();
-    },
-    { passive: false },
-  );
-  el.addEventListener('touchcancel', () => {
-    el.classList.remove('is-pressed');
-    onUp?.();
-  });
-}
+
 bindHoldButton('btnUp', () => {
   if (!state.running) startGame();
   else if (!state.gameOver) setPacDir(D.UP);
@@ -729,16 +705,11 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gamepadIndex = null;
+const gamepad = createGamepad();
 const prevGamepad = { start: false };
-window.addEventListener('gamepadconnected', (e) => (gamepadIndex = e.gamepad.index));
-window.addEventListener('gamepaddisconnected', (e) => {
-  if (gamepadIndex === e.gamepad.index) gamepadIndex = null;
-});
+
 function pollGamepad() {
-  if (!navigator.getGamepads) return;
-  const pads = navigator.getGamepads();
-  const gp = (gamepadIndex !== null ? pads[gamepadIndex] : null) || pads[0];
+  const gp = gamepad.pad;
   if (!gp) return;
   const ax = gp.axes[0] ?? 0,
     ay = gp.axes[1] ?? 0;

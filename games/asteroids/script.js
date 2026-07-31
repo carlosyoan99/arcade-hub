@@ -4,6 +4,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
+import { createGamepad } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -342,19 +343,11 @@ canvas.addEventListener('pointerdown', () => {
 // ============================================================
 // ENTRADA: GAMEPAD
 // ============================================================
-let gpIdx = null;
+const gamepad = createGamepad();
 let gpPrev = { fire: false, start: false };
-window.addEventListener('gamepadconnected', (e) => {
-  gpIdx = e.gamepad.index;
-});
-window.addEventListener('gamepaddisconnected', (e) => {
-  if (gpIdx === e.gamepad.index) gpIdx = null;
-});
 
 function pollGamepad() {
-  if (!navigator.getGamepads) return;
-  const pads = navigator.getGamepads();
-  const gp = (gpIdx !== null ? pads[gpIdx] : null) || pads[0];
+  const gp = gamepad.pad;
   if (!gp) return;
   const ax = gp.axes[0] ?? 0;
   const ay = gp.axes[1] ?? 0;

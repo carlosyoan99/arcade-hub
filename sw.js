@@ -5,7 +5,7 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v5';
+const STATIC_CACHE = 'arcadehub-static-v7';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
@@ -19,6 +19,8 @@ const FILES = [
   './shared/help.js',
   './shared/display.js',
   './shared/dom.js',
+  './shared/loop.js',
+  './shared/input.js',
   // Pong
   './games/pong/index.html',
   './games/pong/style.css',

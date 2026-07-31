@@ -32,6 +32,21 @@ export default defineConfig([
     },
   },
 
+  // ── Scripts de Node (verificación/CLI) — globals de Node, no browser ──
+  {
+    files: ['scripts/**/*.{js,mjs,cjs}', 'test/**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2022,
+      },
+    },
+    rules: {
+      // CLI y tests legitiman console.log
+      'no-console': 'off',
+    },
+  },
+
   // ── Integración con Prettier (formateo) ──
   {
     plugins: { prettier: eslintPluginPrettier },

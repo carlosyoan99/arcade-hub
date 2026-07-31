@@ -3,6 +3,7 @@ import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { createGameLoop } from '../../shared/loop.js';
+import { createGamepad } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -459,16 +460,11 @@ document.getElementById('overlay').addEventListener('click', () => {
 });
 
 // Gamepad
-let gamepadIndex = null;
+const gamepad = createGamepad();
 const prevGamepad = { rot: false, start: false };
-window.addEventListener('gamepadconnected', (e) => (gamepadIndex = e.gamepad.index));
-window.addEventListener('gamepaddisconnected', (e) => {
-  if (gamepadIndex === e.gamepad.index) gamepadIndex = null;
-});
+
 function pollGamepad() {
-  if (!navigator.getGamepads) return;
-  const pads = navigator.getGamepads();
-  const gp = (gamepadIndex !== null ? pads[gamepadIndex] : null) || pads[0];
+  const gp = gamepad.pad;
   if (!gp) return;
   const ax = gp.axes[0] ?? 0,
     ay = gp.axes[1] ?? 0;

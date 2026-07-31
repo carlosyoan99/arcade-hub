@@ -2,3 +2,4 @@ node_modules/
 package.json
 package-lock.json
 games/legacy-3d/
+.agents/skills/

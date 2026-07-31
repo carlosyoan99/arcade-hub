@@ -4,6 +4,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
+import { createGamepad } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -208,24 +209,17 @@ bindTouch(
 );
 
 // Gamepad
-let gamepadIndex = null;
+const gamepad = createGamepad();
 let prevJumpBtn = false;
-window.addEventListener('gamepadconnected', (e) => {
-  gamepadIndex = e.gamepad.index;
-});
-window.addEventListener('gamepaddisconnected', (e) => {
-  if (gamepadIndex === e.gamepad.index) gamepadIndex = null;
-});
+
 function pollGamepad() {
-  if (!navigator.getGamepads) return;
-  const pads = navigator.getGamepads();
-  const gp = (gamepadIndex !== null ? pads[gamepadIndex] : null) || pads[0];
+  const gp = gamepad.pad;
   if (!gp) return;
   const axis = gp.axes[0] ?? 0;
   if (axis < -0.3) keys.left = true;
-  else if (!(pads[0]?.axes[0] < -0.3)) keys.left = false;
+  else if (!(gp.axes[0] < -0.3)) keys.left = false;
   if (axis > 0.3) keys.right = true;
-  else if (!(pads[0]?.axes[0] > 0.3)) keys.right = false;
+  else if (!(gp.axes[0] > 0.3)) keys.right = false;
   const jumpBtn = !!(gp.buttons[0]?.pressed || gp.buttons[12]?.pressed);
   if (jumpBtn && !prevJumpBtn) {
     if (!state.running && !state.gameOver) startGame();

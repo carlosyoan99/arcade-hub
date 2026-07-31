@@ -3,4 +3,3 @@ server.log
 
 # NPM package
 node_modules
-package-lock.json

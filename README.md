@@ -1,5 +1,10 @@
 # 🕹️ Arcade Hub
 
+![GitHub Pages](https://img.shields.io/github/deployments/carlosyoan99/arcade-hub/github-pages?label=GitHub%20Pages&logo=github&logoColor=white)
+![Juegos](https://img.shields.io/badge/juegos-19-ff2d78)
+![Dependencias](https://img.shields.io/badge/dependencias-0-00f0ff)
+![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
+
 **19 juegos clásicos recreados** con estética 2D/2.5D neon.  
 Cero dependencias, sin build step, un archivo HTML por juego.  
 Abrí y jugá.
@@ -50,7 +55,8 @@ arcade-hub/
 │   ├── achievements.js     #   Logros persistidos en localStorage
 │   ├── help.js             #   Modal de ayuda contextual
 │   ├── display.js          #   setupCanvas() con DPR+letterboxing compartido
-│   └── dom.js              #   injectCommonElements() para HTML compartido
+│   ├── dom.js              #   injectCommonElements() para HTML compartido
+│   └── loop.js             #   createGameLoop() — RAF + dt + cleanup unificado
 │
 ├── games/                  # ← Un directorio por juego
 │   ├── pong/
@@ -61,12 +67,11 @@ arcade-hub/
 │   │   └── README.md       #   Controles, descripción y características
 │   ├── breakout/
 │   ├── snake/
-│   ├── ...                 #   16 juegos en total
+│   ├── ...                 #   19 juegos en total
 │   └── legacy-3d/          #   Versiones Three.js archivadas (solo referencia)
 │
 ├── .agents/
-│   └── skills/
-│       └── frontend-design.md   # Skill de diseño visual instalada
+│   └── skills/                  # Skills de IA instaladas (26 + 5 assets + 32 refs — ver CLAUDE.md)
 │
 └── README.md, CLAUDE.md, TODO.md   # Documentación del proyecto
 ```
@@ -146,6 +151,8 @@ README.md         → descripción y tabla de controles
 | **Persistencia** | `localStorage` con key namespaced: `<gameId>_<clave>`                                                      |
 | **Sonido**       | `beep({freq, duration, type, volume})` desde `shared/audio.js` — nunca archivos externos                   |
 | **Partículas**   | `spawnParticles()` + `updateParticles()` + `drawParticles()` desde `shared/effects.js`                     |
+| **Game loop**    | `createGameLoop()` desde `shared/loop.js` — RAF con dt + cleanup (nunca `setInterval`)                     |
+| **Rendimiento**  | Sin `shadowBlur` dentro de loops por entidad — usar `drawGlow()` de `shared/effects.js`                    |
 
 ### 3. Registrar el juego en el hub
 
@@ -156,10 +163,11 @@ En `games.js` agregar una entrada como esta:
   id: 'mi-juego',
   title: 'Mi Juego',
   description: 'Una breve descripción del juego.',
-  file: './games/mi-juego/index.html',
+  file: 'games/mi-juego/index.html',
   icon: '🎮',
+  thumbnail: './asset/icons/game-mi-juego.svg',
   status: 'listo',       // o 'en-desarrollo' para placeholder
-  genre: 'arcade',
+  created: '2026-07-31',
 }
 ```
 
@@ -188,7 +196,7 @@ npm run check         # lint + format combinados
 1. Usuario abre games/mi-juego/index.html
 2. Se muestra el loading spinner (#loading)
 3. Se importan los módulos shared (audio, effects, achievements, help)
-4. Se inicializa el canvas y el bucle de animación (requestAnimationFrame)
+4. Se inicializa el canvas y el bucle de animación (`createGameLoop` → `loop.start()`)
 5. Se oculta el loading y se muestra el overlay de inicio
 6. El usuario presiona Espacio / clic / botón de gamepad para empezar
 7. El juego corre en su bucle principal (input → update → render)
@@ -201,13 +209,18 @@ npm run check         # lint + format combinados
 Cada módulo en `shared/` provee funciones exportadas que los juegos importan:
 
 ```
-shared/audio.js       → beep(), startAmbient(), stopAmbient()
-shared/effects.js     → spawnParticles(), updateParticles(), drawParticles(),
-                        triggerShake(), getShakeOffset(), triggerFlash(), drawFlash()
-shared/achievements.js → unlockAchievement(), getAchievements(), trackPlay()
+shared/audio.js       → beep(), startAmbient(), stopAmbient(), closeAudio(), ensureAudio()
+shared/effects.js     → triggerShake(), updateShake(), getShakeOffset(), setShakeScale(),
+                        hitStop(), isHitStopped(), feedbackBundle(), triggerFlash(), updateFlash(),
+                        drawFlash(), drawGlow(), triggerSquash(), updateSquashes(), getSquash(),
+                        drawWithSquash(), clearSquashes(), spawnParticles(), updateParticles(),
+                        drawParticles(), clearParticles(), roundRect()
+shared/achievements.js → achievements.unlock(), .has(), .incrementPlays(), .getPlays(), .getAllPlays()
 shared/help.js        → showHelp(gameId)
-shared/display.js     → setupCanvas() — DPR-aware + letterboxing
+shared/display.js     → setupCanvas() — DPR-aware + letterboxing + resize debounce
 shared/dom.js         → injectCommonElements() — loading, announce, gameBar
+shared/loop.js        → createGameLoop() — RAF + dt calculation + cleanup
+shared/input.js       → createGamepad() + bindHoldButton() — gamepad y táctil compartidos
 shared/base.css       → Variables neon, overlay, HUD, touch controls, game bar
 ```
 
