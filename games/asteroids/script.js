@@ -5,7 +5,6 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   spawnParticles,
@@ -15,7 +14,6 @@ import {
   feedbackBundle,
   triggerSquash,
   updateSquashes,
-  drawWithSquash,
   clearSquashes,
 } from '../../shared/effects.js';
 

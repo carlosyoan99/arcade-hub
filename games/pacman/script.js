@@ -12,7 +12,6 @@ import {
   drawParticles,
   drawGlow,
   feedbackBundle,
-  triggerSquash,
   updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
@@ -128,14 +127,14 @@ function playPellet() {
   beep({ freq: 300, freqEnd: 800, duration: 0.15, type: 'square', volume: 0.12 });
 }
 function playGhost() {
-  feedbackBundle('medium', pacman.x, pacman.y, {
+  feedbackBundle('medium', pac.x, pac.y, {
     color: '#6ec6ff',
     onBeep: () =>
       beep({ freq: 800, freqEnd: 1600, duration: 0.08, type: 'triangle', volume: 0.16 }),
   });
 }
 function playDeath() {
-  feedbackBundle('large', pacman.x, pacman.y, {
+  feedbackBundle('large', pac.x, pac.y, {
     color: '#ff4444',
     noFlash: true,
     onBeep: () => beep({ freq: 400, freqEnd: 50, duration: 0.5, type: 'sawtooth', volume: 0.2 }),

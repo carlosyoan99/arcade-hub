@@ -12,8 +12,6 @@ import {
   updateParticles,
   drawParticles,
   feedbackBundle,
-  triggerSquash,
-  updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
 
@@ -90,7 +88,7 @@ function playJumpSound() {
   beep({ freq: 520, freqEnd: 760, duration: 0.12, type: 'square', volume: 0.14 });
 }
 function playLandSound() {
-  feedbackBundle('medium', dino.x + dino.w / 2, dino.y + dino.h, {
+  feedbackBundle('medium', 80 + (player.ducking && player.onGround ? 45 : 30) / 2, player.y, {
     color: '#ff8a65',
     onBeep: () => beep({ freq: 220, freqEnd: 140, duration: 0.07, type: 'sine', volume: 0.08 }),
   });
@@ -99,11 +97,17 @@ function playDuckSound() {
   beep({ freq: 260, freqEnd: 200, duration: 0.05, type: 'sine', volume: 0.06 });
 }
 function playCollisionSound() {
-  feedbackBundle('large', dino.x + dino.w / 2, dino.y + dino.h / 2, {
-    color: '#ff4444',
-    noFlash: true,
-    onBeep: () => beep({ freq: 180, freqEnd: 55, duration: 0.35, type: 'sawtooth', volume: 0.22 }),
-  });
+  feedbackBundle(
+    'large',
+    80 + (player.ducking && player.onGround ? 45 : 30) / 2,
+    player.y - (player.ducking && player.onGround ? 30 : 55) / 2,
+    {
+      color: '#ff4444',
+      noFlash: true,
+      onBeep: () =>
+        beep({ freq: 180, freqEnd: 55, duration: 0.35, type: 'sawtooth', volume: 0.22 }),
+    },
+  );
 }
 function playRecordSound() {
   [660, 880, 1100].forEach((freq, i) => {
@@ -768,8 +772,6 @@ function updateHUD() {
 // BUCLE PRINCIPAL
 // ============================================================
 const loop = createGameLoop((dt) => {
-  ime;
-
   pollGamepad();
   updateShake(dt);
 

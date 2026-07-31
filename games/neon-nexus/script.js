@@ -14,10 +14,11 @@ import {
   clearParticles,
   drawGlow,
   feedbackBundle,
-  triggerSquash,
-  updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
+
+injectCommonElements();
+
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 
 /* ============================================================
@@ -36,7 +37,12 @@ const ATTRACTION_R = 120;
 const PROJECTILE_SPEED = 550;
 const CLICK_CD = 0.18;
 const WAVE_PAUSE = 2;
-
+const MIN_SPAWN_INTERVAL = 0.25;
+const BASE_SPAWN_INTERVAL = 0.6;
+const SPAWN_REDUCTION = 0.02;
+const SHIELD_REGEN_DELAY = 2;
+const SHIELD_REGEN_RATE = 4;
+const MAX_SHIELD = 20;
 const ENEMY_TYPES = {
   triangle: {
     r: 10,
@@ -178,7 +184,7 @@ function sfxKill() {
   beep({ freq: 600, freqEnd: 900, duration: 0.08, type: 'triangle', volume: 0.12 });
 }
 function sfxTowerHit() {
-  feedbackBundle('medium', GAME_W / 2, GAME_H / 2, {
+  feedbackBundle('medium', TOWER_CX, TOWER_CY, {
     color: '#ff4444',
     onBeep: () => beep({ freq: 150, freqEnd: 60, duration: 0.2, type: 'sawtooth', volume: 0.15 }),
   });
@@ -187,7 +193,7 @@ function sfxClickHit() {
   beep({ freq: 700, freqEnd: 1000, duration: 0.05, type: 'sine', volume: 0.1 });
 }
 function sfxWaveClear() {
-  feedbackBundle('medium', GAME_W / 2, GAME_H / 2, {
+  feedbackBundle('medium', TOWER_CX, TOWER_CY, {
     color: '#ffb800',
     noFlash: true,
     onBeep: () => {},
@@ -361,7 +367,10 @@ function spawnWave() {
   const types = getWaveEnemies(state.wave);
   state.enemiesSpawned = 0;
   state.spawnTimer = 0;
-  state.spawnInterval = Math.max(0.25, 0.6 - state.wave * 0.02);
+  state.spawnInterval = Math.max(
+    MIN_SPAWN_INTERVAL,
+    BASE_SPAWN_INTERVAL - state.wave * SPAWN_REDUCTION,
+  );
   state.cleared = false;
   state.clearTimer = 0;
   enemies = [];
@@ -1185,8 +1194,8 @@ function updateTower(dt) {
   if (state.cards.regenShield) {
     if (state._lastHitTimer === undefined) state._lastHitTimer = 0;
     state._lastHitTimer += dt;
-    if (state._lastHitTimer > 2 && state.shieldHP < 20) {
-      state.shieldHP = Math.min(state.shieldHP + 4 * dt, 20);
+    if (state._lastHitTimer > SHIELD_REGEN_DELAY && state.shieldHP < MAX_SHIELD) {
+      state.shieldHP = Math.min(state.shieldHP + SHIELD_REGEN_RATE * dt, MAX_SHIELD);
     }
   }
 
@@ -1441,8 +1450,6 @@ function updateHUD() {
 // BUCLE PRINCIPAL
 // ============================================================
 const loop = createGameLoop((dt) => {
-  ime;
-
   pollGamepad();
   updateShake(dt);
 

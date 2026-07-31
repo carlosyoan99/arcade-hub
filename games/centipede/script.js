@@ -12,7 +12,6 @@ import {
   drawParticles,
   drawGlow,
   feedbackBundle,
-  triggerSquash,
   updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
@@ -47,6 +46,24 @@ const FLEA_SPEED = 250;
 const FLEA_POINTS = 200;
 const SCORPION_SPEED = 120;
 const SCORPION_POINTS = 500;
+const PLAYER_MARGIN = 10;
+const SPIDER_MARGIN = 5;
+const PLAYER_TOP_RATIO = 0.55;
+const INITIAL_SEGMENTS = 8;
+const SEGMENTS_PER_WAVE = 2;
+const MAX_SEGMENTS = 20;
+const MIN_MOVE_INTERVAL = 0.06;
+const BASE_MOVE_INTERVAL = 0.15;
+const MOVE_REDUCTION = 0.008;
+const MIN_SPIDER_INTERVAL = 2;
+const BASE_SPIDER_INTERVAL = 4;
+const SPIDER_REDUCTION = 0.15;
+const MIN_FLEA_INTERVAL = 2.5;
+const BASE_FLEA_INTERVAL = 6;
+const FLEA_REDUCTION = 0.2;
+const MIN_SCORPION_INTERVAL = 4;
+const BASE_SCORPION_INTERVAL = 8;
+const SCORPION_REDUCTION = 0.25;
 
 // ============================================================
 // ESTADO
@@ -79,20 +96,20 @@ function pHitSeg() {
   beep({ freq: 400, freqEnd: 100, duration: 0.08, type: 'sawtooth', volume: 0.12 });
 }
 function pDeath() {
-  feedbackBundle('large', mouseX, mouseY, {
+  feedbackBundle('large', player.x, player.y, {
     color: '#ff4444',
     noFlash: true,
     onBeep: () => beep({ freq: 300, freqEnd: 40, duration: 0.4, type: 'sawtooth', volume: 0.2 }),
   });
 }
 function pSpider() {
-  feedbackBundle('medium', mouseX, mouseY, {
+  feedbackBundle('medium', player.x, player.y, {
     color: '#ff8a65',
     onBeep: () => beep({ freq: 1200, freqEnd: 600, duration: 0.08, type: 'triangle', volume: 0.1 }),
   });
 }
 function pFlea() {
-  feedbackBundle('small', mouseX, mouseY, {
+  feedbackBundle('small', player.x, player.y, {
     color: '#6ee7b7',
     onBeep: () => beep({ freq: 400, freqEnd: 1000, duration: 0.06, type: 'square', volume: 0.08 }),
   });
@@ -269,12 +286,18 @@ function nextWave() {
   state.wave++;
   pWin();
   spawnMushrooms(15);
-  spawnCentipede(Math.min(8 + state.wave * 2, 20));
-  moveInterval = Math.max(0.06, 0.15 - state.wave * 0.008);
-  spiderInterval = Math.max(2, 4 - state.wave * 0.15);
+  spawnCentipede(Math.min(INITIAL_SEGMENTS + state.wave * SEGMENTS_PER_WAVE, MAX_SEGMENTS));
+  moveInterval = Math.max(MIN_MOVE_INTERVAL, BASE_MOVE_INTERVAL - state.wave * MOVE_REDUCTION);
+  spiderInterval = Math.max(
+    MIN_SPIDER_INTERVAL,
+    BASE_SPIDER_INTERVAL - state.wave * SPIDER_REDUCTION,
+  );
   spiderTimer = spiderInterval * 0.5;
-  fleaInterval = Math.max(2.5, 6 - state.wave * 0.2);
-  scorpionInterval = Math.max(4, 8 - state.wave * 0.25);
+  fleaInterval = Math.max(MIN_FLEA_INTERVAL, BASE_FLEA_INTERVAL - state.wave * FLEA_REDUCTION);
+  scorpionInterval = Math.max(
+    MIN_SCORPION_INTERVAL,
+    BASE_SCORPION_INTERVAL - state.wave * SCORPION_REDUCTION,
+  );
   updateHUD();
 }
 
@@ -609,8 +632,8 @@ function updatePlayer(dt) {
   }
   player.x += dx * PLAYER_SPEED * dt;
   player.y += dy * PLAYER_SPEED * dt;
-  player.x = Math.max(10, Math.min(CW - 10, player.x));
-  player.y = Math.max(CH * 0.55, Math.min(CH - 10, player.y));
+  player.x = Math.max(PLAYER_MARGIN, Math.min(CW - PLAYER_MARGIN, player.x));
+  player.y = Math.max(CH * PLAYER_TOP_RATIO, Math.min(CH - PLAYER_MARGIN, player.y));
 
   // Fire
   if (state.fireTimer > 0) state.fireTimer -= dt;
@@ -783,7 +806,7 @@ function updateSpider(dt) {
   if (spider.y < areaTop || spider.y > areaBot) {
     spider.vy *= -1;
   }
-  spider.x = Math.max(5, Math.min(CW - 5, spider.x));
+  spider.x = Math.max(SPIDER_MARGIN, Math.min(CW - SPIDER_MARGIN, spider.x));
   spider.y = Math.max(areaTop, Math.min(areaBot, spider.y));
 
   // Random direction change

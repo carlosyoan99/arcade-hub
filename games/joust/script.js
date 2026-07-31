@@ -21,6 +21,8 @@ import {
   clearSquashes,
 } from '../../shared/effects.js';
 
+injectCommonElements();
+
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 
 /* ============================================================
@@ -1062,7 +1064,6 @@ function draw() {
 
 // ── BUCLE PRINCIPAL ──
 const loop = createGameLoop((dt) => {
-  ime;
   animTime += dt;
   pollGamepad();
   updateShake(dt);

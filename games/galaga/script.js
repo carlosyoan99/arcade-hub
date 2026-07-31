@@ -12,7 +12,6 @@ import {
   drawParticles,
   drawGlow,
   feedbackBundle,
-  triggerSquash,
   updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';

@@ -2,7 +2,6 @@ import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import {
   updateShake,
@@ -13,8 +12,6 @@ import {
   clearParticles,
   drawGlow,
   feedbackBundle,
-  triggerSquash,
-  updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
 
@@ -1296,8 +1293,6 @@ function updateHUD() {
 // BUCLE PRINCIPAL
 // ============================================================
 const loop = createGameLoop((dt) => {
-  ime;
-
   pollGamepad();
   updateShake(dt);
 

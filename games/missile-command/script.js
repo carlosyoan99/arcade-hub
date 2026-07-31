@@ -12,8 +12,6 @@ import {
   drawParticles,
   drawGlow,
   feedbackBundle,
-  triggerSquash,
-  updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
 
@@ -46,6 +44,11 @@ const GUIDED_KILLS = 8; // kills para obtener misil teledirigido
 const GUIDED_SPEED = 420;
 const GUIDED_RADIUS = 55;
 const GUIDED_PTS = 150;
+const MIN_AMMO_PER_BASE = 2;
+const MIN_INCOMING_INTERVAL = 0.3;
+const BASE_INCOMING_INTERVAL = 1.2;
+const INCOMING_REDUCTION = 0.05;
+const GUIDED_SLOW_DIST = 0.15;
 
 // ============================================================
 // ESTADO
@@ -81,7 +84,7 @@ function pExplode() {
   beep({ freq: 200, freqEnd: 50, duration: 0.12, type: 'sawtooth', volume: 0.12 });
 }
 function pHitCity() {
-  feedbackBundle('large', CANVAS_W / 2, CANVAS_H / 2, {
+  feedbackBundle('large', CW / 2, CH / 2, {
     color: '#ff4444',
     noFlash: true,
     onBeep: () => beep({ freq: 300, freqEnd: 30, duration: 0.3, type: 'sawtooth', volume: 0.18 }),
@@ -133,7 +136,7 @@ function initLevel() {
   bases = [];
   const bPositions = [CW * 0.15, CW * 0.5, CW * 0.85];
   for (const bx of bPositions) {
-    bases.push({ x: bx, ammo: Math.max(2, Math.floor(START_AMMO / NUM_BASES)) });
+    bases.push({ x: bx, ammo: Math.max(MIN_AMMO_PER_BASE, Math.floor(START_AMMO / NUM_BASES)) });
   }
 
   missiles = [];
@@ -147,17 +150,23 @@ function initLevel() {
   state.guidedKills = 0;
   state.guidedCharge = 0;
   incomingTimer = 0;
-  incomingInterval = Math.max(0.3, 1.2 - state.wave * 0.05);
+  incomingInterval = Math.max(
+    MIN_INCOMING_INTERVAL,
+    BASE_INCOMING_INTERVAL - state.wave * INCOMING_REDUCTION,
+  );
   smartTimer = 3 + Math.random() * 2;
   satTimer = 8 + Math.random() * 4;
 }
 
 function startWave() {
   state.waveActive = true;
-  incomingInterval = Math.max(0.3, 1.2 - state.wave * 0.05);
+  incomingInterval = Math.max(
+    MIN_INCOMING_INTERVAL,
+    BASE_INCOMING_INTERVAL - state.wave * INCOMING_REDUCTION,
+  );
   state.ammo += AMMO_PER_WAVE;
   // Redistribute ammo to bases
-  for (const b of bases) b.ammo = Math.max(2, Math.floor(state.ammo / NUM_BASES));
+  for (const b of bases) b.ammo = Math.max(MIN_AMMO_PER_BASE, Math.floor(state.ammo / NUM_BASES));
   updateHUD();
 }
 
@@ -341,16 +350,17 @@ function nextWave() {
 
 // Mouse / pointer
 canvas.addEventListener('mousemove', (e) => {
-  const rect = c.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   crosshair.x = (e.clientX - rect.left - ox) / sc;
   crosshair.y = (e.clientY - rect.top - oy) / sc;
 });
+
 canvas.addEventListener('click', (e) => {
   if (!state.running) {
     startGame();
     return;
   }
-  const rect = c.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   const tx = (e.clientX - rect.left - ox) / sc;
   const ty = (e.clientY - rect.top - oy) / sc;
   crosshair.x = tx;
@@ -370,7 +380,7 @@ canvas.addEventListener(
       return;
     }
     const touch = e.touches[0];
-    const rect = c.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
     const tx = (touch.clientX - rect.left - ox) / sc;
     const ty = (touch.clientY - rect.top - oy) / sc;
     crosshair.x = tx;
@@ -648,7 +658,7 @@ function updateGuidedMissile(dt) {
   const dy = crosshair.y - g.y;
   const dist = Math.hypot(dx, dy);
   if (dist > 1) {
-    const speed = Math.min(GUIDED_SPEED, dist / 0.15); // slow down near target
+    const speed = Math.min(GUIDED_SPEED, dist / GUIDED_SLOW_DIST);
     g.x += (dx / dist) * speed * dt;
     g.y += (dy / dist) * speed * dt;
   }

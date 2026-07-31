@@ -12,7 +12,6 @@ import {
   updateParticles,
   drawParticles,
   feedbackBundle,
-  triggerSquash,
   updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';

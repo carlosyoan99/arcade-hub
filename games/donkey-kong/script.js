@@ -5,7 +5,6 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import {
-  triggerShake,
   updateShake,
   getShakeOffset,
   roundRect,
@@ -748,7 +747,6 @@ let barrelSpawnTimer = 0;
 
 // ── BUCLE PRINCIPAL ──
 const loop = createGameLoop((dt) => {
-  ime;
   pollGamepad();
   updateShake(dt);
 

@@ -14,10 +14,11 @@ import {
   clearParticles,
   drawGlow,
   feedbackBundle,
-  triggerSquash,
   updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
+
+injectCommonElements();
 
 document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
 
@@ -49,6 +50,12 @@ const MUTANT_SPEED = 160;
 const INITIAL_HUMANS = 10;
 const INITIAL_BOMBS = 3;
 const INITIAL_LIVES = 3;
+const PLAYER_MARGIN = 30;
+const MAX_LANDERS = 14;
+const HUMAN_DEATH_PENALTY = 50;
+const MIN_WAVE_TIMER = 5;
+const BASE_WAVE_TIMER = 12;
+const WAVE_TIMER_REDUCTION = 0.5;
 
 // ── ESTADO ──
 const state = {
@@ -150,14 +157,14 @@ function playRescue() {
   beep({ freq: 600, freqEnd: 1200, duration: 0.15, type: 'triangle', volume: 0.1 });
 }
 function playBomb() {
-  feedbackBundle('large', ship.x, ship.y, {
+  feedbackBundle('large', player.x, player.y, {
     color: '#ff8a65',
     noFlash: true,
     onBeep: () => beep({ freq: 50, freqEnd: 20, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
   });
 }
 function playDeath() {
-  feedbackBundle('large', ship.x, ship.y, {
+  feedbackBundle('large', player.x, player.y, {
     color: '#ff4444',
     noFlash: true,
     onBeep: () => beep({ freq: 400, freqEnd: 60, duration: 0.4, type: 'sawtooth', volume: 0.15 }),
@@ -469,7 +476,7 @@ function useSmartBomb() {
 
 function levelUp() {
   state.level += 1;
-  state.maxLanders = Math.min(state.maxLanders + 1, 14);
+  state.maxLanders = Math.min(state.maxLanders + 1, MAX_LANDERS);
   state.waveTimer = 1;
   state.waveActive = false;
   // Bonus for remaining humans
@@ -501,8 +508,8 @@ function updatePlayer(dt) {
   player.y += player.vy * dt;
 
   // World bounds
-  player.x = Math.max(30, Math.min(WORLD_W - 30, player.x));
-  player.y = Math.max(30, Math.min(GAME_H - 30, player.y));
+  player.x = Math.max(PLAYER_MARGIN, Math.min(WORLD_W - PLAYER_MARGIN, player.x));
+  player.y = Math.max(PLAYER_MARGIN, Math.min(GAME_H - PLAYER_MARGIN, player.y));
 
   // Camera follow
   camera.targetX = player.x - GAME_W / 3;
@@ -776,7 +783,7 @@ function updateEnemies(dt) {
             if (e.carriedHuman) {
               e.carriedHuman.alive = false;
               state.humans -= 1;
-              state.score = Math.max(0, state.score - 50);
+              state.score = Math.max(0, state.score - HUMAN_DEATH_PENALTY);
               spawnParticles(e.x - camera.x, 0, '#ff5e7a', 12);
               // Spawn a mutant in rage
               if (Math.random() < 0.3) spawnMutant(e.x, 50);
@@ -933,7 +940,10 @@ function updateWaves(dt) {
         count * 600 + 300,
       );
     }
-    state.waveTimer = Math.max(5, 12 - state.level * 0.5);
+    state.waveTimer = Math.max(
+      MIN_WAVE_TIMER,
+      BASE_WAVE_TIMER - state.level * WAVE_TIMER_REDUCTION,
+    );
     state.waveActive = false;
   }
 
@@ -1388,8 +1398,6 @@ function drawFlash() {
 
 // ── BUCLE PRINCIPAL ──
 const loop = createGameLoop((dt) => {
-  ime;
-
   pollGamepad();
   updateShake(dt);
   updateFlash(dt);

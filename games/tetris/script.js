@@ -2,7 +2,6 @@ import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import {
   updateShake,
@@ -12,7 +11,6 @@ import {
   updateParticles,
   drawParticles,
   feedbackBundle,
-  triggerSquash,
   updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
@@ -183,7 +181,7 @@ function playClear(count) {
   });
 }
 function playGameOver() {
-  feedbackBundle('large', BOARD_W / 2, BOARD_H / 2, {
+  feedbackBundle('large', CW / 2, CH / 2, {
     color: '#ff4444',
     noFlash: true,
     onBeep: () => beep({ freq: 400, freqEnd: 40, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
