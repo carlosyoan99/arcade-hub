@@ -1,7 +1,7 @@
 {
   "id": "dino-runner",
   "title": "Dino Runner",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "created": "2026-06-08",
   "lastModified": "2026-07-30",
   "description": "Corré, saltá y agachate para esquivar cactus y pterodáctilos.",
@@ -13,9 +13,7 @@
     {
       "version": "1.0.0",
       "date": "2026-06-08",
-      "changes": [
-        "Versión inicial del juego"
-      ]
+      "changes": ["Versión inicial del juego"]
     },
     {
       "version": "1.1.0",
@@ -50,6 +48,17 @@
         "Compartido: shared/loop.js — game loop compartido con dt/RAF/cleanup unificados",
         "R4: @keyframes shimmerFlow extraído a shared/base.css",
         "P0: drawGlow() y feedbackBundle() para rendimiento y game feel"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-07-30",
+      "changes": [
+        "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
+        "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
+        "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
+        "R3: Hitbox del dino extraída a constantes (DINO_X/DINO_W/DINO_H)",
+        "Fix: refs rotas dino→coords fijas + línea ime; removida"
       ]
     }
   ]

@@ -35,6 +35,11 @@ const GROUND_Y = 300; // coordenada Y del suelo
 const GRAVITY = -1800;
 const JUMP_VEL = 620;
 const DUCK_SCALE_H = 0.45;
+const DINO_X = 80; // posición X fija del dino (hitbox)
+const DINO_W_STAND = 30; // ancho de hitbox de pie
+const DINO_W_DUCK = 45; // ancho de hitbox agachado
+const DINO_H_STAND = 55; // alto de hitbox de pie
+const DINO_H_DUCK = 30; // alto de hitbox agachado
 const BASE_SPEED = 280;
 const MAX_SPEED = 680;
 const SPEED_RAMP = 2.8; // aceleración por segundo
@@ -64,6 +69,15 @@ const player = {
   scaleY: 1,
 };
 
+// Hitbox del dino según postura
+function getDinoHitbox() {
+  const ducking = player.ducking && player.onGround;
+  return {
+    w: ducking ? DINO_W_DUCK : DINO_W_STAND,
+    h: ducking ? DINO_H_DUCK : DINO_H_STAND,
+  };
+}
+
 // Obstáculos
 let obstacles = [];
 let groundOffset = 0;
@@ -88,7 +102,8 @@ function playJumpSound() {
   beep({ freq: 520, freqEnd: 760, duration: 0.12, type: 'square', volume: 0.14 });
 }
 function playLandSound() {
-  feedbackBundle('medium', 80 + (player.ducking && player.onGround ? 45 : 30) / 2, player.y, {
+  const hitbox = getDinoHitbox();
+  feedbackBundle('medium', DINO_X + hitbox.w / 2, player.y, {
     color: '#ff8a65',
     onBeep: () => beep({ freq: 220, freqEnd: 140, duration: 0.07, type: 'sine', volume: 0.08 }),
   });
@@ -97,17 +112,12 @@ function playDuckSound() {
   beep({ freq: 260, freqEnd: 200, duration: 0.05, type: 'sine', volume: 0.06 });
 }
 function playCollisionSound() {
-  feedbackBundle(
-    'large',
-    80 + (player.ducking && player.onGround ? 45 : 30) / 2,
-    player.y - (player.ducking && player.onGround ? 30 : 55) / 2,
-    {
-      color: '#ff4444',
-      noFlash: true,
-      onBeep: () =>
-        beep({ freq: 180, freqEnd: 55, duration: 0.35, type: 'sawtooth', volume: 0.22 }),
-    },
-  );
+  const hitbox = getDinoHitbox();
+  feedbackBundle('large', DINO_X + hitbox.w / 2, player.y - hitbox.h / 2, {
+    color: '#ff4444',
+    noFlash: true,
+    onBeep: () => beep({ freq: 180, freqEnd: 55, duration: 0.35, type: 'sawtooth', volume: 0.22 }),
+  });
 }
 function playRecordSound() {
   [660, 880, 1100].forEach((freq, i) => {
@@ -277,7 +287,7 @@ function jump() {
     player.vy = -JUMP_VEL;
     player.onGround = false;
     playJumpSound();
-    spawnParticles(80, GROUND_Y);
+    spawnParticles(DINO_X, GROUND_Y);
   }
 }
 
@@ -332,7 +342,7 @@ function endGame() {
   playCollisionSound();
   if (isNewRecord) playRecordSound();
   spawnParticles(
-    80,
+    DINO_X,
     player.y - 40,
     ['#6ee7b7', '#ff6b6b', '#ffe066', '#ffffff'][Math.floor(Math.random() * 4)],
     30,
@@ -365,7 +375,7 @@ function updatePlayer(dt) {
     player.onGround = true;
     if (!wasOnGround) {
       playLandSound();
-      spawnParticles(80, GROUND_Y);
+      spawnParticles(DINO_X, GROUND_Y);
     }
   }
 
@@ -456,9 +466,10 @@ function spawnObstacle() {
 
 function checkCollision(o) {
   // Hitbox del dino
-  const dinoX = 80;
-  const dinoH = player.ducking && player.onGround ? 30 : 55;
-  const dinoW = player.ducking && player.onGround ? 45 : 30;
+  const hitbox = getDinoHitbox();
+  const dinoX = DINO_X;
+  const dinoH = hitbox.h;
+  const dinoW = hitbox.w;
   const dinoY = player.y - dinoH * player.scaleY;
   const dinoB = player.y;
 
@@ -573,7 +584,7 @@ function draw() {
   }
 
   // --- Dino ---
-  const dinoX = ox + 80 * s;
+  const dinoX = ox + DINO_X * s;
   const dinoY = oy + player.y * s;
   drawDino(dinoX, dinoY, s, player.legPhase, player.scaleY, player.ducking && player.onGround);
 

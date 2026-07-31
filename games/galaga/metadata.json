@@ -1,7 +1,7 @@
 {
   "id": "galaga",
   "title": "Galaga",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "created": "2026-07-15",
   "lastModified": "2026-07-30",
   "description": "Destruí oleadas de invasores en formación con picados en espiral.",
@@ -13,9 +13,7 @@
     {
       "version": "1.0.0",
       "date": "2026-07-15",
-      "changes": [
-        "Versión inicial del juego"
-      ]
+      "changes": ["Versión inicial del juego"]
     },
     {
       "version": "1.1.0",
@@ -51,6 +49,15 @@
         "R4: @keyframes shimmerFlow extraído a shared/base.css",
         "P0: drawGlow() y feedbackBundle() para rendimiento y game feel",
         "Constantes extraídas (SHIP_MARGIN, MIN_DIVE_INTERVAL, MAX_DIVERS, etc.)"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-07-30",
+      "changes": [
+        "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
+        "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
+        "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
       ]
     }
   ]

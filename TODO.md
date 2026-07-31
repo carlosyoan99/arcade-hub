@@ -27,14 +27,15 @@
 - [x] `shared/dom.js` — injectCommonElements() — loading, announce, gameBar (inyección vía JS)
 - [x] `shared/loop.js` — createGameLoop() — RAF + dt calculation + cleanup unificado
 
-### Skills instaladas (14 disponibles + 5 assets + 17 referencias)
+### Skills instaladas (26 disponibles + 5 assets + 32 referencias)
 
-- [x] `frontend-design`, `game-engine`, `game-feel`, `premium-frontend-ui`
-- [x] `refactor`, `refactor-plan`, `git-commit`
-- [x] `create-implementation-plan`, `create-readme`, `create-specification`, `documentation-writter`
-- [x] `audit-integrity`, `context-map`, `create-agentsmd`
+- [x] Core: `frontend-design`, `game-engine`, `game-feel`, `refactor`, `git-commit`
+- [x] UI/UX: `premium-frontend-ui`, `game-ui-ux`, `performance-optimization`
+- [x] Juego: `game-ai`, `procedural-gen`, `audio-design`, `physics-tuning`, `level-design`, `input-systems`, `dialogue-systems`, `save-systems`, `shader-programming`, `camera-systems`
+- [x] Docs/plan: `create-implementation-plan`, `refactor-plan`, `create-readme`, `create-specification`, `documentation-writter`
+- [x] Calidad: `audit-integrity`, `context-map`, `create-agentsmd`
 - [x] 5 assets (paddle-game-template, 2d-maze-game, 2d-platform-game, gameBase-template-repo, simple-2d-engine)
-- [x] 17 referencias técnicas (noise, dungeon-generation, pathfinding, behavior-trees, etc.)
+- [x] 32 referencias técnicas (noise, dungeon-generation, pathfinding, behavior-trees, etc.)
 
 ---
 
@@ -55,9 +56,9 @@
 
 ### R3 — Eliminar magic numbers
 
-- [x] Constantes extraídas en flappy-bird, frogger, tetris, galaga (committed)
-- [x] Constantes extraídas en centipede, defender, missile-command, neon-nexus (pendientes de commit)
-- ⚠️ **Parcial: 4 juegos commiteados, 4 con cambios sin commit**
+- [x] Constantes extraídas en flappy-bird, frogger, tetris, galaga (commit b413f74)
+- [x] Constantes extraídas en centipede, defender, missile-command, neon-nexus, dino-runner (commit 6ae619e)
+- **Verificado: extracción R3 documentada en 9 juegos**. ✅ COMPLETADO
 
 ### R4 — CSS selector cleanup
 
@@ -97,7 +98,7 @@
 
 ---
 
-## 🟡 PARCIALMENTE COMPLETADO — Fase H1: Premium Hub UI (6/7)
+## ✅ COMPLETADO — Fase H1: Premium Hub UI (7/7)
 
 > `skill("premium-frontend-ui")`. Verificado en código — la mayoría ya implementado.
 
@@ -113,14 +114,14 @@
 
 ---
 
-## 🔲 PENDIENTE — Fase D1: Documentación
+## 🟡 PARCIALMENTE COMPLETADO — Fase D1: Documentación (3/4)
 
-| #   | Tarea                               | Detalle                                                                                              |
-| --- | ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| D1  | **Actualizar READMEs de 19 juegos** | Reflejar shared modules (display.js, dom.js, loop.js, effects.js), controles actualizados, changelog |
-| D2  | **Actualizar CLAUDE.md**            | Ya bastante actualizado, verificar skills listadas                                                   |
-| D3  | **Actualizar README principal**     | Verificar badges y guía de nuevo juego                                                               |
-| D4  | **Actualizar metadata.json**        | Version bump + changelog por cada fase completada                                                    |
+| #   | Tarea                               | Estado       | Detalle                                                                                              |
+| --- | ----------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------- |
+| D1  | **Actualizar READMEs de 19 juegos** | ✅ Completo  | Reflejan shared modules (display.js, dom.js, loop.js, effects.js), controles y changelog actualizado |
+| D2  | **Actualizar CLAUDE.md**            | ✅ Completo  | Skills listadas (26+5+32), fases verificadas, sección de estado de fases añadida                     |
+| D3  | **Actualizar README principal**     | 🔲 Pendiente | Verificar badges y guía de nuevo juego                                                               |
+| D4  | **Actualizar metadata.json**        | ✅ Completo  | Version bump (12×1.5.0, 4×1.4.0, 3×1.3.0) + changelog G1-G5/P0/lint por juego                        |
 
 ---
 
@@ -157,7 +158,7 @@ Templates disponibles en `.agents/skills/assets/`:
 | **P0**    | Rendimiento           | shadowBlur+SW       | ✅ **9/10** (falta P10)                |
 | **G1–G5** | `game-feel`           | Game feel           | ✅ **Completado** (19/19)              |
 | **H1**    | `premium-frontend-ui` | Premium hub UI      | ✅ **7/7 completo**                    |
-| **D1**    | `create-readme`       | Documentación       | 🔲 **Pendiente**                       |
+| **D1**    | `create-readme`       | Documentación       | 🟡 **3/4** (D1-D2-D4 ✅, falta D3)     |
 | **P10**   | DevTools              | Pruebas rendimiento | 🔲 **Pendiente**                       |
 | **N1**    | `game-engine`         | Nuevos juegos       | 🟢 **Futuro**                          |
 
@@ -165,10 +166,10 @@ Templates disponibles en `.agents/skills/assets/`:
 
 ## 📦 metadata.json — Versiones actuales
 
-> Basado en git log y archivos. Pendiente de verificar cada uno.
+> Verificado: 19/19 juegos bumpados (Fase D4, 2026-07-30) con changelog de G1-G5, P0 y lint fixes.
 
 | Versión | Juegos                                                                                                                  |
 | ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1.4.0   | Pong, Breakout, Snake, Asteroids, Space Invaders, Flappy Bird, Pac-Man, Tetris, Frogger, Galaga, Centipede, Dino Runner |
-| 1.3.0   | Dig Dug, Missile Command, Cell Swarm, Neon Nexus                                                                        |
-| 1.2.0   | Defender, Donkey Kong, Joust                                                                                            |
+| 1.5.0   | Pong, Breakout, Snake, Asteroids, Space Invaders, Flappy Bird, Pac-Man, Tetris, Frogger, Galaga, Centipede, Dino Runner |
+| 1.4.0   | Dig Dug, Missile Command, Cell Swarm, Neon Nexus                                                                        |
+| 1.3.0   | Defender, Donkey Kong, Joust                                                                                            |

@@ -1,7 +1,7 @@
 {
   "id": "missile-command",
   "title": "Missile Command",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "created": "2026-07-28",
   "lastModified": "2026-07-30",
   "description": "Defendé tus ciudades de misiles enemigos con interceptores y misiles teledirigidos.",
@@ -13,9 +13,7 @@
     {
       "version": "1.0.0",
       "date": "2026-07-28",
-      "changes": [
-        "Versión inicial del juego"
-      ]
+      "changes": ["Versión inicial del juego"]
     },
     {
       "version": "1.1.0",
@@ -42,6 +40,17 @@
         "Compartido: shared/loop.js — game loop compartido con dt/RAF/cleanup unificados",
         "R4: @keyframes shimmerFlow extraído a shared/base.css",
         "P0: drawGlow() y feedbackBundle() para rendimiento y game feel"
+      ]
+    },
+    {
+      "version": "1.4.0",
+      "date": "2026-07-30",
+      "changes": [
+        "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
+        "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
+        "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
+        "R3: Constantes extraídas (ammo, intervalos de oleadas)",
+        "Fix: refs rotas CANVAS_W/H→CW/CH y c→canvas"
       ]
     }
   ]

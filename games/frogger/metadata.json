@@ -1,7 +1,7 @@
 {
   "id": "frogger",
   "title": "Frogger",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "created": "2026-06-22",
   "lastModified": "2026-07-30",
   "description": "Cruzá la calle y el río esquivando autos y cayendo al agua.",
@@ -13,9 +13,7 @@
     {
       "version": "1.0.0",
       "date": "2026-06-22",
-      "changes": [
-        "Versión inicial del juego"
-      ]
+      "changes": ["Versión inicial del juego"]
     },
     {
       "version": "1.1.0",
@@ -52,6 +50,15 @@
         "P0: drawGlow() y feedbackBundle() para rendimiento y game feel",
         "Constante extraída (TRUCK_SPEED_THRESHOLD)",
         "R3: Magic numbers extraídos a constantes nombradas"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-07-30",
+      "changes": [
+        "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
+        "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
+        "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
       ]
     }
   ]
