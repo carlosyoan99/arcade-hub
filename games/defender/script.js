@@ -14,6 +14,8 @@ import {
   drawParticles,
   clearParticles,
   drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -1000,21 +1002,24 @@ function drawTerrain() {
   ctx.fill();
 
   // Terrain outline (glowing)
-  ctx.shadowColor = 'rgba(110, 198, 255, 0.08)';
-  ctx.shadowBlur = 6 * s;
-  ctx.strokeStyle = 'rgba(110, 198, 255, 0.15)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.beginPath();
-  for (let i = startX; i <= endX; i++) {
-    const p = terrainPoints[i];
-    const wx = p.x;
-    const sx = ox + (wx - camera.x) * s;
-    const sy = oy + (GROUND_Y + p.h) * s;
-    if (i === startX) ctx.moveTo(sx, sy);
-    else ctx.lineTo(sx, sy);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      for (let i = startX; i <= endX; i++) {
+        const p = terrainPoints[i];
+        const wx = p.x;
+        const sx = ox + (wx - camera.x) * s;
+        const sy = oy + (GROUND_Y + p.h) * s;
+        if (i === startX) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+    },
+    'rgba(110, 198, 255, 0.15)',
+    1.5 * s,
+    0.4,
+    3,
+  );
   ctx.restore();
 
   // Draw surface buildings / structures
@@ -1069,43 +1074,49 @@ function drawPlayer() {
   if (keys.left || keys.right || keys.up || keys.down) {
     const gx = px - (keys.left ? pw * 0.5 : 0) + (keys.right ? pw * 1.5 : pw * 0.5);
     const gy = py + ph / 2;
-    ctx.shadowColor = 'rgba(110, 198, 255, 0.3)';
-    ctx.shadowBlur = 20 * s;
-    ctx.fillStyle = 'rgba(110, 198, 255, 0.15)';
-    ctx.beginPath();
-    ctx.arc(gx, gy, pw * 0.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.arc(gx, gy, pw * 0.6, 0, Math.PI * 2);
+      },
+      'rgba(110, 198, 255, 0.15)',
+      0.3,
+      10 * s,
+      'rgba(110, 198, 255, 0.3)',
+    );
   }
 
-  // Ship body (diamond/arrow shape)
-  ctx.shadowColor = 'rgba(110, 198, 255, 0.4)';
-  ctx.shadowBlur = 16 * s;
+  // Ship body (diamond/arrow shape) — glow sin shadowBlur
 
   // Main body
   const g = ctx.createLinearGradient(px - pw / 2, py, px + pw / 2, py);
   g.addColorStop(0, '#1a3a5a');
   g.addColorStop(0.5, '#4a9aff');
   g.addColorStop(1, '#1a3a5a');
-  ctx.fillStyle = g;
 
-  ctx.beginPath();
-  ctx.moveTo(px + pw / 2, py);
-  ctx.lineTo(px + pw * 0.3, py - ph / 2);
-  ctx.lineTo(px - pw / 2, py - ph * 0.3);
-  ctx.lineTo(px - pw / 2, py + ph * 0.3);
-  ctx.lineTo(px + pw * 0.3, py + ph / 2);
-  ctx.closePath();
-  ctx.fill();
+  fillWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.moveTo(px + pw / 2, py);
+      ctx.lineTo(px + pw * 0.3, py - ph / 2);
+      ctx.lineTo(px - pw / 2, py - ph * 0.3);
+      ctx.lineTo(px - pw / 2, py + ph * 0.3);
+      ctx.lineTo(px + pw * 0.3, py + ph / 2);
+      ctx.closePath();
+    },
+    g,
+    0.3,
+    8 * s,
+    'rgba(110, 198, 255, 0.4)',
+  );
 
   // Cockpit glow
-  ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
   ctx.beginPath();
   ctx.arc(px + pw * 0.25, py, ph * 0.2 * s, 0, Math.PI * 2);
   ctx.fill();
-
-  ctx.shadowBlur = 0;
 }
 
 function drawEnemies() {
@@ -1188,7 +1199,6 @@ function drawEnemies() {
         break;
       }
     }
-    ctx.shadowBlur = 0;
   }
 }
 
@@ -1250,17 +1260,16 @@ function drawLasers() {
     const lw = LASER_W * s;
     const lh = LASER_H * s;
 
-    ctx.shadowColor = 'rgba(110, 198, 255, 0.6)';
-    ctx.shadowBlur = 14 * s;
+    // Halo (glow sin shadowBlur)
+    ctx.fillStyle = 'rgba(110, 198, 255, 0.25)';
+    ctx.fillRect(sx - 2 * s, sy - lh / 2 - 2 * s, lw * 4 + 4 * s, lh + 4 * s);
     ctx.fillStyle = '#6ec6ff';
     ctx.fillRect(sx, sy - lh / 2, lw * 4, lh);
 
     // Core
-    ctx.shadowBlur = 0;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(sx, sy - lh / 4, lw * 4, lh / 2);
   }
-  ctx.shadowBlur = 0;
 }
 
 function drawEnemyLasers() {
@@ -1280,7 +1289,6 @@ function drawEnemyLasers() {
 
     drawGlow(ctx, sx, sy, br, 'rgba(255, 94, 122, 0.4)', 0.15, 2.5);
   }
-  ctx.shadowBlur = 0;
 }
 
 function drawUI() {

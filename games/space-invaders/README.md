@@ -1,6 +1,6 @@
 # 👾 Space Invaders
 
-**Versión:** 1.4.0 | **Género:** Space Shooter | **Última actualización:** 2026-07-30
+**Versión:** 1.5.0 | **Género:** Space Shooter | **Última actualización:** 2026-07-30
 
 Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos, nave misteriosa y velocidad progresiva.
 
@@ -31,6 +31,10 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para teclado, táctil y gamepad
 
+## Logros
+
+- 🏆 **Conquistador galáctico** — Alcanzá 2.000 puntos de récord
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -41,6 +45,15 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 - Audio sintetizado con `shared/audio.js` (Web Audio API: beep, ambient drone)
 - Game feel: screen shake por trauma, hit-stop, squash & stretch, partículas con object pool (500), `feedbackBundle` por tiers
 - Rendimiento: glow sin `shadowBlur` (`drawGlow`), anti-tunneling en sub-pasos, object pooling
-- Accesibilidad: `aria-live` announcements, prefers-reduced-motion → `setShakeScale(0)`
+- Accesibilidad: `aria-live` announcements, `trapTab()` focus trapping, prefers-reduced-motion → `setShakeScale(0)`, modal de ayuda accesible (role=dialog + focus trap), canvas con `role="img"`, zoom móvil habilitado, `:focus-visible` global
 - Persistencia en `localStorage` con key namespaced
 - 3 modos de entrada: teclado (flechas + Espacio + R), táctil (botones responsive), gamepad (polling en loop)
+
+## Changelog
+
+- **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
+- **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
+- **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`
+- **1.2.0** (2026-07-28): Refactor CSS a estética neon compartida en `base.css`; README con controles y descripción
+- **1.1.0** (2026-07-28): Refactor a carpeta individual; botón ayuda + volver al hub; screen shake y partículas
+- **1.0.0** (2026-06-12): Versión inicial del juego

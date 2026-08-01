@@ -14,6 +14,8 @@ import {
   drawParticles,
   clearParticles,
   drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   clearSquashes,
 } from '../../shared/effects.js';
@@ -1230,14 +1232,17 @@ function draw() {
   ctx.fillRect(ox, oy, 800 * s, 800 * s);
 
   // ── Arena glow ──
-  ctx.shadowColor = 'rgba(0,245,255,0.06)';
-  ctx.shadowBlur = 30;
-  ctx.strokeStyle = 'rgba(0,245,255,0.07)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.beginPath();
-  ctx.arc(cx, cy, ar, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, ar, 0, Math.PI * 2);
+    },
+    'rgba(0,245,255,0.07)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // ── Grid ──
   ctx.strokeStyle = 'rgba(0,245,255,0.03)';
@@ -1369,13 +1374,17 @@ function draw() {
     ctx.setLineDash([]);
   }
 
-  ctx.shadowColor = 'rgba(0,245,255,0.5)';
-  ctx.shadowBlur = 20 * s;
-  ctx.fillStyle = '#00f5ff';
-  ctx.beginPath();
-  ctx.arc(cx, cy, tr, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, tr, 0, Math.PI * 2);
+    },
+    '#00f5ff',
+    0.4,
+    10 * s,
+    'rgba(0,245,255,0.5)',
+  );
 
   const hiGrad = ctx.createRadialGradient(cx - tr * 0.3, cy - tr * 0.3, 0, cx, cy, tr);
   hiGrad.addColorStop(0, 'rgba(255,255,255,0.4)');

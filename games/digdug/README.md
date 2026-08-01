@@ -1,6 +1,6 @@
 # ⛏️ Dig Dug
 
-**Versión:** 1.3.0 | **Género:** Arcade | **Última actualización:** 2026-07-30
+**Versión:** 1.4.0 | **Género:** Arcade | **Última actualización:** 2026-07-30
 
 Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrumbá rocas sobre ellos. Dos tipos de enemigos con IA propia.
 
@@ -30,6 +30,10 @@ Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrum
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para teclado, táctil y gamepad
 
+## Logros
+
+- 🏆 **Excavador experto** — Alcanzá 1.000 puntos de récord
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -40,6 +44,14 @@ Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrum
 - Audio sintetizado con `shared/audio.js` (Web Audio API: beep, ambient drone)
 - Game feel: screen shake por trauma, hit-stop, squash & stretch, partículas con object pool (500), `feedbackBundle` por tiers
 - Rendimiento: glow sin `shadowBlur` (`drawGlow`), object pooling
-- Accesibilidad: `aria-live` announcements, prefers-reduced-motion → `setShakeScale(0)`
+- Accesibilidad: `aria-live` announcements, `trapTab()` focus trapping, prefers-reduced-motion → `setShakeScale(0)`, modal de ayuda accesible (role=dialog + focus trap), canvas con `role="img"`, zoom móvil habilitado, `:focus-visible` global
 - Persistencia en `localStorage` con key namespaced
 - 3 modos de entrada: teclado (flechas/WASD + Espacio + R), táctil (botones responsive), gamepad (polling en loop)
+
+## Changelog
+
+- **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
+- **1.3.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
+- **1.2.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`
+- **1.1.0** (2026-07-28): Refactor CSS a estética neon compartida en `base.css`; README con controles y descripción; correcciones ESLint
+- **1.0.0** (2026-07-25): Versión inicial del juego

@@ -13,6 +13,7 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  fillWithGlow,
   feedbackBundle,
   triggerSquash,
   updateSquashes,
@@ -606,7 +607,6 @@ function draw() {
     const lw = TILE * 0.4 * s;
     const lh = l.h * TILE * s;
 
-    ctx.shadowBlur = 0;
     ctx.strokeStyle = 'rgba(180,120,80,0.4)';
     ctx.lineWidth = 2 * s;
     // Laterales
@@ -630,14 +630,16 @@ function draw() {
   // Donkey Kong (en la cima)
   const dkx = ox + 8.2 * TILE * s;
   const dky = oy + 0.2 * TILE * s;
-  ctx.shadowColor = 'rgba(139,69,19,0.3)';
-  ctx.shadowBlur = 20 * s;
-  // Cuerpo (marrón)
-  ctx.fillStyle = '#8B4513';
-  roundRect(ctx, dkx - 14 * s, dky, 28 * s, 22 * s, 6 * s);
-  ctx.fill();
+  // Cuerpo (marrón) — glow sin shadowBlur
+  fillWithGlow(
+    ctx,
+    () => roundRect(ctx, dkx - 14 * s, dky, 28 * s, 22 * s, 6 * s),
+    '#8B4513',
+    0.3,
+    10 * s,
+    'rgba(139,69,19,0.3)',
+  );
   // Barril que lanza
-  ctx.shadowBlur = 0;
   ctx.fillStyle = '#cc4400';
   ctx.beginPath();
   ctx.arc(dkx + 18 * s, dky + 10 * s, 6 * s, 0, Math.PI * 2);
@@ -696,25 +698,25 @@ function draw() {
     ctx.translate(-cx, -cy);
 
     // Sombra
-    ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath();
     ctx.ellipse(px + pw / 2, py + ph + 2 * s, pw * 0.5, 3 * s, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cuerpo (overalls azules)
-    ctx.shadowColor = 'rgba(255,0,0,0.15)';
-    ctx.shadowBlur = 10 * s;
-    ctx.fillStyle = '#e03030';
-    roundRect(ctx, px + 2 * s, py, pw - 4 * s, ph * 0.4, 3 * s);
-    ctx.fill();
+    // Cuerpo (overalls azules) — glow sin shadowBlur
+    fillWithGlow(
+      ctx,
+      () => roundRect(ctx, px + 2 * s, py, pw - 4 * s, ph * 0.4, 3 * s),
+      '#e03030',
+      0.3,
+      5 * s,
+    );
 
     ctx.fillStyle = '#3050c0';
     roundRect(ctx, px + 2 * s, py + ph * 0.35, pw - 4 * s, ph * 0.45, 2 * s);
     ctx.fill();
 
     // Cabeza (skin)
-    ctx.shadowBlur = 0;
     ctx.fillStyle = '#f5d0a9';
     ctx.beginPath();
     ctx.arc(px + pw / 2, py + ph * 0.15, pw * 0.35, 0, Math.PI * 2);

@@ -15,6 +15,7 @@ import {
   drawParticles,
   clearParticles,
   drawGlow,
+  fillWithGlow,
   feedbackBundle,
   triggerSquash,
   updateSquashes,
@@ -724,14 +725,16 @@ function draw() {
   lavaGrad.addColorStop(0.3, '#cc2200');
   lavaGrad.addColorStop(0.7, '#881100');
   lavaGrad.addColorStop(1, '#440800');
-  ctx.fillStyle = lavaGrad;
-  ctx.shadowColor = 'rgba(255,68,0,0.3)';
-  ctx.shadowBlur = 20 * s;
-  roundRect(ctx, ox, oy + LAVA_Y * s, GAME_W * s, (GAME_H - LAVA_Y) * s, 0);
-  ctx.fill();
+  fillWithGlow(
+    ctx,
+    () => roundRect(ctx, ox, oy + LAVA_Y * s, GAME_W * s, (GAME_H - LAVA_Y) * s, 0),
+    lavaGrad,
+    0.3,
+    10 * s,
+    'rgba(255,68,0,0.3)',
+  );
 
   // Ondas de lava
-  ctx.shadowBlur = 0;
   ctx.strokeStyle = 'rgba(255,120,40,0.15)';
   ctx.lineWidth = 2 * s;
   for (let i = 0; i < 4; i++) {
@@ -747,7 +750,6 @@ function draw() {
 
   // Mano troll emergiendo de la lava (decorativa)
   ctx.fillStyle = 'rgba(255,68,0,0.2)';
-  ctx.shadowBlur = 0;
   const trollX = ox + Math.sin(animTime * 0.5) * 60 * s + GAME_W * s * 0.5;
   const trollY = oy + (LAVA_Y - 10 + Math.sin(animTime * 1.2) * 6) * s;
   roundRect(ctx, trollX - 10 * s, trollY, 20 * s, 20 * s, 6 * s);
@@ -798,7 +800,6 @@ function draw() {
     const nearHatch = egg.timer < 1.5;
 
     // Sombra
-    ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath();
     ctx.ellipse(ex, ey + r + 2 * s, r * 0.8, 3 * s, 0, 0, Math.PI * 2);
@@ -824,7 +825,6 @@ function draw() {
     drawGlow(ctx, ex, ey, r * 0.6, eggGlowColor, 0.08, 3);
 
     // Brillito
-    ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.beginPath();
     ctx.arc(ex - r * 0.3, ey - r * 0.3, r * 0.25, 0, Math.PI * 2);
@@ -850,7 +850,6 @@ function draw() {
     const eh = e.h * s;
 
     // Sombra
-    ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     ctx.beginPath();
     ctx.ellipse(ex + ew / 2, ey + eh + 3 * s, ew * 0.5, 4 * s, 0, 0, Math.PI * 2);
@@ -886,19 +885,25 @@ function draw() {
     drawGlow(ctx, ex + ew / 2, ey + eh / 2, ew * 0.6, glowColor, 0.08, 3);
 
     // Alas
-    ctx.shadowBlur = 6 * s;
-    ctx.fillStyle = wingColor;
     const wingFlap = Math.sin(animTime * 6 + e.x) * 0.3 + 0.6;
     const wingW = 14 * s;
     const wingH = 6 * s * wingFlap;
     // Ala izquierda
-    roundRect(ctx, ex - wingW + 8 * s, ey + 12 * s, wingW, wingH, 2 * s);
-    ctx.fill();
+    fillWithGlow(
+      ctx,
+      () => roundRect(ctx, ex - wingW + 8 * s, ey + 12 * s, wingW, wingH, 2 * s),
+      wingColor,
+      0.4,
+      3 * s,
+    );
     // Ala derecha
-    roundRect(ctx, ex + ew - 8 * s, ey + 12 * s, wingW, wingH, 2 * s);
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => roundRect(ctx, ex + ew - 8 * s, ey + 12 * s, wingW, wingH, 2 * s),
+      wingColor,
+      0.4,
+      3 * s,
+    );
 
     // Cabeza del jinete
     ctx.fillStyle =
@@ -944,20 +949,20 @@ function draw() {
     }
 
     // Sombra
-    ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     ctx.beginPath();
     ctx.ellipse(px + pw / 2, py + ph + 3 * s, pw * 0.45, 4 * s, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Glow del jugador
-    ctx.shadowColor = 'rgba(192,132,252,0.2)';
-    ctx.shadowBlur = 12 * s;
-
-    // Cuerpo del avestruz
-    ctx.fillStyle = '#8a6a4a';
-    roundRect(ctx, px + 6 * s, py + 12 * s, pw - 12 * s, ph - 16 * s, 5 * s);
-    ctx.fill();
+    fillWithGlow(
+      ctx,
+      () => roundRect(ctx, px + 6 * s, py + 12 * s, pw - 12 * s, ph - 16 * s, 5 * s),
+      '#8a6a4a',
+      0.3,
+      6 * s,
+      'rgba(192,132,252,0.2)',
+    );
 
     // Cuello
     ctx.fillStyle = '#9a7a5a';
@@ -988,8 +993,6 @@ function draw() {
     ctx.beginPath();
     ctx.arc(px + pw / 2 + player.facing * 7.5 * s, py + 2.5 * s, 1 * s, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.shadowBlur = 0;
 
     // Alas del avestruz (animadas con el aleteo)
     const flapPhase = player.flapAnim > 0 ? Math.sin(animTime * 20) : 0;

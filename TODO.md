@@ -47,6 +47,7 @@
 ### R1 — Renombrar vars 3D vestigios
 
 - [x] Buscar `ball.z`, `paddle.z`, `player.z` → renombrar a `.y`
+- [x] **2026-07-31**: Snake migrado por completo — coordenadas de grid `.z`/`.dz` → `.y`/`.dy` (último vestigio 3D)
 - **Verificado: 0 matches** en `games/*/script.js`. ✅ COMPLETADO
 
 ### R2 — Extraer game loop compartido
@@ -79,9 +80,24 @@
 - [x] **P7**: RAF-based debounce en resize de `shared/display.js`
 - [x] **P8**: Agregar `shared/display.js` y `dom.js` a SW FILES
 - [x] **P9**: Migrar shadowBlur en snake, asteroids, pacman, frogger, digdug, missile-command, donkey-kong, cell-swarm, neon-nexus
+- [x] **P0-extra (2026-07-31)**: Migración total de `ctx.shadowBlur` → glows sin blur en 19/19 juegos — `fillWithGlow()`/`strokeWithGlow()` nuevos en `shared/effects.js` + `drawGlow()` para círculos. Verificado: **0 usos de `shadowBlur` restantes** en `games/*/script.js`.
 - [ ] **P10**: Probar rendimiento con Chrome DevTools Performance tab
 
-**Nota:** Tras la migración, aún persisten ~115 usos de `ctx.shadowBlur` en los juegos, pero todos están **fuera de loops por entidad** (se usan para fondos, HUD, elementos decorativos) y siempre pareados con `shadowBlur = 0`.
+**Nota:** Tras la migración de P9 quedaban ~115 usos decorativos de `ctx.shadowBlur` (fondos, HUD, bordes, entidades fuera de loops) — todos migrados a la técnica de halo translúcido (`fillWithGlow`/`strokeWithGlow`) el 2026-07-31.
+
+---
+
+## ✅ COMPLETADO — A11y: Auditoría de accesibilidad (2026-07-31)
+
+Auditoría de hub + 19 juegos (foco, contraste, reduced-motion, ARIA, touch targets) con arreglos priorizados implementados.
+
+- [x] **A11y-1**: Modal de ayuda (`shared/help.js`) → `role="dialog"`, `aria-modal`, `aria-labelledby`, botón cerrar con `aria-label`, **focus trap con Tab/Shift+Tab**, foco movido al abrir y **restaurado al cerrar**, changelog como `<button>` real con `aria-expanded`
+- [x] **A11y-2**: Quitar `user-scalable=no` del viewport en **19/19** juegos (permite zoom/pinch en móvil) + `touch-action: manipulation` en canvas (mantiene pinch-zoom, evita doble-tap) en `shared/base.css`
+- [x] **A11y-3**: `role="img"` en el canvas de **19/19** juegos (aria-label anunciado correctamente)
+- [x] **A11y-4**: `:focus-visible` global con `--accent` + ring especial en gameBar/touchControls (`shared/base.css`); touch targets gameBar ≥ 44×40px
+- [x] **A11y-5**: Hub — badge corregido a 19 juegos, `aria-label` en `sortSelect`, `:focus-visible` en toolbar (themeToggle, view-btn, select)
+
+**Ya presente (verificado):** `aria-live`/`aria-atomic` en `#announce` (dom.js), `aria-label` en botones táctiles 19/19, `prefers-reduced-motion` en hub + base.css + `setShakeScale(0)`, `trapTab` en 19/19, focus-visible en cards del hub, `lang="es"`, alt en thumbnails.
 
 ---
 
@@ -93,9 +109,9 @@
 - [x] **G2**: Screen shake suave por trauma (ondas sinusoidales + `setShakeScale()`)
 - [x] **G3**: Hit-stop / freeze frame (`hitStop()`, `isHitStopped()`)
 - [x] **G4**: Squash & stretch en saltos/landings (Pong, Breakout, Asteroids, DK, Joust)
-- [x] **G5**: **19/19 juegos** — feedbackBundle integrado + updateSquashes en game loops
+- [x] **G5**: **19/19 juegos** — feedbackBundle integrado; updateSquashes en game loops de 15/19 (4 juegos sin squash: cell-swarm, neon-nexus, missile-command, dino-runner)
 - [x] **G6**: Accesibilidad — prefers-reduced-motion → `setShakeScale(0)` + listener change en vivo
-- **Verificado: `feedbackBundle` en 19/19, `updateSquashes` en 19/19, `clearSquashes` en 19/19**. ✅ COMPLETADO
+- **Verificado: `feedbackBundle` en 19/19, `updateSquashes` en 15/19, `clearSquashes` en 19/19**. ✅ COMPLETADO
 
 ---
 
@@ -115,14 +131,18 @@
 
 ---
 
-## ✅ COMPLETADO — Fase D1: Documentación (4/4)
+## ✅ COMPLETADO — Fase D: Documentación (6/6)
 
-| #   | Tarea                               | Estado      | Detalle                                                                                              |
-| --- | ----------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- |
-| D1  | **Actualizar READMEs de 19 juegos** | ✅ Completo | Reflejan shared modules (display.js, dom.js, loop.js, effects.js), controles y changelog actualizado |
-| D2  | **Actualizar CLAUDE.md**            | ✅ Completo | Skills listadas (26+5+32), fases verificadas, sección de estado de fases añadida                     |
-| D3  | **Actualizar README principal**     | ✅ Completo | Badges añadidos, guía de juego nuevo corregida (loop.js, games.js, 19 juegos)                        |
-| D4  | **Actualizar metadata.json**        | ✅ Completo | Version bump (12×1.5.0, 4×1.4.0, 3×1.3.0) + changelog G1-G5/P0/lint por juego                        |
+> Fase D1–D4 completada y **expandida (2026-08-01)** con documentación avanzada: README principal reescrito, CONTRIBUTING.md nuevo, 19 READMEs sincronizados y screenshot 19/19.
+
+| #   | Tarea                               | Estado      | Detalle                                                                                                                                                                                                                                                                  |
+| --- | ----------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1  | **Actualizar READMEs de 19 juegos** | ✅ Completo | Reescritos con versión sincronizada con `metadata.json`, sección Logros (condiciones reales del código), Changelog y accesibilidad (2026-08-01)                                                                                                                          |
+| D2  | **Actualizar CLAUDE.md**            | ✅ Completo | Skills listadas (26+5+32), fases verificadas, sección de estado de fases añadida                                                                                                                                                                                         |
+| D3  | **Actualizar README principal**     | ✅ Completo | **Estado: pendiente → completado (2026-08-01).** Reescrito con documentación avanzada: badges, tabla de 19 juegos con versiones, anatomía (5 archivos + screenshot), módulos `shared/` con exports reales, accesibilidad, testing/validación, versionado, workflow y FAQ |
+| D4  | **Actualizar metadata.json**        | ✅ Completo | Version bump (12×1.5.0, 4×1.4.0, 3×1.3.0) + changelog G1-G5/P0/lint por juego                                                                                                                                                                                            |
+| D5  | **CONTRIBUTING.md (nuevo)**         | ✅ Completo | Guía de contribución: TL;DR, setup, 9 pasos para agregar un juego, estándares de código, validación, workflow y checklist de PR (2026-08-01)                                                                                                                             |
+| D6  | **Screenshot 19/19**                | ✅ Completo | `screenshot.png` de joust generado (último faltante, 1024×768 gameplay vía Chrome headless) — los 19 juegos tienen captura                                                                                                                                               |
 
 ---
 
@@ -187,7 +207,7 @@ Templates disponibles en `.agents/skills/assets/`:
 | **P0**    | Rendimiento           | shadowBlur+SW       | ✅ **9/10** (falta P10)                |
 | **G1–G5** | `game-feel`           | Game feel           | ✅ **Completado** (19/19)              |
 | **H1**    | `premium-frontend-ui` | Premium hub UI      | ✅ **7/7 completo**                    |
-| **D1**    | `create-readme`       | Documentación       | ✅ **Completado** (D1-D4)              |
+| **D**     | `create-readme`       | Documentación       | ✅ **Completado** (D1-D6)              |
 | **M**     | `audit-integrity`     | Mejoras menores     | ✅ **Completado** (7/7)                |
 | **P10**   | DevTools              | Pruebas rendimiento | 🔲 **Pendiente**                       |
 | **N1**    | `game-engine`         | Nuevos juegos       | 🟢 **Futuro**                          |

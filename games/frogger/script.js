@@ -13,6 +13,7 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  fillWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -625,13 +626,16 @@ function drawFrog(x, y, s, dir) {
   // Body
   ctx.save();
   ctx.translate(x, y);
-  ctx.shadowColor = '#6ee7b7';
-  ctx.shadowBlur = 8 * s;
-  ctx.fillStyle = '#6ee7b7';
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 10 * s, 7 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 10 * s, 7 * s, 0, 0, Math.PI * 2);
+    },
+    '#6ee7b7',
+    0.4,
+    4 * s,
+  );
 
   // Eyes (look in movement direction)
   const ed = Math.cos(dir) * 2 * s,

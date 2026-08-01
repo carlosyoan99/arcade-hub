@@ -12,6 +12,7 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -579,12 +580,14 @@ function draw() {
   }
 
   // Border
-  ctx.shadowColor = 'rgba(110,231,183,0.06)';
-  ctx.shadowBlur = 12;
-  ctx.strokeStyle = 'rgba(110,231,183,0.1)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(cx, cy, CW * s, CH * s);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => ctx.strokeRect(cx, cy, CW * s, CH * s),
+    'rgba(110,231,183,0.1)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // Enemies in formation
   for (const e of enemies) {
@@ -635,10 +638,8 @@ function draw() {
     if (!blink) {
       const sx = cx + ship.x * s,
         sy = cy + SHIP_Y * s;
-      ctx.shadowColor = '#6ec6ff';
-      ctx.shadowBlur = 12 * s;
+      drawGlow(ctx, sx, sy, SHIP_W * s * 0.6, '#6ec6ff', 0.25, 3);
       drawPlayerShip(sx, sy, SHIP_W * s, SHIP_H * s);
-      ctx.shadowBlur = 0;
     }
   }
 

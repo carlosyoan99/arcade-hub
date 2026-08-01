@@ -13,6 +13,8 @@ import {
   drawParticles,
   roundRect,
   drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -823,12 +825,14 @@ function draw() {
   }
 
   // Border
-  ctx.shadowColor = 'rgba(110,231,183,0.06)';
-  ctx.shadowBlur = 12;
-  ctx.strokeStyle = 'rgba(110,231,183,0.1)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(cx, cy, CW * s, CH * s);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => ctx.strokeRect(cx, cy, CW * s, CH * s),
+    'rgba(110,231,183,0.1)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // Falling rock
   if (fallingRock) {
@@ -846,13 +850,17 @@ function draw() {
     const fx = cx + f.c * GS * s,
       fy = cy + f.r * GS * s;
     const pulse = 0.8 + Math.sin(Date.now() / 200) * 0.2;
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 6 * s;
-    ctx.fillStyle = f.type === 0 ? '#ff6b6b' : f.type === 1 ? '#6ec6ff' : '#6ee7b7';
-    ctx.beginPath();
-    ctx.arc(fx + (GS / 2) * s, fy + (GS / 2) * s, 5 * s * pulse, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.arc(fx + (GS / 2) * s, fy + (GS / 2) * s, 5 * s * pulse, 0, Math.PI * 2);
+      },
+      f.type === 0 ? '#ff6b6b' : f.type === 1 ? '#6ec6ff' : '#6ee7b7',
+      0.4,
+      3 * s,
+      '#ffd700',
+    );
   }
 
   // Enemies
@@ -949,13 +957,17 @@ function draw() {
     if (!blink) {
       const px = cx + player.c * GS + (GS / 2) * s,
         py = cy + player.r * GS + (GS / 2) * s;
-      ctx.shadowColor = '#6ee7b7';
-      ctx.shadowBlur = 6 * s;
-      // Body (digger)
-      ctx.fillStyle = '#6ee7b7';
-      ctx.beginPath();
-      ctx.arc(px, py - 2 * s, 5 * s, 0, Math.PI * 2);
-      ctx.fill();
+      // Body (digger) — glow sin shadowBlur
+      fillWithGlow(
+        ctx,
+        () => {
+          ctx.beginPath();
+          ctx.arc(px, py - 2 * s, 5 * s, 0, Math.PI * 2);
+        },
+        '#6ee7b7',
+        0.4,
+        3 * s,
+      );
       // Goggles
       ctx.fillStyle = '#44ccff';
       ctx.beginPath();
@@ -984,7 +996,6 @@ function draw() {
       ctx.fillStyle = '#44aa77';
       ctx.fillRect(px - 4 * s, py + 2 * s, 3 * s, 3 * s);
       ctx.fillRect(px + 1 * s, py + 2 * s, 3 * s, 3 * s);
-      ctx.shadowBlur = 0;
     }
   }
 

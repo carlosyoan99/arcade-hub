@@ -12,6 +12,8 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   clearSquashes,
 } from '../../shared/effects.js';
@@ -544,15 +546,18 @@ function draw() {
   ctx.fillRect(ox, groundYpx, cw, oy + ch - groundYpx);
 
   // Línea del suelo
-  ctx.shadowColor = 'rgba(110,231,183,0.1)';
-  ctx.shadowBlur = 8 * s;
-  ctx.strokeStyle = 'rgba(110,231,183,0.25)';
-  ctx.lineWidth = 2 * s;
-  ctx.beginPath();
-  ctx.moveTo(ox, groundYpx);
-  ctx.lineTo(ox + cw, groundYpx);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.moveTo(ox, groundYpx);
+      ctx.lineTo(ox + cw, groundYpx);
+    },
+    'rgba(110,231,183,0.25)',
+    2 * s,
+    0.4,
+    3,
+  );
 
   // Líneas de carril (scroll)
   ctx.strokeStyle = 'rgba(255,255,255,0.04)';
@@ -604,12 +609,13 @@ function drawDino(x, y, s, legPhase, scaleY, isDucking) {
   ctx.fill();
 
   // Cuerpo
-  ctx.shadowColor = 'rgba(110,231,183,0.3)';
-  ctx.shadowBlur = sc(8);
-  ctx.fillStyle = color;
-  roundRect(ctx, (-bodyW / 2) * s, -bodyH * s, bodyW * s, bodyH * s, sc(4));
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(
+    ctx,
+    () => roundRect(ctx, (-bodyW / 2) * s, -bodyH * s, bodyW * s, bodyH * s, sc(4)),
+    color,
+    0.3,
+    4 * s,
+  );
 
   if (!isDucking) {
     // Cabeza
@@ -626,13 +632,16 @@ function drawDino(x, y, s, legPhase, scaleY, isDucking) {
     ctx.fill();
 
     // Ojo
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = sc(4);
-    ctx.beginPath();
-    ctx.arc(sc(12), headY - headH + sc(6), sc(2.5), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.arc(sc(12), headY - headH + sc(6), sc(2.5), 0, Math.PI * 2);
+      },
+      '#ffffff',
+      0.4,
+      3 * s,
+    );
 
     // Cola
     ctx.fillStyle = color;
@@ -684,12 +693,13 @@ function drawCactus(x, y, w, h, clusters) {
     ctx.fill();
 
     // Tronco
-    ctx.shadowColor = 'rgba(63,174,92,0.3)';
-    ctx.shadowBlur = sc2(6);
-    ctx.fillStyle = '#3fae5c';
-    roundRect(ctx, cx - cw / 3, y - ch, cw / 1.5, ch, sc2(3));
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => roundRect(ctx, cx - cw / 3, y - ch, cw / 1.5, ch, sc2(3)),
+      '#3fae5c',
+      0.3,
+      3 * s,
+    );
 
     // Brazo
     const armDir = i % 2 === 0 ? 1 : -1;
@@ -713,12 +723,16 @@ function drawBird(x, y, w, h, flapPhase) {
   ctx.fill();
 
   // Cuerpo
-  ctx.shadowColor = 'rgba(217,140,74,0.3)';
-  ctx.shadowBlur = sc2(6);
-  ctx.fillStyle = '#d98c4a';
-  ctx.beginPath();
-  ctx.ellipse(x, y, halfW * 0.4, halfH * 0.8, 0, 0, Math.PI * 2);
-  ctx.fill();
+  fillWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.ellipse(x, y, halfW * 0.4, halfH * 0.8, 0, 0, Math.PI * 2);
+    },
+    '#d98c4a',
+    0.3,
+    3 * s,
+  );
 
   // Ala izquierda
   ctx.fillStyle = '#c47a3a';
@@ -736,8 +750,6 @@ function drawBird(x, y, w, h, flapPhase) {
   roundRect(ctx, -halfW * 0.15, -halfH * 0.1, halfW * 0.5, halfH * 0.4, sc2(3));
   ctx.fill();
   ctx.restore();
-
-  ctx.shadowBlur = 0;
 
   // Ojo
   ctx.fillStyle = '#ffffff';

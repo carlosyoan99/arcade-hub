@@ -32,6 +32,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint (ESLint — 0 errores, 0 warnings)
+        run: npm run lint
+
+      - name: Format (Prettier — sin drift)
+        run: npm run format
+
       - name: Verify project consistency (games.js ↔ disco ↔ sw.js)
         run: npm run verify
 

@@ -12,6 +12,8 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -347,14 +349,18 @@ function draw() {
   const groundY = cy + (CH - GROUND_H) * s;
   ctx.fillStyle = '#1a2a1a';
   ctx.fillRect(cx, groundY, cw2, cy + ch2 - groundY);
-  ctx.shadowColor = 'rgba(110,231,183,0.1)';
-  ctx.strokeStyle = 'rgba(110,231,183,0.2)';
-  ctx.lineWidth = 2 * s;
-  ctx.beginPath();
-  ctx.moveTo(cx, groundY);
-  ctx.lineTo(cx + cw2, groundY);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.moveTo(cx, groundY);
+      ctx.lineTo(cx + cw2, groundY);
+    },
+    'rgba(110,231,183,0.2)',
+    2 * s,
+    0.5,
+    3,
+  );
 
   // Tubos
   for (const p of pipes) {
@@ -381,13 +387,16 @@ function draw() {
     ctx.fill();
 
     // Cuerpo
-    ctx.shadowColor = '#6ee7b7';
-    ctx.shadowBlur = 10 * s;
-    ctx.fillStyle = '#6ee7b7';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 12 * s, 9 * s, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 12 * s, 9 * s, 0, 0, Math.PI * 2);
+      },
+      '#6ee7b7',
+      0.4,
+      5 * s,
+    );
 
     // Ala (animada)
     const wingY = Math.sin(bird.wingPhase) * 6 * s;
@@ -431,12 +440,7 @@ function drawPipe(x, y, w, h) {
   ctx.fill();
 
   // Cuerpo
-  ctx.shadowColor = 'rgba(110,231,183,0.15)';
-  ctx.shadowBlur = 6 * sc;
-  ctx.fillStyle = '#2a5a3a';
-  roundRect(ctx, x, y, w, h, r);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(ctx, () => roundRect(ctx, x, y, w, h, r), '#2a5a3a', 0.4, 3 * sc);
 
   // Borde superior
   ctx.fillStyle = '#3a7a4a';

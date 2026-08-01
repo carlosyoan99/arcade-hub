@@ -13,6 +13,9 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   triggerSquash,
   updateSquashes,
@@ -568,12 +571,17 @@ function draw() {
   ctx.fillRect(ox, oy, cw, ch);
 
   // --- Borde glow ---
-  ctx.shadowColor = 'rgba(122,92,255,0.15)';
-  ctx.shadowBlur = 20;
-  ctx.strokeStyle = 'rgba(122,92,255,0.2)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(ox, oy, cw, ch);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.rect(ox, oy, cw, ch);
+    },
+    'rgba(122,92,255,0.2)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // --- Ladrillos ---
   for (const b of bricks) {
@@ -611,12 +619,14 @@ function drawBrick(x, y, w, h, color, glowColor) {
   ctx.fill();
 
   // Cuerpo
-  ctx.shadowColor = glowColor;
-  ctx.shadowBlur = 10 * scale;
-  ctx.fillStyle = color;
-  roundRect(ctx, x - hw, y - hh, w, h, 3 * scale);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(
+    ctx,
+    () => roundRect(ctx, x - hw, y - hh, w, h, 3 * scale),
+    color,
+    0.4,
+    5 * scale,
+    glowColor,
+  );
 
   // Brillo superior
   const grad = ctx.createLinearGradient(x, y - hh, x, y + hh);
@@ -634,19 +644,17 @@ function drawPaddle(x, y, width, height, color) {
 
   // Sombra
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.shadowColor = 'rgba(0,0,0,0.3)';
-  ctx.shadowBlur = 8 * scale;
   roundRect(ctx, x - hw + 3 * scale, y - hh + 3 * scale, width, height, 5 * scale);
   ctx.fill();
-  ctx.shadowBlur = 0;
 
   // Cuerpo glow
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 14 * scale;
-  ctx.fillStyle = color;
-  roundRect(ctx, x - hw, y - hh, width, height, 5 * scale);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(
+    ctx,
+    () => roundRect(ctx, x - hw, y - hh, width, height, 5 * scale),
+    color,
+    0.4,
+    7 * scale,
+  );
 
   // Brillo central
   const grad = ctx.createLinearGradient(x - hw, y, x + hw, y);
@@ -693,13 +701,11 @@ function drawBall(x, y, r) {
     ctx.beginPath();
     ctx.arc(x + 3 * scale, y + 3 * scale, rad, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowColor = '#ffdca0';
-    ctx.shadowBlur = 20 * scale;
+    drawGlow(ctx, x, y, rad, '#ffdca0', 0.4, 3);
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(x, y, rad, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
     const bg = ctx.createRadialGradient(x - rad * 0.3, y - rad * 0.3, 0, x, y, rad);
     bg.addColorStop(0, '#ffffff');
     bg.addColorStop(0.5, '#fff5e0');

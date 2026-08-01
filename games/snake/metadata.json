@@ -1,9 +1,9 @@
 {
   "id": "snake",
   "title": "Snake",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "created": "2026-06-05",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-07-31",
   "description": "La serpiente clásica. Atrapá la comida para crecer sin chocarte.",
   "genre": "arcade",
   "author": "Arcade Hub",
@@ -56,6 +56,13 @@
         "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
         "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
+      ]
+    },
+    {
+      "version": "1.5.1",
+      "date": "2026-07-31",
+      "changes": [
+        "R1: Coordenadas de grid .z/.dz renombradas a .y/.dy — último vestigio 3D eliminado"
       ]
     }
   ]

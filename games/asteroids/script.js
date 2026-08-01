@@ -12,6 +12,8 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   triggerSquash,
   updateSquashes,
@@ -624,12 +626,17 @@ function draw() {
   }
 
   // Borde glow
-  ctx.shadowColor = 'rgba(110,198,255,0.08)';
-  ctx.shadowBlur = 15;
-  ctx.strokeStyle = 'rgba(110,198,255,0.15)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(ox, oy, cw, ch);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.rect(ox, oy, cw, ch);
+    },
+    'rgba(110,198,255,0.15)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // Asteroides
   for (const a of asteroids) {
@@ -677,40 +684,47 @@ function draw() {
       const ex = nx - Math.cos(ship.angle) * 6 * s;
       const ey = ny - Math.sin(ship.angle) * 6 * s;
 
-      ctx.strokeStyle = '#6ec6ff';
-      ctx.lineWidth = 2 * s;
-      ctx.shadowColor = '#6ec6ff';
-      ctx.shadowBlur = 12 * s;
-      ctx.beginPath();
-      ctx.moveTo(tipX, tipY);
-      ctx.lineTo(lx, ly);
-      ctx.lineTo(ex, ey);
-      ctx.lineTo(rx, ry);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      strokeWithGlow(
+        ctx,
+        () => {
+          ctx.beginPath();
+          ctx.moveTo(tipX, tipY);
+          ctx.lineTo(lx, ly);
+          ctx.lineTo(ex, ey);
+          ctx.lineTo(rx, ry);
+          ctx.closePath();
+        },
+        '#6ec6ff',
+        2 * s,
+        0.4,
+        3,
+      );
 
       // Llama del motor
       if (input.thrust) {
         const flicker = 0.8 + Math.random() * 0.4;
         const flx = nx - Math.cos(ship.angle) * (14 + 8 * flicker) * s;
         const fly = ny - Math.sin(ship.angle) * (14 + 8 * flicker) * s;
-        ctx.fillStyle = `rgba(255,200,50,${0.4 * flicker})`;
-        ctx.shadowColor = '#ff8800';
-        ctx.shadowBlur = 10 * s;
-        ctx.beginPath();
-        ctx.moveTo(
-          ex - 2 * s * Math.cos(ship.angle + 0.5) * s,
-          ey - 2 * s * Math.sin(ship.angle + 0.5) * s,
+        fillWithGlow(
+          ctx,
+          () => {
+            ctx.beginPath();
+            ctx.moveTo(
+              ex - 2 * s * Math.cos(ship.angle + 0.5) * s,
+              ey - 2 * s * Math.sin(ship.angle + 0.5) * s,
+            );
+            ctx.lineTo(flx, fly);
+            ctx.lineTo(
+              ex + 2 * s * Math.cos(ship.angle - 0.5) * s,
+              ey + 2 * s * Math.sin(ship.angle - 0.5) * s,
+            );
+            ctx.closePath();
+          },
+          `rgba(255,200,50,${0.4 * flicker})`,
+          0.4,
+          4 * s,
+          '#ff8800',
         );
-        ctx.lineTo(flx, fly);
-        ctx.lineTo(
-          ex + 2 * s * Math.cos(ship.angle - 0.5) * s,
-          ey + 2 * s * Math.sin(ship.angle - 0.5) * s,
-        );
-        ctx.closePath();
-        ctx.fill();
-        ctx.shadowBlur = 0;
       }
     }
   }

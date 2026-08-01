@@ -452,6 +452,68 @@ export function clearSquashes() {
 })();
 
 // ──────────────────────────────────────────────
+// GLOW SIN SHADOWBLUR — helpers para relleno y trazo
+// ──────────────────────────────────────────────
+// Técnica: halo = mismo path dibujado con trazo grueso translúcido
+// (o círculo 3x) debajo del elemento sólido. Sin ctx.shadowBlur.
+
+/**
+ * Rellena un path con halo translúcido alrededor (sin shadowBlur).
+ * Dibuja el path 1) con trazo grueso y alpha bajo (halo) y 2) relleno sólido.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {function} pathFn - Callback que construye el path (debe incluir beginPath)
+ * @param {string} fillColor - Color del relleno sólido
+ * @param {number} [glowAlpha=0.35] - Opacidad del halo (0-1)
+ * @param {number} [glowWidth=6] - Grosor del halo en px (ya escalado)
+ * @param {string} [glowColor] - Color del halo (default: fillColor)
+ */
+export function fillWithGlow(ctx, pathFn, fillColor, glowAlpha = 0.35, glowWidth = 6, glowColor) {
+  ctx.globalAlpha = glowAlpha;
+  ctx.strokeStyle = glowColor || fillColor;
+  ctx.lineWidth = glowWidth;
+  ctx.lineJoin = 'round';
+  pathFn(ctx);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = fillColor;
+  pathFn(ctx);
+  ctx.fill();
+}
+
+/**
+ * Traza un path con halo translúcido (sin shadowBlur).
+ * Dibuja 1) trazo grueso con alpha bajo (halo) y 2) trazo fino sólido.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {function} pathFn - Callback que construye el path (debe incluir beginPath)
+ * @param {string} strokeColor - Color del trazo principal
+ * @param {number} lineWidth - Grosor del trazo principal en px (ya escalado)
+ * @param {number} [glowAlpha=0.4] - Opacidad del halo (0-1)
+ * @param {number} [glowWidthMult=3] - Multiplicador del grosor del halo
+ */
+export function strokeWithGlow(
+  ctx,
+  pathFn,
+  strokeColor,
+  lineWidth,
+  glowAlpha = 0.4,
+  glowWidthMult = 3,
+) {
+  ctx.globalAlpha = glowAlpha;
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = lineWidth * glowWidthMult;
+  ctx.lineJoin = 'round';
+  pathFn(ctx);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = lineWidth;
+  pathFn(ctx);
+  ctx.stroke();
+}
+
+// ──────────────────────────────────────────────
 // ROUND RECT
 // ──────────────────────────────────────────────
 /**

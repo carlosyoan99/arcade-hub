@@ -300,6 +300,10 @@ export function showHelp(gameId) {
 
   // Modal
   const modal = document.createElement('div');
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'ahTitle');
+  modal.setAttribute('tabindex', '-1');
   Object.assign(modal.style, {
     background: 'var(--bg-panel, rgba(0,0,0,0.85))',
     border: '1px solid var(--border-subtle, rgba(255,255,255,0.1))',
@@ -313,7 +317,11 @@ export function showHelp(gameId) {
     position: 'relative',
     transform: 'scale(0.92) translateY(10px)',
     transition: 'transform 0.3s cubic-bezier(.34,1.56,.64,1)',
+    outline: 'none',
   });
+
+  // Guardar el elemento con foco para restaurarlo al cerrar
+  const prevFocus = document.activeElement;
 
   const isDark = document.documentElement.dataset.theme !== 'light';
   if (isDark) {
@@ -328,6 +336,7 @@ export function showHelp(gameId) {
   // Botón cerrar
   const closeBtn = document.createElement('button');
   closeBtn.textContent = '✕';
+  closeBtn.setAttribute('aria-label', 'Cerrar ayuda');
   Object.assign(closeBtn.style, {
     position: 'absolute',
     top: '12px',
@@ -348,9 +357,13 @@ export function showHelp(gameId) {
     (closeBtn.style.color = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)');
 
   const close = () => {
+    document.removeEventListener('keydown', keyHandler);
     backdrop.style.opacity = '0';
     modal.style.transform = 'scale(0.92) translateY(10px)';
-    setTimeout(() => backdrop.remove(), 250);
+    setTimeout(() => {
+      backdrop.remove();
+      if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus();
+    }, 250);
   };
   closeBtn.addEventListener('click', close);
   backdrop.addEventListener('click', (e) => {
@@ -425,9 +438,9 @@ export function showHelp(gameId) {
   // Armado del modal
   modal.innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <span style="font-size:32px">${g.icon}</span>
+      <span style="font-size:32px" aria-hidden="true">${g.icon}</span>
       <div>
-        <div style="font-size:20px;font-weight:700;letter-spacing:2px">${g.title}</div>
+        <div id="ahTitle" style="font-size:20px;font-weight:700;letter-spacing:2px">${g.title}</div>
         <div style="font-size:11px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:2px">Cómo jugar</div>
       </div>
     </div>
@@ -478,15 +491,18 @@ export function showHelp(gameId) {
         const clSection = document.createElement('div');
         clSection.style.cssText = 'margin-top:10px';
 
-        const toggleBtn = document.createElement('div');
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.setAttribute('aria-label', 'Historial de cambios');
         toggleBtn.style.cssText =
-          'display:flex;align-items:center;justify-content:center;gap:4px;font-size:10px;letter-spacing:1px;cursor:pointer;padding:6px 12px;border-radius:6px;color:' +
+          'display:flex;align-items:center;justify-content:center;gap:4px;font-size:10px;letter-spacing:1px;cursor:pointer;padding:6px 12px;border-radius:6px;border:1px solid transparent;color:' +
           (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)') +
           ';background:' +
           (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') +
-          ';transition:all .2s;user-select:none';
+          ';transition:all .2s;user-select:none;font-family:inherit';
         toggleBtn.innerHTML =
-          '📋 Historial de cambios <span class="cl-arrow" style="transition:transform .25s ease">▾</span>';
+          '📋 Historial de cambios <span class="cl-arrow" aria-hidden="true" style="transition:transform .25s ease">▾</span>';
 
         const clBody = document.createElement('div');
         clBody.style.cssText =
@@ -506,6 +522,7 @@ export function showHelp(gameId) {
 
         toggleBtn.addEventListener('click', () => {
           const isOpen = clBody.style.maxHeight !== '0px' && clBody.style.maxHeight !== '';
+          toggleBtn.setAttribute('aria-expanded', String(!isOpen));
           if (isOpen) {
             clBody.style.maxHeight = '0';
             clBody.style.marginTop = '0';
@@ -535,13 +552,31 @@ export function showHelp(gameId) {
   requestAnimationFrame(() => {
     backdrop.style.opacity = '1';
     modal.style.transform = 'scale(1) translateY(0)';
+    modal.focus();
   });
 
-  // Tecla Escape para cerrar
+  // Tecla Escape para cerrar + focus trap (Tab cicla dentro del modal)
   const keyHandler = (e) => {
     if (e.key === 'Escape') {
       close();
       document.removeEventListener('keydown', keyHandler);
+    }
+    if (e.key === 'Tab') {
+      const focusables = modal.querySelectorAll(
+        'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const atFirst = document.activeElement === first || document.activeElement === modal;
+      const atLast = document.activeElement === last || document.activeElement === modal;
+      if (e.shiftKey && atFirst) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && atLast) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   };
   document.addEventListener('keydown', keyHandler);

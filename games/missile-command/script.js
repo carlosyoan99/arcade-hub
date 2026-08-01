@@ -12,6 +12,8 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   clearSquashes,
 } from '../../shared/effects.js';
@@ -787,12 +789,14 @@ function draw() {
   }
 
   // Border
-  ctx.shadowColor = 'rgba(255,100,100,0.06)';
-  ctx.shadowBlur = 12;
-  ctx.strokeStyle = 'rgba(255,100,100,0.1)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(cx, cy, CW * s, CH * s);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => ctx.strokeRect(cx, cy, CW * s, CH * s),
+    'rgba(255,100,100,0.1)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // Ground
   ctx.fillStyle = '#1a2a1a';
@@ -897,8 +901,11 @@ function draw() {
     const a2 = Math.max(0, b.timer / b.maxTimer);
     const r = b.radius * s * (1 - a2 * 0.3);
     ctx.globalAlpha = a2 * 0.6;
-    ctx.shadowColor = '#ffdd88';
-    ctx.shadowBlur = 20 * s;
+    // Halo (glow sin shadowBlur)
+    ctx.fillStyle = `rgba(255,220,100,${a2 * 0.15})`;
+    ctx.beginPath();
+    ctx.arc(cx + b.x * s, cy + b.y * s, r * 2, 0, Math.PI * 2);
+    ctx.fill();
     ctx.fillStyle = `rgba(255,220,100,${a2 * 0.5})`;
     ctx.beginPath();
     ctx.arc(cx + b.x * s, cy + b.y * s, r, 0, Math.PI * 2);
@@ -908,7 +915,6 @@ function draw() {
     ctx.beginPath();
     ctx.arc(cx + b.x * s, cy + b.y * s, r * 0.7, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
   }
 
@@ -954,18 +960,21 @@ function draw() {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    // Head with glow
-    ctx.shadowColor = '#44ff88';
-    ctx.shadowBlur = 14 * s;
-    ctx.fillStyle = '#44ff88';
-    ctx.beginPath();
-    ctx.arc(cx + g.x * s, cy + g.y * s, 3.5 * s, 0, Math.PI * 2);
-    ctx.fill();
+    // Head with glow (sin shadowBlur)
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.arc(cx + g.x * s, cy + g.y * s, 3.5 * s, 0, Math.PI * 2);
+      },
+      '#44ff88',
+      0.4,
+      3 * s,
+    );
     ctx.fillStyle = '#88ffbb';
     ctx.beginPath();
     ctx.arc(cx + g.x * s, cy + g.y * s, 2 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 
   // Particles

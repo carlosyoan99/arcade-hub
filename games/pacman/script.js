@@ -12,6 +12,7 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  fillWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -779,22 +780,18 @@ function draw() {
         ctx.fillStyle = 'rgba(30,30,80,0.3)';
         ctx.fillRect(px, py, cs2, cs2);
       } else if (ch === '.') {
+        drawGlow(ctx, px + cs2 / 2, py + cs2 / 2, 3 * s, 'rgba(255,200,100,0.1)', 0.4, 2.5);
         ctx.fillStyle = 'rgba(255,200,100,0.3)';
-        ctx.shadowColor = 'rgba(255,200,100,0.1)';
-        ctx.shadowBlur = 3 * s;
         ctx.beginPath();
         ctx.arc(px + cs2 / 2, py + cs2 / 2, 2 * s, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
       } else if (ch === 'o') {
         const pulse = 1 + Math.sin(Date.now() / 300) * 0.12;
+        drawGlow(ctx, px + cs2 / 2, py + cs2 / 2, 5 * s * pulse, 'rgba(255,200,100,0.3)', 0.4, 2.5);
         ctx.fillStyle = 'rgba(255,200,100,0.5)';
-        ctx.shadowColor = 'rgba(255,200,100,0.3)';
-        ctx.shadowBlur = 8 * s;
         ctx.beginPath();
         ctx.arc(px + cs2 / 2, py + cs2 / 2, 5 * s * pulse, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
       } else if (ch === 'G') {
         ctx.fillStyle = 'rgba(255,150,200,0.15)';
         ctx.fillRect(px, py + cs2 / 2 - 1 * s, cs2, 2 * s);
@@ -888,15 +885,18 @@ function draw() {
     const startAngle = Math.atan2(pac.dir.dy, pac.dir.dx) - Math.PI / 2 + mouth;
     const endAngle = Math.atan2(pac.dir.dy, pac.dir.dx) - Math.PI / 2 - mouth + Math.PI * 2;
 
-    ctx.shadowColor = '#ffe066';
-    ctx.shadowBlur = 12 * s;
-    ctx.fillStyle = '#ffe066';
-    ctx.beginPath();
-    ctx.moveTo(px, py);
-    ctx.arc(px, py, 8 * s, startAngle, endAngle);
-    ctx.closePath();
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.arc(px, py, 8 * s, startAngle, endAngle);
+        ctx.closePath();
+      },
+      '#ffe066',
+      0.4,
+      5 * s,
+    );
   }
 
   // Particles

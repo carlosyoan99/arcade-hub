@@ -13,6 +13,7 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -46,11 +47,11 @@ const START_LENGTH = 3;
 
 // Direcciones
 const DIR = {
-  NONE: { dx: 0, dz: 0 },
-  UP: { dx: 0, dz: -1 },
-  DOWN: { dx: 0, dz: 1 },
-  LEFT: { dx: -1, dz: 0 },
-  RIGHT: { dx: 1, dz: 0 },
+  NONE: { dx: 0, dy: 0 },
+  UP: { dx: 0, dy: -1 },
+  DOWN: { dx: 0, dy: 1 },
+  LEFT: { dx: -1, dy: 0 },
+  RIGHT: { dx: 1, dy: 0 },
 };
 
 // ============================================================
@@ -65,9 +66,9 @@ const state = {
   speedLevel: 1,
 };
 
-// Snake: array de { x, z } en coordenadas de grid
+// Snake: array de { x, y } en coordenadas de grid
 let snake = [];
-const food = { x: 0, z: 0 };
+const food = { x: 0, y: 0 };
 let direction = DIR.NONE;
 let nextDirection = DIR.NONE;
 let moveTimer = 0;
@@ -314,28 +315,28 @@ function setDirection(dir) {
 
 function spawnFood() {
   // Encontrar una celda vacía
-  const occupied = new Set(snake.map((s) => `${s.x},${s.z}`));
+  const occupied = new Set(snake.map((s) => `${s.x},${s.y}`));
   const freeCells = [];
   for (let x = 0; x < COLS; x++) {
-    for (let z = 0; z < ROWS; z++) {
-      if (!occupied.has(`${x},${z}`)) {
-        freeCells.push({ x, z });
+    for (let y = 0; y < ROWS; y++) {
+      if (!occupied.has(`${x},${y}`)) {
+        freeCells.push({ x, y });
       }
     }
   }
   if (freeCells.length === 0) return false; // ganaste!
   const cell = freeCells[Math.floor(Math.random() * freeCells.length)];
   food.x = cell.x;
-  food.z = cell.z;
+  food.y = cell.y;
   return true;
 }
 
 function initSnake() {
   snake = [];
   const startX = Math.floor(COLS / 2);
-  const startZ = Math.floor(ROWS / 2);
+  const startY = Math.floor(ROWS / 2);
   for (let i = 0; i < START_LENGTH; i++) {
-    snake.push({ x: startX - i, z: startZ });
+    snake.push({ x: startX - i, y: startY });
   }
 }
 
@@ -403,7 +404,7 @@ function endGame() {
 
   // Death particles along the snake
   for (const seg of snake) {
-    spawnParticles(seg.x * CELL_SIZE + CELL_SIZE / 2, seg.z * CELL_SIZE + CELL_SIZE / 2);
+    spawnParticles(seg.x * CELL_SIZE + CELL_SIZE / 2, seg.y * CELL_SIZE + CELL_SIZE / 2);
   }
 
   overlayText.textContent = '¡Game Over! 💀';
@@ -437,18 +438,18 @@ function moveSnake() {
   const head = snake[0];
   const newHead = {
     x: head.x + direction.dx,
-    z: head.z + direction.dz,
+    y: head.y + direction.dy,
   };
 
   // ¿Colisión con pared?
-  if (newHead.x < 0 || newHead.x >= COLS || newHead.z < 0 || newHead.z >= ROWS) {
+  if (newHead.x < 0 || newHead.x >= COLS || newHead.y < 0 || newHead.y >= ROWS) {
     endGame();
     return;
   }
 
   // ¿Colisión con sí mismo? (excepto la cola que se va a mover)
   for (let i = 0; i < snake.length - 1; i++) {
-    if (snake[i].x === newHead.x && snake[i].z === newHead.z) {
+    if (snake[i].x === newHead.x && snake[i].y === newHead.y) {
       endGame();
       return;
     }
@@ -457,13 +458,13 @@ function moveSnake() {
   snake.unshift(newHead);
 
   // ¿Comió comida?
-  if (newHead.x === food.x && newHead.z === food.z) {
+  if (newHead.x === food.x && newHead.y === food.y) {
     state.score += 1;
     state.speedLevel = getSpeedLevel();
     playEatSound();
     spawnParticles(
       food.x * CELL_SIZE + CELL_SIZE / 2,
-      food.z * CELL_SIZE + CELL_SIZE / 2,
+      food.y * CELL_SIZE + CELL_SIZE / 2,
       '#6ee7b7',
       12,
       { speed: 120, life: 0.5 },
@@ -519,24 +520,29 @@ function draw() {
     ctx.lineTo(ox + x * cs, oy + ch);
     ctx.stroke();
   }
-  for (let z = 0; z <= ROWS; z++) {
+  for (let y = 0; y <= ROWS; y++) {
     ctx.beginPath();
-    ctx.moveTo(ox, oy + z * cs);
-    ctx.lineTo(ox + cw, oy + z * cs);
+    ctx.moveTo(ox, oy + y * cs);
+    ctx.lineTo(ox + cw, oy + y * cs);
     ctx.stroke();
   }
 
   // --- Borde glow ---
-  ctx.shadowColor = 'rgba(110,231,183,0.1)';
-  ctx.shadowBlur = 20;
-  ctx.strokeStyle = 'rgba(110,231,183,0.2)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(ox, oy, cw, ch);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.rect(ox, oy, cw, ch);
+    },
+    'rgba(110,231,183,0.2)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // --- Comida ---
   const fx = ox + food.x * cs + cs / 2;
-  const fy = oy + food.z * cs + cs / 2;
+  const fy = oy + food.y * cs + cs / 2;
   const fr = cs * 0.4;
 
   // Sombra comida
@@ -548,8 +554,7 @@ function draw() {
   // Pulso de la comida
   const pulse = 1 + Math.sin(Date.now() / 200) * 0.1;
 
-  ctx.shadowColor = 'rgba(255,77,77,0.5)';
-  ctx.shadowBlur = 16 * s;
+  drawGlow(ctx, fx, fy, fr * pulse, '#ff4444', 0.35, 2.5);
   const fgrad = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr * pulse);
   fgrad.addColorStop(0, '#ff9999');
   fgrad.addColorStop(0.6, '#ff4444');
@@ -558,13 +563,12 @@ function draw() {
   ctx.beginPath();
   ctx.arc(fx, fy, fr * pulse, 0, Math.PI * 2);
   ctx.fill();
-  ctx.shadowBlur = 0;
 
   // --- Serpiente ---
   for (let i = snake.length - 1; i >= 0; i--) {
     const seg = snake[i];
     const sx = ox + seg.x * cs;
-    const sz = oy + seg.z * cs;
+    const sy = oy + seg.y * cs;
     const t = i / Math.max(snake.length - 1, 1);
     const intensity = 1 - t * 0.5;
 
@@ -577,7 +581,7 @@ function draw() {
     const cellPad = 1 * s;
     const cellSize = cs - cellPad * 2;
     const cx = sx + cellPad;
-    const cy = sz + cellPad;
+    const cy = sy + cellPad;
 
     // Sombra
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -596,38 +600,38 @@ function draw() {
       const eyeR = 2 * s;
       const eyeOff = 3 * s;
       ctx.fillStyle = '#ffffff';
-      let ex1, ez1, ex2, ez2;
+      let ex1, ey1, ex2, ey2;
       const half = cs / 2;
       if (direction.dx === 1) {
         // derecha
         ex1 = sx + cs - eyeOff;
-        ez1 = sz + half - eyeOff;
+        ey1 = sy + half - eyeOff;
         ex2 = sx + cs - eyeOff;
-        ez2 = sz + half + eyeOff;
+        ey2 = sy + half + eyeOff;
       } else if (direction.dx === -1) {
         // izquierda
         ex1 = sx + eyeOff;
-        ez1 = sz + half - eyeOff;
+        ey1 = sy + half - eyeOff;
         ex2 = sx + eyeOff;
-        ez2 = sz + half + eyeOff;
-      } else if (direction.dz === -1) {
+        ey2 = sy + half + eyeOff;
+      } else if (direction.dy === -1) {
         // arriba
         ex1 = sx + half - eyeOff;
-        ez1 = sz + eyeOff;
+        ey1 = sy + eyeOff;
         ex2 = sx + half + eyeOff;
-        ez2 = sz + eyeOff;
+        ey2 = sy + eyeOff;
       } else {
         // abajo o quieto
         ex1 = sx + half - eyeOff;
-        ez1 = sz + cs - eyeOff;
+        ey1 = sy + cs - eyeOff;
         ex2 = sx + half + eyeOff;
-        ez2 = sz + cs - eyeOff;
+        ey2 = sy + cs - eyeOff;
       }
       ctx.beginPath();
-      ctx.arc(ex1, ez1, eyeR, 0, Math.PI * 2);
+      ctx.arc(ex1, ey1, eyeR, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(ex2, ez2, eyeR, 0, Math.PI * 2);
+      ctx.arc(ex2, ey2, eyeR, 0, Math.PI * 2);
       ctx.fill();
     }
   }

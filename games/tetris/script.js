@@ -11,6 +11,8 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -653,12 +655,14 @@ function draw() {
   }
 
   // Border
-  ctx.shadowColor = 'rgba(110,198,255,0.08)';
-  ctx.shadowBlur = 15;
-  ctx.strokeStyle = 'rgba(110,198,255,0.15)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(cx, cy, gridW, gridH);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => ctx.strokeRect(cx, cy, gridW, gridH),
+    'rgba(110,198,255,0.15)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // Placed blocks
   for (let r = 0; r < ROWS; r++)
@@ -740,12 +744,13 @@ function drawBlock(x, y, size, color, s) {
   roundRect(ctx, x + pad + 2 * s, y + pad + 2 * s, size - pad * 2, size - pad * 2, 2 * s);
   ctx.fill();
   // Block
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 6 * s;
-  ctx.fillStyle = color;
-  roundRect(ctx, x + pad, y + pad, size - pad * 2, size - pad * 2, 2 * s);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(
+    ctx,
+    () => roundRect(ctx, x + pad, y + pad, size - pad * 2, size - pad * 2, 2 * s),
+    color,
+    0.4,
+    3 * s,
+  );
   // Highlight
   ctx.fillStyle = 'rgba(255,255,255,0.15)';
   roundRect(ctx, x + pad + 2 * s, y + pad + 2 * s, size - pad * 4, size * 0.3, 1.5 * s);

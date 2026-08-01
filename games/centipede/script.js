@@ -12,6 +12,8 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -891,12 +893,14 @@ function draw() {
   ctx.setLineDash([]);
 
   // Border
-  ctx.shadowColor = 'rgba(110,231,183,0.06)';
-  ctx.shadowBlur = 12;
-  ctx.strokeStyle = 'rgba(110,231,183,0.1)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(cx, cy, CW * s, CH * s);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => ctx.strokeRect(cx, cy, CW * s, CH * s),
+    'rgba(110,231,183,0.1)',
+    1.5 * s,
+    0.5,
+    4,
+  );
 
   // Mushrooms
   for (const m of mushrooms) {
@@ -984,19 +988,23 @@ function draw() {
     if (!blink) {
       const px = cx + player.x * s,
         py = cy + player.y * s;
-      ctx.shadowColor = '#6ec6ff';
-      ctx.shadowBlur = 10 * s;
-      // Ship body
-      ctx.fillStyle = '#6ec6ff';
-      ctx.beginPath();
-      ctx.moveTo(px, py - 8 * s);
-      ctx.lineTo(px - 10 * s, py + 6 * s);
-      ctx.lineTo(px - 4 * s, py + 4 * s);
-      ctx.lineTo(px, py + 8 * s);
-      ctx.lineTo(px + 4 * s, py + 4 * s);
-      ctx.lineTo(px + 10 * s, py + 6 * s);
-      ctx.closePath();
-      ctx.fill();
+      // Ship body (glow sin shadowBlur)
+      fillWithGlow(
+        ctx,
+        () => {
+          ctx.beginPath();
+          ctx.moveTo(px, py - 8 * s);
+          ctx.lineTo(px - 10 * s, py + 6 * s);
+          ctx.lineTo(px - 4 * s, py + 4 * s);
+          ctx.lineTo(px, py + 8 * s);
+          ctx.lineTo(px + 4 * s, py + 4 * s);
+          ctx.lineTo(px + 10 * s, py + 6 * s);
+          ctx.closePath();
+        },
+        '#6ec6ff',
+        0.4,
+        5 * s,
+      );
       // Cockpit
       ctx.fillStyle = 'rgba(255,255,255,0.2)';
       ctx.beginPath();
@@ -1005,7 +1013,6 @@ function draw() {
       ctx.lineTo(px + 3 * s, py + 2 * s);
       ctx.closePath();
       ctx.fill();
-      ctx.shadowBlur = 0;
     }
   }
 

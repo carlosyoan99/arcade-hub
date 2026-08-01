@@ -80,6 +80,8 @@ canvas {
   display: block;
   width: 100%;
   height: 100%;
+  /* Mantiene pinch-zoom accesible pero evita el zoom por doble-tap en el gameplay */
+  touch-action: manipulation;
 }
 
 /* ── Screen-reader only (visually hidden, accessible) ── */
@@ -93,6 +95,19 @@ canvas {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── Keyboard focus ring (visible for tab navigation) ── */
+:focus-visible {
+  outline: 2px solid var(--accent, var(--neon-cyan));
+  outline-offset: 2px;
+}
+
+#gameBar button:focus-visible,
+#touchControls button:focus-visible,
+#tc button:focus-visible {
+  outline-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.25);
 }
 
 /* ── Utilities ── */
@@ -161,7 +176,9 @@ kbd {
 
 #gameBar button {
   pointer-events: auto;
-  padding: 4px 10px;
+  padding: 6px 12px;
+  min-width: 44px;
+  min-height: 40px;
   border-radius: 8px;
   border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
   background: var(--bg-panel, rgba(0, 0, 0, 0.55));

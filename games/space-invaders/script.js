@@ -13,6 +13,8 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   updateSquashes,
   clearSquashes,
@@ -446,12 +448,17 @@ function draw() {
   }
 
   // Border
-  ctx.shadowColor = 'rgba(110,198,255,0.08)';
-  ctx.shadowBlur = 15;
-  ctx.strokeStyle = 'rgba(110,198,255,0.12)';
-  ctx.lineWidth = 1.5 * scale;
-  ctx.strokeRect(cx, cy, cw2, ch2);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.rect(cx, cy, cw2, ch2);
+    },
+    'rgba(110,198,255,0.12)',
+    1.5 * scale,
+    0.5,
+    4,
+  );
 
   // Shields
   for (const sh of shields) {
@@ -482,12 +489,13 @@ function draw() {
   if (mysteryShip) {
     const mx = cx + mysteryShip.x * s,
       my = cy + mysteryShip.y * s;
-    ctx.fillStyle = '#ff8a65';
-    ctx.shadowColor = '#ff8a65';
-    ctx.shadowBlur = 10 * s;
-    roundRect(ctx, mx - 15 * s, my - 6 * s, 30 * s, 12 * s, 3 * s);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    fillWithGlow(
+      ctx,
+      () => roundRect(ctx, mx - 15 * s, my - 6 * s, 30 * s, 12 * s, 3 * s),
+      '#ff8a65',
+      0.4,
+      5 * s,
+    );
     ctx.fillStyle = '#ffd700';
     ctx.beginPath();
     ctx.arc(mx, my, 3 * s, 0, Math.PI * 2);
@@ -520,16 +528,19 @@ function draw() {
     if (!blink) {
       const sx = cx + ship.x * s,
         sy = cy + SHIP_Y * s;
-      ctx.fillStyle = '#6ec6ff';
-      ctx.shadowColor = '#6ec6ff';
-      ctx.shadowBlur = 12 * s;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy - (SHIP_H / 2) * s);
-      ctx.lineTo(sx - (SHIP_W / 2) * s, sy + (SHIP_H / 2) * s);
-      ctx.lineTo(sx + (SHIP_W / 2) * s, sy + (SHIP_H / 2) * s);
-      ctx.closePath();
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      fillWithGlow(
+        ctx,
+        () => {
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - (SHIP_H / 2) * s);
+          ctx.lineTo(sx - (SHIP_W / 2) * s, sy + (SHIP_H / 2) * s);
+          ctx.lineTo(sx + (SHIP_W / 2) * s, sy + (SHIP_H / 2) * s);
+          ctx.closePath();
+        },
+        '#6ec6ff',
+        0.4,
+        6 * s,
+      );
       // Cockpit
       ctx.fillStyle = 'rgba(255,255,255,0.2)';
       ctx.beginPath();

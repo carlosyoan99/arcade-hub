@@ -1,6 +1,6 @@
 # 🚀 Defender
 
-**Versión:** 1.2.0 | **Género:** Shooter | **Última actualización:** 2026-07-30
+**Versión:** 1.3.0 | **Género:** Shooter | **Última actualización:** 2026-07-30
 
 Side-scrolling shooter clásico. Defendé a los humanos de la invasión alienígena en un mundo que se desplaza horizontalmente.
 
@@ -35,6 +35,12 @@ Side-scrolling shooter clásico. Defendé a los humanos de la invasión alieníg
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para teclado, táctil y gamepad
 
+## Logros
+
+- 🏆 **Primera baja** — Eliminá tu primer enemigo
+- 🏆 **Tres bombas** — Usá 3 bombas inteligentes
+- 🏆 **Comandante** — Alcanzá 10.000 puntos en una partida
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -46,6 +52,13 @@ Side-scrolling shooter clásico. Defendé a los humanos de la invasión alieníg
 - Game feel: screen shake por trauma, hit-stop, squash & stretch, partículas con object pool (500), `feedbackBundle` por tiers
 - Rendimiento: glow sin `shadowBlur` (`drawGlow`), anti-tunneling en sub-pasos, object pooling
 - Mundo de 6000px de ancho con scroll horizontal y cámara con suavizado
-- Accesibilidad: `aria-live` announcements, prefers-reduced-motion → `setShakeScale(0)`
+- Accesibilidad: `aria-live` announcements, `trapTab()` focus trapping, prefers-reduced-motion → `setShakeScale(0)`, modal de ayuda accesible (role=dialog + focus trap), canvas con `role="img"`, zoom móvil habilitado, `:focus-visible` global
 - Persistencia en `localStorage` con key namespaced
 - 3 modos de entrada: teclado (flechas/WASD + Espacio + B + R), táctil (botones responsive), gamepad (polling en loop)
+
+## Changelog
+
+- **1.3.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (márgenes, límites de oleadas); fix refs rotas ship→player
+- **1.2.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
+- **1.1.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HTML compartido vía `shared/dom.js`
+- **1.0.0** (2026-07-28): Versión inicial del juego — side-scrolling procedural, landers/bombers/mutantes, smart bombs, radar, niveles progresivos, 3 modos de entrada

@@ -2,6 +2,8 @@
 
 Este archivo documenta cómo trabajar en este repo. **Léelo antes de crear o modificar un juego.**
 
+Para la guía de contribución (cómo agregar un juego, estándares de código y checklist de PR), ver **[`CONTRIBUTING.md`](CONTRIBUTING.md)**.
+
 ---
 
 ## 🎯 Regla de oro: estética 2D/2.5D, no 3D
@@ -196,15 +198,15 @@ skill("nombre-de-la-skill")
 
 > Detalle completo y verificación en `TODO.md`. `npm run check` (lint + prettier) debe pasar en 0/0.
 
-| Fase      | Estado                                                                                     |
-| --------- | ------------------------------------------------------------------------------------------ |
-| **R1–R4** | ✅ Refactor — 19/19 juegos migrados a `shared/loop.js`, 0 vestigios 3D                     |
-| **P0**    | ✅ Rendimiento — shadowBlur eliminado de loops, `drawGlow()`, SW OK (falta P10 DevTools)   |
-| **G1–G5** | ✅ Game feel — `feedbackBundle` + squash & stretch en 19/19                                |
-| **H1**    | ✅ Hub UI premium — entry sequence split-door, cursor, glassmorphism, 7/7                  |
-| **D1–D4** | 🟡 Documentación — D1-D2 ✅, D3 pendiente, D4 parcial (R1-R4 ya bumpados en metadata.json) |
-| **P10**   | 🔲 Pruebas de rendimiento con DevTools Performance tab                                     |
-| **N1**    | 🟢 Nuevos juegos (templates en `.agents/skills/assets/`)                                   |
+| Fase      | Estado                                                                                                                                              |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R1–R4** | ✅ Refactor — 19/19 juegos migrados a `shared/loop.js`, 0 vestigios 3D                                                                              |
+| **P0**    | ✅ Rendimiento — `shadowBlur` eliminado por completo (0 usos), `fillWithGlow()`/`strokeWithGlow()` en shared/effects.js, SW OK (falta P10 DevTools) |
+| **G1–G5** | ✅ Game feel — `feedbackBundle` 19/19, squash & stretch 15/19 (4 juegos sin squash)                                                                 |
+| **H1**    | ✅ Hub UI premium — entry sequence split-door, cursor, glassmorphism, 7/7                                                                           |
+| **D1–D6** | ✅ Documentación — D1-D4 completado (READMEs 19 juegos + README avanzado + metadata bump), D5 CONTRIBUTING.md nuevo, D6 screenshots 19/19           |
+| **P10**   | 🔲 Pruebas de rendimiento con DevTools Performance tab                                                                                              |
+| **N1**    | 🟢 Nuevos juegos (templates en `.agents/skills/assets/`)                                                                                            |
 
 ---
 

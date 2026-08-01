@@ -12,6 +12,9 @@ import {
   spawnParticles,
   updateParticles,
   drawParticles,
+  drawGlow,
+  fillWithGlow,
+  strokeWithGlow,
   feedbackBundle,
   triggerSquash,
   updateSquashes,
@@ -385,12 +388,17 @@ function draw() {
   grad.addColorStop(1, '#0a0a14');
   ctx.fillStyle = grad;
   ctx.fillRect(ox, oy, cw, ch);
-  ctx.shadowColor = 'rgba(85,104,255,0.15)';
-  ctx.shadowBlur = 20;
-  ctx.strokeStyle = 'rgba(85,104,255,0.25)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.strokeRect(ox, oy, cw, ch);
-  ctx.shadowBlur = 0;
+  strokeWithGlow(
+    ctx,
+    () => {
+      ctx.beginPath();
+      ctx.rect(ox, oy, cw, ch);
+    },
+    'rgba(85,104,255,0.25)',
+    1.5 * s,
+    0.5,
+    4,
+  );
   ctx.setLineDash([6 * s, 8 * s]);
   ctx.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx.lineWidth = 2 * s;
@@ -426,17 +434,9 @@ function drawPaddle(x, y, h, w, color) {
   const hw = w / 2,
     hh = h / 2;
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.shadowColor = 'rgba(0,0,0,0.3)';
-  ctx.shadowBlur = 8 * scale;
   roundRect(ctx, x - hw + 3 * scale, y - hh + 3 * scale, w, h, 4 * scale);
   ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 12 * scale;
-  ctx.fillStyle = color;
-  roundRect(ctx, x - hw, y - hh, w, h, 4 * scale);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  fillWithGlow(ctx, () => roundRect(ctx, x - hw, y - hh, w, h, 4 * scale), color, 0.4, 6 * scale);
   const g = ctx.createLinearGradient(x - hw, y, x + hw, y);
   g.addColorStop(0, 'rgba(255,255,255,0)');
   g.addColorStop(0.3, 'rgba(255,255,255,0.25)');
@@ -452,13 +452,11 @@ function drawBall(x, y, r) {
     ctx.beginPath();
     ctx.arc(x + 3 * scale, y + 3 * scale, rad, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowColor = '#8de8ff';
-    ctx.shadowBlur = 24 * scale;
+    drawGlow(ctx, x, y, rad, '#8de8ff', 0.4, 3);
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(x, y, rad, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
     const bg = ctx.createRadialGradient(x - rad * 0.3, y - rad * 0.3, 0, x, y, rad);
     bg.addColorStop(0, '#ffffff');
     bg.addColorStop(0.5, '#c8f0ff');
