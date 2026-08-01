@@ -260,7 +260,7 @@ El repo incluye skills en `.agents/skills/` para trabajar con IA: `game-engine`,
 | `npm test`       | `node --test` — smoke tests con jsdom para los **19 juegos**             |
 | `npm run check`  | Pipeline completa: lint + format + verify + test                         |
 
-> ⚠️ **`npm run check` debe pasar en 0 errores / 0 warnings antes de abrir un PR.** La CI (`deploy.yml`) corre la pipeline completa (`npm run lint` + `npm run format` + `npm run verify` + `npm test`) en cada push a `main` y despliega a GitHub Pages automáticamente.
+> ⚠️ **`npm run check` debe pasar en 0 errores / 0 warnings antes de abrir un PR.** La CI (`deploy.yml`) corre la pipeline completa (`npm run lint` + `npm run format` + `npm run verify` + `npm test`) en cada push a `main` y en cada pull request, y despliega a GitHub Pages automáticamente solo tras un push a `main` validado.
 
 ---
 
@@ -330,7 +330,7 @@ a11y: mejora focus trap del modal de ayuda
 
 ### CI
 
-Al hacer push a `main`, GitHub Actions ejecuta la pipeline completa (`npm run lint` + `npm run format` + `npm run verify` + `npm test`) y despliega a GitHub Pages. Si el deploy falla, revisá los logs del workflow antes de reabrir el PR.
+GitHub Actions ejecuta la pipeline completa (`npm run lint` + `npm run format` + `npm run verify` + `npm test`) en cada **push a `main` y en cada pull request**, y despliega a GitHub Pages solo tras un push a `main` con la validación en verde. Si la CI falla, revisá los logs del workflow antes de reabrir el PR.
 
 ---
 
