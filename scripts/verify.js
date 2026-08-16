@@ -9,7 +9,13 @@
  *   3. Un import de shared/*.js en un script.js que no está en el FILES de sw.js
  *   4. Un juego en games.js que no tiene su ruta en el FILES de sw.js
  *
+ * Además: opcionalmente puede regenerar automáticamente el array FILES dentro de sw.js
+ * si se ejecuta con la opción `--update-sw`. Esto ayuda a mantener el Service Worker
+ * sincronizado con el manifiesto y con los imports detectados.
+ *
  * Uso: npm run verify  (o: node scripts/verify.js)
+ * Para actualizar sw.js automáticamente: node scripts/verify.js --update-sw
+ *
  * Salida: 0 si todo OK, 1 si hay inconsistencias.
  *
  * Sin dependencias externas (solo Node built-ins + games.js que es data pura).
@@ -63,7 +69,7 @@ for (const g of games) {
   const scriptPath = path.join(ROOT, 'games', g.id, 'script.js');
   if (!fs.existsSync(scriptPath)) continue;
   const src = fs.readFileSync(scriptPath, 'utf8');
-  const matches = src.matchAll(/from\s+['"]\.\.\/\.\.\/shared\/([\w.-]+\.js)['"]/g);
+  const matches = src.matchAll(/from\s+['"]\.\.\/\.\.\/shared\/([\w.\-]+\.js)['"]/g);
   for (const m of matches) sharedImports.add('./shared/' + m[1]);
 }
 
@@ -113,8 +119,56 @@ for (const g of games) {
     const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
     if (!meta.version) errors.push(`Juego ${g.id}: metadata.json sin "version"`);
     if (meta.id !== g.id) warn(`metadata.id (${meta.id}) difiere de games.js id (${g.id})`);
-  } catch {
+  } catch (e) {
     errors.push(`Juego ${g.id}: metadata.json inválido`);
+  }
+}
+
+// ── Funcionalidad adicional: generar FILES a partir del estado actual ──
+function buildFilesList() {
+  const files = new Set([
+    './',
+    './index.html',
+    './games.js',
+    './shared/base.css',
+  ]);
+
+  // Añadir shared JS que detectamos en imports (y algunos obligatorios)
+  for (const s of sharedImports) files.add(s);
+  // Asegurar módulos compartidos obligatorios estén presentes
+  ['./shared/audio.js', './shared/achievements.js', './shared/effects.js', './shared/help.js', './shared/display.js', './shared/dom.js', './shared/loop.js', './shared/input.js'].forEach((s) => files.add(s));
+
+  // Añadir archivos por juego
+  for (const g of games) {
+    files.add(`./games/${g.id}/index.html`);
+    files.add(`./games/${g.id}/style.css`);
+    files.add(`./games/${g.id}/script.js`);
+  }
+
+  return [...files].sort();
+}
+
+function updateSwJsWithFiles(list) {
+  const swPath = path.join(ROOT, 'sw.js');
+  const src = fs.readFileSync(swPath, 'utf8');
+  const filesArrayString = list.map((f) => `  '${f}',`).join('\n');
+  const newBlock = `const FILES = [\n${filesArrayString}\n];`;
+  const replaced = src.replace(/const FILES = \[[\s\S]*?\];/, newBlock);
+  if (replaced === src) {
+    console.log('No se pudo reemplazar el bloque FILES en sw.js (patrón no encontrado)');
+    return false;
+  }
+  fs.writeFileSync(swPath, replaced, 'utf8');
+  return true;
+}
+
+// Si se solicitó actualización, generamos la lista y escribimos en sw.js
+if (process.argv.includes('--update-sw') || process.argv.includes('--write-sw')) {
+  const generated = buildFilesList();
+  if (updateSwJsWithFiles(generated)) {
+    console.log('✅ sw.js actualizado con FILES generados.');
+  } else {
+    console.log('⚠️ No se actualizó sw.js. Revisa el patrón en el archivo.');
   }
 }
 
