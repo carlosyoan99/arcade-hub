@@ -38,8 +38,16 @@ export function setupCanvas(canvas, ctx, gameW, gameH, padding = 20) {
     const dpr = window.devicePixelRatio || 1;
     _w = window.innerWidth;
     _h = window.innerHeight;
+    // Set canvas backing store size in device pixels
     canvas.width = _w * dpr;
     canvas.height = _h * dpr;
+    // Ensure CSS size matches layout (avoid visual scaling mismatches)
+    try {
+      canvas.style.width = _w + 'px';
+      canvas.style.height = _h + 'px';
+    } catch (e) {
+      // ignore if style cannot be set (e.g., SVG canvas wrappers)
+    }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const sx = (_w - padding * 2) / gameW;
     const sy = (_h - padding * 2) / gameH;
