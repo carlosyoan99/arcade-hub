@@ -10,6 +10,7 @@
     "format": "prettier --check '**/*.{js,mjs,css,html,json,md}'",
     "format:fix": "prettier --write '**/*.{js,mjs,css,html,json,md}'",
     "verify": "node scripts/verify.js",
+    "verify:sw": "node scripts/verify.js --update-sw",
     "test": "node --test \"test/**/*.test.js\"",
     "check": "npm run lint && npm run format && npm run verify && npm test"
   },
