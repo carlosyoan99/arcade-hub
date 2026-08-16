@@ -2,6 +2,8 @@
    shared/audio.js — Audio helper
    Web Audio API: ensureAudio, beep,
    ambient background music.
+   Mejoras: startAmbient llama a ensureAudio internamente
+   y logging en catches para facilitar debugging en dev
    ═══════════════════════════════════ */
 let audioCtx = null;
 
@@ -40,7 +42,8 @@ let ambientNodes = null;
 
 export function startAmbient() {
   if (ambientNodes) return;
-  const a = audioCtx;
+  // Aseguramos audio context — puede que no exista si no se llamó a ensureAudio previamente
+  const a = ensureAudio();
   if (!a) return;
   try {
     const o1 = a.createOscillator(),
@@ -62,8 +65,11 @@ export function startAmbient() {
     o1.start();
     o2.start();
     ambientNodes = { osc1: o1, osc2: o2, gain: g, filter: f };
-  } catch {
-    /* AudioContext may be closed */
+  } catch (err) {
+    // AudioContext may be closed or creation failed (autoplay policy); warn in dev
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('startAmbient failed:', err);
+    }
   }
 }
 
@@ -72,20 +78,20 @@ export function stopAmbient() {
   if (audioCtx) {
     try {
       ambientNodes.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-    } catch {
-      /* AudioContext may be closed */
+    } catch (err) {
+      if (typeof console !== 'undefined' && console.warn) console.warn('stopAmbient ramp failed', err);
     }
   }
   setTimeout(() => {
     try {
       ambientNodes.osc1.stop();
-    } catch {
-      /* AudioContext may be closed */
+    } catch (err) {
+      if (typeof console !== 'undefined' && console.warn) console.warn('stopAmbient osc1 stop failed', err);
     }
     try {
       ambientNodes.osc2.stop();
-    } catch {
-      /* AudioContext may be closed */
+    } catch (err) {
+      if (typeof console !== 'undefined' && console.warn) console.warn('stopAmbient osc2 stop failed', err);
     }
     ambientNodes = null;
   }, 350);
@@ -94,7 +100,11 @@ export function stopAmbient() {
 export function closeAudio() {
   stopAmbient();
   if (audioCtx && audioCtx.state !== 'closed') {
-    audioCtx.close();
+    try {
+      audioCtx.close();
+    } catch (err) {
+      if (typeof console !== 'undefined' && console.warn) console.warn('closeAudio failed', err);
+    }
     audioCtx = null;
   }
 }
