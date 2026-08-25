@@ -102,7 +102,7 @@ function makeMatchMedia() {
 }
 
 for (const g of games) {
-  test(`smoke: ${g.id} carga sin error y tiene canvas`, async () => {
+  test(`smoke: ${g.id} carga sin error y tiene canvas`, async (t) => {
     const htmlPath = path.join(ROOT, 'games', g.id, 'index.html');
     assert.ok(fs.existsSync(htmlPath), `index.html existe`);
 
@@ -111,6 +111,9 @@ for (const g of games) {
       url: `http://localhost/games/${g.id}/index.html`,
       runScripts: 'outside-only',
     });
+    // Libera la ventana jsdom al terminar (incluso si el test falla antes del
+    // final) — evita acumular windows abiertas en el proceso
+    t.after(() => dom.window.close());
     const { window } = dom;
 
     // Mock de canvas 2D
@@ -149,9 +152,6 @@ for (const g of games) {
     // El botón de ayuda debe estar presente (dom.js lo inyecta)
     const helpBtn = window.document.getElementById('helpBtn');
     assert.ok(helpBtn, '#helpBtn existe');
-
-    // Libera la ventana jsdom (evita acumular 19 windows abiertos en el proceso)
-    dom.window.close();
   });
 }
 
