@@ -39,6 +39,7 @@ export function injectCommonElements() {
     '        ← Arcade\n' +
     '      </button>\n' +
     '      <button id="fsBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>\n' +
+    '      <button id="musicBtn" aria-pressed="true" aria-label="Silenciar música" title="Música">🎵</button>\n' +
     '      <button id="helpBtn" aria-label="Ayuda" title="Ayuda">❓</button>';
   document.body.appendChild(bar);
 

@@ -37,6 +37,7 @@ arcade-hub/
 │   ├── dom.js            #   injectCommonElements() — loading, announce, gameBar
 │   ├── loop.js           #   createGameLoop() — RAF + dt + cleanup unificado
 │   └── input.js          #   createGamepad() + bindHoldButton() — gamepad y táctil compartidos
+│   └── music.js          #   Motor música lofi procedural: startMusic(id), toggle 🎵 game-bar
 │
 ├── games/                # 19 juegos, cada uno con 5 archivos
 │   ├── pong/             → index.html, style.css, script.js, metadata.json, README.md
@@ -198,15 +199,15 @@ skill("nombre-de-la-skill")
 
 > Detalle completo y verificación en `TODO.md`. `npm run check` (lint + prettier) debe pasar en 0/0.
 
-| Fase      | Estado                                                                                                                                              |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **R1–R4** | ✅ Refactor — 19/19 juegos migrados a `shared/loop.js`, 0 vestigios 3D                                                                              |
-| **P0**    | ✅ Rendimiento — `shadowBlur` eliminado por completo (0 usos), `fillWithGlow()`/`strokeWithGlow()` en shared/effects.js, SW OK (falta P10 DevTools) |
-| **G1–G5** | ✅ Game feel — `feedbackBundle` 19/19, squash & stretch 17/19 (solo cell-swarm y neon-nexus sin squash)                                             |
-| **H1**    | ✅ Hub UI premium — entry sequence split-door, cursor, glassmorphism, 7/7                                                                           |
-| **D1–D6** | ✅ Documentación — D1-D4 completado (READMEs 19 juegos + README avanzado + metadata bump), D5 CONTRIBUTING.md nuevo, D6 screenshots 19/19           |
-| **P10**   | 🔲 Pruebas de rendimiento con DevTools Performance tab                                                                                              |
-| **N1**    | 🟢 Nuevos juegos (templates en `.agents/skills/assets/`)                                                                                            |
+| Fase      | Estado                                                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **R1–R4** | ✅ Refactor — 19/19 juegos migrados a `shared/loop.js`, 0 vestigios 3D                                                                                       |
+| **P0**    | ✅ Rendimiento — `shadowBlur` eliminado por completo (0 usos), `fillWithGlow()`/`strokeWithGlow()` en shared/effects.js, SW OK, P10 completado (19/19 60fps) |
+| **G1–G5** | ✅ Game feel — `feedbackBundle` 19/19, squash & stretch 17/19 (solo cell-swarm y neon-nexus sin squash)                                                      |
+| **H1**    | ✅ Hub UI premium — entry sequence split-door, cursor, glassmorphism, 7/7                                                                                    |
+| **D1–D6** | ✅ Documentación — D1-D4 completado (READMEs 19 juegos + README avanzado + metadata bump), D5 CONTRIBUTING.md nuevo, D6 screenshots 19/19                    |
+| **P10**   | ✅ Pruebas de rendimiento — 19/19 juegos 60-61 FPS, 0 Long Tasks, 0 CLS, heap 2-9MB via `scripts/profile.js`                                                 |
+| **N1**    | 🟢 Nuevos juegos (templates en `.agents/skills/assets/`)                                                                                                     |
 
 ---
 
