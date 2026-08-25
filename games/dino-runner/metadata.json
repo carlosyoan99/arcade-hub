@@ -1,9 +1,9 @@
 {
   "id": "dino-runner",
   "title": "Dino Runner",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "created": "2026-06-08",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-08-12",
   "description": "Corré, saltá y agachate para esquivar cactus y pterodáctilos.",
   "genre": "plataformas",
   "author": "Arcade Hub",
@@ -59,6 +59,13 @@
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
         "R3: Hitbox del dino extraída a constantes (DINO_X/DINO_W/DINO_H)",
         "Fix: refs rotas dino→coords fijas + línea ime; removida"
+      ]
+    },
+    {
+      "version": "1.5.1",
+      "date": "2026-08-12",
+      "changes": [
+        "G5: Squash & stretch real — stretch al saltar (triggerSquash) y squash al aterrizar, aplicado en drawDino()"
       ]
     }
   ]

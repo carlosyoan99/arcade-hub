@@ -1,6 +1,6 @@
 # 🟣 Cell Swarm
 
-**Versión:** 1.4.0 | **Género:** Battle Royale | **Última actualización:** 2026-07-30
+**Versión:** 1.4.1 | **Género:** Battle Royale | **Última actualización:** 2026-08-12
 
 Battle royale de células neón. Crece comiendo comida y células más pequeñas, divide tu masa para cazar, eyecta para distraer. ¡Conviértete en la célula más grande del mapa!
 
@@ -32,8 +32,18 @@ Battle royale de células neón. Crece comiendo comida y células más pequeñas
 - 🎨 Skins especiales: banderas de países, emojis, degradados
 - 💥 Game feel: screen shake, hit-stop, partículas neon al dividir y absorber
 - 🏆 Récord de masa persistido en `localStorage`
+- 🎖️ 6 logros desbloqueables (primera presa, cazador, splitter, masa récord, titán, alfa)
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para mouse, teclado, táctil y gamepad
+
+## Logros
+
+- 🏆 **Primera presa** — Devorá tu primer bot
+- 🔪 **Cazador** — Devorá 5 bots en una partida
+- ✂️ **Splitter** — Eliminá un bot con un proyectil de división
+- 💪 **Grande** — Alcanzá 200 de masa récord
+- 🦖 **Titán** — Alcanzá 500 de masa récord
+- 👑 **Alfa** — Convertite en la célula más grande del mapa
 
 ## Detalles técnicos
 
@@ -51,6 +61,7 @@ Battle royale de células neón. Crece comiendo comida y células más pequeñas
 
 ## Changelog
 
+- **1.4.1** (2026-08-12): Sistema de logros completo — 6 logros con `achievements.unlock()` (primera presa, cazador, splitter, masa récord, titán, alfa)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.3.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
 - **1.2.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HTML compartido vía `shared/dom.js`

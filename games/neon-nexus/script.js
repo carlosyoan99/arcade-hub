@@ -232,6 +232,7 @@ const state = {
   stars: 0,
   coins: Number(localStorage.getItem('neonNexus_coins') || 0),
   best: Number(localStorage.getItem('neonNexus_best') || 0),
+  kills: 0,
 
   towerHP: 100,
   towerMaxHP: 100,
@@ -370,6 +371,14 @@ function spawnWave() {
   const types = getWaveEnemies(state.wave);
   state.enemiesSpawned = 0;
   state.spawnTimer = 0;
+
+  // Logros por oleada alcanzada
+  if (state.wave >= 5 && !achievements.has('neon_wave5')) {
+    achievements.unlock('neon_wave5');
+  }
+  if (state.wave >= 10 && !achievements.has('neon_wave10')) {
+    achievements.unlock('neon_wave10');
+  }
   state.spawnInterval = Math.max(
     MIN_SPAWN_INTERVAL,
     BASE_SPAWN_INTERVAL - state.wave * SPAWN_REDUCTION,
@@ -476,6 +485,7 @@ function resetGame() {
   state.spdLevel = 0;
   calcTowerStats();
   state.wave = 0;
+  state.kills = 0;
   state.stars = 0;
   state.gameOver = false;
   state.cleared = false;
@@ -681,6 +691,8 @@ function buyShop(id) {
   localStorage.setItem('neonNexus_coins', String(state.coins));
   calcTowerStats();
   sfxUpgrade();
+  // Logro: primera compra en la tienda
+  if (!achievements.has('neon_shopper')) achievements.unlock('neon_shopper');
   renderShop();
   updateHUD();
 }
@@ -966,6 +978,13 @@ function updateEnemies(dt) {
       sfxKill();
       spawnParticles(e.x, e.y, e.color, 10, { spd: 100, life: 0.4, sm: 2, smx: 4 });
       enemies.splice(i, 1);
+      state.kills++;
+      if (state.kills === 1 && !achievements.has('neon_first_kill')) {
+        achievements.unlock('neon_first_kill');
+      }
+      if (state.kills >= 50 && !achievements.has('neon_annihilator')) {
+        achievements.unlock('neon_annihilator');
+      }
     }
   }
 

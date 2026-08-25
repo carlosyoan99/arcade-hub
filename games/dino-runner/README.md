@@ -1,6 +1,6 @@
 # 🦖 Dino Runner
 
-**Versión:** 1.5.0 | **Género:** Plataformas | **Última actualización:** 2026-07-30
+**Versión:** 1.5.1 | **Género:** Plataformas | **Última actualización:** 2026-08-12
 
 Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad aumenta con el tiempo. ¿Cuánto podés durar?
 
@@ -55,6 +55,7 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 
 ## Changelog
 
+- **1.5.1** (2026-08-12): Squash & stretch real — stretch al saltar (`triggerSquash`) y squash al aterrizar, aplicado en `drawDino()` (cierra G5)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: hitbox del dino extraída a constantes; fix refs rotas
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; constantes extraídas
 - **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HTML compartido vía `shared/dom.js`

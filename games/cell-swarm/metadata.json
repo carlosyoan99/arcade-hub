@@ -1,9 +1,9 @@
 {
   "id": "cell-swarm",
   "title": "Cell Swarm",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "created": "2026-07-28",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-08-12",
   "description": "Battle royale de células. Crece comiendo comida y células más pequeñas, huye de las más grandes. ¡Divide, eyecta y conviértete en la célula más grande del mapa!",
   "genre": "battle-royale",
   "author": "Arcade Hub",
@@ -52,6 +52,13 @@
         "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
         "Fix: línea ime; removida"
+      ]
+    },
+    {
+      "version": "1.4.1",
+      "date": "2026-08-12",
+      "changes": [
+        "Logros: 6 logros con achievements.unlock() — primera presa, cazador, splitter, masa récord (200), titán (500), alfa (rank #1)"
       ]
     }
   ]

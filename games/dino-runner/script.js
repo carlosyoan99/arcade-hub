@@ -15,6 +15,9 @@ import {
   fillWithGlow,
   strokeWithGlow,
   feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  getSquash,
   clearSquashes,
 } from '../../shared/effects.js';
 
@@ -70,6 +73,7 @@ const player = {
   ducking: false,
   legPhase: 0,
   scaleY: 1,
+  squashIdx: -1,
 };
 
 // Hitbox del dino según postura
@@ -280,6 +284,8 @@ function jump() {
   if (player.onGround && state.running && !state.gameOver) {
     player.vy = -JUMP_VEL;
     player.onGround = false;
+    // Stretch: el dino se estira verticalmente al despegar
+    player.squashIdx = triggerSquash(0.16, 0.72, 1.35);
     playJumpSound();
     spawnParticles(DINO_X, GROUND_Y);
   }
@@ -368,6 +374,8 @@ function updatePlayer(dt) {
     player.vy = 0;
     player.onGround = true;
     if (!wasOnGround) {
+      // Squash: el dino se aplana al aterrizar
+      player.squashIdx = triggerSquash(0.15, 1.35, 0.72);
       playLandSound();
       spawnParticles(DINO_X, GROUND_Y);
     }
@@ -583,7 +591,15 @@ function draw() {
   // --- Dino ---
   const dinoX = ox + DINO_X * s;
   const dinoY = oy + player.y * s;
-  drawDino(dinoX, dinoY, s, player.legPhase, player.scaleY, player.ducking && player.onGround);
+  drawDino(
+    dinoX,
+    dinoY,
+    s,
+    player.legPhase,
+    player.scaleY,
+    player.ducking && player.onGround,
+    player.squashIdx,
+  );
 
   // --- Partículas ---
   drawParticles(ctx, offX, offY, scale);
@@ -591,11 +607,17 @@ function draw() {
   ctx.restore();
 }
 
-function drawDino(x, y, s, legPhase, scaleY, isDucking) {
+function drawDino(x, y, s, legPhase, scaleY, isDucking, squashIdx) {
   const sc = (w) => w * s;
+
+  // Squash & stretch: escala extra aplicada desde el ancla de los pies
+  const sq = getSquash(squashIdx);
 
   ctx.save();
   ctx.translate(x, y);
+  if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+    ctx.scale(sq.sx, sq.sy);
+  }
   ctx.scale(1, scaleY);
 
   const bodyH = isDucking ? 18 : 36;
@@ -811,6 +833,7 @@ const loop = createGameLoop((dt) => {
   }
 
   updateParticles(dt);
+  updateSquashes(dt);
   draw();
 });
 

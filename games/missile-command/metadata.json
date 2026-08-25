@@ -1,9 +1,9 @@
 {
   "id": "missile-command",
   "title": "Missile Command",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "created": "2026-07-28",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-08-12",
   "description": "Defendé tus ciudades de misiles enemigos con interceptores y misiles teledirigidos.",
   "genre": "defensa",
   "author": "Arcade Hub",
@@ -51,6 +51,13 @@
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
         "R3: Constantes extraídas (ammo, intervalos de oleadas)",
         "Fix: refs rotas CANVAS_W/H→CW/CH y c→canvas"
+      ]
+    },
+    {
+      "version": "1.4.1",
+      "date": "2026-08-12",
+      "changes": [
+        "G5: Squash & stretch real — explosiones estiradas (triggerSquash en blasts) + retroceso squash en bases al disparar"
       ]
     }
   ]

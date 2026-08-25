@@ -1,6 +1,6 @@
 # 🚀 Missile Command
 
-**Versión:** 1.4.0 | **Género:** Defensa | **Última actualización:** 2026-07-30
+**Versión:** 1.4.1 | **Género:** Defensa | **Última actualización:** 2026-08-12
 
 Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dispará interceptores. Misiles inteligentes y satélites desde la oleada 2.
 
@@ -51,6 +51,7 @@ Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dis
 
 ## Changelog
 
+- **1.4.1** (2026-08-12): Squash & stretch real — explosiones estiradas (`triggerSquash` en blasts) + retroceso squash en las bases al disparar (cierra G5)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (ammo, intervalos de oleadas); fix refs rotas
 - **1.3.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
 - **1.2.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`

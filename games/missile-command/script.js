@@ -15,6 +15,9 @@ import {
   fillWithGlow,
   strokeWithGlow,
   feedbackBundle,
+  triggerSquash,
+  updateSquashes,
+  getSquash,
   clearSquashes,
 } from '../../shared/effects.js';
 
@@ -139,7 +142,11 @@ function initLevel() {
   bases = [];
   const bPositions = [CW * 0.15, CW * 0.5, CW * 0.85];
   for (const bx of bPositions) {
-    bases.push({ x: bx, ammo: Math.max(MIN_AMMO_PER_BASE, Math.floor(START_AMMO / NUM_BASES)) });
+    bases.push({
+      x: bx,
+      ammo: Math.max(MIN_AMMO_PER_BASE, Math.floor(START_AMMO / NUM_BASES)),
+      squashIdx: -1,
+    });
   }
 
   missiles = [];
@@ -190,6 +197,8 @@ function fireABM(tx, ty) {
 
   bestBase.ammo--;
   state.ammo--;
+  // Retroceso: la base se aplasta brevemente al disparar
+  bestBase.squashIdx = triggerSquash(0.1, 1.3, 0.7);
   const angle = Math.atan2(ty - GROUND_Y, tx - bestBase.x);
   abs.push({
     x: bestBase.x,
@@ -228,6 +237,8 @@ function fireGuided() {
   if (!bestBase) return;
   bestBase.ammo--;
   state.ammo--;
+  // Retroceso: la base se aplasta brevemente al disparar
+  bestBase.squashIdx = triggerSquash(0.1, 1.3, 0.7);
   state.guidedCharge--;
   state.guidedKills = 0;
   guidedMissile = {
@@ -596,6 +607,7 @@ function updateABMs(dt) {
         radius: BLAST_RADIUS,
         timer: BLAST_DURATION,
         maxTimer: BLAST_DURATION,
+        squashIdx: triggerSquash(0.22, 1.45, 0.6),
       });
       pExplode();
       spawnParticles(bx, by, '#ffdd88', 10, { spd: 80, life: 0.3 });
@@ -722,6 +734,7 @@ function updateGuidedMissile(dt) {
       radius: GUIDED_RADIUS,
       timer: BLAST_DURATION * 1.5,
       maxTimer: BLAST_DURATION * 1.5,
+      squashIdx: triggerSquash(0.25, 1.5, 0.55),
     });
     pGuidedHit(bx, by);
     spawnParticles(bx, by, '#44ff88', 25, { spd: 120, life: 0.5, smx: 6 });
@@ -825,10 +838,18 @@ function draw() {
     if (b.ammo <= 0) continue;
     const x = cx + b.x * s,
       y = cy + GROUND_Y * s;
+    const sq = getSquash(b.squashIdx);
+    if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+      ctx.save();
+      ctx.translate(x, y - 1 * s);
+      ctx.scale(sq.sx, sq.sy);
+      ctx.translate(-x, -(y - 1 * s));
+    }
     ctx.fillStyle = '#888';
     ctx.fillRect(x - 8 * s, y - 5 * s, 16 * s, 8 * s);
     ctx.fillStyle = '#aaa';
     ctx.fillRect(x - 4 * s, y - 4 * s, 8 * s, 3 * s);
+    if (sq && (sq.sx !== 1 || sq.sy !== 1)) ctx.restore();
   }
 
   // Missile trails
@@ -900,22 +921,33 @@ function draw() {
   for (const b of blasts) {
     const a2 = Math.max(0, b.timer / b.maxTimer);
     const r = b.radius * s * (1 - a2 * 0.3);
+    const bx = cx + b.x * s,
+      by = cy + b.y * s;
+    // Squash & stretch: la explosión nace estirada y recupera su forma circular
+    const sq = getSquash(b.squashIdx);
+    if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.scale(sq.sx, sq.sy);
+      ctx.translate(-bx, -by);
+    }
     ctx.globalAlpha = a2 * 0.6;
     // Halo (glow sin shadowBlur)
     ctx.fillStyle = `rgba(255,220,100,${a2 * 0.15})`;
     ctx.beginPath();
-    ctx.arc(cx + b.x * s, cy + b.y * s, r * 2, 0, Math.PI * 2);
+    ctx.arc(bx, by, r * 2, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = `rgba(255,220,100,${a2 * 0.5})`;
     ctx.beginPath();
-    ctx.arc(cx + b.x * s, cy + b.y * s, r, 0, Math.PI * 2);
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = `rgba(255,200,50,${a2 * 0.8})`;
     ctx.lineWidth = 2 * s;
     ctx.beginPath();
-    ctx.arc(cx + b.x * s, cy + b.y * s, r * 0.7, 0, Math.PI * 2);
+    ctx.arc(bx, by, r * 0.7, 0, Math.PI * 2);
     ctx.stroke();
     ctx.globalAlpha = 1;
+    if (sq && (sq.sx !== 1 || sq.sy !== 1)) ctx.restore();
   }
 
   // Crosshair
@@ -1018,6 +1050,7 @@ const loop = createGameLoop((dt) => {
   }
 
   updateParticles(dt);
+  updateSquashes(dt);
   draw();
 });
 

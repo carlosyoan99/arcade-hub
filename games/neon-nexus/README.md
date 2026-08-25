@@ -1,6 +1,6 @@
 # ◈ Neon Nexus
 
-**Versión:** 1.4.0 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-07-30
+**Versión:** 1.4.1 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-08-12
 
 Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara automáticamente, haz clic para daño extra, mejora con estrellas y elige cartas de poder entre oleadas.
 
@@ -31,8 +31,17 @@ Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara au
 - 🔄 Combinaciones de cartas: Cadena, Vampirismo, Multishot, Explosión, Escudo, Drenar, Torreta, Ralentización Global y más
 - 💥 Game feel: screen shake, hit-stop, partículas neon en impactos y kills
 - 🏆 Récord de oleada persistido en `localStorage`
+- 🎖️ 4 logros desbloqueables (primer kill, oleada 5, oleada 10, aniquilador)
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para mouse, teclado, táctil y gamepad
+
+## Logros
+
+- 🎯 **Primera sangre** — Eliminá tu primer enemigo
+- 🌊 **Sobreviviente** — Llegá a la oleada 5
+- 🏰 **Imbatible** — Llegá a la oleada 10
+- ☠️ **Aniquilador** — Eliminá 50 enemigos en una partida
+- 🛒 **Comprador** — Hacé tu primera compra en la tienda
 
 ## Detalles técnicos
 
@@ -50,6 +59,7 @@ Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara au
 
 ## Changelog
 
+- **1.4.1** (2026-08-12): Sistema de logros completo — 5 logros con `achievements.unlock()` (primer kill, oleada 5, oleada 10, aniquilador, comprador)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (spawn, escudo, upgrades); fix `injectCommonElements()` restaurado
 - **1.3.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
 - **1.2.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HTML compartido vía `shared/dom.js`

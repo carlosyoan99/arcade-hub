@@ -141,6 +141,8 @@ const state = {
   targetX: canvasW / 2,
   targetY: canvasH / 2,
   bestMass: Number(localStorage.getItem('cellswarm_best') || 0),
+  kills: 0,
+  eatKills: 0,
 };
 
 // Camera
@@ -591,6 +593,14 @@ function processEating() {
           sfxEatBig();
           spawnParticles(bot.x, bot.y, bot.color, 12, { spd: 100, life: 0.4 });
           bots.splice(i, 1);
+          state.kills++;
+          state.eatKills++;
+          if (state.eatKills === 1 && !achievements.has('cellswarm_first_kill')) {
+            achievements.unlock('cellswarm_first_kill');
+          }
+          if (state.eatKills >= 5 && !achievements.has('cellswarm_hunter')) {
+            achievements.unlock('cellswarm_hunter');
+          }
           setTimeout(
             () => {
               if (!state.gameOver) bots.push(createBot());
@@ -664,6 +674,10 @@ function processEating() {
         sfxEatBig();
         spawnParticles(bot.x, bot.y, bot.color, 8, { spd: 80, life: 0.3 });
         bots.splice(bi, 1);
+        state.kills++;
+        if (!achievements.has('cellswarm_splitter')) {
+          achievements.unlock('cellswarm_splitter');
+        }
         setTimeout(
           () => {
             if (!state.gameOver) bots.push(createBot());
@@ -754,6 +768,8 @@ function startGame() {
 
   state.running = true;
   state.gameOver = false;
+  state.kills = 0;
+  state.eatKills = 0;
   overlay.classList.add('hidden');
   nameOverlay.classList.add('hidden');
 
@@ -798,6 +814,14 @@ function endGame(killedBy) {
   if (finalMass > state.bestMass) {
     state.bestMass = Math.floor(finalMass);
     localStorage.setItem('cellswarm_best', String(state.bestMass));
+  }
+
+  // Logros de masa
+  if (state.bestMass >= 200 && !achievements.has('cellswarm_big')) {
+    achievements.unlock('cellswarm_big');
+  }
+  if (state.bestMass >= 500 && !achievements.has('cellswarm_titan')) {
+    achievements.unlock('cellswarm_titan');
   }
 
   sfxDeath();
@@ -1262,6 +1286,11 @@ function updateHUD() {
   all.sort((a, b) => b.mass - a.mass);
   const playerRank = all.findIndex((e) => e.isPlayer);
   rankValueEl.textContent = playerRank >= 0 ? `#${playerRank + 1}` : '—';
+
+  // Logro: ser la célula más grande del mapa
+  if (playerRank === 0 && state.running && !achievements.has('cellswarm_alpha')) {
+    achievements.unlock('cellswarm_alpha');
+  }
 
   // Leaderboard
   const top10 = all.slice(0, 10);

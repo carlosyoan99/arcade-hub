@@ -1,9 +1,9 @@
 {
   "id": "neon-nexus",
   "title": "Neon Nexus",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "created": "2026-07-28",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-08-12",
   "description": "Defiende tu torre geométrica contra oleadas de formas neon en este tower defense roguelike. Haz clic para dañar, mejora tu torre y elige cartas de poder entre oleadas.",
   "genre": "tower-defense",
   "author": "Arcade Hub",
@@ -53,6 +53,13 @@
         "R3: Constantes extraídas (spawn, escudo, upgrades)",
         "Fix: injectCommonElements() restaurado (crash por elementos faltantes)",
         "Fix: refs rotas GAME_W/H→TOWER_CX/TOWER_CY + línea ime; removida"
+      ]
+    },
+    {
+      "version": "1.4.1",
+      "date": "2026-08-12",
+      "changes": [
+        "Logros: 5 logros con achievements.unlock() — primer kill, oleada 5, oleada 10, aniquilador (50 kills), comprador (1ª compra tienda)"
       ]
     }
   ]
