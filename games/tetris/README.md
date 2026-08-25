@@ -1,6 +1,6 @@
 # 🧊 Tetris
 
-**Versión:** 1.5.0 | **Género:** Puzzle | **Última actualización:** 2026-07-30
+**Versión:** 1.5.1 | **Género:** Puzzle | **Última actualización:** 2026-08-24
 
 Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos. ¡Clásico infinito!
 
@@ -52,6 +52,7 @@ Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progres
 
 ## Changelog
 
+- **1.5.1** (2026-08-24): Música lofi-chiptune «Neon Blocks» vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; fix refs rotas BOARD_W/H→CW/CH
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; constantes extraídas (BASE_DROP_SPEED, SPEED_PER_LEVEL)
 - **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`

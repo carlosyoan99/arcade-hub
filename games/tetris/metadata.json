@@ -1,9 +1,9 @@
 {
   "id": "tetris",
   "title": "Tetris",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "created": "2026-06-20",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-08-24",
   "description": "Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos.",
   "genre": "puzzle",
   "author": "Arcade Hub",
@@ -59,6 +59,13 @@
         "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
         "Fix: refs rotas BOARD_W/H→CW/CH"
+      ]
+    },
+    {
+      "version": "1.5.1",
+      "date": "2026-08-24",
+      "changes": [
+        "Música: tema lofi-chiptune 'Neon Blocks' (shared/music.js) + toggle 🎵 en game-bar"
       ]
     }
   ]

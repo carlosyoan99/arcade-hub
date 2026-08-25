@@ -2,6 +2,7 @@ import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -531,6 +532,7 @@ function startGame() {
   clearSquashes();
   ensureAudio();
   startAmbient();
+  startMusic('tetris');
   if (state.best >= 500) achievements.unlock('tetris_fivehundo');
   resetGame();
   state.running = true;
@@ -790,6 +792,7 @@ function cleanup() {
   loop.stop();
   document.removeEventListener('keydown', trapTab);
   stopAmbient();
+  stopMusic();
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);

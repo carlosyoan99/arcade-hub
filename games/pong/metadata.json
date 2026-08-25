@@ -1,9 +1,9 @@
 {
   "id": "pong",
   "title": "Pong",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "created": "2026-06-01",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-08-24",
   "description": "El clásico de tenis de mesa. Primero en llegar a 7 puntos gana.",
   "genre": "deportes",
   "author": "Arcade Hub",
@@ -58,6 +58,13 @@
         "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
         "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
+      ]
+    },
+    {
+      "version": "1.5.1",
+      "date": "2026-08-24",
+      "changes": [
+        "Música: tema lofi procedural 'Midnight Rally' (shared/music.js) + toggle 🎵 en game-bar"
       ]
     }
   ]

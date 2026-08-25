@@ -1,6 +1,6 @@
 # 🏓 Pong
 
-**Versión:** 1.5.0 | **Género:** Deportes | **Última actualización:** 2026-07-30
+**Versión:** 1.5.1 | **Género:** Deportes | **Última actualización:** 2026-08-24
 
 El clásico de tenis de mesa recreado en canvas 2D. Primero en llegar a 7 puntos gana.
 
@@ -55,6 +55,7 @@ El clásico de tenis de mesa recreado en canvas 2D. Primero en llegar a 7 puntos
 
 ## Changelog
 
+- **1.5.1** (2026-08-24): Música lofi procedural «Midnight Rally» vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; vestigios 3D renombrados (`ball.z → .y`)
 - **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HTML compartido vía `shared/dom.js`
