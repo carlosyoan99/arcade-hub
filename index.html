@@ -168,6 +168,83 @@
       /* Scanline overlay — now handled by shared/base.css SVG noise */
 
       /* ═══════════════════════════════════════════════════
+         CRT TEXTURE — film grain + scanlines (hub only,
+         bajo #gameContainer z-index:100 para no velar el juego)
+         ═══════════════════════════════════════════════════ */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        pointer-events: none;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+        opacity: 0.055;
+      }
+
+      [data-theme='light'] body::before {
+        opacity: 0.04;
+      }
+
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 61;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.13) 0px,
+          rgba(0, 0, 0, 0.13) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      }
+
+      [data-theme='light'] body::after {
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.05) 0px,
+          rgba(0, 0, 0, 0.05) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        body::before {
+          animation: crtGrain 0.9s steps(1) infinite;
+        }
+      }
+
+      @keyframes crtGrain {
+        0% {
+          background-position:
+            0 0,
+            0 0;
+        }
+        20% {
+          background-position:
+            0 0,
+            -35px 45px;
+        }
+        40% {
+          background-position:
+            0 0,
+            55px -25px;
+        }
+        60% {
+          background-position:
+            0 0,
+            -20px -55px;
+        }
+        80% {
+          background-position:
+            0 0,
+            40px 30px;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════
          HERO — MARQUEE
          ═══════════════════════════════════════════════════ */
       .hero {
@@ -291,8 +368,7 @@
         background: linear-gradient(
           135deg,
           var(--pink-neon) 0%,
-          var(--cyan-neon) 40%,
-          var(--green-neon) 70%,
+          var(--cyan-neon) 45%,
           var(--gold-neon) 100%
         );
         background-clip: text;
@@ -301,6 +377,35 @@
         filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.12));
         line-height: 1.15;
         padding: 8px 32px;
+      }
+
+      /* ── Tubo de neón averiado: una letra falla de vez en cuando ── */
+      .tube-flicker {
+        animation: tubeFlicker 6.5s linear infinite;
+      }
+
+      @keyframes tubeFlicker {
+        0%,
+        52%,
+        54.5%,
+        56.5%,
+        58%,
+        100% {
+          opacity: 1;
+        }
+        53%,
+        55.5% {
+          opacity: 0.25;
+        }
+        57% {
+          opacity: 0.55;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .tube-flicker {
+          animation: none;
+        }
       }
 
       .hero .subtitle {
@@ -2001,7 +2106,7 @@
         <button id="themeToggle" aria-label="Cambiar tema">🌙</button>
       </div>
       <div class="marquee">
-        <h1>Arcade Hub</h1>
+        <h1>Arca<span class="tube-flicker">d</span>e Hub</h1>
       </div>
       <p class="subtitle">
         <strong>19 clásicos</strong> recreados con estética 2D / 2.5D — un archivo HTML
