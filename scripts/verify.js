@@ -69,7 +69,7 @@ for (const g of games) {
   const scriptPath = path.join(ROOT, 'games', g.id, 'script.js');
   if (!fs.existsSync(scriptPath)) continue;
   const src = fs.readFileSync(scriptPath, 'utf8');
-  const matches = src.matchAll(/from\s+['"]\.\.\/\.\.\/shared\/([\w.\-]+\.js)['"]/g);
+  const matches = src.matchAll(/from\s+['"]\.\.\/\.\.\/shared\/([\w.-]+\.js)['"]/g);
   for (const m of matches) sharedImports.add('./shared/' + m[1]);
 }
 
@@ -119,24 +119,28 @@ for (const g of games) {
     const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
     if (!meta.version) errors.push(`Juego ${g.id}: metadata.json sin "version"`);
     if (meta.id !== g.id) warn(`metadata.id (${meta.id}) difiere de games.js id (${g.id})`);
-  } catch (e) {
+  } catch {
     errors.push(`Juego ${g.id}: metadata.json inválido`);
   }
 }
 
 // ── Funcionalidad adicional: generar FILES a partir del estado actual ──
 function buildFilesList() {
-  const files = new Set([
-    './',
-    './index.html',
-    './games.js',
-    './shared/base.css',
-  ]);
+  const files = new Set(['./', './index.html', './games.js', './shared/base.css']);
 
   // Añadir shared JS que detectamos en imports (y algunos obligatorios)
   for (const s of sharedImports) files.add(s);
   // Asegurar módulos compartidos obligatorios estén presentes
-  ['./shared/audio.js', './shared/achievements.js', './shared/effects.js', './shared/help.js', './shared/display.js', './shared/dom.js', './shared/loop.js', './shared/input.js'].forEach((s) => files.add(s));
+  [
+    './shared/audio.js',
+    './shared/achievements.js',
+    './shared/effects.js',
+    './shared/help.js',
+    './shared/display.js',
+    './shared/dom.js',
+    './shared/loop.js',
+    './shared/input.js',
+  ].forEach((s) => files.add(s));
 
   // Añadir archivos por juego
   for (const g of games) {

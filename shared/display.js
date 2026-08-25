@@ -45,7 +45,7 @@ export function setupCanvas(canvas, ctx, gameW, gameH, padding = 20) {
     try {
       canvas.style.width = _w + 'px';
       canvas.style.height = _h + 'px';
-    } catch (e) {
+    } catch {
       // ignore if style cannot be set (e.g., SVG canvas wrappers)
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

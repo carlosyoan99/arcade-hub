@@ -42,7 +42,11 @@ export function createGamepad() {
     get pad() {
       if (!navigator.getGamepads) return null;
       const pads = navigator.getGamepads();
-      return (typeof _selectedGamepadIndex === 'number' ? pads[_selectedGamepadIndex] : null) || pads[0] || null;
+      return (
+        (typeof _selectedGamepadIndex === 'number' ? pads[_selectedGamepadIndex] : null) ||
+        pads[0] ||
+        null
+      );
     },
     /** Destruye la instancia; cuando quedan 0 referencias se remueven los listeners globales. */
     destroy() {
@@ -51,7 +55,7 @@ export function createGamepad() {
         try {
           window.removeEventListener('gamepadconnected', _onGamepadConnected);
           window.removeEventListener('gamepaddisconnected', _onGamepadDisconnected);
-        } catch (e) {
+        } catch {
           // no-op
         }
         _gamepadListenersInstalled = false;
@@ -85,7 +89,9 @@ export function bindHoldButton(target, onDown, onUp) {
       onDown();
     } catch (err) {
       // silenciar errores del callback para no romper la UX
+      /* eslint-disable no-console */
       console.warn('bindHoldButton onDown error', err);
+      /* eslint-enable no-console */
     }
     btn.classList.add('is-pressed');
   }
@@ -94,7 +100,9 @@ export function bindHoldButton(target, onDown, onUp) {
     try {
       onUp?.();
     } catch (err) {
+      /* eslint-disable no-console */
       console.warn('bindHoldButton onUp error', err);
+      /* eslint-enable no-console */
     }
     btn.classList.remove('is-pressed');
   }
@@ -102,7 +110,9 @@ export function bindHoldButton(target, onDown, onUp) {
     try {
       onUp?.();
     } catch (err) {
+      /* eslint-disable no-console */
       console.warn('bindHoldButton onUp error', err);
+      /* eslint-enable no-console */
     }
     btn.classList.remove('is-pressed');
   }
@@ -111,7 +121,9 @@ export function bindHoldButton(target, onDown, onUp) {
     try {
       onDown();
     } catch (err) {
+      /* eslint-disable no-console */
       console.warn('bindHoldButton onDown error', err);
+      /* eslint-enable no-console */
     }
     // Note: mouse down does not add is-pressed class because :active handles it visually in many CSS setups
   }
@@ -119,14 +131,18 @@ export function bindHoldButton(target, onDown, onUp) {
     try {
       onUp?.();
     } catch (err) {
+      /* eslint-disable no-console */
       console.warn('bindHoldButton onUp error', err);
+      /* eslint-enable no-console */
     }
   }
   function handleMouseLeave() {
     try {
       onUp?.();
     } catch (err) {
+      /* eslint-disable no-console */
       console.warn('bindHoldButton onUp error', err);
+      /* eslint-enable no-console */
     }
   }
 
@@ -142,12 +158,12 @@ export function bindHoldButton(target, onDown, onUp) {
     try {
       btn.removeEventListener('touchstart', handleTouchStart, { passive: false });
       btn.removeEventListener('touchend', handleTouchEnd, { passive: false });
-    } catch (e) {
+    } catch {
       // Algunos navegadores ignoran opciones al remover; intentar sin opciones
       try {
         btn.removeEventListener('touchstart', handleTouchStart);
         btn.removeEventListener('touchend', handleTouchEnd);
-      } catch (err) {
+      } catch {
         // ignore
       }
     }

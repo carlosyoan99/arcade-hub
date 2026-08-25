@@ -67,9 +67,11 @@ export function startAmbient() {
     ambientNodes = { osc1: o1, osc2: o2, gain: g, filter: f };
   } catch (err) {
     // AudioContext may be closed or creation failed (autoplay policy); warn in dev
+    /* eslint-disable no-console */
     if (typeof console !== 'undefined' && console.warn) {
       console.warn('startAmbient failed:', err);
     }
+    /* eslint-enable no-console */
   }
 }
 
@@ -79,19 +81,28 @@ export function stopAmbient() {
     try {
       ambientNodes.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
     } catch (err) {
-      if (typeof console !== 'undefined' && console.warn) console.warn('stopAmbient ramp failed', err);
+      /* eslint-disable no-console */
+      if (typeof console !== 'undefined' && console.warn)
+        console.warn('stopAmbient ramp failed', err);
+      /* eslint-enable no-console */
     }
   }
   setTimeout(() => {
     try {
       ambientNodes.osc1.stop();
     } catch (err) {
-      if (typeof console !== 'undefined' && console.warn) console.warn('stopAmbient osc1 stop failed', err);
+      /* eslint-disable no-console */
+      if (typeof console !== 'undefined' && console.warn)
+        console.warn('stopAmbient osc1 stop failed', err);
+      /* eslint-enable no-console */
     }
     try {
       ambientNodes.osc2.stop();
     } catch (err) {
-      if (typeof console !== 'undefined' && console.warn) console.warn('stopAmbient osc2 stop failed', err);
+      /* eslint-disable no-console */
+      if (typeof console !== 'undefined' && console.warn)
+        console.warn('stopAmbient osc2 stop failed', err);
+      /* eslint-enable no-console */
     }
     ambientNodes = null;
   }, 350);
@@ -103,7 +114,9 @@ export function closeAudio() {
     try {
       audioCtx.close();
     } catch (err) {
+      /* eslint-disable no-console */
       if (typeof console !== 'undefined' && console.warn) console.warn('closeAudio failed', err);
+      /* eslint-enable no-console */
     }
     audioCtx = null;
   }
