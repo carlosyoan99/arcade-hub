@@ -109,9 +109,9 @@ Auditoría de hub + 19 juegos (foco, contraste, reduced-motion, ARIA, touch targ
 - [x] **G2**: Screen shake suave por trauma (ondas sinusoidales + `setShakeScale()`)
 - [x] **G3**: Hit-stop / freeze frame (`hitStop()`, `isHitStopped()`)
 - [x] **G4**: Squash & stretch en saltos/landings (Pong, Breakout, Asteroids, DK, Joust)
-- [x] **G5**: **19/19 juegos** — feedbackBundle integrado; updateSquashes en game loops de 15/19 (4 juegos sin squash: cell-swarm, neon-nexus, missile-command, dino-runner)
+- [x] **G5**: **19/19 juegos** — feedbackBundle integrado; updateSquashes en game loops de **17/19** (2 juegos sin squash: cell-swarm, neon-nexus)
 - [x] **G6**: Accesibilidad — prefers-reduced-motion → `setShakeScale(0)` + listener change en vivo
-- **Verificado: `feedbackBundle` en 19/19, `updateSquashes` en 15/19, `clearSquashes` en 19/19**. ✅ COMPLETADO
+- **Verificado: `feedbackBundle` en 19/19, `updateSquashes` en 17/19, `clearSquashes` en 19/19**. ✅ COMPLETADO (2026-08-12: dino-runner v1.5.1 + missile-command v1.4.1 — los 2 juegos objetivo del cierre de G5; el gap restante cell-swarm/neon-nexus queda como item de expansión, ver Auditoría)
 
 ---
 
@@ -198,28 +198,68 @@ Templates disponibles en `.agents/skills/assets/`:
 
 ## 📊 Progreso general
 
-| Fase      | Skill                 | Tareas              | Estado                                 |
-| --------- | --------------------- | ------------------- | -------------------------------------- |
-| **R1**    | `refactor`            | Renombrar vars 3D   | ✅ **Completado** (0 vestigios)        |
-| **R2**    | `refactor`            | shared/loop.js      | ✅ **Completado** (19/19 juegos)       |
-| **R3**    | `refactor`            | Magic numbers       | ✅ **Completado** (parcial sin commit) |
-| **R4**    | `refactor`            | CSS cleanup         | ✅ **Completado**                      |
-| **P0**    | Rendimiento           | shadowBlur+SW       | ✅ **9/10** (falta P10)                |
-| **G1–G5** | `game-feel`           | Game feel           | ✅ **Completado** (19/19)              |
-| **H1**    | `premium-frontend-ui` | Premium hub UI      | ✅ **7/7 completo**                    |
-| **D**     | `create-readme`       | Documentación       | ✅ **Completado** (D1-D6)              |
-| **M**     | `audit-integrity`     | Mejoras menores     | ✅ **Completado** (7/7)                |
-| **P10**   | DevTools              | Pruebas rendimiento | 🔲 **Pendiente**                       |
-| **N1**    | `game-engine`         | Nuevos juegos       | 🟢 **Futuro**                          |
+| Fase      | Skill                 | Tareas              | Estado                                  |
+| --------- | --------------------- | ------------------- | --------------------------------------- |
+| **R1**    | `refactor`            | Renombrar vars 3D   | ✅ **Completado** (0 vestigios)         |
+| **R2**    | `refactor`            | shared/loop.js      | ✅ **Completado** (19/19 juegos)        |
+| **R3**    | `refactor`            | Magic numbers       | ✅ **Completado** (parcial sin commit)  |
+| **R4**    | `refactor`            | CSS cleanup         | ✅ **Completado**                       |
+| **P0**    | Rendimiento           | shadowBlur+SW       | ✅ **9/10** (falta P10)                 |
+| **G1–G5** | `game-feel`           | Game feel           | ✅ **Completado** (19/19, squash 17/19) |
+| **H1**    | `premium-frontend-ui` | Premium hub UI      | ✅ **7/7 completo**                     |
+| **D**     | `create-readme`       | Documentación       | ✅ **Completado** (D1-D6)               |
+| **M**     | `audit-integrity`     | Mejoras menores     | ✅ **Completado** (7/7)                 |
+| **P10**   | DevTools              | Pruebas rendimiento | 🔲 **Pendiente**                        |
+| **N1**    | `game-engine`         | Nuevos juegos       | 🟢 **Futuro**                           |
 
 ---
 
 ## 📦 metadata.json — Versiones actuales
 
-> Verificado: 19/19 juegos bumpados (Fase D4, 2026-07-30) con changelog de G1-G5, P0 y lint fixes.
+> Verificado: 19/19 juegos bumpados (Fase D4, 2026-07-30) con changelog de G1-G5, P0 y lint fixes. Re-verificado en auditoría 2026-08-12.
 
-| Versión | Juegos                                                                                                                  |
-| ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1.5.0   | Pong, Breakout, Snake, Asteroids, Space Invaders, Flappy Bird, Pac-Man, Tetris, Frogger, Galaga, Centipede, Dino Runner |
-| 1.4.0   | Dig Dug, Missile Command, Cell Swarm, Neon Nexus                                                                        |
-| 1.3.0   | Defender, Donkey Kong, Joust                                                                                            |
+| Versión | Juegos                                                                                                           |
+| ------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1.5.1   | Snake (bump menor post-D4, 2026-07-31 — migración R1 a `.y`/`.dy`)                                               |
+| 1.5.0   | Pong, Breakout, Asteroids, Space Invaders, Flappy Bird, Pac-Man, Tetris, Frogger, Galaga, Centipede, Dino Runner |
+| 1.4.0   | Dig Dug, Missile Command, Cell Swarm, Neon Nexus                                                                 |
+| 1.3.0   | Defender, Donkey Kong, Joust                                                                                     |
+
+---
+
+## 🔎 Auditoría 2026-08-12 — Estado verificado
+
+> Ejecutado: `npm run lint`, `npm run format`, `npm run verify`, `npm test` + inspección de los 19 juegos.
+
+### ✅ Validación
+
+| Comando          | Resultado                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| `npm run lint`   | ✅ 0 errores / 0 warnings                                                              |
+| `npm run format` | ✅ OK (**fix aplicado**: `AGENTS.md` no estaba formateado → Prettier `--write`)        |
+| `npm run verify` | ✅ Consistente — 19 juegos / 19 carpetas / 8 imports shared / 69 SW FILES              |
+| `npm test`       | ✅ 19/19 smoke tests (cada juego importa y valida `#gameCanvas`/`#overlay`/`#helpBtn`) |
+
+### 📋 Estado de los 19 juegos
+
+- Todos con los 5 archivos requeridos + `screenshot.png` ✅
+- Todos con `status: 'listo'` en `games.js` ✅
+- Todos registrados en `sw.js` FILES ✅
+- Sin `TODO`/`FIXME`/`XXX`/`HACK` en `games/*/script.js` ✅
+- Sin `shadowBlur` en loops ✅ (0 usos, P0 completo)
+- **19/19 juegos con logros** ✅ (2026-08-12: cell-swarm v1.4.1 + neon-nexus v1.4.1 — eran los únicos sin logros; ahora todos llaman `achievements.unlock()` y tienen sección `## Logros` en su README)
+
+### ⚠️ Juegos candidatos a expansión
+
+| Juego              | Gap detectado                                                                                                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **cell-swarm**     | Sin squash & stretch (único gap restante de G5). ✅ Logros completados 2026-08-12 (6: primera presa, cazador, splitter, masa 200, titán 500, alfa rank #1) — v1.4.1                                         |
+| **neon-nexus**     | Sin squash & stretch (único gap restante de G5). ✅ Logros completados 2026-08-12 (5: primer kill, oleada 5, oleada 10, aniquilador 50, comprador) — v1.4.1                                                 |
+| Juegos con 1 logro | asteroids, breakout, centipede, digdug, dino-runner, flappy-bird, frogger, galaga, missile-command, pacman, snake, space-invaders, tetris — solo 1 logro cada uno (vs. pong con 2, defender/DK/joust con 3) |
+
+### 🧹 Pendientes de repo
+
+- [ ] **Commitear archivos sin trackear**: `AGENTS.md`, `skills-lock.json` y las 5 autoskills (`.agents/skills/{accessibility,frontend-design,nodejs-backend-patterns,nodejs-best-practices,seo}/`) — necesarios para reproducir el setup de skills (ver `skills-lock.json`)
+- [ ] **P10**: Pruebas de rendimiento con Chrome DevTools Performance tab (única fase pendiente)
+- [ ] **N1**: Nuevos juegos (templates en `.agents/skills/assets/`)
+- [ ] Clarificar en `CLAUDE.md` que de las 26 skills listadas solo 5 son autoskills cargables vía `skill()` (las 21 restantes son docs en `.agents/skills/*.md` no registradas en `skills-lock.json`)

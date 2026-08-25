@@ -202,7 +202,7 @@ skill("nombre-de-la-skill")
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **R1–R4** | ✅ Refactor — 19/19 juegos migrados a `shared/loop.js`, 0 vestigios 3D                                                                              |
 | **P0**    | ✅ Rendimiento — `shadowBlur` eliminado por completo (0 usos), `fillWithGlow()`/`strokeWithGlow()` en shared/effects.js, SW OK (falta P10 DevTools) |
-| **G1–G5** | ✅ Game feel — `feedbackBundle` 19/19, squash & stretch 15/19 (4 juegos sin squash)                                                                 |
+| **G1–G5** | ✅ Game feel — `feedbackBundle` 19/19, squash & stretch 17/19 (solo cell-swarm y neon-nexus sin squash)                                             |
 | **H1**    | ✅ Hub UI premium — entry sequence split-door, cursor, glassmorphism, 7/7                                                                           |
 | **D1–D6** | ✅ Documentación — D1-D4 completado (READMEs 19 juegos + README avanzado + metadata bump), D5 CONTRIBUTING.md nuevo, D6 screenshots 19/19           |
 | **P10**   | 🔲 Pruebas de rendimiento con DevTools Performance tab                                                                                              |
