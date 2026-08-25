@@ -128,19 +128,12 @@ for (const g of games) {
 function buildFilesList() {
   const files = new Set(['./', './index.html', './games.js', './shared/base.css']);
 
-  // Añadir shared JS que detectamos en imports (y algunos obligatorios)
+  // Añadir shared JS que detectamos en imports
   for (const s of sharedImports) files.add(s);
-  // Asegurar módulos compartidos obligatorios estén presentes
-  [
-    './shared/audio.js',
-    './shared/achievements.js',
-    './shared/effects.js',
-    './shared/help.js',
-    './shared/display.js',
-    './shared/dom.js',
-    './shared/loop.js',
-    './shared/input.js',
-  ].forEach((s) => files.add(s));
+  // Asegurar todos los módulos de shared/ (escaneo del disco, sin lista duplicada)
+  for (const f of fs.readdirSync(path.join(ROOT, 'shared'))) {
+    if (f.endsWith('.js')) files.add('./shared/' + f);
+  }
 
   // Añadir archivos por juego
   for (const g of games) {
