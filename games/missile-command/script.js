@@ -14,7 +14,6 @@ import {
   updateParticles,
   drawParticles,
   drawGlow,
-  fillWithGlow,
   strokeWithGlow,
   feedbackBundle,
   triggerSquash,

@@ -28,12 +28,10 @@ const shell = setupGameShell('space-invaders');
 
 /* ============================================================
    SPACE INVADERS 2D — Arcade Hub
-   Canvas 2D, sin dependencias externas.
+   Canvas 2D — Fidelidad arcade completa.
    ============================================================ */
 
-// ============================================================
-// CONSTANTES
-// ============================================================
+// ── CONSTANTES ──
 const CW = 800,
   CH = 600,
   CPAD = 20;
@@ -46,10 +44,11 @@ const INVADER_ROWS = 5,
 const INVADER_W = 30,
   INVADER_H = 22,
   INVADER_GAP = 8;
-const BULLET_SPEED = 500,
-  INVADER_BULLET_SPEED = 220;
+const BASE_BULLET_SPEED = 500;
+const INVADER_BULLET_SPEED = 220;
 const FIRE_CD = 0.3;
-const MYSTERY_POINTS = [50, 100, 150, 200, 250, 300]; // puntos variables como el arcade
+const MAX_ENEMY_BULLETS = 3;
+const MYSTERY_POINTS = [50, 100, 150, 300];
 const START_LIVES = 3;
 const SHIELD_Y = CH - 95;
 const SHIELDS = 4;
@@ -57,9 +56,18 @@ const SHIELDS = 4;
 const ROW_COLORS = ['#ff6b6b', '#ff8a65', '#ffe066', '#6ee7b7', '#6ec6ff'];
 const ROW_POINTS = [30, 20, 20, 10, 10];
 
-// ============================================================
-// ESTADO
-// ============================================================
+// Velocidad escalonada por enemigos vivos (original: función discreta)
+function getInvaderInterval(aliveCount) {
+  const total = INVADER_ROWS * INVADER_COLS;
+  const ratio = aliveCount / total;
+  // Original: 4 intervals — lento → medio → rápido → muy rápido
+  if (ratio > 0.75) return 0.55;
+  if (ratio > 0.5) return 0.4;
+  if (ratio > 0.25) return 0.25;
+  return 0.12;
+}
+
+// ── ESTADO ──
 const state = {
   running: false,
   gameOver: false,
@@ -67,11 +75,11 @@ const state = {
   lives: START_LIVES,
   best: loadBest('spaceinv2d'),
   invincibleTimer: 0,
+  wave: 1,
+  extraLifeGiven: false,
 };
 
-// ============================================================
-// CANVAS
-// ============================================================
+// ── CANVAS ──
 const canvas = document.getElementById('gameCanvas'),
   ctx = canvas.getContext('2d', { alpha: false });
 const {
@@ -82,7 +90,7 @@ const {
   y: offY,
 } = setupCanvas(canvas, ctx, CW, CH, CPAD);
 
-// SONIDO (usando shared/audio.js)
+// ── SONIDO ──
 function playFire() {
   beep({ freq: 800, freqEnd: 1200, duration: 0.05, type: 'square', volume: 0.1 });
 }
@@ -105,9 +113,7 @@ function playWin() {
   );
 }
 
-// ============================================================
-// ENTIDADES
-// ============================================================
+// ── ENTIDADES ──
 const ship = { x: CW / 2, y: SHIP_Y };
 let invs = [],
   plyBullets = [],
@@ -120,15 +126,18 @@ let mysteryShip = null,
   mysteryTimer = 0;
 let invaderAnimPhase = 0;
 
+// ── ESCUDOS: erosión espacial ──
 function buildInvaders() {
   invs = [];
   const tw = INVADER_COLS * INVADER_W + (INVADER_COLS - 1) * INVADER_GAP;
   const sx = (CW - tw) / 2 + INVADER_W / 2;
+  // Wave progression: start 1 row lower per wave (max 2 rows)
+  const startRowOffset = Math.min(state.wave - 1, 2);
   for (let r = 0; r < INVADER_ROWS; r++) {
     for (let co = 0; co < INVADER_COLS; co++) {
       invs.push({
         x: sx + co * (INVADER_W + INVADER_GAP),
-        y: 50 + r * (INVADER_H + INVADER_GAP),
+        y: 50 + (r + startRowOffset) * (INVADER_H + INVADER_GAP),
         w: INVADER_W,
         h: INVADER_H,
         color: ROW_COLORS[r],
@@ -136,7 +145,6 @@ function buildInvaders() {
         alive: true,
         row: r,
         col: co,
-        animPhase: 0,
       });
     }
   }
@@ -150,7 +158,6 @@ function buildShields() {
     gap = (CW - SHIELDS * sw) / (SHIELDS + 1);
   for (let i = 0; i < SHIELDS; i++) {
     const sx = gap + i * (sw + gap);
-    // Shield: a grid of small blocks
     const blocks = [];
     for (let bx = 0; bx < 8; bx++) {
       for (let by = 0; by < 5; by++) {
@@ -160,7 +167,7 @@ function buildShields() {
           by === 2 ||
           (by === 3 && bx > 1 && bx < 6)
         ) {
-          blocks.push({ x: sx + bx * 7.5, y: SHIELD_Y + by * 6, w: 7.5, h: 6, hp: 4 });
+          blocks.push({ x: sx + bx * 7.5, y: SHIELD_Y + by * 6, w: 7.5, h: 6 });
         }
       }
     }
@@ -168,9 +175,20 @@ function buildShields() {
   }
 }
 
-// ============================================================
-// GAME LOGIC
-// ============================================================
+// Erosión espacial: destruir bloque + vecinos en radio
+function erodeShield(shield, hitX, hitY, radius) {
+  for (let bi = shield.blocks.length - 1; bi >= 0; bi--) {
+    const bl = shield.blocks[bi];
+    const cx = bl.x + bl.w / 2;
+    const cy = bl.y + bl.h / 2;
+    const dist = Math.hypot(cx - hitX, cy - hitY);
+    if (dist <= radius) {
+      shield.blocks.splice(bi, 1);
+    }
+  }
+}
+
+// ── GAME LOGIC ──
 let invadersReachedBottom = false;
 
 function resetGame() {
@@ -178,6 +196,8 @@ function resetGame() {
   state.lives = START_LIVES;
   state.gameOver = false;
   state.invincibleTimer = 0;
+  state.wave = 1;
+  state.extraLifeGiven = false;
   ship.x = CW / 2;
   plyBullets = [];
   enBullets = [];
@@ -191,6 +211,7 @@ function resetGame() {
   document.getElementById('finalScore').style.display = 'none';
   updateHUD();
 }
+
 function startGame() {
   clearSquashes();
   ensureAudio();
@@ -241,16 +262,26 @@ function endGame(won) {
   updateHUD();
 }
 
-// ============================================================
-// FÍSICA
-// ============================================================
+function nextWave() {
+  state.wave++;
+  buildInvaders();
+  buildShields();
+  enBullets = [];
+  mysteryTimer = 3;
+}
+
+// ── FÍSICA ──
 function updateShip(dt) {
   if (state.invincibleTimer > 0) state.invincibleTimer -= dt;
   ship.x += (input.left ? -SHIP_SPEED * dt : 0) + (input.right ? SHIP_SPEED * dt : 0);
   ship.x = Math.max(20, Math.min(CW - 20, ship.x));
-  // Fidelidad arcade: un solo disparo del jugador en pantalla a la vez
+
+  // Bullet speed scales with fewer enemies (original)
+  const aliveCount = invs.filter((i) => i.alive).length;
+  const bulletSpeed = BASE_BULLET_SPEED + (1 - aliveCount / (INVADER_ROWS * INVADER_COLS)) * 200;
+
   if (input.fire && fireTimer <= 0 && plyBullets.length === 0) {
-    plyBullets.push({ x: ship.x, y: ship.y - 12, vy: -BULLET_SPEED });
+    plyBullets.push({ x: ship.x, y: ship.y - 12, vy: -bulletSpeed });
     fireTimer = FIRE_CD;
     playFire();
   }
@@ -259,22 +290,32 @@ function updateShip(dt) {
 
 function updateInvaders(dt) {
   invaderAnimPhase += dt * 3;
-  if (invs.filter((i) => i.alive).length === 0) return;
+  const alive = invs.filter((i) => i.alive);
+  if (alive.length === 0) return;
 
-  const speedMult = 1 + (INVADER_ROWS * INVADER_COLS - invs.filter((i) => i.alive).length) * 0.04;
-  invTimer += dt * speedMult;
-  const interval = 0.5 / (1 + state.score * 0.0005);
+  // Stepped speed by enemy count
+  const interval = getInvaderInterval(alive.length);
+  invTimer += dt;
 
   while (invTimer >= interval) {
     invTimer -= interval;
     invDir = moveInvaders(invDir);
   }
 
-  // Enemy fire
-  const alive = invs.filter((i) => i.alive);
-  if (alive.length > 0 && Math.random() < 0.008 * speedMult) {
-    const shooter = alive[Math.floor(Math.random() * alive.length)];
-    enBullets.push({ x: shooter.x, y: shooter.y + INVADER_H / 2, vy: INVADER_BULLET_SPEED });
+  // Enemy fire: only lowest alive per column, max 3 bullets
+  if (enBullets.length < MAX_ENEMY_BULLETS && Math.random() < 0.02) {
+    // Find lowest alive enemy per column
+    const lowestByCol = {};
+    for (const inv of alive) {
+      if (!lowestByCol[inv.col] || inv.y > lowestByCol[inv.col].y) {
+        lowestByCol[inv.col] = inv;
+      }
+    }
+    const shooters = Object.values(lowestByCol);
+    if (shooters.length > 0) {
+      const shooter = shooters[Math.floor(Math.random() * shooters.length)];
+      enBullets.push({ x: shooter.x, y: shooter.y + INVADER_H / 2, vy: INVADER_BULLET_SPEED });
+    }
   }
 
   // Mystery ship
@@ -309,9 +350,7 @@ function moveInvaders(dir) {
   return dir;
 }
 
-// (bullet logic is inline in the main tick loop)
-
-// Input
+// ── ENTRADA ──
 const input = { left: false, right: false, fire: false };
 window.addEventListener('keydown', (e) => {
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
@@ -411,9 +450,7 @@ function pollGamepad() {
   prevGamepad = { fire: fH, start: sH };
 }
 
-// ============================================================
-// RENDER
-// ============================================================
+// ── RENDER ──
 function draw() {
   ctx.clearRect(0, 0, canvasW, canvasH);
   const so = getShakeOffset();
@@ -470,7 +507,7 @@ function draw() {
         by = cy + bl.y * s,
         bw = bl.w * s,
         bh = bl.h * s;
-      ctx.fillStyle = `rgba(100,220,100,${0.3 + 0.15 * bl.hp})`;
+      ctx.fillStyle = 'rgba(100,220,100,0.5)';
       ctx.strokeStyle = 'rgba(100,220,100,0.15)';
       ctx.lineWidth = 0.5 * s;
       roundRect(ctx, bx, by, bw, bh, 1 * s);
@@ -544,7 +581,6 @@ function draw() {
         0.4,
         6 * s,
       );
-      // Cockpit
       ctx.fillStyle = 'rgba(255,255,255,0.2)';
       ctx.beginPath();
       ctx.moveTo(sx, sy - (SHIP_H / 4) * s);
@@ -555,7 +591,6 @@ function draw() {
     }
   }
 
-  // Particles
   drawParticles(ctx, offX, offY, scale);
   ctx.restore();
 }
@@ -565,7 +600,6 @@ function drawInvader(x, y, w, h, color, phase) {
   roundRect(ctx, x - w / 2, y - h / 2, w, h, 3 * scale);
   ctx.fill();
   drawGlow(ctx, x, y, w * 0.4, color, 0.08, 3);
-  // Eyes
   ctx.fillStyle = 'rgba(255,255,255,0.8)';
   ctx.beginPath();
   ctx.arc(x - w / 4, y - h / 4, 3 * scale, 0, Math.PI * 2);
@@ -573,7 +607,6 @@ function drawInvader(x, y, w, h, color, phase) {
   ctx.beginPath();
   ctx.arc(x + w / 4, y - h / 4, 3 * scale, 0, Math.PI * 2);
   ctx.fill();
-  // Antennae with wave
   ctx.strokeStyle = color;
   ctx.lineWidth = 1.5 * scale;
   ctx.beginPath();
@@ -586,9 +619,7 @@ function drawInvader(x, y, w, h, color, phase) {
   ctx.stroke();
 }
 
-// ============================================================
-// HUD
-// ============================================================
+// ── HUD ──
 const scoreEl = document.getElementById('scoreValue'),
   livesEl = document.getElementById('livesValue'),
   bestEl = document.getElementById('bestValue');
@@ -599,145 +630,79 @@ function updateHUD() {
   bestEl.textContent = String(state.best);
 }
 
-// ============================================================
-// MAIN LOOP
-// ============================================================
+// ── BUCLE PRINCIPAL ──
 const loop = createGameLoop((dt) => {
   pollGamepad();
   updateShake(dt);
   if (state.running && !state.gameOver) {
     updateShip(dt);
     updateInvaders(dt);
-    // Collision check for bullets (con anti-tunneling)
+
+    // ── Player bullet collisions ──
     for (let i = plyBullets.length - 1; i >= 0; i--) {
       const b = plyBullets[i];
+      b.y += b.vy * dt;
+      let removed = false;
 
-      const maxStep = BULLET_SPEED * dt;
-      const minThickness = 7.5; // shield block width
-      if (maxStep > minThickness * 0.4) {
-        const steps = Math.ceil(maxStep / (minThickness * 0.3));
-        const subDt = dt / steps;
-        for (let s = 0; s < steps; s++) {
-          b.y += b.vy * subDt;
-          let removed = false;
-          if (b.y < 0) {
-            plyBullets.splice(i, 1);
-            removed = true;
-            break;
-          }
-          // Hit invaders
-          for (const inv of invs) {
-            if (!inv.alive) continue;
-            if (Math.abs(b.x - inv.x) < INVADER_W / 2 && Math.abs(b.y - inv.y) < INVADER_H / 2) {
-              inv.alive = false;
-              state.score += inv.points;
-              playExplosion();
-              spawnParticles(inv.x, inv.y, inv.color, 12, { spd: 80, life: 0.35 });
-              plyBullets.splice(i, 1);
-              removed = true;
-              updateHUD();
-              if (invs.filter((x) => x.alive).length === 0) {
-                playWin();
-                buildInvaders();
-              }
-              break;
-            }
-          }
-          if (removed) break;
-          // Hit shields
-          for (const sh of shields) {
-            for (let bi = sh.blocks.length - 1; bi >= 0; bi--) {
-              const bl = sh.blocks[bi];
-              if (b.x > bl.x && b.x < bl.x + bl.w && b.y > bl.y && b.y < bl.y + bl.h) {
-                bl.hp--;
-                if (bl.hp <= 0) sh.blocks.splice(bi, 1);
-                plyBullets.splice(i, 1);
-                removed = true;
-                break;
-              }
-            }
-            if (removed) break;
-          }
-          // Hit mystery ship
-          if (
-            !removed &&
-            mysteryShip &&
-            Math.abs(b.x - mysteryShip.x) < 25 &&
-            Math.abs(b.y - mysteryShip.y) < 15
-          ) {
-            const pts = MYSTERY_POINTS[Math.floor(Math.random() * MYSTERY_POINTS.length)];
-            state.score += pts;
-            playMystery();
-            spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
-            say(`Nave misteriosa derribada: +${pts}`);
-            mysteryShip = null;
-            mysteryTimer = 5 + Math.random() * 8;
-            plyBullets.splice(i, 1);
-            removed = true;
-            updateHUD();
-          }
-        }
-      } else {
-        b.y += b.vy * dt;
-        let removed = false;
-        if (b.y < 0) {
-          plyBullets.splice(i, 1);
-          continue;
-        }
-        // Hit invaders
-        for (const inv of invs) {
-          if (!inv.alive) continue;
-          if (Math.abs(b.x - inv.x) < INVADER_W / 2 && Math.abs(b.y - inv.y) < INVADER_H / 2) {
-            inv.alive = false;
-            state.score += inv.points;
-            playExplosion();
-            spawnParticles(inv.x, inv.y, inv.color, 12, { spd: 80, life: 0.35 });
-            plyBullets.splice(i, 1);
-            removed = true;
-            updateHUD();
-            if (invs.filter((x) => x.alive).length === 0) {
-              playWin();
-              buildInvaders();
-            }
-            break;
-          }
-        }
-        if (removed) continue;
-        // Hit shields
-        for (const sh of shields) {
-          for (let bi = sh.blocks.length - 1; bi >= 0; bi--) {
-            const bl = sh.blocks[bi];
-            if (b.x > bl.x && b.x < bl.x + bl.w && b.y > bl.y && b.y < bl.y + bl.h) {
-              bl.hp--;
-              if (bl.hp <= 0) sh.blocks.splice(bi, 1);
-              plyBullets.splice(i, 1);
-              removed = true;
-              break;
-            }
-          }
-          if (removed) break;
-        }
-        // Hit mystery ship
-        if (
-          !removed &&
-          mysteryShip &&
-          Math.abs(b.x - mysteryShip.x) < 25 &&
-          Math.abs(b.y - mysteryShip.y) < 15
-        ) {
-          const pts = MYSTERY_POINTS[Math.floor(Math.random() * MYSTERY_POINTS.length)];
-          state.score += pts;
-          playMystery();
-          spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
-          say(`Nave misteriosa derribada: +${pts}`);
-          mysteryShip = null;
-          mysteryTimer = 5 + Math.random() * 8;
+      if (b.y < 0) {
+        plyBullets.splice(i, 1);
+        continue;
+      }
+
+      // Hit invaders
+      for (const inv of invs) {
+        if (!inv.alive) continue;
+        if (Math.abs(b.x - inv.x) < INVADER_W / 2 && Math.abs(b.y - inv.y) < INVADER_H / 2) {
+          inv.alive = false;
+          state.score += inv.points;
+          playExplosion();
+          spawnParticles(inv.x, inv.y, inv.color, 12, { spd: 80, life: 0.35 });
           plyBullets.splice(i, 1);
           removed = true;
+
+          // Extra life at 1000 pts
+          if (!state.extraLifeGiven && state.score >= 1000) {
+            state.extraLifeGiven = true;
+            state.lives++;
+            say('¡Vida extra!');
+            spawnParticles(CW / 2, CH / 2, '#6ee7b7', 20, { spd: 100, life: 0.6 });
+          }
+
           updateHUD();
+          break;
         }
       }
+      if (removed) continue;
+
+      // Hit shields — spatial erosion
+      for (const sh of shields) {
+        for (const bl of sh.blocks) {
+          if (b.x > bl.x && b.x < bl.x + bl.w && b.y > bl.y && b.y < bl.y + bl.h) {
+            erodeShield(sh, bl.x + bl.w / 2, bl.y + bl.h / 2, 12);
+            plyBullets.splice(i, 1);
+            removed = true;
+            break;
+          }
+        }
+        if (removed) break;
+      }
+      if (removed) continue;
+
+      // Hit mystery ship
+      if (mysteryShip && Math.abs(b.x - mysteryShip.x) < 25 && Math.abs(b.y - mysteryShip.y) < 15) {
+        const pts = MYSTERY_POINTS[Math.floor(Math.random() * MYSTERY_POINTS.length)];
+        state.score += pts;
+        playMystery();
+        spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
+        say(`Nave misteriosa derribada: +${pts}`);
+        mysteryShip = null;
+        mysteryTimer = 5 + Math.random() * 8;
+        plyBullets.splice(i, 1);
+        updateHUD();
+      }
     }
-    // Enemy bullets
+
+    // ── Enemy bullet collisions ──
     for (let i = enBullets.length - 1; i >= 0; i--) {
       const b = enBullets[i];
       b.y += b.vy * dt;
@@ -745,6 +710,7 @@ const loop = createGameLoop((dt) => {
         enBullets.splice(i, 1);
         continue;
       }
+      // Hit player
       if (
         state.invincibleTimer <= 0 &&
         Math.abs(b.x - ship.x) < SHIP_W / 2 &&
@@ -754,18 +720,36 @@ const loop = createGameLoop((dt) => {
         loseLife();
         break;
       }
+      // Hit shields — smaller erosion for enemy bullets
       for (const sh of shields) {
-        for (let bi = sh.blocks.length - 1; bi >= 0; bi--) {
-          const bl = sh.blocks[bi];
+        for (const bl of sh.blocks) {
           if (b.x > bl.x && b.x < bl.x + bl.w && b.y > bl.y && b.y < bl.y + bl.h) {
-            bl.hp--;
-            if (bl.hp <= 0) sh.blocks.splice(bi, 1);
+            erodeShield(sh, bl.x + bl.w / 2, bl.y + bl.h / 2, 8);
             enBullets.splice(i, 1);
             break;
           }
         }
       }
     }
+
+    // ── Invaders destroy shields on contact ──
+    for (const inv of invs) {
+      if (!inv.alive) continue;
+      for (const sh of shields) {
+        for (let bi = sh.blocks.length - 1; bi >= 0; bi--) {
+          const bl = sh.blocks[bi];
+          if (
+            inv.x + INVADER_W / 2 > bl.x &&
+            inv.x - INVADER_W / 2 < bl.x + bl.w &&
+            inv.y + INVADER_H / 2 > bl.y &&
+            inv.y - INVADER_H / 2 < bl.y + bl.h
+          ) {
+            sh.blocks.splice(bi, 1);
+          }
+        }
+      }
+    }
+
     // Invaders reached bottom?
     if (invadersReachedBottom) {
       invadersReachedBottom = false;
@@ -786,10 +770,10 @@ const loop = createGameLoop((dt) => {
       }
     }
 
-    // Check win: all invaders destroyed in the last bullet tick
+    // Check win
     if (state.running && invs.filter((i) => i.alive).length === 0) {
       playWin();
-      endGame(true);
+      nextWave();
     }
   }
   updateSquashes(dt);
