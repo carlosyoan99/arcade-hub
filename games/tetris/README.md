@@ -1,6 +1,6 @@
 # 🧊 Tetris
 
-**Versión:** 1.5.1 | **Género:** Puzzle | **Última actualización:** 2026-08-24
+**Versión:** 1.6.0 | **Género:** Puzzle | **Última actualización:** 2026-08-26
 
 Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos. ¡Clásico infinito!
 
@@ -25,6 +25,8 @@ Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progres
 ## Características
 
 - 🟦 7 piezas clásicas (I, O, T, S, Z, J, L)
+- 🔄 Rotación SRS oficial: wall kicks por pieza (tablas I y JLSTZ), giro horario (`↑`/`W`) y antihorario (`Z`)
+- ⇄ Hold piece: guardá la pieza actual (`C`/`Shift`, `LB` del gamepad o botón táctil) con un uso por pieza
 - 👻 Ghost piece que muestra dónde caerá la pieza
 - ⚡ Niveles progresivos que aumentan la velocidad
 - 💥 Game feel: screen shake, hit-stop, partículas neon al completar líneas
@@ -52,6 +54,7 @@ Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progres
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Mecánicas Guideline — Hold piece (C/Shift/LB/táctil, un uso por pieza) y rotación SRS con wall kicks oficiales (tablas I y JLSTZ) + giro antihorario con Z
 - **1.5.1** (2026-08-24): Música lofi-chiptune «Neon Blocks» vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; fix refs rotas BOARD_W/H→CW/CH
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; constantes extraídas (BASE_DROP_SPEED, SPEED_PER_LEVEL)

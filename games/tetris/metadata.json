@@ -1,15 +1,23 @@
 {
   "id": "tetris",
   "title": "Tetris",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "created": "2026-06-20",
-  "lastModified": "2026-08-24",
+  "lastModified": "2026-08-26",
   "description": "Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos.",
   "genre": "puzzle",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Hold piece: guardá/cambiá la pieza actual (C / Shift / LB / botón táctil)",
+        "Rotación SRS oficial con tablas de wall kicks por pieza (I y JLSTZ) + rotación antihoraria (Z)"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-06-20",

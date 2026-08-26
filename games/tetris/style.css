@@ -62,8 +62,8 @@
 }
 
 #tc .dp {
-  grid-template-columns: 60px 60px 60px 60px;
-  grid-template-rows: 60px;
+  grid-template-columns: repeat(5, minmax(48px, 58px));
+  grid-template-rows: 58px;
 }
 
 #tc .dp button:active,
@@ -78,6 +78,10 @@
 
 #tc .dp .btn-drop {
   background: rgba(255, 100, 100, 0.08);
+}
+
+#tc .dp .btn-hold {
+  background: rgba(170, 68, 255, 0.1);
 }
 
 @media (max-width: 520px) {
@@ -101,8 +105,8 @@
 
 @media (max-width: 480px) {
   #tc .dp {
-    grid-template-columns: 52px 52px 52px 52px;
-    grid-template-rows: 52px;
+    grid-template-columns: repeat(5, 48px);
+    grid-template-rows: 48px;
   }
   #tc .dp button {
     font-size: 10px;

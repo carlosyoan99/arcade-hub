@@ -115,6 +115,131 @@ const DAS_DELAY = 0.17; // Delayed Auto Shift
 const DAS_RATE = 0.05;
 
 // ============================================================
+// SRS — Super Rotation System (Tetris Guideline)
+// Bounding box por pieza + tablas de wall kicks oficiales.
+// dy en coords de pantalla (+ = abajo).
+// ============================================================
+const PIECE_BOX = { I: 4, O: 2, T: 3, S: 3, Z: 3, J: 3, L: 3 };
+const SRS_KICKS = {
+  JLSTZ: {
+    '0>1': [
+      [0, 0],
+      [-1, 0],
+      [-1, -1],
+      [0, 2],
+      [-1, 2],
+    ],
+    '1>0': [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, -2],
+      [1, -2],
+    ],
+    '1>2': [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, -2],
+      [1, -2],
+    ],
+    '2>1': [
+      [0, 0],
+      [-1, 0],
+      [-1, -1],
+      [0, 2],
+      [-1, 2],
+    ],
+    '2>3': [
+      [0, 0],
+      [1, 0],
+      [1, -1],
+      [0, 2],
+      [1, 2],
+    ],
+    '3>2': [
+      [0, 0],
+      [-1, 0],
+      [-1, 1],
+      [0, -2],
+      [-1, -2],
+    ],
+    '3>0': [
+      [0, 0],
+      [-1, 0],
+      [-1, 1],
+      [0, -2],
+      [-1, -2],
+    ],
+    '0>3': [
+      [0, 0],
+      [1, 0],
+      [1, -1],
+      [0, 2],
+      [1, 2],
+    ],
+  },
+  I: {
+    '0>1': [
+      [0, 0],
+      [-2, 0],
+      [1, 0],
+      [-2, 1],
+      [1, -2],
+    ],
+    '1>0': [
+      [0, 0],
+      [2, 0],
+      [-1, 0],
+      [2, -1],
+      [-1, 2],
+    ],
+    '1>2': [
+      [0, 0],
+      [-1, 0],
+      [2, 0],
+      [-1, -2],
+      [2, 1],
+    ],
+    '2>1': [
+      [0, 0],
+      [1, 0],
+      [-2, 0],
+      [1, 2],
+      [-2, -1],
+    ],
+    '2>3': [
+      [0, 0],
+      [2, 0],
+      [-1, 0],
+      [2, -1],
+      [-1, 2],
+    ],
+    '3>2': [
+      [0, 0],
+      [-2, 0],
+      [1, 0],
+      [-2, 1],
+      [1, -2],
+    ],
+    '3>0': [
+      [0, 0],
+      [1, 0],
+      [-2, 0],
+      [1, 2],
+      [-2, -1],
+    ],
+    '0>3': [
+      [0, 0],
+      [-1, 0],
+      [2, 0],
+      [-1, -2],
+      [2, 1],
+    ],
+  },
+};
+
+// ============================================================
 // ESTADO
 // ============================================================
 const state = {
@@ -131,8 +256,10 @@ const state = {
 let grid = [];
 
 // Current piece
-let piece = null; // { name, blocks:[[x,y],...], color, x, y }
+let piece = null; // { name, blocks:[[x,y],...], color, x, y, rot }
 let nextPiece = null;
+let holdName = null; // nombre de la pieza guardada (null = vacía)
+let canHold = true; // un uso por pieza hasta bloquear la siguiente
 let dropTimer = 0;
 let dasTimer = 0;
 let dasDir = 0; // -1 left, 1 right, 0 none
@@ -194,6 +321,9 @@ function playGameOver() {
     onBeep: () => beep({ freq: 400, freqEnd: 40, duration: 0.5, type: 'sawtooth', volume: 0.2 }),
   });
 }
+function playHold() {
+  beep({ freq: 500, freqEnd: 300, duration: 0.06, type: 'triangle', volume: 0.08 });
+}
 
 // ============================================================
 // ============================================================
@@ -212,14 +342,19 @@ function randomPiece() {
     color: p.color,
     x: Math.floor((COLS - 4) / 2),
     y: 0,
+    rot: 0,
   };
 }
 
-function rotateBlocks(blocks) {
-  // Rotate 90° clockwise around center
-  const cx = 1.5,
-    cy = 1.5;
-  return blocks.map(([bx, by]) => [Math.round(cx + (by - cy)), Math.round(cy - (bx - cx))]);
+// SRS: rotación horaria dentro del bounding box de la pieza
+function rotateCW(blocks, size) {
+  return blocks.map(([x, y]) => [size - 1 - y, x]);
+}
+
+function blocksForRot(name, rot) {
+  let b = PIECES[name].blocks.map((v) => [...v]);
+  for (let i = 0; i < rot; i++) b = rotateCW(b, PIECE_BOX[name]);
+  return b;
 }
 
 function collides(blocks, px, py) {
@@ -243,6 +378,7 @@ function lockPiece() {
   }
   playDrop();
   clearLines();
+  canHold = true; // nueva pieza → se vuelve a habilitar el hold
   spawnPiece();
 }
 
@@ -278,10 +414,26 @@ function clearLines() {
   }
 }
 
+function spawnFromName(name) {
+  const p = PIECES[name];
+  piece = {
+    name,
+    blocks: p.blocks.map((b) => [...b]),
+    color: p.color,
+    x: Math.floor((COLS - 4) / 2),
+    y: 0,
+    rot: 0,
+  };
+  dropTimer = 0;
+  lockTimer = 0;
+  if (collides(piece.blocks, piece.x, piece.y)) endGame();
+}
+
 function spawnPiece() {
   piece = nextPiece || randomPiece();
   piece.x = Math.floor((COLS - 4) / 2);
   piece.y = 0;
+  piece.rot = 0;
   nextPiece = randomPiece();
   dropTimer = 0;
   lockTimer = 0;
@@ -302,33 +454,34 @@ function movePiece(dx, dy) {
   return false;
 }
 
-function rotatePiece() {
-  if (!piece || state.gameOver || state.paused) return;
-  const newBlocks = rotateBlocks(piece.blocks);
-  // Try basic rotation
-  if (!collides(newBlocks, piece.x, piece.y)) {
-    piece.blocks = newBlocks;
-    playRotate();
-    return;
-  }
-  // Wall kicks
-  for (const kick of [
-    [-1, 0],
-    [1, 0],
-    [-2, 0],
-    [2, 0],
-    [0, -1],
-    [-1, -1],
-    [1, -1],
-  ]) {
-    if (!collides(newBlocks, piece.x + kick[0], piece.y + kick[1])) {
+function rotatePiece(dir = 1) {
+  if (!piece || state.gameOver || state.paused || piece.name === 'O') return;
+  const newRot = (piece.rot + dir + 4) % 4;
+  const newBlocks = blocksForRot(piece.name, newRot);
+  const kicks = SRS_KICKS[piece.name === 'I' ? 'I' : 'JLSTZ'][`${piece.rot}>${newRot}`];
+  for (const [kx, ky] of kicks) {
+    if (!collides(newBlocks, piece.x + kx, piece.y + ky)) {
       piece.blocks = newBlocks;
-      piece.x += kick[0];
-      piece.y += kick[1];
+      piece.rot = newRot;
+      piece.x += kx;
+      piece.y += ky;
       playRotate();
-      return;
+      return true;
     }
   }
+  return false;
+}
+
+function holdSwap() {
+  if (!piece || !canHold || state.gameOver || state.paused) return;
+  const current = piece.name;
+  const saved = holdName;
+  holdName = current;
+  canHold = false;
+  playHold();
+  say(`Hold: guardaste ${current}${saved ? `, sale ${saved}` : ''}`);
+  if (saved === null) spawnPiece();
+  else spawnFromName(saved);
 }
 
 function hardDrop() {
@@ -384,6 +537,14 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     if (!state.running) startGame();
     else rotatePiece();
+  } else if (e.code === 'KeyZ') {
+    e.preventDefault();
+    if (!state.running) startGame();
+    else rotatePiece(-1);
+  } else if (e.code === 'KeyC' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+    e.preventDefault();
+    if (!state.running) startGame();
+    else holdSwap();
   } else if (e.code === 'Space') {
     e.preventDefault();
     if (!state.running) startGame();
@@ -445,6 +606,10 @@ bTouch('bRot', () => {
   if (!state.running) startGame();
   else if (!state.gameOver) rotatePiece();
 });
+bTouch('bHold', () => {
+  if (!state.running) startGame();
+  else if (!state.gameOver) holdSwap();
+});
 bTouch('bDrop', () => {
   if (!state.running) startGame();
   else if (!state.gameOver) hardDrop();
@@ -464,7 +629,7 @@ document.getElementById('overlay').addEventListener('click', () => {
 
 // Gamepad
 const gamepad = createGamepad();
-const prevGamepad = { rot: false, start: false };
+const prevGamepad = { rot: false, hold: false, start: false };
 
 function pollGamepad() {
   const gp = gamepad.pad;
@@ -504,6 +669,13 @@ function pollGamepad() {
   const sH = !!gp.buttons[9]?.pressed;
   if (sH && !prevGamepad.start && !state.running) startGame();
   prevGamepad.start = sH;
+  // LB guarda/cambia la pieza (hold)
+  const hH = !!gp.buttons[4]?.pressed;
+  if (hH && !prevGamepad.hold && !state.gameOver) {
+    if (!state.running) startGame();
+    else holdSwap();
+  }
+  prevGamepad.hold = hH;
   if (gp.buttons[1]?.pressed && !state.gameOver) hardDrop(); // B button for hard drop
 }
 
@@ -520,6 +692,8 @@ function resetGame() {
   for (let r = 0; r < ROWS; r++) grid.push(new Array(COLS).fill(0));
   nextPiece = randomPiece();
   piece = null;
+  holdName = null;
+  canHold = true;
   dropTimer = 0;
   dasTimer = 0;
   dasDir = 0;
@@ -718,6 +892,35 @@ function draw() {
     ctx.globalAlpha = 0.8;
     for (const [bx, by] of nextPiece.blocks) {
       drawBlock(offsetX + bx * CS * s, offsetY + by * CS * s, CS * s, nextPiece.color, s);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Hold piece preview
+  const holdY = previewY + CS * 6 * s;
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1 * s;
+  roundRect(ctx, previewX, holdY, CS * 5 * s, CS * 5 * s, 4 * s);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = `${10 * s}px 'Courier New',monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('GUARDADA', previewX + CS * 2.5 * s, holdY + 4 * s);
+
+  if (holdName) {
+    const hp = PIECES[holdName];
+    const offsetX =
+      previewX +
+      CS * 2.5 * s -
+      (holdName === 'I' ? CS * 2 * s : holdName === 'O' ? CS * s : CS * 1.5 * s);
+    const offsetY = holdY + CS * 2.5 * s - CS * s;
+    ctx.globalAlpha = canHold ? 0.8 : 0.35; // atenuada cuando el hold ya se usó
+    for (const [bx, by] of hp.blocks) {
+      drawBlock(offsetX + bx * CS * s, offsetY + by * CS * s, CS * s, hp.color, s);
     }
     ctx.globalAlpha = 1;
   }
