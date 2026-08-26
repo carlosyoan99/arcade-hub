@@ -265,6 +265,23 @@ let dropTimer = 0;
 let dasTimer = 0;
 let dasDir = 0; // -1 left, 1 right, 0 none
 let lockTimer = 0;
+let lockResets = 0;
+const MAX_LOCK_RESETS = 15;
+const LOCK_DELAY = 0.5; // seconds wall-clock
+
+// 7-bag randomizer
+let pieceBag = [];
+function randomPieceName() {
+  if (pieceBag.length === 0) {
+    pieceBag = [...PIECE_NAMES];
+    // Fisher-Yates shuffle
+    for (let i = pieceBag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pieceBag[i], pieceBag[j]] = [pieceBag[j], pieceBag[i]];
+    }
+  }
+  return pieceBag.pop();
+}
 
 // ============================================================
 // CANVAS
@@ -335,7 +352,7 @@ function getDropInterval() {
 }
 
 function randomPiece() {
-  const n = PIECE_NAMES[Math.floor(Math.random() * PIECE_NAMES.length)];
+  const n = randomPieceName();
   const p = PIECES[n];
   return {
     name: n,
@@ -427,6 +444,7 @@ function spawnFromName(name) {
   };
   dropTimer = 0;
   lockTimer = 0;
+  lockResets = 0;
   if (collides(piece.blocks, piece.x, piece.y)) endGame();
 }
 
@@ -438,6 +456,7 @@ function spawnPiece() {
   nextPiece = randomPiece();
   dropTimer = 0;
   lockTimer = 0;
+  lockResets = 0;
 
   if (collides(piece.blocks, piece.x, piece.y)) {
     endGame();
@@ -449,6 +468,11 @@ function movePiece(dx, dy) {
   if (!collides(piece.blocks, piece.x + dx, piece.y + dy)) {
     piece.x += dx;
     piece.y += dy;
+    // Lock reset: moving on ground counts as a reset
+    if (dy === 0 && collides(piece.blocks, piece.x, piece.y + 1)) {
+      lockTimer = 0;
+      lockResets++;
+    }
     if (dy === 0) playMove();
     return true;
   }
@@ -466,6 +490,11 @@ function rotatePiece(dir = 1) {
       piece.rot = newRot;
       piece.x += kx;
       piece.y += ky;
+      // Lock reset: rotation on ground counts as a reset
+      if (collides(piece.blocks, piece.x, piece.y + 1)) {
+        lockTimer = 0;
+        lockResets++;
+      }
       playRotate();
       return true;
     }
@@ -776,9 +805,15 @@ function updateGame(dt) {
     dropTimer += dt;
   }
 
-  // Lock delay
+  // Lock delay: 0.5s wall-clock, max 15 resets
   if (!collides(piece.blocks, piece.x, piece.y + 1)) {
     lockTimer = 0;
+    lockResets = 0;
+  } else {
+    lockTimer += dt;
+    if (lockTimer >= LOCK_DELAY || lockResets >= MAX_LOCK_RESETS) {
+      lockPiece();
+    }
   }
 
   // Gravity
@@ -787,11 +822,6 @@ function updateGame(dt) {
     dropTimer = 0;
     if (!collides(piece.blocks, piece.x, piece.y + 1)) {
       piece.y++;
-    } else {
-      lockTimer += interval;
-      if (lockTimer >= 0.5) {
-        lockPiece();
-      }
     }
   }
 }
