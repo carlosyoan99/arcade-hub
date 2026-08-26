@@ -47,8 +47,15 @@ const SCORE_GHOST = [200, 400, 800, 1600];
 const FRIGHT_TIME = 7;
 const GHOST_SPEED = 80,
   GHOST_FRIGHT_SPEED = 50,
-  GHOST_HOME_SPEED = 120;
+  GHOST_HOME_SPEED = 120,
+  GHOST_ELROY1_SPEED = 84, // Cruise Elroy fase 1: +5%
+  GHOST_ELROY2_SPEED = 88; // Cruise Elroy fase 2: +10%
 const PAC_SPEED = 120;
+// Dot-count release (original: Inky @30, Clyde @60)
+const DOT_RELEASE = [0, 0, 30, 60]; // blinky=0, pinky=0, inky=30, clyde=60
+// Cruise Elroy thresholds
+const ELROY1_DOTS = 20;
+const ELROY2_DOTS = 10;
 // Ciclos scatter/chase (arcade nivel 1): alternan y terminan en chase infinito
 const MODE_SCHEDULE = [7, 20, 7, 20, 5, 5, 5];
 // Frutas bonus: aparecen al comer 70 y 170 puntos, en el pasillo bajo la casa
@@ -131,6 +138,7 @@ const state = {
   fruitsSpawned: 0,
   fruit: null, // { idx, timer }
   dying: 0, // timer de la animación de muerte
+  extraLifeGiven: false,
 };
 
 // ============================================================
@@ -307,6 +315,7 @@ function updatePac(dt) {
         smx: 2,
       });
       updateHUD();
+      checkExtraLife();
     } else if (ch === 'o') {
       grid[pRow][pCol] = ' ';
       state.dotsLeft--;
@@ -330,6 +339,7 @@ function updatePac(dt) {
         smx: 3.5,
       });
       updateHUD();
+      checkExtraLife();
     }
   }
 
@@ -402,15 +412,20 @@ function resetGhosts() {
 }
 
 function releaseGhosts(dt) {
-  for (const g of ghosts) {
+  for (let i = 0; i < ghosts.length; i++) {
+    const g = ghosts[i];
     if (g.mode === 'home') {
-      g.timer += dt;
-      if (g.timer >= g.releaseTime) {
+      // Dot-count release: Inky @30 dots, Clyde @60 dots (with fallback timer)
+      const dotThreshold = DOT_RELEASE[i];
+      const timerFallback = g.releaseTime;
+      if (state.dotsEaten >= dotThreshold || g.timer >= timerFallback) {
         g.mode = phaseName(state.phaseIdx);
         g.x = 14 * CS + CS / 2;
-        g.y = 11 * CS + CS / 2; // ghost gate exit
+        g.y = 11 * CS + CS / 2;
         g.dx = -1;
         g.dy = 0;
+      } else {
+        g.timer += dt;
       }
     }
   }
@@ -429,8 +444,25 @@ function updateGhosts(dt) {
   for (const g of ghosts) {
     if (g.mode === 'home') continue;
 
-    const spd =
-      g.mode === 'fright' ? GHOST_FRIGHT_SPEED : g.mode === 'eyes' ? GHOST_HOME_SPEED : GHOST_SPEED;
+    // Cruise Elroy: Blinky accelerates when few dots remain
+    let spd;
+    if (g.mode === 'fright') {
+      spd = GHOST_FRIGHT_SPEED;
+    } else if (g.mode === 'eyes') {
+      spd = GHOST_HOME_SPEED;
+    } else if (g.name === 'blinky') {
+      const dotsLeft = state.dotsLeft;
+      if (dotsLeft < ELROY2_DOTS) spd = GHOST_ELROY2_SPEED;
+      else if (dotsLeft < ELROY1_DOTS) spd = GHOST_ELROY1_SPEED;
+      else spd = GHOST_SPEED;
+    } else {
+      spd = GHOST_SPEED;
+    }
+
+    // Cruise Elroy: Blinky stays in chase mode (ignores scatter)
+    if (g.name === 'blinky' && state.dotsLeft < ELROY1_DOTS && g.mode === 'scatter') {
+      g.mode = 'chase';
+    }
 
     // Move in current direction
     g.x += g.dx * spd * dt;
@@ -540,6 +572,7 @@ function updateFruit(dt) {
       say(`Fruta ${f.name}: +${f.pts}`);
       state.fruit = null;
       updateHUD();
+      checkExtraLife();
     }
   } else if (
     state.fruitsSpawned < FRUIT_DOTS.length &&
@@ -590,6 +623,7 @@ function checkGhostCollisions() {
         playGhost();
         spawnParticles(g.x, g.y, '#ffe066', 15, { spd: 100, life: 0.5, sm: 2, smx: 3.5 });
         updateHUD();
+        checkExtraLife();
       } else if (g.mode === 'chase' || g.mode === 'scatter') {
         // Die
         loseLife();
@@ -613,6 +647,7 @@ function resetGame() {
   state.fruitsSpawned = 0;
   state.fruit = null;
   state.dying = 0;
+  state.extraLifeGiven = false;
   resetModeSchedule();
   buildMaze();
   resetPac();
@@ -1116,6 +1151,15 @@ function draw() {
 const scoreEl = document.getElementById('scoreValue'),
   livesEl = document.getElementById('livesValue'),
   bestEl = document.getElementById('bestValue');
+function checkExtraLife() {
+  if (!state.extraLifeGiven && state.score >= 10000) {
+    state.extraLifeGiven = true;
+    state.lives++;
+    say('¡Vida extra!');
+    spawnParticles(CW / 2, CH / 2, '#6ee7b7', 20, { spd: 100, life: 0.6 });
+  }
+}
+
 function updateHUD() {
   scoreEl.textContent = String(state.score);
   livesEl.textContent =
