@@ -5,7 +5,7 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v9';
+const STATIC_CACHE = 'arcadehub-static-v10';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
@@ -80,6 +80,8 @@ const FILES = [
   './shared/input.js',
   './shared/loop.js',
   './shared/music.js',
+  './shared/scores.js',
+  './shared/shell.js',
 ];
 
 // ── Instalación: precachear assets estáticos ──
