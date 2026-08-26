@@ -75,7 +75,7 @@
       ]
     },
     {
-  "version": "1.7.0",
+      "version": "1.7.0",
       "date": "2026-08-26",
       "changes": [
         "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
