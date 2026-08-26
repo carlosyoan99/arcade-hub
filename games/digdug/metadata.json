@@ -1,7 +1,7 @@
 {
   "id": "digdug",
   "title": "Dig Dug",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "created": "2026-07-25",
   "lastModified": "2026-08-26",
   "description": "Excavá túneles, inflá enemigos hasta que exploten o derrumbá rocas sobre ellos.",
@@ -11,51 +11,11 @@
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
     {
-      "version": "1.4.1",
+      "version": "1.6.0",
       "date": "2026-08-26",
       "changes": [
-        "Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)"
-      ]
-    },
-    {
-      "version": "1.0.0",
-      "date": "2026-07-25",
-      "changes": ["Versión inicial del juego"]
-    },
-    {
-      "version": "1.1.0",
-      "date": "2026-07-28",
-      "changes": [
-        "Refactor CSS: estética neon compartida en base.css",
-        "README.md con controles y descripción",
-        "Correcciones ESLint"
-      ]
-    },
-    {
-      "version": "1.2.0",
-      "date": "2026-07-30",
-      "changes": [
-        "Canvas ID unificado + setupCanvas() vía shared/display.js",
-        "HUD IDs unificados a nombres legibles",
-        "HTML compartido inyectado via shared/dom.js"
-      ]
-    },
-    {
-      "version": "1.3.0",
-      "date": "2026-07-30",
-      "changes": [
-        "Compartido: shared/loop.js — game loop compartido con dt/RAF/cleanup unificados",
-        "R4: @keyframes shimmerFlow extraído a shared/base.css",
-        "P0: drawGlow() y feedbackBundle() para rendimiento y game feel"
-      ]
-    },
-    {
-      "version": "1.4.0",
-      "date": "2026-07-30",
-      "changes": [
-        "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
-        "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
-        "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
+        "Auditoría: eliminado phase-through de enemigos (solo caminan por túneles vacíos)",
+        "Auditoría: rocas ahora soportan múltiples cayendo simultáneamente"
       ]
     },
     {

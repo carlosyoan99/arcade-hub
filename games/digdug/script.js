@@ -168,7 +168,7 @@ const player = { c: Math.floor(COLS / 2), r: 3, dir: 0, moving: false, pumpDir: 
 let pumpTarget = null; // enemy being inflated
 let pumpProgress = 0;
 let enemies = [];
-let fallingRock = null; // {c, r, vy, frame}
+let fallingRocks = []; // [{c, r, vy, frame}]
 let fruits = [];
 let fruitTimer = 0;
 
@@ -225,7 +225,7 @@ function resetGame() {
   pumpTarget = null;
   pumpProgress = 0;
   enemies = [];
-  fallingRock = null;
+  fallingRocks = [];
   fruits = [];
   fruitTimer = 3;
   document.getElementById('fs').style.display = 'none';
@@ -605,8 +605,7 @@ function updateEnemies(dt) {
       const nc = e.c + DC[d],
         nr = e.r + DR[d];
       if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-        // Enemies can move through dirt (phase through) but prefer tunnels
-        if (isEmpty(nc, nr) || (isDirt(nc, nr) && Math.random() < 0.3)) {
+        if (isEmpty(nc, nr)) {
           e.c = nc;
           e.r = nr;
           e.dir = d;
@@ -621,13 +620,7 @@ function updateEnemies(dt) {
       const rd = Math.floor(Math.random() * 4);
       const nc = e.c + DC[rd],
         nr = e.r + DR[rd];
-      if (
-        nr >= 0 &&
-        nr < ROWS &&
-        nc >= 0 &&
-        nc < COLS &&
-        (isEmpty(nc, nr) || (isDirt(nc, nr) && Math.random() < 0.4))
-      ) {
+      if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && isEmpty(nc, nr)) {
         e.c = nc;
         e.r = nr;
         e.dir = rd;
@@ -656,18 +649,16 @@ function checkFallingRocks(_dt) {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (!isRock(c, r)) continue;
+      // Already falling?
+      if (fallingRocks.some((fr) => fr.c === c && Math.floor(fr.r) === r)) continue;
       // Check if cells below the rock pair are empty
       let shouldFall = true;
-      if (r + 3 < ROWS) {
-        if (c > 0 && (isDirt(c, r + 1) || isDirt(c - 1, r + 1))) shouldFall = false;
-        // Actually check: the rock occupies (c, r) and (c+1, r) (it was placed as a pair)
-        // It falls if either cell below is empty
+      if (r + 1 < ROWS) {
         if (isDirt(c, r + 1) && isDirt(c + 1, r + 1)) shouldFall = false;
       }
 
       if (shouldFall && r < ROWS - 1) {
-        // Start falling
-        fallingRock = { c, r, vy: 0, frame: 0 };
+        fallingRocks.push({ c, r, vy: 0, frame: 0 });
         grid[r][c] = T.EMPTY;
         grid[r][c + 1] = T.EMPTY;
         pRock();
@@ -678,39 +669,38 @@ function checkFallingRocks(_dt) {
 }
 
 function updateFallingRock(dt) {
-  if (!fallingRock) return;
-  fallingRock.vy += 200 * dt;
-  fallingRock.r += (fallingRock.vy * dt) / GS;
-  fallingRock.frame++;
+  for (let i = fallingRocks.length - 1; i >= 0; i--) {
+    const rock = fallingRocks[i];
+    rock.vy += 200 * dt;
+    rock.r += (rock.vy * dt) / GS;
+    rock.frame++;
 
-  const fr = Math.floor(fallingRock.r);
-  const fc = fallingRock.c;
+    const frr = Math.floor(rock.r);
+    const frc = rock.c;
 
-  // Kill enemies in path
-  for (const e of enemies) {
-    if (!e.alive) continue;
-    if (Math.abs(e.c - fc) <= 1 && Math.abs(e.r - fr) <= 1) {
-      e.alive = false;
-      state.score += e.type === 'pooka' ? PTS_POOKA : PTS_FYGAR;
-      spawnParticles(e.c * GS + GS / 2, e.r * GS + GS / 2, '#ff6b6b', 15, { spd: 80, life: 0.4 });
+    // Kill enemies in path
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      if (Math.abs(e.c - frc) <= 1 && Math.abs(e.r - frr) <= 1) {
+        e.alive = false;
+        state.score += e.type === 'pooka' ? PTS_POOKA : PTS_FYGAR;
+        spawnParticles(e.c * GS + GS / 2, e.r * GS + GS / 2, '#ff6b6b', 15, { spd: 80, life: 0.4 });
+      }
     }
-  }
 
-  // Kill player
-  if (state.invincibleTimer <= 0 && Math.abs(player.c - fc) <= 1 && Math.abs(player.r - fr) <= 1) {
-    loseLife();
-  }
-
-  // Check if rock reached bottom
-  if (fr >= ROWS - 1) {
-    fallingRock = null;
-    // Check wave clear
-    if (enemies.filter((e) => e.alive).length === 0) {
-      setTimeout(() => {
-        if (state.running && !state.gameOver) nextWave();
-      }, 600);
+    // Kill player
+    if (
+      state.invincibleTimer <= 0 &&
+      Math.abs(player.c - frc) <= 1 &&
+      Math.abs(player.r - frr) <= 1
+    ) {
+      loseLife();
     }
-    updateHUD();
+
+    // Check if rock reached bottom
+    if (frr >= ROWS - 1) {
+      fallingRocks.splice(i, 1);
+    }
   }
 }
 
@@ -836,10 +826,10 @@ function draw() {
     4,
   );
 
-  // Falling rock
-  if (fallingRock) {
-    const fx = cx + fallingRock.c * GS * s,
-      fy = cy + fallingRock.r * GS * s;
+  // Falling rocks
+  for (const rock of fallingRocks) {
+    const fx = cx + rock.c * GS * s,
+      fy = cy + rock.r * GS * s;
     ctx.fillStyle = '#6a5a4a';
     ctx.fillRect(fx, fy, GS * s * 2, GS * s);
     ctx.fillStyle = '#7a6a5a';
