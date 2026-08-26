@@ -55,8 +55,13 @@ const DIVE_SPEED_MULT = 0.6;
 const MAX_DIVERS = 2;
 const DIVERS_PER_GROUP = 3;
 
-const ROW_POINTS = [150, 100, 80, 60, 40];
-const ROW_COLORS = ['#ff6b6b', '#ffa76b', '#ffe066', '#6ee7b7', '#6ec6ff'];
+// 3 tipos de enemigo: Boss (fila 0, 2HP), Bee (filas 1-2), Butterfly (filas 3-4)
+const ENEMY_TYPES = {
+  boss: { hp: 2, points: 150, color: '#ff6b6b', color2: '#cc3333', label: 'Boss' },
+  bee: { hp: 1, points: 100, color: '#ffe066', color2: '#ccaa00', label: 'Bee' },
+  butterfly: { hp: 1, points: 60, color: '#6ee7b7', color2: '#33aa77', label: 'Butterfly' },
+};
+const ROW_TYPE = ['boss', 'bee', 'bee', 'butterfly', 'butterfly'];
 
 // Tractor beam (oleadas pares): un enemigo despliega el rayo; si atrapa tu nave,
 // destruiló después para rescatarla y ganar doble disparo temporal.
@@ -64,7 +69,7 @@ const BEAM_DESCENT_Y = CH * 0.42;
 const BEAM_TIME = 3.2;
 const BEAM_BASE_HALF_W = 48;
 const BEAM_COOLDOWN = 9;
-const RESCUE_SHOT_TIME = 10;
+
 const SCORE_BEAM_KILL = 300;
 const SCORE_RESCUE = 500;
 
@@ -143,13 +148,16 @@ let diveTimer = 0;
 const diveInterval = 2.5;
 let beam = null; // rayo tractor activo: { e, phase:'descend'|'beam', t }
 let beamCooldown = 0;
-let doubleShotTimer = 0; // buff tras rescatar la nave capturada
+let doubleShotActive = false; // permanente tras rescatar la nave capturada
+let extraLivesGiven = 0; // track which thresholds have been given
 
 function buildEnemies() {
   enemies = [];
   const tw = ENEMY_COLS * ENEMY_W + (ENEMY_COLS - 1) * ENEMY_GAP;
   const sx = (CW - tw) / 2 + ENEMY_W / 2;
   for (let r = 0; r < ENEMY_ROWS; r++) {
+    const typeName = ROW_TYPE[r];
+    const type = ENEMY_TYPES[typeName];
     for (let co = 0; co < ENEMY_COLS; co++) {
       enemies.push({
         x: sx + co * (ENEMY_W + ENEMY_GAP),
@@ -161,8 +169,11 @@ function buildEnemies() {
         alive: true,
         row: r,
         col: co,
-        color: ROW_COLORS[r],
-        points: ROW_POINTS[r],
+        type: typeName,
+        hp: type.hp,
+        color: type.color,
+        color2: type.color2,
+        points: type.points,
         diving: false,
       });
     }
@@ -186,7 +197,8 @@ function resetGame() {
   pBullets = [];
   eBullets = [];
   beamCooldown = 0;
-  doubleShotTimer = 0;
+  doubleShotActive = false;
+  extraLivesGiven = 0;
   buildEnemies();
   document.getElementById('fs').style.display = 'none';
   updateHUD();
@@ -217,6 +229,8 @@ function loseLife() {
   }
   state.invincibleTimer = 2;
   ship.x = CW / 2;
+  doubleShotActive = false; // double shot lost on death
+
   pBullets = [];
   eBullets = [];
 }
@@ -504,16 +518,18 @@ function captureShip(e, i) {
   }
   state.invincibleTimer = 2;
   ship.x = CW / 2;
+  doubleShotActive = false; // double shot lost on death
+
   pBullets = [];
   eBullets = [];
 }
 
 function rescueShip(e) {
   state.score += SCORE_RESCUE;
-  doubleShotTimer = RESCUE_SHOT_TIME;
+  doubleShotActive = true;
   pBonus();
   spawnParticles(e.x, e.y, '#6ec6ff', 18, { spd: 110, life: 0.5 });
-  say(`¡Nave rescatada! Doble disparo por ${RESCUE_SHOT_TIME}s (+${SCORE_RESCUE})`);
+  say(`¡Nave rescatada! Doble disparo permanente (+${SCORE_RESCUE})`);
   updateHUD();
 }
 
@@ -536,8 +552,8 @@ function updateDiving(dt) {
     e.x += Math.sin(Date.now() / 200 + e.col) * 30 * dt;
     e.y += speed * dt;
 
-    // Enemy shoots
-    if (Math.random() < 0.008 && e.y > CH * 0.3) {
+    // Enemy shoots — frequency scales with wave
+    if (Math.random() < 0.005 + state.wave * 0.001 && e.y > CH * 0.3) {
       eBullets.push({ x: e.x, y: e.y, vy: ENEMY_BULLET_SPEED });
     }
 
@@ -553,12 +569,23 @@ function updateDiving(dt) {
   }
 }
 
+function checkExtraLives() {
+  const thresholds = [10000, 30000, 60000];
+  for (let i = extraLivesGiven; i < thresholds.length; i++) {
+    if (state.score >= thresholds[i]) {
+      state.lives++;
+      extraLivesGiven = i + 1;
+      say(`¡Vida extra! (${thresholds[i]} pts)`);
+      spawnParticles(CW / 2, CH / 2, '#6ee7b7', 20, { spd: 100, life: 0.6 });
+      updateHUD();
+    }
+  }
+}
+
 function nextWave() {
   state.wave++;
   pWave();
   buildEnemies();
-  // Speed up with each wave
-
   updateHUD();
 }
 
@@ -567,10 +594,10 @@ function updatePlayer(dt) {
   ship.x += (input.left ? -SHIP_SPEED * dt : 0) + (input.right ? SHIP_SPEED * dt : 0);
   ship.x = Math.max(SHIP_MARGIN, Math.min(CW - SHIP_MARGIN, ship.x));
 
-  // Fire (doble disparo temporal tras rescatar la nave)
+  // Fire (doble disparo permanente tras rescatar la nave)
   if (state.fireTimer > 0) state.fireTimer -= dt;
   if (input.fire && state.fireTimer <= 0) {
-    if (doubleShotTimer > 0) {
+    if (doubleShotActive) {
       pBullets.push({ x: ship.x - 8, y: ship.y - 15, vy: -BULLET_SPEED });
       pBullets.push({ x: ship.x + 8, y: ship.y - 15, vy: -BULLET_SPEED });
     } else {
@@ -579,7 +606,6 @@ function updatePlayer(dt) {
     state.fireTimer = FIRE_CD;
     pFire();
   }
-  if (doubleShotTimer > 0) doubleShotTimer -= dt;
 }
 
 function updateBullets(dt) {
@@ -605,13 +631,17 @@ function updateBullets(dt) {
         for (const e of enemies) {
           if (!e.alive) continue;
           if (Math.abs(b.x - e.x) < ENEMY_W / 2 && Math.abs(b.y - e.y) < ENEMY_H / 2) {
-            e.alive = false;
+            e.hp--;
+            if (e.hp <= 0) {
+              e.alive = false;
+            }
             state.score += e.points;
             pExplode();
             spawnParticles(e.x, e.y, e.color, 12, { spd: 80, life: 0.35 });
             pBullets.splice(i, 1);
             hit = true;
             updateHUD();
+            checkExtraLives();
             if (beam && beam.e === e) {
               state.score += SCORE_BEAM_KILL;
               say(`Rayo tractor interrumpido: +${SCORE_BEAM_KILL}`);
@@ -623,12 +653,14 @@ function updateBullets(dt) {
               e.hasCaptive = false;
               rescueShip(e);
             }
-            const di = diving.indexOf(e);
-            if (di >= 0) diving.splice(di, 1);
-            if (enemies.filter((en) => en.alive).length === 0) {
-              if (!bonusActive) {
-                pBonus();
-                nextWave();
+            if (!e.alive) {
+              const di = diving.indexOf(e);
+              if (di >= 0) diving.splice(di, 1);
+              if (enemies.filter((en) => en.alive).length === 0) {
+                if (!bonusActive) {
+                  pBonus();
+                  nextWave();
+                }
               }
             }
             break;
@@ -647,13 +679,17 @@ function updateBullets(dt) {
       for (const e of enemies) {
         if (!e.alive) continue;
         if (Math.abs(b.x - e.x) < ENEMY_W / 2 && Math.abs(b.y - e.y) < ENEMY_H / 2) {
-          e.alive = false;
+          e.hp--;
+          if (e.hp <= 0) {
+            e.alive = false;
+          }
           state.score += e.points;
           pExplode();
           spawnParticles(e.x, e.y, e.color, 12, { spd: 80, life: 0.35 });
           pBullets.splice(i, 1);
           hit = true;
           updateHUD();
+          checkExtraLives();
           if (beam && beam.e === e) {
             state.score += SCORE_BEAM_KILL;
             say(`Rayo tractor interrumpido: +${SCORE_BEAM_KILL}`);
@@ -665,12 +701,14 @@ function updateBullets(dt) {
             e.hasCaptive = false;
             rescueShip(e);
           }
-          const di = diving.indexOf(e);
-          if (di >= 0) diving.splice(di, 1);
-          if (enemies.filter((en) => en.alive).length === 0) {
-            if (!bonusActive) {
-              pBonus();
-              nextWave();
+          if (!e.alive) {
+            const di = diving.indexOf(e);
+            if (di >= 0) diving.splice(di, 1);
+            if (enemies.filter((en) => en.alive).length === 0) {
+              if (!bonusActive) {
+                pBonus();
+                nextWave();
+              }
             }
           }
           break;
@@ -791,7 +829,7 @@ function draw() {
       ew = ENEMY_W * s,
       eh = ENEMY_H * s;
     ctx.fillStyle = e.color;
-    drawEnemy(ex, ey, ew, eh);
+    drawEnemy(ex, ey, ew, eh, e.type);
     drawGlow(ctx, ex, ey, ew * 0.5, e.color, 0.1, 3);
     if (e.hasCaptive) drawCapturedShip(ex, ey, ew, eh);
   }
@@ -803,7 +841,7 @@ function draw() {
       ew = ENEMY_W * s,
       eh = ENEMY_H * s;
     ctx.fillStyle = e.color;
-    drawEnemy(ex, ey, ew, eh);
+    drawEnemy(ex, ey, ew, eh, e.type);
     if (e.beam) drawGlow(ctx, ex, ey, ew * 0.9, '#6ee7b7', 0.2, 4);
     else drawGlow(ctx, ex, ey, ew * 0.6, e.color, 0.15, 3.5);
     if (e.hasCaptive) drawCapturedShip(ex, ey, ew, eh);
@@ -854,41 +892,98 @@ function draw() {
   ctx.restore();
 }
 
-function drawEnemy(x, y, w, h) {
-  // Body
-  ctx.beginPath();
-  ctx.ellipse(x, y + h * 0.15, w * 0.45, h * 0.5, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // Wings
-  ctx.beginPath();
-  ctx.moveTo(x - w * 0.5, y + h * 0.2);
-  ctx.lineTo(x - w * 0.6, y + h * 0.5);
-  ctx.lineTo(x - w * 0.3, y + h * 0.3);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(x + w * 0.5, y + h * 0.2);
-  ctx.lineTo(x + w * 0.6, y + h * 0.5);
-  ctx.lineTo(x + w * 0.3, y + h * 0.3);
-  ctx.closePath();
-  ctx.fill();
-  // Top antenna
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fillRect(x - w * 0.08, y - h * 0.15, w * 0.16, h * 0.15);
-  // Eyes
+function drawEnemy(x, y, w, h, typeName) {
+  if (typeName === 'boss') {
+    // Boss Galaga: larger body, crown-like top, 2 HP
+    ctx.beginPath();
+    ctx.ellipse(x, y + h * 0.1, w * 0.5, h * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Crown
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.3, y - h * 0.3);
+    ctx.lineTo(x - w * 0.2, y - h * 0.5);
+    ctx.lineTo(x - w * 0.1, y - h * 0.3);
+    ctx.lineTo(x, y - h * 0.45);
+    ctx.lineTo(x + w * 0.1, y - h * 0.3);
+    ctx.lineTo(x + w * 0.2, y - h * 0.5);
+    ctx.lineTo(x + w * 0.3, y - h * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    // Wings
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.45, y + h * 0.15);
+    ctx.lineTo(x - w * 0.6, y + h * 0.55);
+    ctx.lineTo(x - w * 0.25, y + h * 0.35);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.45, y + h * 0.15);
+    ctx.lineTo(x + w * 0.6, y + h * 0.55);
+    ctx.lineTo(x + w * 0.25, y + h * 0.35);
+    ctx.closePath();
+    ctx.fill();
+  } else if (typeName === 'bee') {
+    // Bee: striped body, small wings
+    ctx.beginPath();
+    ctx.ellipse(x, y + h * 0.15, w * 0.4, h * 0.45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Stripes
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    for (let s = -1; s <= 1; s++) {
+      ctx.fillRect(x - w * 0.35, y + s * h * 0.2, w * 0.7, h * 0.08);
+    }
+    // Wings
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(x - w * 0.35, y - h * 0.1, w * 0.2, h * 0.3, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(x + w * 0.35, y - h * 0.1, w * 0.2, h * 0.3, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Butterfly: wide wings, antenna
+    ctx.beginPath();
+    ctx.ellipse(x, y + h * 0.15, w * 0.35, h * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Wings
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.3, y);
+    ctx.quadraticCurveTo(x - w * 0.7, y - h * 0.3, x - w * 0.5, y + h * 0.4);
+    ctx.lineTo(x - w * 0.2, y + h * 0.15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.3, y);
+    ctx.quadraticCurveTo(x + w * 0.7, y - h * 0.3, x + w * 0.5, y + h * 0.4);
+    ctx.lineTo(x + w * 0.2, y + h * 0.15);
+    ctx.closePath();
+    ctx.fill();
+    // Antenna
+    ctx.strokeStyle = ctx.fillStyle;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.1, y - h * 0.2);
+    ctx.lineTo(x - w * 0.15, y - h * 0.45);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.1, y - h * 0.2);
+    ctx.lineTo(x + w * 0.15, y - h * 0.45);
+    ctx.stroke();
+  }
+  // Eyes (common)
   ctx.fillStyle = 'rgba(255,255,255,0.7)';
   ctx.beginPath();
-  ctx.arc(x - w * 0.15, y - h * 0.05, w * 0.1, 0, Math.PI * 2);
+  ctx.arc(x - w * 0.12, y - h * 0.05, w * 0.08, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + w * 0.15, y - h * 0.05, w * 0.1, 0, Math.PI * 2);
+  ctx.arc(x + w * 0.12, y - h * 0.05, w * 0.08, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = '#222';
   ctx.beginPath();
-  ctx.arc(x - w * 0.15, y - h * 0.03, w * 0.05, 0, Math.PI * 2);
+  ctx.arc(x - w * 0.12, y - h * 0.03, w * 0.04, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + w * 0.15, y - h * 0.03, w * 0.05, 0, Math.PI * 2);
+  ctx.arc(x + w * 0.12, y - h * 0.03, w * 0.04, 0, Math.PI * 2);
   ctx.fill();
 }
 
