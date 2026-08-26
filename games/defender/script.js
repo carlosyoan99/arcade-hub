@@ -53,6 +53,8 @@ const MUTANT_SPEED = 160;
 
 const INITIAL_HUMANS = 10;
 const INITIAL_BOMBS = 3;
+const INITIAL_NUCLEAR = 1;
+const HYPERSPACE_COOLDOWN = 5;
 const INITIAL_LIVES = 3;
 const PLAYER_MARGIN = 30;
 const MAX_LANDERS = 14;
@@ -69,6 +71,8 @@ const state = {
   lives: INITIAL_LIVES,
   humans: INITIAL_HUMANS,
   smartBombs: INITIAL_BOMBS,
+  nuclearBombs: INITIAL_NUCLEAR,
+  hyperspaceCooldown: 0,
   level: 1,
   waveActive: false,
   waveTimer: 0,
@@ -184,6 +188,8 @@ function playGameOver() {
 const keys = { up: false, down: false, left: false, right: false, fire: false, bomb: false };
 let firePressed = false;
 let bombPressed = false;
+let hyperspacePressed = false;
+let nuclearPressed = false;
 
 window.addEventListener('keydown', (e) => {
   switch (e.code) {
@@ -215,6 +221,14 @@ window.addEventListener('keydown', (e) => {
     case 'KeyB':
       e.preventDefault();
       bombPressed = true;
+      break;
+    case 'KeyH':
+      e.preventDefault();
+      hyperspacePressed = true;
+      break;
+    case 'KeyN':
+      e.preventDefault();
+      nuclearPressed = true;
       break;
     case 'KeyR':
       e.preventDefault();
@@ -310,11 +324,23 @@ bindTouch(
   () => (bombPressed = true),
   () => {},
 );
+bindTouch(
+  'btnHyperspace',
+  () => (hyperspacePressed = true),
+  () => {},
+);
+bindTouch(
+  'btnNuclear',
+  () => (nuclearPressed = true),
+  () => {},
+);
 
 // Gamepad
 const gamepad = createGamepad();
 let prevFireBtn = false;
 let prevBombBtn = false;
+let prevHypBtn = false;
+let prevNucBtn = false;
 
 function pollGamepad() {
   const gp = gamepad.pad;
@@ -337,6 +363,14 @@ function pollGamepad() {
   const bombBtn = !!gp.buttons[1]?.pressed;
   if (bombBtn && !prevBombBtn) bombPressed = true;
   prevBombBtn = bombBtn;
+
+  const hypBtn = !!gp.buttons[2]?.pressed;
+  if (hypBtn && !prevHypBtn) hyperspacePressed = true;
+  prevHypBtn = hypBtn;
+
+  const nucBtn = !!gp.buttons[3]?.pressed;
+  if (nucBtn && !prevNucBtn) nuclearPressed = true;
+  prevNucBtn = nucBtn;
 }
 
 // ── OVERLAY ──
@@ -385,6 +419,8 @@ function startGame() {
   bombsUsed = 0;
   state.humans = INITIAL_HUMANS;
   state.smartBombs = INITIAL_BOMBS;
+  state.nuclearBombs = INITIAL_NUCLEAR;
+  state.hyperspaceCooldown = 0;
   state.level = 1;
   state.maxLanders = 3;
   state.waveActive = false;
@@ -425,6 +461,8 @@ function loseLife() {
   player.vx = 0;
   player.vy = 0;
   player.invincible = 1.5;
+  state.nuclearBombs = INITIAL_NUCLEAR;
+  state.hyperspaceCooldown = 0;
   spawnParticles(player.x - camera.x + player.w / 2, player.y, '#6ec6ff', 16);
   updateHUD();
 }
@@ -468,6 +506,52 @@ function useSmartBomb() {
   }
   enemies.length = 0;
   triggerFlash(0.6);
+  updateHUD();
+}
+
+function useHyperspace() {
+  if (state.hyperspaceCooldown > 0) return;
+  state.hyperspaceCooldown = HYPERSPACE_COOLDOWN;
+  // Teleport to a random X within the world, keep Y relative to ground
+  player.x = Math.random() * (WORLD_W - PLAYER_W * 2) + PLAYER_W;
+  player.y = GROUND_Y - 40 - Math.random() * 120;
+  player.vx = 0;
+  player.vy = 0;
+  player.invincible = 0.5;
+  camera.targetX = Math.max(0, Math.min(WORLD_W - GAME_W, player.x - GAME_W / 3));
+  spawnParticles(player.x - camera.x + player.w / 2, player.y, '#00ffcc', 20, {
+    spd: 120,
+    life: 0.4,
+    sm: 2,
+  });
+  triggerFlash(0.3);
+  updateHUD();
+}
+
+function useNuclear() {
+  if (state.nuclearBombs <= 0) return;
+  playBomb();
+  state.nuclearBombs -= 1;
+  // Destroy all enemies (same as smart bomb but bigger effect)
+  for (const e of enemies) {
+    state.score += e.type === 'lander' ? 50 : e.type === 'bomber' ? 100 : 150;
+    const ex = e.x - camera.x;
+    const ey = e.y;
+    spawnParticles(ex, ey, '#ff4444', 30, { spd: 200, life: 0.6, sm: 3, smx: 7 });
+    if (e.carriedHuman !== null) {
+      const h = e.carriedHuman;
+      h.grabbed = false;
+      h.falling = true;
+      h.vy = -60;
+      h.parachute = true;
+      h.y = e.y + 20;
+      h.x = e.x;
+      e.carriedHuman = null;
+    }
+  }
+  enemies.length = 0;
+  enemyLasers.length = 0;
+  triggerFlash(1.0);
   updateHUD();
 }
 
@@ -542,6 +626,22 @@ function updatePlayer(dt) {
     useSmartBomb();
     bombPressed = false;
   }
+
+  // Hyperspace
+  if (hyperspacePressed) {
+    useHyperspace();
+    hyperspacePressed = false;
+  }
+
+  // Nuclear
+  if (nuclearPressed) {
+    useNuclear();
+    nuclearPressed = false;
+  }
+
+  // Cooldowns
+  if (player.fireCooldown > 0) player.fireCooldown -= dt;
+  if (state.hyperspaceCooldown > 0) state.hyperspaceCooldown -= dt;
 
   // Invincibility countdown
   if (player.invincible > 0) player.invincible -= dt;
@@ -961,12 +1061,18 @@ const scoreEl = document.getElementById('scoreDisplay');
 const livesEl = document.getElementById('livesDisplay');
 const humansEl = document.getElementById('humansDisplay');
 const bombsEl = document.getElementById('bombsDisplay');
+const nuclearEl = document.getElementById('nuclearDisplay');
+const hyperspaceEl = document.getElementById('hyperspaceDisplay');
 
 function updateHUD() {
   scoreEl.textContent = String(state.score);
   livesEl.textContent = String(state.lives);
   humansEl.textContent = String(state.humans);
   bombsEl.textContent = String(state.smartBombs);
+  if (nuclearEl) nuclearEl.textContent = String(state.nuclearBombs);
+  if (hyperspaceEl)
+    hyperspaceEl.textContent =
+      state.hyperspaceCooldown > 0 ? Math.ceil(state.hyperspaceCooldown) + 's' : 'OK';
 }
 
 // ── RENDER ──

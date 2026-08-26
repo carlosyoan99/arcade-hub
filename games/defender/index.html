@@ -36,6 +36,16 @@
           <div class="label">Bombas</div>
           <div class="value" id="bombsDisplay" style="color: var(--neon-gold)">3</div>
         </div>
+        <span class="sp">·</span>
+        <div class="sb">
+          <div class="label">Nuclear</div>
+          <div class="value" id="nuclearDisplay" style="color: var(--neon-pink)">1</div>
+        </div>
+        <span class="sp">·</span>
+        <div class="sb">
+          <div class="label">Hyper</div>
+          <div class="value" id="hyperspaceDisplay" style="color: var(--neon-cyan)">OK</div>
+        </div>
       </div>
     </div>
 
@@ -44,12 +54,13 @@
       <h1>◈ DEFENDER ◈</h1>
       <p id="overlayText">
         Defendé a los humanos de la invasión alienígena. Dispará a los landers antes de que escapen
-        con los humanos. Usá bombas inteligentes para limpiar la pantalla.
+        con los humanos. Usá bombas inteligentes, hiperspacio o nuclear para sobrevivir.
       </p>
       <p id="finalScore" style="display: none"></p>
       <p class="hint" id="hintEl">
         <kbd>↑</kbd><kbd>↓</kbd> mover · <kbd>←</kbd><kbd>→</kbd> volar ·
-        <kbd>Espacio</kbd> disparar/empezar · <kbd>B</kbd> bomba · <kbd>R</kbd> reiniciar
+        <kbd>Espacio</kbd> disparar/empezar · <kbd>B</kbd> bomba · <kbd>H</kbd> hiperspacio ·
+        <kbd>N</kbd> nuclear · <kbd>R</kbd> reiniciar
       </p>
       <div class="version-badge">2D · canvas · side-scroller</div>
     </div>
@@ -81,6 +92,36 @@
           "
         >
           💣
+        </button>
+      </div>
+      <div style="display: flex; gap: 6px; margin-top: 4px; justify-content: center">
+        <button
+          id="btnNuclear"
+          aria-label="Nuclear"
+          style="
+            background: rgba(255, 68, 68, 0.12);
+            border-color: rgba(255, 68, 68, 0.25);
+            font-size: 9px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: var(--neon-pink);
+          "
+        >
+          ☢️
+        </button>
+        <button
+          id="btnHyperspace"
+          aria-label="Hiperspacio"
+          style="
+            background: rgba(0, 255, 204, 0.12);
+            border-color: rgba(0, 255, 204, 0.25);
+            font-size: 9px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: var(--neon-cyan);
+          "
+        >
+          ⚡
         </button>
       </div>
     </div>
