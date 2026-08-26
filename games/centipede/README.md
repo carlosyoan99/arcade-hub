@@ -1,6 +1,6 @@
 # 🐛 Centipede
 
-**Versión:** 1.5.1 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruyas se convierte en un hongo nuevo. ¡Cuidado con la araña saltarina, las pulgas y los escorpiones!
 
@@ -21,7 +21,8 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 
 ## Características
 
-- 🐛 Ciempiés que serpentea y se divide al ser disparado
+- 🐛 Ciempiés que serpentea y se divide al ser disparado: cada segmento destruido separa la cola en un ciempiés nuevo e independiente
+- 📐 Fidelidad arcade: el jugador está restringido al tercio inferior de la pantalla
 - 🍄 Hongos que crecen con cada impacto
 - 🕷️ Araña saltarina que rebota en los bordes
 - 🪰 Pulgas que caen del cielo dejando hongos
@@ -51,6 +52,7 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Mecánicas arcade — splitting real del ciempiés (la cola se vuelve un ciempiés independiente con cabeza propia) y movimiento del jugador restringido al tercio inferior
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (velocidades, intervalos de olas); fix refs rotas mouseX/Y→player.x/y
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

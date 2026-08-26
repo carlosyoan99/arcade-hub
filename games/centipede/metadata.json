@@ -1,7 +1,7 @@
 {
   "id": "centipede",
   "title": "Centipede",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "created": "2026-07-20",
   "lastModified": "2026-08-26",
   "description": "Dispará al ciempiés mientras serpentea entre hongos. Cuidado con la araña, pulgas y escorpiones.",
@@ -10,6 +10,14 @@
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Fidelidad arcade: el jugador se mueve solo por el tercio inferior de la pantalla",
+        "Splitting clásico: al destruir un segmento, la cola se convierte en un ciempiés independiente"
+      ]
+    },
     {
       "version": "1.5.1",
       "date": "2026-08-26",
@@ -67,6 +75,15 @@
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
         "R3: Constantes extraídas (velocidades, intervalos de olas, márgenes)",
         "Fix: refs rotas mouseX/Y → player.x/y"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js",
+        "Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida"
       ]
     }
   ]

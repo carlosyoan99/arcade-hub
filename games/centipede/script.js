@@ -4,6 +4,7 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -54,7 +55,7 @@ const SCORPION_SPEED = 120;
 const SCORPION_POINTS = 500;
 const PLAYER_MARGIN = 10;
 const SPIDER_MARGIN = 5;
-const PLAYER_TOP_RATIO = 0.55;
+const PLAYER_TOP_RATIO = 0.66; // el jugador se mueve solo por el tercio inferior (como el arcade)
 const INITIAL_SEGMENTS = 8;
 const SEGMENTS_PER_WAVE = 2;
 const MAX_SEGMENTS = 20;
@@ -79,7 +80,7 @@ const state = {
   gameOver: false,
   score: 0,
   lives: START_LIVES,
-  best: Number(localStorage.getItem('centipede2d_best') || 0),
+  best: loadBest('centipede2d'),
   wave: 1,
   fireTimer: 0,
   invincibleTimer: 0,
@@ -136,11 +137,10 @@ function pWin() {
 // ============================================================
 // ENTIDADES
 // ============================================================
-let segments = []; // centipede segments: {x,y,isHead}
+let centipedes = []; // ciempiés independientes tras los splits: {segs:[...], dir}
 let mushrooms = []; // {x,y} grid-aligned (center pixel coords)
 let bullets = [];
 let spider = null; // {x,y,vx,vy,alive}
-let moveDir = 1; // 1=right, -1=left
 let moveTimer = 0;
 let moveInterval = 0.15;
 let spiderTimer = 0;
@@ -171,19 +171,23 @@ function spawnMushrooms(count) {
 }
 
 function spawnCentipede(len) {
-  segments = [];
-  moveDir = 1;
+  centipedes = [];
   const startCol = Math.floor(Math.random() * (COLS - len - 2)) + 1;
+  const segs = [];
   for (let i = 0; i < len; i++) {
-    segments.push({
+    segs.push({
       x: (startCol + i) * GS + GS / 2,
       y: GS + GS / 2,
       isHead: i === 0,
-      dir: 1,
       prevX: (startCol + i) * GS + GS / 2,
       prevY: GS + GS / 2,
     });
   }
+  centipedes.push({ segs, dir: 1 });
+}
+
+function totalSegments() {
+  return centipedes.reduce((n, c) => n + c.segs.length, 0);
 }
 
 function spawnFlea() {
@@ -274,7 +278,7 @@ function endGame() {
   state.gameOver = true;
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('centipede2d_best', String(state.best));
+    saveBest('centipede2d', state.best);
   }
   const ot = document.getElementById('ot'),
     fs = document.getElementById('fs'),
@@ -462,74 +466,83 @@ function addMushroomAt(gx, gy, poisoned = false) {
 }
 
 function updateCentipede(dt) {
-  if (segments.length === 0) return;
+  if (totalSegments() === 0) return;
 
   moveTimer += dt;
   if (moveTimer < moveInterval) return;
   moveTimer = 0;
 
-  const head = segments[0];
-  const headGX = Math.round((head.x - GS / 2) / GS);
-  const headGY = Math.round((head.y - GS / 2) / GS);
+  for (let ci = centipedes.length - 1; ci >= 0; ci--) {
+    const chain = centipedes[ci];
+    const segs = chain.segs;
+    const head = segs[0];
+    const headGX = Math.round((head.x - GS / 2) / GS);
+    const headGY = Math.round((head.y - GS / 2) / GS);
 
-  // Save prev positions for follow-the-leader
-  const prevPos = segments.map((s) => ({ x: s.x, y: s.y }));
+    // Save prev positions for follow-the-leader
+    const prevPos = segs.map((sg) => ({ x: sg.x, y: sg.y }));
 
-  // Move head
-  const nextGX = headGX + moveDir;
-  const hitsEdge = nextGX < 0 || nextGX >= COLS;
-  const hitsMushroom = hasMushroomAt(nextGX, headGY);
+    // Move head
+    const nextGX = headGX + chain.dir;
+    const hitsEdge = nextGX < 0 || nextGX >= COLS;
+    const hitsMushroom = hasMushroomAt(nextGX, headGY);
 
-  if (hitsEdge || hitsMushroom) {
-    // Check if mushroom is poisoned (scorpion-touched) → go straight down
-    const mushroomHit = hitsMushroom && hasMushroomAt(nextGX, headGY);
-    let mushroomPoisoned = false;
-    if (mushroomHit) {
-      const mx = nextGX * GS + GS / 2,
-        my = headGY * GS + GS / 2;
-      for (const m of mushrooms) {
-        if (Math.abs(m.x - mx) < 1 && Math.abs(m.y - my) < 1 && m.poisoned) {
-          mushroomPoisoned = true;
-          break;
+    if (hitsEdge || hitsMushroom) {
+      // Check if mushroom is poisoned (scorpion-touched) → go straight down
+      let mushroomPoisoned = false;
+      if (hitsMushroom) {
+        const mx = nextGX * GS + GS / 2,
+          my = headGY * GS + GS / 2;
+        for (const m of mushrooms) {
+          if (Math.abs(m.x - mx) < 1 && Math.abs(m.y - my) < 1 && m.poisoned) {
+            mushroomPoisoned = true;
+            break;
+          }
         }
       }
-    }
 
-    if (mushroomPoisoned) {
-      // Drop straight down multiple rows
-      const newGY = Math.min(headGY + 4, ROWS - 2);
-      head.x = headGX * GS + GS / 2;
-      head.y = newGY * GS + GS / 2;
-      // Don't reverse direction — keep going the same way
+      if (mushroomPoisoned) {
+        // Drop straight down multiple rows
+        const newGY = Math.min(headGY + 4, ROWS - 2);
+        head.x = headGX * GS + GS / 2;
+        head.y = newGY * GS + GS / 2;
+        // Don't reverse direction — keep going the same way
+      } else {
+        // Normal: move down one row, reverse direction
+        const newGY = headGY + 1;
+        if (newGY >= ROWS - 1) {
+          // Llegó al fondo: esta cadena desaparece; si no queda ninguna, ola nueva
+          centipedes.splice(ci, 1);
+          if (centipedes.length === 0) {
+            setTimeout(() => {
+              if (state.running && !state.gameOver) nextWave();
+            }, 500);
+          }
+          continue;
+        }
+        head.x = headGX * GS + GS / 2;
+        head.y = newGY * GS + GS / 2;
+        chain.dir *= -1;
+      }
     } else {
-      // Normal: move down one row, reverse direction
-      const newGY = headGY + 1;
-      if (newGY >= ROWS - 1) {
-        if (segments.length > 0) {
-          segments = [];
-          return;
-        }
-      }
-      head.x = headGX * GS + GS / 2;
-      head.y = newGY * GS + GS / 2;
-      moveDir *= -1;
+      head.x = nextGX * GS + GS / 2;
     }
-  } else {
-    head.x = nextGX * GS + GS / 2;
-  }
 
-  // Follow-the-leader: each segment moves to previous position of the one before
-  for (let i = 1; i < segments.length; i++) {
-    segments[i].x = prevPos[i - 1].x;
-    segments[i].y = prevPos[i - 1].y;
+    // Follow-the-leader: each segment moves to previous position of the one before
+    for (let i = 1; i < segs.length; i++) {
+      segs[i].x = prevPos[i - 1].x;
+      segs[i].y = prevPos[i - 1].y;
+    }
   }
 
   // Collision with player
   if (state.invincibleTimer <= 0) {
-    for (const seg of segments) {
-      if (Math.abs(seg.x - player.x) < 12 && Math.abs(seg.y - player.y) < 12) {
-        loseLife();
-        break;
+    for (const c of centipedes) {
+      for (const seg of c.segs) {
+        if (Math.abs(seg.x - player.x) < 12 && Math.abs(seg.y - player.y) < 12) {
+          loseLife();
+          return;
+        }
       }
     }
   }
@@ -643,6 +656,32 @@ function updatePlayer(dt) {
   }
 }
 
+// Destruye un segmento y aplica el splitting clásico: la cola de atrás se
+// convierte en un ciempiés independiente. Devuelve true si la ola quedó libre.
+function damageSegment(ci, si) {
+  const chain = centipedes[ci];
+  const seg = chain.segs[si];
+  const gx = Math.round((seg.x - GS / 2) / GS);
+  const gy = Math.round((seg.y - GS / 2) / GS);
+  state.score += seg.isHead ? HEAD_POINTS : SEGMENT_POINTS;
+  pHitSeg();
+  spawnParticles(seg.x, seg.y, '#6ee7b7', 8, { spd: 60, life: 0.3 });
+  addMushroomAt(gx, gy);
+
+  const front = chain.segs.slice(0, si);
+  const tail = chain.segs.slice(si + 1);
+  const replacement = [];
+  if (front.length > 0) replacement.push({ segs: front, dir: chain.dir });
+  if (tail.length > 0) {
+    tail[0].isHead = true;
+    replacement.push({ segs: tail, dir: chain.dir });
+  }
+  centipedes.splice(ci, 1, ...replacement);
+
+  updateHUD();
+  return totalSegments() === 0;
+}
+
 function updateBullets(dt) {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
@@ -661,27 +700,20 @@ function updateBullets(dt) {
         }
         // Collision check in each sub-step (same logic as main loop)
         let hit = false;
-        for (let si = 0; si < segments.length && !hit; si++) {
-          const seg = segments[si];
-          if (Math.abs(b.x - seg.x) < GS / 2 && Math.abs(b.y - seg.y) < GS / 2) {
-            const gx = Math.round((seg.x - GS / 2) / GS);
-            const gy = Math.round((seg.y - GS / 2) / GS);
-            const points = seg.isHead ? HEAD_POINTS : SEGMENT_POINTS;
-            state.score += points;
-            pHitSeg();
-            spawnParticles(seg.x, seg.y, '#6ee7b7', 8, { spd: 60, life: 0.3 });
-            addMushroomAt(gx, gy);
-            segments.splice(si, 1);
-            if (segments.length > 0) segments[0].isHead = true;
-            bullets.splice(i, 1);
-            hit = true;
-            updateHUD();
-            if (segments.length === 0) {
-              setTimeout(() => {
-                if (state.running && !state.gameOver) nextWave();
-              }, 500);
+        for (let ci = 0; ci < centipedes.length && !hit; ci++) {
+          const segs = centipedes[ci].segs;
+          for (let si = 0; si < segs.length && !hit; si++) {
+            const seg = segs[si];
+            if (Math.abs(b.x - seg.x) < GS / 2 && Math.abs(b.y - seg.y) < GS / 2) {
+              const cleared = damageSegment(ci, si);
+              bullets.splice(i, 1);
+              hit = true;
+              if (cleared) {
+                setTimeout(() => {
+                  if (state.running && !state.gameOver) nextWave();
+                }, 500);
+              }
             }
-            break;
           }
         }
         if (!bullets[i]) break;
@@ -695,43 +727,22 @@ function updateBullets(dt) {
       continue;
     }
 
-    // Hit centipede segments
+    // Hit centipede segments — splitting clásico al destruir un segmento
     let hit = false;
-    for (let si = 0; si < segments.length && !hit; si++) {
-      const seg = segments[si];
-      if (Math.abs(b.x - seg.x) < GS / 2 && Math.abs(b.y - seg.y) < GS / 2) {
-        const gx = Math.round((seg.x - GS / 2) / GS);
-        const gy = Math.round((seg.y - GS / 2) / GS);
-        const points = seg.isHead ? HEAD_POINTS : SEGMENT_POINTS;
-        state.score += points;
-        pHitSeg();
-        spawnParticles(seg.x, seg.y, '#6ee7b7', 8, { spd: 60, life: 0.3 });
-
-        // Add mushroom where segment was
-        addMushroomAt(gx, gy);
-
-        // Split the centipede: remove this segment and any trailing ones become new centipede
-        // Actually in classic centipede, hitting a segment creates a mushroom and splits
-        // Segments after it become a new centipede (but heading in same dir)
-        // For simplicity: just remove this segment
-        segments.splice(si, 1);
-
-        if (segments.length > 0) {
-          segments[0].isHead = true;
+    for (let ci = 0; ci < centipedes.length && !hit; ci++) {
+      const segs = centipedes[ci].segs;
+      for (let si = 0; si < segs.length && !hit; si++) {
+        const seg = segs[si];
+        if (Math.abs(b.x - seg.x) < GS / 2 && Math.abs(b.y - seg.y) < GS / 2) {
+          const cleared = damageSegment(ci, si);
+          bullets.splice(i, 1);
+          hit = true;
+          if (cleared) {
+            setTimeout(() => {
+              if (state.running && !state.gameOver) nextWave();
+            }, 500);
+          }
         }
-
-        bullets.splice(i, 1);
-        hit = true;
-        updateHUD();
-
-        // Check wave clear
-        if (segments.length === 0) {
-          // Wait briefly then next wave
-          setTimeout(() => {
-            if (state.running && !state.gameOver) nextWave();
-          }, 500);
-        }
-        break;
       }
     }
     if (hit) continue;
@@ -934,52 +945,53 @@ function draw() {
     ctx.fill();
   }
 
-  // Centipede segments
-  for (let i = 0; i < segments.length; i++) {
-    const seg = segments[i];
-    const sx = cx + seg.x * s,
-      sy = cy + seg.y * s,
-      r = GS * 0.4 * s;
-    const isHead = seg.isHead;
-    const color = isHead ? '#ff6b6b' : '#6ee7b7';
-    const glow = isHead ? 'rgba(255,107,107,0.15)' : 'rgba(110,231,183,0.1)';
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(sx, sy, r, 0, Math.PI * 2);
-    ctx.fill();
-    drawGlow(ctx, sx, sy, r, glow, 0.08, 3);
-    // Body detail
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.beginPath();
-    ctx.arc(sx - r * 0.25, sy - r * 0.25, r * 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    if (isHead) {
-      // Eyes
-      ctx.fillStyle = '#fff';
+  // Centipede segments (todas las cadenas)
+  for (const chain of centipedes) {
+    for (const seg of chain.segs) {
+      const sx = cx + seg.x * s,
+        sy = cy + seg.y * s,
+        r = GS * 0.4 * s;
+      const isHead = seg.isHead;
+      const color = isHead ? '#ff6b6b' : '#6ee7b7';
+      const glow = isHead ? 'rgba(255,107,107,0.15)' : 'rgba(110,231,183,0.1)';
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(sx - r * 0.3, sy - r * 0.15, r * 0.2, 0, Math.PI * 2);
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
       ctx.fill();
+      drawGlow(ctx, sx, sy, r, glow, 0.08, 3);
+      // Body detail
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
       ctx.beginPath();
-      ctx.arc(sx + r * 0.3, sy - r * 0.15, r * 0.2, 0, Math.PI * 2);
+      ctx.arc(sx - r * 0.25, sy - r * 0.25, r * 0.3, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#222';
-      ctx.beginPath();
-      ctx.arc(sx - r * 0.25, sy - r * 0.1, r * 0.1, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(sx + r * 0.35, sy - r * 0.1, r * 0.1, 0, Math.PI * 2);
-      ctx.fill();
-      // Antennae
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = 1.5 * s;
-      ctx.beginPath();
-      ctx.moveTo(sx - r * 0.5, sy - r * 0.7);
-      ctx.lineTo(sx - r, sy - r * 1.3);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(sx + r * 0.5, sy - r * 0.7);
-      ctx.lineTo(sx + r, sy - r * 1.3);
-      ctx.stroke();
+      if (isHead) {
+        // Eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(sx - r * 0.3, sy - r * 0.15, r * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(sx + r * 0.3, sy - r * 0.15, r * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(sx - r * 0.25, sy - r * 0.1, r * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(sx + r * 0.35, sy - r * 0.1, r * 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        // Antennae
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath();
+        ctx.moveTo(sx - r * 0.5, sy - r * 0.7);
+        ctx.lineTo(sx - r, sy - r * 1.3);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sx + r * 0.5, sy - r * 0.7);
+        ctx.lineTo(sx + r, sy - r * 1.3);
+        ctx.stroke();
+      }
     }
   }
 
