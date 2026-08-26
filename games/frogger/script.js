@@ -1,9 +1,9 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -21,6 +21,9 @@ import {
 } from '../../shared/effects.js';
 
 injectCommonElements();
+
+const shell = setupGameShell('frogger');
+
 /* ============================================================
    FROGGER 2D — Arcade Hub
    Canvas 2D, sin dependencias externas.
@@ -196,7 +199,7 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('frogger');
   document.getElementById('overlay').classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   if (state.best >= 1000) achievements.unlock('frogger_thousand');
   say('Frogger: cruzá la calle y el río esquivando obstáculos.');
 }
@@ -230,7 +233,7 @@ function endGame(won) {
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   say('Frogger: game over.');
   updateHUD();
 }
@@ -418,9 +421,6 @@ canvas.addEventListener('pointerdown', () => {
 const announce = document.getElementById('announce');
 function say(msg) {
   if (announce) announce.textContent = msg;
-}
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
 }
 
 document.getElementById('overlay').addEventListener('click', () => {
@@ -727,28 +727,6 @@ resetFrog();
 buildObstacles();
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-// Help button
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('frogger'));

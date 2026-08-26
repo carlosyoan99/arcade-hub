@@ -1,9 +1,9 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad, bindHoldButton } from '../../shared/input.js';
 import {
@@ -25,7 +25,7 @@ import {
 
 injectCommonElements();
 
-document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
+const shell = setupGameShell('pong');
 
 /* ============================================================
    PONG 2D — Arcade Hub
@@ -196,10 +196,6 @@ overlay.addEventListener('click', () => {
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
-}
-
 // LÓGICA
 function serveBall(towardPlayer) {
   ball.x = COURT_W / 2;
@@ -232,7 +228,7 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('pong');
   overlay.classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   if (state.wins >= 1) achievements.unlock('pong_first_win');
   say('Pong: comenzó la partida. Primero en llegar a 7 puntos gana.');
 }
@@ -254,7 +250,7 @@ function endGame(playerWon) {
   overlayText.textContent = playerWon ? '¡Ganaste! 🏆' : 'Perdiste 💀';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `${state.playerScore} - ${state.aiScore} · Victorias: ${state.wins}`;
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar`;
   overlay.classList.remove('hidden');
   if (playerWon) say('Pong: ganaste la partida.');
@@ -503,29 +499,6 @@ ball.x = COURT_W / 2;
 ball.y = COURT_H / 2;
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopAmbient();
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-// Help button
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('pong'));

@@ -1,8 +1,8 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -23,7 +23,9 @@ import {
 } from '../../shared/effects.js';
 
 injectCommonElements();
-document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
+
+const shell = setupGameShell('dino-runner');
+
 /* ============================================================
    DINO RUNNER 2D — Arcade Hub
    Canvas 2D, sin dependencias externas.
@@ -274,9 +276,6 @@ const announce = document.getElementById('announce');
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
-}
 
 // ============================================================
 // LÓGICA DEL JUEGO
@@ -326,7 +325,7 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('dino-runner');
   overlay.classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   say('Dino Runner: corré lo más lejos posible esquivando obstáculos.');
 }
 
@@ -356,7 +355,7 @@ function endGame() {
   finalScoreEl.textContent = `Distancia: ${dist} m · Récord: ${state.best} m`;
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar`;
   overlay.classList.remove('hidden');
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   say(isNewRecord ? 'Dino Runner: nuevo récord.' : 'Dino Runner: chocaste.');
   updateHUD();
 }
@@ -841,29 +840,6 @@ const loop = createGameLoop((dt) => {
 
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-
-// Help button
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('dino-runner'));

@@ -1,9 +1,9 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad, bindHoldButton } from '../../shared/input.js';
 import {
@@ -22,7 +22,9 @@ import {
 } from '../../shared/effects.js';
 
 injectCommonElements();
-document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
+
+const shell = setupGameShell('space-invaders');
+
 /* ============================================================
    SPACE INVADERS 2D — Arcade Hub
    Canvas 2D, sin dependencias externas.
@@ -197,7 +199,7 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('space-invaders');
   document.getElementById('overlay').classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   say('Space Invaders: comenzó la partida. Destruí a los invasores.');
 }
 
@@ -232,7 +234,7 @@ function endGame(won) {
   finalScore.textContent = `Puntos: ${state.score} · Récord: ${state.best}`;
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   say('Space Invaders: game over.');
   updateHUD();
 }
@@ -380,9 +382,6 @@ document.getElementById('gameCanvas').addEventListener('pointerdown', () => {
 const announce = document.getElementById('announce');
 function say(msg) {
   if (announce) announce.textContent = msg;
-}
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
 }
 
 document.getElementById('overlay').addEventListener('click', () => {
@@ -794,28 +793,6 @@ const loop = createGameLoop((dt) => {
 
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-// Help button
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('space-invaders'));

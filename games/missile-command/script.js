@@ -1,8 +1,8 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -23,6 +23,7 @@ import {
 } from '../../shared/effects.js';
 
 injectCommonElements();
+const shell = setupGameShell('missile-command');
 
 /* ============================================================
    MISSILE COMMAND 2D — Arcade Hub
@@ -326,7 +327,7 @@ function startGame() {
   achievements.incrementPlays('missile-command');
   startWave();
   document.getElementById('overlay').classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   updateHUD();
   say('Missile Command: defendé tus ciudades de los misiles.');
 }
@@ -347,7 +348,7 @@ function endGame() {
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   say('Missile Command: game over.');
   updateHUD();
 }
@@ -462,9 +463,6 @@ document.getElementById('bF')?.addEventListener('touchcancel', () => {
 const announce = document.getElementById('announce');
 function say(msg) {
   if (announce) announce.textContent = msg;
-}
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
 }
 
 // Gamepad
@@ -1059,29 +1057,6 @@ const loop = createGameLoop((dt) => {
 resetGame();
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopAmbient();
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-// Help button
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('missile-command'));
