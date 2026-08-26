@@ -11,6 +11,14 @@
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
     {
+      "version": "1.7.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Fidelidad arcade: un solo disparo del jugador en pantalla a la vez",
+        "Nave misteriosa con puntos variables aleatorios (50–300) como el original"
+      ]
+    },
+    {
       "version": "1.5.1",
       "date": "2026-08-26",
       "changes": [
@@ -67,7 +75,7 @@
       ]
     },
     {
-      "version": "1.6.0",
+  "version": "1.7.0",
       "date": "2026-08-26",
       "changes": [
         "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",

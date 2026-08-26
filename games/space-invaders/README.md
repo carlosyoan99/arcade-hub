@@ -1,6 +1,6 @@
 # 👾 Space Invaders
 
-**Versión:** 1.5.1 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
 
 Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos, nave misteriosa y velocidad progresiva.
 
@@ -24,7 +24,8 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 
 - 👾 Invasores que se mueven en formación y aceleran al quedar menos
 - 🛡️ Escudos protectores que se deterioran con los disparos
-- 🛸 Nave misteriosa que cruza la pantalla (puntos extra)
+- 🛸 Nave misteriosa que cruza la pantalla con puntos variables aleatorios (50–300, como el arcade)
+- 🎯 Fidelidad arcade: un solo disparo del jugador en pantalla a la vez — cada tiro cuenta
 - ⚡ Disparos enemigos que aumentan con el nivel
 - 💥 Game feel: screen shake, hit-stop, partículas neon en explosiones
 - 🏆 Récord persistido en `localStorage`
@@ -51,6 +52,8 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 
 ## Changelog
 
+- **1.7.0** (2026-08-26): Mecánicas arcade — disparo único del jugador en pantalla y nave misteriosa con puntos variables (50–300)
+- **1.6.0** (2026-08-26): Refactor — récords vía `shared/scores.js` + shell compartido
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

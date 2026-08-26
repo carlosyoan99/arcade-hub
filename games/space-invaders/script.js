@@ -49,6 +49,7 @@ const INVADER_W = 30,
 const BULLET_SPEED = 500,
   INVADER_BULLET_SPEED = 220;
 const FIRE_CD = 0.3;
+const MYSTERY_POINTS = [50, 100, 150, 200, 250, 300]; // puntos variables como el arcade
 const START_LIVES = 3;
 const SHIELD_Y = CH - 95;
 const SHIELDS = 4;
@@ -247,9 +248,9 @@ function updateShip(dt) {
   if (state.invincibleTimer > 0) state.invincibleTimer -= dt;
   ship.x += (input.left ? -SHIP_SPEED * dt : 0) + (input.right ? SHIP_SPEED * dt : 0);
   ship.x = Math.max(20, Math.min(CW - 20, ship.x));
-  if (input.fire && fireTimer <= 0) {
-    plyBullets.push({ x: ship.x - 1.5, y: ship.y - 12, vy: -BULLET_SPEED });
-    plyBullets.push({ x: ship.x + 1.5, y: ship.y - 12, vy: -BULLET_SPEED });
+  // Fidelidad arcade: un solo disparo del jugador en pantalla a la vez
+  if (input.fire && fireTimer <= 0 && plyBullets.length === 0) {
+    plyBullets.push({ x: ship.x, y: ship.y - 12, vy: -BULLET_SPEED });
     fireTimer = FIRE_CD;
     playFire();
   }
@@ -664,9 +665,11 @@ const loop = createGameLoop((dt) => {
             Math.abs(b.x - mysteryShip.x) < 25 &&
             Math.abs(b.y - mysteryShip.y) < 15
           ) {
-            state.score += 100;
+            const pts = MYSTERY_POINTS[Math.floor(Math.random() * MYSTERY_POINTS.length)];
+            state.score += pts;
             playMystery();
             spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
+            say(`Nave misteriosa derribada: +${pts}`);
             mysteryShip = null;
             mysteryTimer = 5 + Math.random() * 8;
             plyBullets.splice(i, 1);
@@ -721,9 +724,11 @@ const loop = createGameLoop((dt) => {
           Math.abs(b.x - mysteryShip.x) < 25 &&
           Math.abs(b.y - mysteryShip.y) < 15
         ) {
-          state.score += 100;
+          const pts = MYSTERY_POINTS[Math.floor(Math.random() * MYSTERY_POINTS.length)];
+          state.score += pts;
           playMystery();
           spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
+          say(`Nave misteriosa derribada: +${pts}`);
           mysteryShip = null;
           mysteryTimer = 5 + Math.random() * 8;
           plyBullets.splice(i, 1);
