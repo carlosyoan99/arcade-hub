@@ -2202,6 +2202,7 @@
 
     <script type="module">
       import { games } from './games.js';
+      import { drawGameThumb } from './asset/hub-cards.js';
 
       /* ── Animated canvas background (theme-aware) ── */
       const bgCanvas = (function initBg() {
@@ -2736,7 +2737,7 @@
           ${newBadgeHtml}
           ${
             game.thumbnail
-              ? `<img class="icon-thumb" src="${game.thumbnail}" alt="${game.title}" loading="lazy">`
+              ? `<canvas class="icon-thumb" role="img" aria-label="${game.title}"></canvas>`
               : `<span class="icon">${game.icon ?? '🎮'}</span>`
           }
           <h2>${game.title}</h2>
@@ -2746,6 +2747,16 @@
             ${playsHtml}
           </div>
         `;
+        const thumbCanvas = el.querySelector('canvas.icon-thumb');
+        if (thumbCanvas && !drawGameThumb(thumbCanvas, game.id)) {
+          // Sin escena dibujada para este id → SVG clásico como fallback
+          const img = document.createElement('img');
+          img.className = 'icon-thumb';
+          img.src = game.thumbnail;
+          img.alt = game.title;
+          img.loading = 'lazy';
+          thumbCanvas.replaceWith(img);
+        }
         return el;
       }
 

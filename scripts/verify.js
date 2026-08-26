@@ -134,6 +134,10 @@ function buildFilesList() {
   for (const f of fs.readdirSync(path.join(ROOT, 'shared'))) {
     if (f.endsWith('.js')) files.add('./shared/' + f);
   }
+  // Módulos JS del hub bajo asset/ (p. ej. hub-cards.js)
+  for (const f of fs.readdirSync(path.join(ROOT, 'asset'))) {
+    if (f.endsWith('.js')) files.add('./asset/' + f);
+  }
 
   // Añadir archivos por juego
   for (const g of games) {
