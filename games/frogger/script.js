@@ -4,6 +4,7 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -43,6 +44,7 @@ const CPAD = 10;
 const LEVELS = 5; // safe zones to fill
 const START_LIVES = 3;
 const TRUCK_SPEED_THRESHOLD = 125;
+const TIME_LIMIT = 60; // segundos por vida (como el arcade)
 
 // Lane types
 const ROAD = 'road',
@@ -58,8 +60,8 @@ const LANES = [
   { type: SAFE }, // 1 - safe grass
   { type: RIVER, dir: 1, speed: 60, color: '#4a8a5a' }, // 2 - logs
   { type: RIVER, dir: -1, speed: 80, color: '#5a7a4a' }, // 3 - logs
-  { type: RIVER, dir: 1, speed: 50, color: '#3a9a5a' }, // 4 - logs
-  { type: RIVER, dir: -1, speed: 70, color: '#4a8a6a' }, // 5 - logs
+  { type: RIVER, dir: 1, speed: 50, color: '#3a9a5a', turtles: true }, // 4 - turtles (se sumergen)
+  { type: RIVER, dir: -1, speed: 70, color: '#4a8a6a', turtles: true }, // 5 - turtles (se sumergen)
   { type: RIVER, dir: 1, speed: 90, color: '#5a8a4a' }, // 6 - logs
   { type: SAFE }, // 7 - safe grass between road and river
   { type: ROAD, dir: -1, speed: 120 }, // 8 - cars
@@ -83,8 +85,9 @@ const state = {
   score: 0,
   lives: START_LIVES,
   level: 1,
-  best: Number(localStorage.getItem('frogger2d_best') || 0),
+  best: loadBest('frogger2d'),
   goals: [], // filled goal column indices
+  timeLeft: TIME_LIMIT,
 };
 
 // ============================================================
@@ -122,8 +125,9 @@ function pWin() {
 // ENTIDADES
 // ============================================================
 const frog = { x: (COLS / 2) * CS + CS / 2, y: (ROWS - 1) * CS + CS / 2, dir: 0 };
-let obstacles = []; // vehicles and logs
+let obstacles = []; // vehicles, logs and turtles
 let moveTimer = 0;
+let tenSaid = false; // anuncio de "10 segundos" una vez por vida
 
 function buildObstacles() {
   obstacles = [];
@@ -147,23 +151,43 @@ function buildObstacles() {
         });
       }
     } else if (lane.type === RIVER) {
-      const count = 2 + Math.floor(Math.random() * 3);
+      const useTurtles = !!lane.turtles;
+      const count = useTurtles ? 3 : 2 + Math.floor(Math.random() * 3);
       for (let i = 0; i < count; i++) {
         const x = Math.random() * CW;
         obstacles.push({
           row: r,
           x,
           y: r * CS + CS / 2,
-          w: CS * (1.5 + Math.random() * 2),
+          w: useTurtles ? CS * 2.1 : CS * (1.5 + Math.random() * 2),
           h: CS * 0.6,
           dir: lane.dir,
           speed: lane.speed * (0.8 + Math.random() * 0.4),
-          type: 'log',
+          type: useTurtles ? 'turtle' : 'log',
           color: lane.color,
+          // Ciclo de inmersión de las tortugas (visible, con aviso previo)
+          ...(useTurtles
+            ? {
+                divePeriod: 3.5 + Math.random() * 1.5,
+                diveDur: 1.3 + Math.random() * 0.5,
+                divePhase: Math.random() * 5,
+              }
+            : {}),
         });
       }
     }
   }
+}
+
+// Las tortugas sumergidas no sirven de plataforma
+function turtleSubmerged(o, now = Date.now() / 1000) {
+  return (now + o.divePhase) % o.divePeriod < o.diveDur;
+}
+
+function isPlatform(o) {
+  if (o.type === 'log') return true;
+  if (o.type === 'turtle') return !turtleSubmerged(o);
+  return false;
 }
 
 function resetFrog() {
@@ -171,6 +195,8 @@ function resetFrog() {
   frog.y = (ROWS - 1) * CS + CS / 2;
   frog.dir = 0;
   moveTimer = 0;
+  state.timeLeft = TIME_LIMIT; // el timer se reinicia por vida/intento
+  tenSaid = false;
 }
 
 function getFrogRow() {
@@ -221,7 +247,7 @@ function endGame(won) {
   state.gameOver = true;
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('frogger2d_best', String(state.best));
+    saveBest('frogger2d', state.best);
     if (state.best >= 1000) achievements.unlock('frogger_thousand');
   }
   if (won) pWin();
@@ -306,10 +332,10 @@ function checkFrogCollisions() {
   }
 
   if (lane.type === RIVER) {
-    // Check if on a log
+    // Check if on a log or surfaced turtle
     let onLog = false;
     for (const o of obstacles) {
-      if (o.row !== row || o.type !== 'log') continue;
+      if (o.row !== row || !isPlatform(o)) continue;
       if (Math.abs(frog.x - o.x) < (o.w + CS * 0.4) / 2) {
         onLog = true;
         break;
@@ -330,9 +356,9 @@ function updateObstacles(dt) {
     if (o.dir > 0 && o.x > CW + o.w) o.x = -o.w;
     if (o.dir < 0 && o.x < -o.w) o.x = CW + o.w;
 
-    // Carry frog on log
+    // Carry frog on log or surfaced turtle
     const row = getFrogRow();
-    if (o.row === row && o.type === 'log') {
+    if (o.row === row && isPlatform(o)) {
       if (Math.abs(frog.x - o.x) < (o.w + CS * 0.4) / 2) {
         frog.x += o.dir * o.speed * dt;
         // Keep frog in bounds
@@ -557,7 +583,62 @@ function draw() {
   for (const o of obstacles) {
     const ox2 = cx + o.x * s,
       oy2 = cy + o.y * s;
-    if (o.type === 'log') {
+    if (o.type === 'turtle') {
+      const now = Date.now() / 1000;
+      const cyc = (now + o.divePhase) % o.divePeriod;
+      if (turtleSubmerged(o)) {
+        // Bajo el agua: solo un anillo tenue
+        ctx.strokeStyle = 'rgba(110,231,183,0.12)';
+        ctx.lineWidth = 1 * s;
+        ctx.beginPath();
+        ctx.ellipse(ox2, oy2, (o.w / 2) * s, (o.h / 2) * s, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        // Parpadeo justo antes de sumergirse
+        const aboutToDive = o.divePeriod - cyc < 0.55;
+        ctx.globalAlpha = aboutToDive ? (Math.floor(now * 8) % 2 === 0 ? 0.45 : 1) : 1;
+        // Caparazones (grupo de 3 lóbulos)
+        for (let k = -1; k <= 1; k++) {
+          fillWithGlow(
+            ctx,
+            () => {
+              ctx.beginPath();
+              ctx.ellipse(
+                ox2 + k * o.w * 0.3 * s,
+                oy2,
+                o.w * 0.26 * s,
+                o.h * 0.42 * s,
+                0,
+                0,
+                Math.PI * 2,
+              );
+            },
+            '#2f7d4f',
+            0.25,
+            3 * s,
+          );
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+          ctx.lineWidth = 1 * s;
+          ctx.beginPath();
+          ctx.ellipse(
+            ox2 + k * o.w * 0.3 * s,
+            oy2,
+            o.w * 0.18 * s,
+            o.h * 0.28 * s,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.stroke();
+        }
+        // Cabeza en la dirección de movimiento
+        ctx.fillStyle = '#3fa06a';
+        ctx.beginPath();
+        ctx.arc(ox2 + (((o.dir > 0 ? 1 : -1) * o.w) / 2) * s, oy2, 3.5 * s, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    } else if (o.type === 'log') {
       ctx.fillStyle = o.color;
       roundRect(ctx, ox2 - (o.w / 2) * s, oy2 - (o.h / 2) * s, o.w * s, o.h * s, 3 * s);
       ctx.fill();
@@ -605,6 +686,24 @@ function draw() {
       ctx.arc(ox2 + (o.w / 3) * s, oy2 + (o.h / 2) * s, 2.5 * s, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+
+  // Timer de vida: barra neon abajo a la derecha
+  {
+    const frac = Math.max(0, state.timeLeft / TIME_LIMIT);
+    const barW = CW * s * 0.28;
+    const tx = cx + CW * s - barW - 10 * s;
+    const ty = cy + CH * s - 11 * s;
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillRect(tx, ty, barW, 5 * s);
+    ctx.fillStyle = frac > 0.25 ? '#6ee7b7' : '#ff5e7a';
+    ctx.fillRect(tx, ty, barW * frac, 5 * s);
+    drawGlow(ctx, tx + barW * frac, ty + 2.5 * s, 6 * s, '#6ee7b7', 0.08, 3);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = `${9 * s}px 'Courier New',monospace`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${Math.ceil(state.timeLeft)}s`, tx - 8 * s, ty + 2.5 * s);
   }
 
   // Frog
@@ -697,6 +796,19 @@ const loop = createGameLoop((dt) => {
 
   if (state.running && !state.gameOver) {
     if (moveTimer > 0) moveTimer -= dt;
+
+    // Timer de vida (60s): si llega a cero, se ahoga la rana
+    state.timeLeft -= dt;
+    if (state.timeLeft <= 10 && !tenSaid) {
+      tenSaid = true;
+      say('¡10 segundos!');
+    }
+    if (state.timeLeft <= 0) {
+      state.timeLeft = 0;
+      say('¡Se acabó el tiempo!');
+      loseLife();
+    }
+
     updateObstacles(dt);
 
     // Re-check after log movement
@@ -705,7 +817,7 @@ const loop = createGameLoop((dt) => {
     if (lane && lane.type === RIVER) {
       let onLog = false;
       for (const o of obstacles) {
-        if (o.row !== row || o.type !== 'log') continue;
+        if (o.row !== row || !isPlatform(o)) continue;
         if (Math.abs(frog.x - o.x) < (o.w + CS * 0.4) / 2) {
           onLog = true;
           break;

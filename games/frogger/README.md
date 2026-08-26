@@ -1,6 +1,6 @@
 # 🐸 Frogger
 
-**Versión:** 1.5.1 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. ¡Llegá a las 5 zonas seguras!
 
@@ -24,6 +24,8 @@ Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. ¡Llegá
 
 - 🚗 Múltiples carriles con vehículos (autos, camiones)
 - 🪵 Troncos flotantes y tortugas para cruzar el río
+- 🐢 Tortugas que se sumergen: en dos filas del río hay grupos de tortugas con ciclo de inmersión visible (parpadean antes de hundirse); si te hunden con ellas encima, perdés la vida
+- ⏱️ Timer de 60s por vida con barra neon y aviso a los 10 segundos
 - 🏆 5 zonas seguras para completar el nivel
 - 💥 Game feel: screen shake, hit-stop, partículas neon al morir y al completar nivel
 - 🏆 Récord persistido en `localStorage`
@@ -50,6 +52,7 @@ Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. ¡Llegá
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Mecánicas arcade — timer de 60s por vida (barra + aviso) y tortugas sumergibles en filas 4 y 5 del río con ciclo visible y parpadeo previo
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; R3: magic numbers extraídos a constantes nombradas

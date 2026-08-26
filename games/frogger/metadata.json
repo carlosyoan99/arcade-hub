@@ -11,6 +11,14 @@
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
     {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Timer de 60 segundos por vida, con barra neon y aviso a los 10s",
+        "Tortugas que se sumergen en las filas del río: ciclo visible con parpadeo previo; si te hunden contigo, perdés la vida"
+      ]
+    },
+    {
       "version": "1.5.1",
       "date": "2026-08-26",
       "changes": [
