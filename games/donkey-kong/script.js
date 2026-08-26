@@ -28,7 +28,7 @@ const shell = setupGameShell('donkey-kong');
 
 /* ============================================================
    DONKEY KONG — Arcade Hub
-   Canvas 2D platformer, sin dependencias.
+   Canvas 2D platformer — 4 fases arcade.
    ============================================================ */
 
 // ── CONSTANTES ──
@@ -69,6 +69,13 @@ const BARREL_RADIUS = 10;
 const BARREL_SPEED = 120;
 const MAX_BARRELS = 6;
 
+// ── 4 FASES ARCADE ──
+const PHASE_NAMES = ['Barriles', 'Fuego', 'Elevador', 'Plataformas'];
+const FIRE_SPEED = 60;
+const MAX_FIRES = 3;
+const FIRE_SPAWN_INTERVAL = 3.0;
+const ELEVATOR_SPEED = 60;
+
 // ── ESTADO ──
 const state = {
   running: false,
@@ -77,9 +84,13 @@ const state = {
   level: 1,
   lives: 3,
   timeLeft: 60,
+  phase: 0,
 };
 const player = { x: 0, y: 0, vx: 0, vy: 0, w: PLAYER_W, h: PLAYER_H, onGround: false };
 const barrels = [];
+const fires = [];
+const elevators = [];
+const movingPlatforms = [];
 let coyoteTimer = 0;
 let bufferTimer = 0;
 let jumpPressed = false;
@@ -250,6 +261,160 @@ overlay.addEventListener('click', () => {
   if (!state.running && !state.gameOver) startGame();
 });
 
+// ── FASE: helpers ──
+function getPhaseForLevel(lvl) {
+  return (lvl - 1) % 4;
+}
+
+function clearPhaseEntities() {
+  barrels.length = 0;
+  fires.length = 0;
+  elevators.length = 0;
+  movingPlatforms.length = 0;
+}
+
+// ── FASE 2: Fuego ──
+function spawnFire() {
+  if (fires.length >= MAX_FIRES) return;
+  fires.push({
+    x: 8.2 * TILE,
+    y: 1.2 * TILE,
+    vx: 0,
+    vy: 0,
+    w: 14,
+    h: 14,
+    onGround: false,
+    ladderCooldown: 0,
+  });
+}
+
+function updateFires(dt) {
+  for (let i = fires.length - 1; i >= 0; i--) {
+    const f = fires[i];
+    f.vy += GRAVITY * dt;
+    f.x += f.vx * dt;
+    f.y += f.vy * dt;
+
+    // Platform collision
+    let onPlat = false;
+    for (const p of PLATFORMS) {
+      const pr = { x: p.x * TILE, y: p.y * TILE, w: p.w * TILE, h: p.h * TILE };
+      if (
+        f.x + f.w / 2 > pr.x &&
+        f.x - f.w / 2 < pr.x + pr.w &&
+        f.y + f.h > pr.y &&
+        f.y + f.h < pr.y + pr.h + 8 &&
+        f.vy >= 0
+      ) {
+        f.y = pr.y - f.h;
+        f.vy = 0;
+        onPlat = true;
+        f.onGround = true;
+        break;
+      }
+    }
+
+    // Horizontal movement (chase player)
+    if (onPlat || f.onGround) {
+      const dx = player.x - f.x;
+      f.vx = dx > 10 ? FIRE_SPEED : dx < -10 ? -FIRE_SPEED : 0;
+    }
+
+    // Try ladder occasionally
+    if (f.onGround) {
+      f.ladderCooldown -= dt;
+      if (f.ladderCooldown <= 0) {
+        for (const l of LADDERS) {
+          const lx = l.x * TILE;
+          if (Math.abs(f.x - lx) < TILE * 0.6) {
+            f.vy = -FIRE_SPEED * 1.2;
+            f.onGround = false;
+            f.ladderCooldown = 2;
+            break;
+          }
+        }
+        if (f.ladderCooldown <= 0) f.ladderCooldown = 0.5;
+      }
+    }
+
+    // Remove if off screen
+    if (f.y > GAME_H + 30 || f.x < -30 || f.x > GAME_W + 30) {
+      fires.splice(i, 1);
+    }
+  }
+}
+
+// ── FASE 3: Elevadores ──
+function spawnElevators() {
+  elevators.length = 0;
+  const defs = [
+    { x: 8, yMin: 3, yMax: 9, dir: 1 },
+    { x: 3, yMin: 6, yMax: 11, dir: -1 },
+    { x: 6, yMin: 1, yMax: 9, dir: 1 },
+  ];
+  for (const d of defs) {
+    elevators.push({
+      x: d.x * TILE,
+      y: d.yMin * TILE,
+      w: TILE * 2,
+      h: TILE * 0.4,
+      yMin: d.yMin * TILE,
+      yMax: d.yMax * TILE,
+      dir: d.dir,
+    });
+  }
+}
+
+function updateElevators(dt) {
+  for (const e of elevators) {
+    e.y += e.dir * ELEVATOR_SPEED * dt;
+    if (e.y <= e.yMin) {
+      e.y = e.yMin;
+      e.dir = 1;
+    }
+    if (e.y >= e.yMax) {
+      e.y = e.yMax;
+      e.dir = -1;
+    }
+  }
+}
+
+// ── FASE 4: Plataformas móviles ──
+function spawnMovingPlatforms() {
+  movingPlatforms.length = 0;
+  const defs = [
+    { x: 0, y: 3, w: 3, dir: 1, xMin: 0, xMax: 8 },
+    { x: 6, y: 6, w: 3, dir: -1, xMin: 2, xMax: 10 },
+    { x: 2, y: 9, w: 4, dir: 1, xMin: 0, xMax: 7 },
+    { x: 8, y: 3, w: 2, dir: -1, xMin: 4, xMax: 12 },
+  ];
+  for (const d of defs) {
+    movingPlatforms.push({
+      x: d.x * TILE,
+      y: d.y * TILE,
+      w: d.w * TILE,
+      h: TILE * 0.4,
+      dir: d.dir,
+      xMin: d.xMin * TILE,
+      xMax: d.xMax * TILE,
+    });
+  }
+}
+
+function updateMovingPlatforms(dt) {
+  for (const mp of movingPlatforms) {
+    mp.x += mp.dir * 80 * dt;
+    if (mp.x <= mp.xMin) {
+      mp.x = mp.xMin;
+      mp.dir = 1;
+    }
+    if (mp.x + mp.w >= mp.xMax) {
+      mp.x = mp.xMax - mp.w;
+      mp.dir = -1;
+    }
+  }
+}
+
 // ── LÓGICA ──
 function initPlayer() {
   player.x = 1.5 * TILE;
@@ -259,6 +424,13 @@ function initPlayer() {
   player.onGround = false;
   coyoteTimer = 0;
   bufferTimer = 0;
+}
+
+function setupPhaseEntities() {
+  clearPhaseEntities();
+  state.phase = getPhaseForLevel(state.level);
+  if (state.phase === 2) spawnElevators();
+  if (state.phase === 3) spawnMovingPlatforms();
 }
 
 function startGame() {
@@ -273,7 +445,7 @@ function startGame() {
   state.lives = 3;
   state.timeLeft = 60;
   timeAcc = 0;
-  barrels.length = 0;
+  setupPhaseEntities();
   achievements.incrementPlays('donkey-kong');
   initPlayer();
   overlay.classList.add('hidden');
@@ -292,7 +464,8 @@ function loseLife() {
     return;
   }
   initPlayer();
-  barrels.length = 0;
+  clearPhaseEntities();
+  setupPhaseEntities();
   state.timeLeft = Math.max(30, state.timeLeft);
   updateHUD();
 }
@@ -301,6 +474,7 @@ function endGame() {
   stopAmbient();
   state.running = false;
   state.gameOver = true;
+  clearPhaseEntities();
   if (state.score >= 5000) achievements.unlock('dk_thousand');
   if (state.level >= 10) achievements.unlock('dk_master');
   overlayText.textContent = '¡Game Over! 💀';
@@ -318,9 +492,10 @@ function levelComplete() {
   state.level += 1;
   state.timeLeft = 60;
   timeAcc = 0;
-  barrels.length = 0;
+  setupPhaseEntities();
   initPlayer();
   if (state.level === 2) achievements.unlock('dk_first_win');
+  say(`Fase ${state.phase + 1}: ${PHASE_NAMES[state.phase]}`);
   updateHUD();
 }
 
@@ -373,13 +548,11 @@ function getLadderAbove(r) {
 
 // ── FÍSICA ──
 function updatePlayer(dt) {
-  // Input horizontal
   let moveDir = 0;
   if (keys.left) moveDir -= 1;
   if (keys.right) moveDir += 1;
   player.vx = moveDir * PLAYER_SPEED;
 
-  // Coyote time & jump buffer
   if (player.onGround) coyoteTimer = COYOTE_TIME;
   else coyoteTimer -= dt;
 
@@ -389,7 +562,6 @@ function updatePlayer(dt) {
   }
   bufferTimer -= dt;
 
-  // Jump
   if (bufferTimer > 0 && coyoteTimer > 0 && !canClimbUp(getPlayerRect())) {
     player.vy = JUMP_VEL;
     bufferTimer = 0;
@@ -400,31 +572,26 @@ function updatePlayer(dt) {
     spawnParticles(player.x + player.w / 2, player.y + player.h, '#ff8a65', 4);
   }
 
-  // Variable jump height
   if (jumpReleased && player.vy < 0) {
     player.vy *= 0.45;
     jumpReleased = false;
   }
 
-  // Gravedad
   const g = player.vy > 0 ? FALL_GRAVITY : GRAVITY;
   player.vy += g * dt;
 
-  // Escaleras: movimiento vertical sin gravedad cuando está en escalera
   const ladderRect = getLadderAbove(getPlayerRect());
   if (ladderRect && keys.up) {
     player.vy = -PLAYER_SPEED * 0.7;
     player.onGround = false;
   }
 
-  // Mover X
   player.x += player.vx * dt;
   player.x = Math.max(0, Math.min(GAME_W - player.w, player.x));
 
-  // Mover Y
   player.y += player.vy * dt;
 
-  // Colisión con plataformas (suelo)
+  // Static platform collision
   const pRect = getPlayerRect();
   const platY = isOnPlatform(pRect);
   if (platY >= 0 && player.vy >= 0) {
@@ -432,7 +599,6 @@ function updatePlayer(dt) {
     player.vy = 0;
     player.onGround = true;
   } else {
-    // Colisión con el suelo del nivel
     if (player.y + player.h > 12 * TILE) {
       player.y = 12 * TILE - player.h;
       player.vy = 0;
@@ -440,29 +606,77 @@ function updatePlayer(dt) {
     }
   }
 
-  // Caer al vacío
+  // Fase 3: elevator collision
+  if (state.phase === 2) {
+    const pr = getPlayerRect();
+    for (const e of elevators) {
+      if (
+        pr.x + pr.w > e.x &&
+        pr.x < e.x + e.w &&
+        pr.y + pr.h >= e.y &&
+        pr.y + pr.h <= e.y + e.h + 8 &&
+        player.vy >= 0
+      ) {
+        player.y = e.y - player.h;
+        player.vy = 0;
+        player.onGround = true;
+      }
+    }
+  }
+
+  // Fase 4: moving platform collision
+  if (state.phase === 3) {
+    const pr = getPlayerRect();
+    for (const mp of movingPlatforms) {
+      if (
+        pr.x + pr.w > mp.x &&
+        pr.x < mp.x + mp.w &&
+        pr.y + pr.h >= mp.y &&
+        pr.y + pr.h <= mp.y + mp.h + 8 &&
+        player.vy >= 0
+      ) {
+        player.y = mp.y - player.h;
+        player.vy = 0;
+        player.onGround = true;
+      }
+    }
+  }
+
   if (player.y > GAME_H) {
     loseLife();
   }
 
-  // Detectar llegada a la cima
   if (player.y < 1.5 * TILE && player.x > 4 * TILE && player.x < 10 * TILE) {
     levelComplete();
   }
 
-  // Detectar caída de barril (colisión con barriles)
-  const pr = getPlayerRect();
-  for (let i = barrels.length - 1; i >= 0; i--) {
-    const b = barrels[i];
-    const br = {
-      x: b.x - BARREL_RADIUS,
-      y: b.y - BARREL_RADIUS,
-      w: BARREL_RADIUS * 2,
-      h: BARREL_RADIUS * 2,
-    };
-    if (rectCollide(pr, br)) {
-      loseLife();
-      break;
+  // Barrel collision (fase 1)
+  if (state.phase === 0) {
+    const pr2 = getPlayerRect();
+    for (let i = barrels.length - 1; i >= 0; i--) {
+      const b = barrels[i];
+      const br = {
+        x: b.x - BARREL_RADIUS,
+        y: b.y - BARREL_RADIUS,
+        w: BARREL_RADIUS * 2,
+        h: BARREL_RADIUS * 2,
+      };
+      if (rectCollide(pr2, br)) {
+        loseLife();
+        break;
+      }
+    }
+  }
+
+  // Fire collision (fase 2)
+  if (state.phase === 1) {
+    const pr3 = getPlayerRect();
+    for (const f of fires) {
+      const fr = { x: f.x - f.w / 2, y: f.y - f.h / 2, w: f.w, h: f.h };
+      if (rectCollide(pr3, fr)) {
+        loseLife();
+        break;
+      }
     }
   }
 }
@@ -483,7 +697,6 @@ function updateBarrels(dt) {
     b.x += b.vx * dt;
     b.y += b.vy * dt;
 
-    // Colisión con plataformas
     let onPlat = false;
     for (const p of PLATFORMS) {
       const pr = { x: p.x * TILE, y: p.y * TILE, w: p.w * TILE, h: p.h * TILE };
@@ -497,14 +710,12 @@ function updateBarrels(dt) {
         b.y = pr.y - BARREL_RADIUS;
         b.vy = 0;
         onPlat = true;
-        // Rodar por la plataforma
         if (b.x < pr.x + 8) b.vx = Math.abs(b.vx);
         else if (b.x > pr.x + pr.w - 8) b.vx = -Math.abs(b.vx);
         break;
       }
     }
 
-    // Rebote en bordes de plataforma
     if (!onPlat) {
       for (const p of PLATFORMS) {
         const pr = { x: p.x * TILE, y: p.y * TILE, w: p.w * TILE, h: p.h * TILE };
@@ -516,7 +727,6 @@ function updateBarrels(dt) {
       }
     }
 
-    // Eliminar barriles que caen al vacío o salen del mapa
     if (b.y > GAME_H + 50 || b.x < -50 || b.x > GAME_W + 50) {
       barrels.splice(i, 1);
     }
@@ -529,7 +739,7 @@ const levelEl = document.getElementById('levelDisplay');
 const livesEl = document.getElementById('livesDisplay');
 function updateHUD() {
   scoreEl.textContent = String(state.score);
-  levelEl.textContent = String(state.level);
+  levelEl.textContent = `${String(state.level)} · ${PHASE_NAMES[state.phase] || ''}`;
   livesEl.textContent = String(state.lives);
 }
 
@@ -546,7 +756,7 @@ function draw() {
     ox = offX,
     oy = offY;
 
-  // Fondo: obra en construcción
+  // Fondo
   const grad = ctx.createRadialGradient(
     ox + (GAME_W * s) / 2,
     oy + GAME_H * s * 0.3,
@@ -571,14 +781,12 @@ function draw() {
     ctx.stroke();
   }
 
-  // Plataformas (vigas)
+  // Plataformas
   for (const p of PLATFORMS) {
     const px = ox + p.x * TILE * s;
     const py = oy + p.y * TILE * s;
     const pw = p.w * TILE * s;
     const ph = p.h * TILE * s;
-
-    // Viga principal
     const g1 = ctx.createLinearGradient(px, py, px, py + ph);
     g1.addColorStop(0, '#ff6600');
     g1.addColorStop(0.5, '#cc5500');
@@ -586,10 +794,7 @@ function draw() {
     ctx.fillStyle = g1;
     roundRect(ctx, px, py, pw, ph, 3 * s);
     ctx.fill();
-
     drawGlow(ctx, px + pw / 2, py + ph / 2, pw * 0.3, 'rgba(255,138,101,0.08)', 0.04, 2.5);
-
-    // Remaches
     ctx.fillStyle = 'rgba(255,200,150,0.25)';
     const rivetSize = 3 * s;
     for (let rx = px + 6 * s; rx < px + pw - 4 * s; rx += TILE * s) {
@@ -599,23 +804,65 @@ function draw() {
     }
   }
 
+  // Fase 3: Elevadores
+  if (state.phase === 2) {
+    for (const e of elevators) {
+      const ex = ox + e.x * s;
+      const ey = oy + e.y * s;
+      const ew = e.w * s;
+      const eh = e.h * s;
+      const eg = ctx.createLinearGradient(ex, ey, ex, ey + eh);
+      eg.addColorStop(0, '#44aaff');
+      eg.addColorStop(1, '#2266cc');
+      ctx.fillStyle = eg;
+      roundRect(ctx, ex, ey, ew, eh, 3 * s);
+      ctx.fill();
+      drawGlow(ctx, ex + ew / 2, ey + eh / 2, ew * 0.3, 'rgba(68,170,255,0.15)', 0.05, 3);
+      ctx.strokeStyle = 'rgba(68,170,255,0.2)';
+      ctx.lineWidth = 1 * s;
+      ctx.setLineDash([4 * s, 4 * s]);
+      ctx.beginPath();
+      ctx.moveTo(ex + ew / 2, oy + e.yMin * s);
+      ctx.lineTo(ex + ew / 2, oy + e.yMax * s);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Fase 4: Plataformas móviles
+  if (state.phase === 3) {
+    for (const mp of movingPlatforms) {
+      const mx = ox + mp.x * s;
+      const my = oy + mp.y * s;
+      const mw = mp.w * s;
+      const mh = mp.h * s;
+      const mg = ctx.createLinearGradient(mx, my, mx, my + mh);
+      mg.addColorStop(0, '#44ff88');
+      mg.addColorStop(1, '#22aa55');
+      ctx.fillStyle = mg;
+      roundRect(ctx, mx, my, mw, mh, 3 * s);
+      ctx.fill();
+      drawGlow(ctx, mx + mw / 2, my + mh / 2, mw * 0.3, 'rgba(68,255,136,0.15)', 0.05, 3);
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = `${10 * s}px sans-serif`;
+      ctx.fillText(mp.dir > 0 ? '▶' : '◀', mx + mw / 2 - 4 * s, my + mh / 2 + 3 * s);
+    }
+  }
+
   // Escaleras
   for (const l of LADDERS) {
     const lx = ox + (l.x + 0.3) * TILE * s;
     const ly = oy + (l.y - l.h + 1) * TILE * s;
     const lw = TILE * 0.4 * s;
     const lh = l.h * TILE * s;
-
     ctx.strokeStyle = 'rgba(180,120,80,0.4)';
     ctx.lineWidth = 2 * s;
-    // Laterales
     ctx.beginPath();
     ctx.moveTo(lx, ly);
     ctx.lineTo(lx, ly + lh);
     ctx.moveTo(lx + lw, ly);
     ctx.lineTo(lx + lw, ly + lh);
     ctx.stroke();
-    // Travesaños
     ctx.strokeStyle = 'rgba(180,120,80,0.25)';
     ctx.lineWidth = 1.5 * s;
     for (let sy = ly + TILE * s * 0.3; sy < ly + lh; sy += TILE * s * 0.4) {
@@ -626,10 +873,9 @@ function draw() {
     }
   }
 
-  // Donkey Kong (en la cima)
+  // Donkey Kong
   const dkx = ox + 8.2 * TILE * s;
   const dky = oy + 0.2 * TILE * s;
-  // Cuerpo (marrón) — glow sin shadowBlur
   fillWithGlow(
     ctx,
     () => roundRect(ctx, dkx - 14 * s, dky, 28 * s, 22 * s, 6 * s),
@@ -638,15 +884,21 @@ function draw() {
     10 * s,
     'rgba(139,69,19,0.3)',
   );
-  // Barril que lanza
-  ctx.fillStyle = '#cc4400';
-  ctx.beginPath();
-  ctx.arc(dkx + 18 * s, dky + 10 * s, 6 * s, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-  ctx.lineWidth = 1.5 * s;
-  ctx.stroke();
-  // Ojos
+  if (state.phase === 0) {
+    ctx.fillStyle = '#cc4400';
+    ctx.beginPath();
+    ctx.arc(dkx + 18 * s, dky + 10 * s, 6 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1.5 * s;
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = '#ff6600';
+    ctx.beginPath();
+    ctx.arc(dkx + 18 * s, dky + 10 * s, 6 * s, 0, Math.PI * 2);
+    ctx.fill();
+    drawGlow(ctx, dkx + 18 * s, dky + 10 * s, 8 * s, 'rgba(255,100,0,0.3)', 0.1, 3);
+  }
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(dkx - 6 * s, dky + 6 * s, 3 * s, 0, Math.PI * 2);
@@ -658,7 +910,6 @@ function draw() {
     const bx = ox + b.x * s;
     const by = oy + b.y * s;
     const r = BARREL_RADIUS * s;
-
     const bg = ctx.createRadialGradient(bx - r * 0.3, by - r * 0.3, 0, bx, by, r);
     bg.addColorStop(0, '#ff6633');
     bg.addColorStop(0.6, '#cc4400');
@@ -667,13 +918,10 @@ function draw() {
     ctx.beginPath();
     ctx.arc(bx, by, r, 0, Math.PI * 2);
     ctx.fill();
-
     drawGlow(ctx, bx, by, r, 'rgba(200,68,0,0.2)', 0.06, 3);
     ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineWidth = 1.5 * s;
     ctx.stroke();
-
-    // Aros del barril
     ctx.strokeStyle = 'rgba(0,0,0,0.1)';
     ctx.lineWidth = 1 * s;
     ctx.beginPath();
@@ -681,12 +929,38 @@ function draw() {
     ctx.stroke();
   }
 
+  // Fuego (fase 2)
+  for (const f of fires) {
+    const fx = ox + f.x * s;
+    const fy = oy + f.y * s;
+    const fr = (f.w / 2) * s;
+    const t = Date.now() / 200;
+    for (let j = 0; j < 3; j++) {
+      const flicker = Math.sin(t + j * 2) * 3 * s;
+      ctx.fillStyle = `rgba(255,${100 + j * 50},0,${0.7 - j * 0.15})`;
+      ctx.beginPath();
+      ctx.arc(
+        fx + flicker * (j % 2 === 0 ? 1 : -1),
+        fy - j * 4 * s,
+        fr - j * 2 * s,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+    drawGlow(ctx, fx, fy, fr * 1.5, 'rgba(255,80,0,0.25)', 0.1, 4);
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(fx - 3 * s, fy - 2 * s, 2 * s, 0, Math.PI * 2);
+    ctx.arc(fx + 3 * s, fy - 2 * s, 2 * s, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   // Player (Mario)
   const px = ox + player.x * s;
   const py = oy + player.y * s;
   const pw = player.w * s;
   const ph = player.h * s;
-
   const sq = getSquash(playerSquashIdx);
   if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
     const cx = px + pw / 2;
@@ -695,50 +969,39 @@ function draw() {
     ctx.translate(cx, cy);
     ctx.scale(sq.sx, sq.sy);
     ctx.translate(-cx, -cy);
-
-    // Sombra
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.beginPath();
-    ctx.ellipse(px + pw / 2, py + ph + 2 * s, pw * 0.5, 3 * s, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Cuerpo (overalls azules) — glow sin shadowBlur
-    fillWithGlow(
-      ctx,
-      () => roundRect(ctx, px + 2 * s, py, pw - 4 * s, ph * 0.4, 3 * s),
-      '#e03030',
-      0.3,
-      5 * s,
-    );
-
-    ctx.fillStyle = '#3050c0';
-    roundRect(ctx, px + 2 * s, py + ph * 0.35, pw - 4 * s, ph * 0.45, 2 * s);
-    ctx.fill();
-
-    // Cabeza (skin)
-    ctx.fillStyle = '#f5d0a9';
-    ctx.beginPath();
-    ctx.arc(px + pw / 2, py + ph * 0.15, pw * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Gorra roja
-    ctx.fillStyle = '#e03030';
-    roundRect(ctx, px + pw * 0.15, py - 1 * s, pw * 0.7, ph * 0.15, 2 * s);
-    ctx.fill();
-
-    if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
-      ctx.restore();
-    }
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(px + pw / 2, py + ph + 2 * s, pw * 0.5, 3 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+  fillWithGlow(
+    ctx,
+    () => roundRect(ctx, px + 2 * s, py, pw - 4 * s, ph * 0.4, 3 * s),
+    '#e03030',
+    0.3,
+    5 * s,
+  );
+  ctx.fillStyle = '#3050c0';
+  roundRect(ctx, px + 2 * s, py + ph * 0.35, pw - 4 * s, ph * 0.45, 2 * s);
+  ctx.fill();
+  ctx.fillStyle = '#f5d0a9';
+  ctx.beginPath();
+  ctx.arc(px + pw / 2, py + ph * 0.15, pw * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#e03030';
+  roundRect(ctx, px + pw * 0.15, py - 1 * s, pw * 0.7, ph * 0.15, 2 * s);
+  ctx.fill();
+  if (sq && (sq.sx !== 1 || sq.sy !== 1)) {
+    ctx.restore();
   }
 
-  // Partículas
   drawParticles(ctx, offX, offY, scale);
-
   ctx.restore();
 }
 
-// ── SPAWN TIMER ──
+// ── SPAWN TIMERS ──
 let barrelSpawnTimer = 0;
+let fireSpawnTimer = 0;
 
 // ── BUCLE PRINCIPAL ──
 const loop = createGameLoop((dt) => {
@@ -747,16 +1010,27 @@ const loop = createGameLoop((dt) => {
 
   if (state.running && !state.gameOver) {
     updatePlayer(dt);
-    updateBarrels(dt);
 
-    // Spawn de barriles
-    barrelSpawnTimer -= dt;
-    if (barrelSpawnTimer <= 0 && barrels.length < MAX_BARRELS) {
-      spawnBarrel();
-      barrelSpawnTimer = Math.max(0.8, 2.5 - state.level * 0.15);
+    if (state.phase === 0) {
+      updateBarrels(dt);
+      barrelSpawnTimer -= dt;
+      if (barrelSpawnTimer <= 0 && barrels.length < MAX_BARRELS) {
+        spawnBarrel();
+        barrelSpawnTimer = Math.max(0.8, 2.5 - state.level * 0.15);
+      }
+    } else if (state.phase === 1) {
+      updateFires(dt);
+      fireSpawnTimer -= dt;
+      if (fireSpawnTimer <= 0) {
+        spawnFire();
+        fireSpawnTimer = Math.max(1.5, FIRE_SPAWN_INTERVAL - state.level * 0.1);
+      }
+    } else if (state.phase === 2) {
+      updateElevators(dt);
+    } else if (state.phase === 3) {
+      updateMovingPlatforms(dt);
     }
 
-    // Timer
     timeAcc += dt;
     if (timeAcc >= 1) {
       state.timeLeft -= 1;
@@ -773,6 +1047,7 @@ const loop = createGameLoop((dt) => {
 
 // ── INIT ──
 initPlayer();
+setupPhaseEntities();
 updateHUD();
 
 shell.onCleanup(() => loop.stop());

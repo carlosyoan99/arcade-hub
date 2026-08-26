@@ -50,7 +50,11 @@ const PLATFORMS = [
   { x: 180, y: 80, w: 120, h: 10 }, // plataforma cima
 ];
 
-const LAVA_Y = 500; // inicio visual de la lava
+const LAVA_INITIAL_Y = 500;
+let lavaY = LAVA_INITIAL_Y; // lava sube gradualmente
+const LAVA_RISE_RATE = 1.5; // px/s
+const LAVA_PUSHS_FORCE = -180; // velocidad que la lava imparte a huevos/enemigos
+
 const PLAYER_W = 32;
 const PLAYER_H = 36;
 const PLAYER_MAX_SPEED = 200;
@@ -280,6 +284,7 @@ function startGame() {
   state.firstJoustDone = false;
   enemies = [];
   eggs = [];
+  lavaY = LAVA_INITIAL_Y;
   clearParticles();
   clearSquashes();
   achievements.incrementPlays('joust');
@@ -462,7 +467,7 @@ function updatePlayer(dt) {
   checkPlatformCollision(player, player.w, player.h);
 
   // Lava
-  if (player.y + player.h > LAVA_Y) {
+  if (player.y + player.h > lavaY) {
     if (!state.gameOver) loseLife();
   }
 }
@@ -528,11 +533,17 @@ function updateEnemies(dt) {
     e.onGround = false;
     checkPlatformCollision(e, e.w, e.h);
 
-    // Lava: enemigos mueren en lava también
-    if (e.y + e.h > LAVA_Y) {
-      enemies.splice(i, 1);
-      state.enemiesRemaining--;
-      continue;
+    // Lava: push enemies up or kill if deep
+    if (e.y + e.h > lavaY) {
+      if (e.y > lavaY + 30) {
+        // Deep in lava — die
+        enemies.splice(i, 1);
+        state.enemiesRemaining--;
+        continue;
+      } else {
+        // Shallow — push up
+        e.vy = Math.min(e.vy, LAVA_PUSHS_FORCE);
+      }
     }
 
     // Jousting: colisión con el jugador
@@ -621,8 +632,11 @@ function updateEggs(dt) {
     if (egg.x < 0) egg.x = GAME_W;
     else if (egg.x > GAME_W) egg.x = 0;
 
-    // Lava: huevos se destruyen en lava
-    if (egg.y > LAVA_Y + 20) {
+    // Lava: push eggs up or destroy if deep
+    if (egg.y > lavaY) {
+      egg.vy = Math.min(egg.vy, LAVA_PUSHS_FORCE * 0.6);
+    }
+    if (egg.y > lavaY + 40) {
       eggs.splice(i, 1);
       continue;
     }
@@ -712,7 +726,7 @@ function draw() {
   const seed = 42;
   for (let i = 0; i < 40; i++) {
     const sx = ox + ((i * 137 + seed) % GAME_W) * s;
-    const sy = oy + ((i * 97 + seed) % (LAVA_Y - 60)) * s * 0.8;
+    const sy = oy + ((i * 97 + seed) % (lavaY - 60)) * s * 0.8;
     const sr = (1 + (i % 3) * 0.3) * s;
     ctx.beginPath();
     ctx.arc(sx, sy, sr, 0, Math.PI * 2);
@@ -720,14 +734,14 @@ function draw() {
   }
 
   // ── Lava ──
-  const lavaGrad = ctx.createLinearGradient(0, oy + LAVA_Y * s, 0, oy + GAME_H * s);
+  const lavaGrad = ctx.createLinearGradient(0, oy + lavaY * s, 0, oy + GAME_H * s);
   lavaGrad.addColorStop(0, '#ff4400');
   lavaGrad.addColorStop(0.3, '#cc2200');
   lavaGrad.addColorStop(0.7, '#881100');
   lavaGrad.addColorStop(1, '#440800');
   fillWithGlow(
     ctx,
-    () => roundRect(ctx, ox, oy + LAVA_Y * s, GAME_W * s, (GAME_H - LAVA_Y) * s, 0),
+    () => roundRect(ctx, ox, oy + lavaY * s, GAME_W * s, (GAME_H - lavaY) * s, 0),
     lavaGrad,
     0.3,
     10 * s,
@@ -738,7 +752,7 @@ function draw() {
   ctx.strokeStyle = 'rgba(255,120,40,0.15)';
   ctx.lineWidth = 2 * s;
   for (let i = 0; i < 4; i++) {
-    const wy = oy + (LAVA_Y + 15 + i * 12 + Math.sin(animTime * 2 + i * 1.5) * 4) * s;
+    const wy = oy + (lavaY + 15 + i * 12 + Math.sin(animTime * 2 + i * 1.5) * 4) * s;
     ctx.beginPath();
     for (let wx = ox; wx < ox + GAME_W * s; wx += 4 * s) {
       const lx = (wx - ox) / s;
@@ -751,7 +765,7 @@ function draw() {
   // Mano troll emergiendo de la lava (decorativa)
   ctx.fillStyle = 'rgba(255,68,0,0.2)';
   const trollX = ox + Math.sin(animTime * 0.5) * 60 * s + GAME_W * s * 0.5;
-  const trollY = oy + (LAVA_Y - 10 + Math.sin(animTime * 1.2) * 6) * s;
+  const trollY = oy + (lavaY - 10 + Math.sin(animTime * 1.2) * 6) * s;
   roundRect(ctx, trollX - 10 * s, trollY, 20 * s, 20 * s, 6 * s);
   ctx.fill();
   // Dedos
@@ -1069,6 +1083,9 @@ const loop = createGameLoop((dt) => {
     updatePlayer(dt);
     updateEnemies(dt);
     updateEggs(dt);
+
+    // Lava sube gradualmente
+    if (lavaY > 380) lavaY -= LAVA_RISE_RATE * dt;
 
     // Reponer enemigos si hay espacio
     if (

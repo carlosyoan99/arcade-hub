@@ -1,6 +1,6 @@
 # 🦅 Joust
 
-**Versión:** 1.3.1 | **Género:** Acción | **Última actualización:** 2026-08-26
+**Versión:** 1.5.0 | **Género:** Acción | **Última actualización:** 2026-08-26
 
 Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas clásicas. Golpeá desde arriba para vencer, recolectá huevos para puntos extra y sobreviví oleadas cada vez más difíciles.
 
@@ -24,9 +24,11 @@ Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas clásicas
 
 - 🦅 Física de aleteo con inercia horizontal y gravedad
 - ⚔️ Justas aéreas: golpeá desde arriba para eliminar enemigos
-- 👾 3 tipos de enemigos: Bounders, Hunters y Shadow Lords
+- 👾 5 tipos de enemigos: Bounders, Hunters, Shadow Lords, Vultures (sin jinete) y Pterodactyls
+- 🦅 Vultures: enemigos rápidos sin jinete, patrón errático
+- 🦕 Pterodactyls: desde oleada 5, vuelan recto a alta velocidad con picadas
+- 🌋 Lava que sube gradualmente, empuja huevos y enemigos hacia arriba
 - 🥚 Huevos que rebotan en plataformas y eclosionan si no los recolectás
-- 🌋 Lago de lava en la base con mano troll que atrapa
 - 📈 Oleadas progresivas con dificultad creciente
 - 💥 Game feel: screen shake, hit-stop, squash & stretch, partículas neon en colisiones
 - 🏆 Puntaje y récord persistidos
@@ -55,6 +57,7 @@ Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas clásicas
 
 ## Changelog
 
+- **1.5.0** (2026-08-26): Vultures + Pterodactyls + lava subiendo gradualmente
 - **1.3.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.3.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.2.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

@@ -55,21 +55,35 @@ const LEVEL_SPEED_GROWTH = 1.08;
 
 const START_LIVES = 3;
 
-const BRICK_ROWS = 5;
-const BRICK_COLS = 9;
-const BRICK_W = 64;
-const BRICK_H = 22;
-const BRICK_GAP = 6;
+const BRICK_ROWS = 8;
+const BRICK_COLS = 14;
+const BRICK_W = 40;
+const BRICK_H = 18;
+const BRICK_GAP = 4;
 const BRICK_TOP = 40; // distancia desde el borde superior
 
-const ROW_COLORS = ['#ff6b6b', '#ffa76b', '#ffe066', '#6ee7b7', '#6ec6ff'];
-const ROW_POINTS = [50, 40, 30, 20, 10];
+const ANTI_STUCK_TIME = 5; // segundos sin golpear ladrillo → forzar rebote
+
+const ROW_COLORS = [
+  '#ff6b6b',
+  '#ffa76b',
+  '#ffe066',
+  '#6ee7b7',
+  '#6ec6ff',
+  '#b088f9',
+  '#ff88cc',
+  '#ff9944',
+];
+const ROW_POINTS = [80, 70, 60, 50, 40, 30, 20, 10];
 const ROW_GLOW_COLORS = [
   'rgba(255,107,107,0.4)',
   'rgba(255,167,107,0.4)',
   'rgba(255,224,102,0.4)',
   'rgba(110,231,183,0.4)',
   'rgba(110,198,255,0.4)',
+  'rgba(176,136,249,0.4)',
+  'rgba(255,136,204,0.4)',
+  'rgba(255,153,68,0.4)',
 ];
 
 const COURT_PADDING = 20;
@@ -86,6 +100,7 @@ const state = {
   level: 1,
   best: loadBest('breakout2d'),
   ballSpeed: BALL_LAUNCH_SPEED_BASE,
+  ballStuckTimer: 0,
 };
 
 // Paleta
@@ -326,6 +341,7 @@ function parkBallOnPaddle() {
 function launchBall() {
   if (!state.running || state.gameOver || !state.waitingToLaunch) return;
   state.waitingToLaunch = false;
+  state.ballStuckTimer = 0;
   const angle = (Math.random() - 0.5) * 0.6;
   ball.vx = Math.sin(angle);
   ball.vy = -Math.cos(angle);
@@ -498,6 +514,7 @@ function updateBallStep(dt) {
     ball.vx /= len;
     ball.vy /= len;
     state.ballSpeed = Math.min(BALL_MAX_SPEED, state.ballSpeed * BALL_HIT_GROWTH);
+    state.ballStuckTimer = 0;
     playPaddleHit();
     spawnParticles(ball.x, paddle.y - 4, '#6ec6ff', 6, { spd: 100, life: 0.35, friction: 0.97 });
   }
@@ -521,6 +538,7 @@ function updateBallStep(dt) {
 
       b.alive = false;
       state.score += b.points;
+      state.ballStuckTimer = 0;
       playBrickBreak(b.points);
       spawnParticles(b.x, b.y, b.color, 10);
       updateHUD();
@@ -746,6 +764,15 @@ const loop = createGameLoop((dt) => {
   if (state.running && !state.gameOver) {
     updatePaddle(dt);
     updateBall(dt);
+
+    // Anti-stuck: si la pelota no golpa ladrillos en 5s, forzar rebote hacia arriba
+    if (!state.waitingToLaunch) {
+      state.ballStuckTimer += dt;
+      if (state.ballStuckTimer >= ANTI_STUCK_TIME && ball.vy > 0) {
+        ball.vy = -Math.abs(ball.vy);
+        state.ballStuckTimer = 0;
+      }
+    }
   }
 
   updateSquashes(dt);

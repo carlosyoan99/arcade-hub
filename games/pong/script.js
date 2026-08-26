@@ -30,6 +30,7 @@ const shell = setupGameShell('pong');
 /* ============================================================
    PONG 2D — Arcade Hub
    Canvas 2D, sin dependencias externas.
+   1P (vs IA humana) o 2P local (W/S vs ↑/↓).
    ============================================================ */
 
 // CONSTANTES
@@ -40,12 +41,18 @@ const PADDLE_HALF_LEN = 50;
 const PADDLE_WIDTH = 10;
 const PADDLE_X_OFFSET = 25;
 const PADDLE_SPEED = 400;
-const AI_SPEED = 320;
 const BALL_RADIUS = 7;
 const BALL_BASE_SPEED = 290;
 const BALL_MAX_SPEED = 700;
 const BALL_SPEED_GROWTH = 1.045;
 const COURT_PADDING = 20;
+
+// IA HUMANA
+const AI_BASE_SPEED = 300;
+const AI_REACTION_MIN = 0.06;
+const AI_REACTION_MAX = 0.18;
+const AI_AIM_ERROR_DEG = 5;
+const AI_SPEED_VAR = 0.15;
 
 // ESTADO
 const state = {
@@ -54,10 +61,17 @@ const state = {
   playerScore: 0,
   aiScore: 0,
   wins: Number(localStorage.getItem('pong2d_wins') || 0),
+  twoPlayer: false,
 };
-const playerPaddle = { x: 0, z: 0 };
-const aiPaddle = { x: 0, z: 0 };
-const ball = { x: 0, z: 0, vx: 0, vz: 0, speed: BALL_BASE_SPEED, squashIdx: -1 };
+const playerPaddle = { x: 0, y: 0 };
+const player2Paddle = { x: 0, y: 0 };
+const aiPaddle = { x: 0, y: 0 };
+const ball = { x: 0, y: 0, vx: 0, vy: 0, speed: BALL_BASE_SPEED, squashIdx: -1 };
+
+// IA state
+let aiTargetY = COURT_H / 2;
+let aiReactionTimer = 0;
+let aiCurrentSpeed = AI_BASE_SPEED;
 
 // CANVAS SETUP
 const canvas = document.getElementById('gameCanvas');
@@ -119,8 +133,9 @@ function playLoseTone() {
 }
 
 // ENTRADA
-const keys = { up: false, down: false };
+const keys = { up: false, down: false, p2Up: false, p2Down: false };
 window.addEventListener('keydown', (e) => {
+  // Player 1: W/S or ↑/↓
   if (['ArrowUp', 'KeyW'].includes(e.code)) {
     e.preventDefault();
     keys.up = true;
@@ -128,6 +143,17 @@ window.addEventListener('keydown', (e) => {
   if (['ArrowDown', 'KeyS'].includes(e.code)) {
     e.preventDefault();
     keys.down = true;
+  }
+  // Player 2: ↑/↓ when in 2P mode (W/S already taken by P1)
+  if (state.twoPlayer) {
+    if (e.code === 'ArrowUp') {
+      e.preventDefault();
+      keys.p2Up = true;
+    }
+    if (e.code === 'ArrowDown') {
+      e.preventDefault();
+      keys.p2Down = true;
+    }
   }
   if (e.code === 'Space') {
     e.preventDefault();
@@ -137,10 +163,20 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     if (!state.running) startGame();
   }
+  // Toggle 2P mode with Tab when not running
+  if (e.code === 'Tab' && !state.running) {
+    e.preventDefault();
+    state.twoPlayer = !state.twoPlayer;
+    updateModeDisplay();
+  }
 });
 window.addEventListener('keyup', (e) => {
   if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
   if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
+  if (state.twoPlayer) {
+    if (e.code === 'ArrowUp') keys.p2Up = false;
+    if (e.code === 'ArrowDown') keys.p2Down = false;
+  }
 });
 
 bindHoldButton(
@@ -192,10 +228,15 @@ overlay.addEventListener('click', () => {
   if (!state.running) startGame();
 });
 
-// ── Anuncio accesible (screen reader) ──
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
+
+function updateModeDisplay() {
+  const modeEl = document.getElementById('modeDisplay');
+  if (modeEl) modeEl.textContent = state.twoPlayer ? '2P' : '1P';
+}
+
 // LÓGICA
 function serveBall(towardPlayer) {
   ball.x = COURT_W / 2;
@@ -216,6 +257,8 @@ function resetGame() {
   state.gameOver = false;
   playerPaddle.y = COURT_H / 2;
   aiPaddle.y = COURT_H / 2;
+  player2Paddle.y = COURT_H / 2;
+  aiReactionTimer = 0;
   finalScoreEl.style.display = 'none';
   serveBall(Math.random() > 0.5);
   updateHUD();
@@ -251,7 +294,7 @@ function endGame(playerWon) {
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `${state.playerScore} - ${state.aiScore} · Victorias: ${state.wins}`;
   shell.disableTabTrap();
-  hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar`;
+  hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar  ·  <kbd>Tab</kbd> modo 1P/2P`;
   overlay.classList.remove('hidden');
   if (playerWon) say('Pong: ganaste la partida.');
   else say('Pong: perdiste la partida.');
@@ -263,23 +306,52 @@ function updatePlayerPaddle(dt) {
   let dir = 0;
   if (keys.up) dir -= 1;
   if (keys.down) dir += 1;
-  if (gamepadAxis !== 0) dir = Math.sign(gamepadAxis);
+  if (!state.twoPlayer && gamepadAxis !== 0) dir = Math.sign(gamepadAxis);
   playerPaddle.y += dir * PADDLE_SPEED * dt;
   playerPaddle.y = Math.max(PADDLE_HALF_LEN, Math.min(COURT_H - PADDLE_HALF_LEN, playerPaddle.y));
   playerPaddle.x = PADDLE_X_OFFSET + PADDLE_WIDTH / 2;
 }
+
+function updatePlayer2Paddle(dt) {
+  if (!state.twoPlayer) return;
+  let dir = 0;
+  if (keys.p2Up) dir -= 1;
+  if (keys.p2Down) dir += 1;
+  player2Paddle.y += dir * PADDLE_SPEED * dt;
+  player2Paddle.y = Math.max(PADDLE_HALF_LEN, Math.min(COURT_H - PADDLE_HALF_LEN, player2Paddle.y));
+  player2Paddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;
+}
+
 function updateAiPaddle(dt) {
-  const target = ball.vx > 0 ? ball.y : COURT_H / 2 + (ball.y - COURT_H / 2) * 0.3;
-  const diff = target - aiPaddle.y;
+  if (state.twoPlayer) return; // AI disabled in 2P mode
+
+  // Humanized AI: reaction delay
+  aiReactionTimer -= dt;
+  if (aiReactionTimer <= 0 && ball.vx > 0) {
+    // React to ball position with error
+    const aimError = ((Math.random() - 0.5) * 2 * AI_AIM_ERROR_DEG * Math.PI) / 180;
+    aiTargetY = ball.y + Math.sin(aimError) * COURT_H * 0.1;
+    // Add speed variation per reaction cycle
+    aiCurrentSpeed = AI_BASE_SPEED * (1 + (Math.random() - 0.5) * 2 * AI_SPEED_VAR);
+    aiReactionTimer = AI_REACTION_MIN + Math.random() * (AI_REACTION_MAX - AI_REACTION_MIN);
+  }
+
+  // When ball moving away, drift toward center
+  if (ball.vx <= 0) {
+    aiTargetY = COURT_H / 2;
+  }
+
+  const diff = aiTargetY - aiPaddle.y;
   aiPaddle.y = Math.max(
     PADDLE_HALF_LEN,
     Math.min(
       COURT_H - PADDLE_HALF_LEN,
-      aiPaddle.y + Math.max(-AI_SPEED * dt, Math.min(AI_SPEED * dt, diff)),
+      aiPaddle.y + Math.max(-aiCurrentSpeed * dt, Math.min(aiCurrentSpeed * dt, diff)),
     ),
   );
   aiPaddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;
 }
+
 function updateBall(dt) {
   const maxStep = ball.speed * dt;
   if (maxStep > PADDLE_WIDTH * 0.5) {
@@ -307,8 +379,9 @@ function updateBallSub(dt) {
     playWallBounce();
     spawnParticles(ball.x, COURT_H, '#5568ff', 5);
   }
-  const pLx = playerPaddle.x,
-    pRx = aiPaddle.x;
+
+  // Left paddle (player 1)
+  const pLx = playerPaddle.x;
   if (
     ball.vx < 0 &&
     ball.x - BALL_RADIUS <= pLx + PADDLE_WIDTH / 2 &&
@@ -320,17 +393,22 @@ function updateBallSub(dt) {
       spawnParticles(pLx + PADDLE_WIDTH / 2, ball.y, '#6ee7b7', 8);
     }
   }
+
+  // Right paddle (AI or player 2)
+  const rightPaddle = state.twoPlayer ? player2Paddle : aiPaddle;
+  const pRx = rightPaddle.x;
   if (
     ball.vx > 0 &&
     ball.x + BALL_RADIUS >= pRx - PADDLE_WIDTH / 2 &&
     ball.x + BALL_RADIUS < pRx + PADDLE_WIDTH + 4
   ) {
-    if (Math.abs(ball.y - aiPaddle.y) <= PADDLE_HALF_LEN + BALL_RADIUS) {
-      bounceOffPaddle(aiPaddle, -1);
+    if (Math.abs(ball.y - rightPaddle.y) <= PADDLE_HALF_LEN + BALL_RADIUS) {
+      bounceOffPaddle(rightPaddle, -1);
       playPaddleHit();
       spawnParticles(pRx - PADDLE_WIDTH / 2, ball.y, '#ff8a65', 8);
     }
   }
+
   if (ball.x < -BALL_RADIUS * 2) {
     state.aiScore += 1;
     playScoreSound(false);
@@ -411,6 +489,8 @@ function draw() {
   ctx.beginPath();
   ctx.arc(ox + cw / 2, oy + ch / 2, 40 * s, 0, Math.PI * 2);
   ctx.stroke();
+
+  // Player 1 paddle
   drawPaddle(
     ox + playerPaddle.x * s,
     oy + playerPaddle.y * s,
@@ -418,13 +498,26 @@ function draw() {
     PADDLE_WIDTH * s,
     '#6ee7b7',
   );
-  drawPaddle(
-    ox + aiPaddle.x * s,
-    oy + aiPaddle.y * s,
-    PADDLE_HALF_LEN * 2 * s,
-    PADDLE_WIDTH * s,
-    '#ff8a65',
-  );
+
+  // Right paddle (AI or P2)
+  if (state.twoPlayer) {
+    drawPaddle(
+      ox + player2Paddle.x * s,
+      oy + player2Paddle.y * s,
+      PADDLE_HALF_LEN * 2 * s,
+      PADDLE_WIDTH * s,
+      '#ff8a65',
+    );
+  } else {
+    drawPaddle(
+      ox + aiPaddle.x * s,
+      oy + aiPaddle.y * s,
+      PADDLE_HALF_LEN * 2 * s,
+      PADDLE_WIDTH * s,
+      '#ff8a65',
+    );
+  }
+
   drawBall(ox + ball.x * s, oy + ball.y * s, BALL_RADIUS * s);
   drawParticles(ctx, offX, offY, scale);
   ctx.restore();
@@ -484,6 +577,7 @@ const loop = createGameLoop((dt) => {
   updateShake(dt);
   if (state.running && !state.gameOver) {
     updatePlayerPaddle(dt);
+    updatePlayer2Paddle(dt);
     updateAiPaddle(dt);
     updateBall(dt);
   }
@@ -493,10 +587,13 @@ const loop = createGameLoop((dt) => {
 });
 playerPaddle.x = PADDLE_X_OFFSET + PADDLE_WIDTH / 2;
 playerPaddle.y = COURT_H / 2;
+player2Paddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;
+player2Paddle.y = COURT_H / 2;
 aiPaddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;
 aiPaddle.y = COURT_H / 2;
 ball.x = COURT_W / 2;
 ball.y = COURT_H / 2;
+updateModeDisplay();
 updateHUD();
 
 shell.onCleanup(() => loop.stop());

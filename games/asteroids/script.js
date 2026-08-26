@@ -71,6 +71,7 @@ const state = {
   lives: START_LIVES,
   best: loadBest('asteroids2d'),
   invincibleTimer: 0,
+  hyperspaceCooldown: 0,
 };
 
 // ============================================================
@@ -233,6 +234,9 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     if (!state.running) startGame();
     else if (!state.gameOver) input.fire = true;
+  } else if (e.code === 'KeyH') {
+    e.preventDefault();
+    if (state.running && !state.gameOver) hyperspace();
   } else if (e.code === 'KeyR' && !state.running) {
     e.preventDefault();
     startGame();
@@ -396,6 +400,7 @@ function resetGame() {
   state.lives = START_LIVES;
   state.gameOver = false;
   state.invincibleTimer = 0;
+  state.hyperspaceCooldown = 0;
   ship.x = COURT_W / 2;
   ship.y = COURT_H / 2;
   ship.vx = 0;
@@ -458,9 +463,22 @@ function endGame() {
 // ============================================================
 // FÍSICA / ACTUALIZACIÓN
 // ============================================================
+function hyperspace() {
+  if (state.hyperspaceCooldown > 0) return;
+  ship.x = Math.random() * COURT_W;
+  ship.y = Math.random() * COURT_H;
+  ship.vx = 0;
+  ship.vy = 0;
+  state.hyperspaceCooldown = 5;
+  state.invincibleTimer = 1.5;
+  spawnParticles(ship.x, ship.y, '#00ffff', 16, { spd: 80, life: 0.4 });
+  beep({ freq: 400, freqEnd: 1200, duration: 0.15, type: 'sine', volume: 0.12 });
+}
+
 function updateShip(dt) {
   if (state.gameOver) return;
   if (state.invincibleTimer > 0) state.invincibleTimer -= dt;
+  if (state.hyperspaceCooldown > 0) state.hyperspaceCooldown -= dt;
 
   if (input.left) ship.angle -= ROT_SPEED * dt;
   if (input.right) ship.angle += ROT_SPEED * dt;
