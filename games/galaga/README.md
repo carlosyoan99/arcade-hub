@@ -1,6 +1,6 @@
 # 🛸 Galaga
 
-**Versión:** 1.5.1 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
 
 Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y sobreviví el mayor tiempo posible.
 
@@ -23,6 +23,8 @@ Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y s
 ## Características
 
 - 👾 Invasores con formación que realiza picados en espiral
+- 🛸 Tractor beam: en oleadas pares un enemigo desciende y despliega un haz verde que se expande y contrae; si te atrapa, pierde la nave (se la lleva el portador)
+- 🎁 Rescate: destruí al portador para recuperar la nave (+500 pts) y ganar doble disparo temporal; interrumpir el rayo a tiempo da +300
 - 💥 Game feel: screen shake, hit-stop, squash & stretch, partículas neon en explosiones
 - ⚡ Velocidad de oleadas progresiva
 - 🏆 Récord persistido en `localStorage`
@@ -49,6 +51,7 @@ Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y s
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Mecánica icónica — tractor beam en oleadas pares: captura de nave con animación de haz expansivo, rescate al destruir al portador (doble disparo 10s) y bonus por interrumpirlo
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; constantes extraídas (SHIP_MARGIN, MIN_DIVE_INTERVAL, MAX_DIVERS)

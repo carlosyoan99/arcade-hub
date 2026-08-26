@@ -1,7 +1,7 @@
 {
   "id": "galaga",
   "title": "Galaga",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "created": "2026-07-15",
   "lastModified": "2026-08-26",
   "description": "Destruí oleadas de invasores en formación con picados en espiral.",
@@ -10,6 +10,15 @@
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Tractor beam: en oleadas pares un enemigo despliega el rayo y puede capturar tu nave",
+        "Rescate: destruí al portador para recuperar la nave (+500 y doble disparo por 10s)",
+        "Interrumpir el rayo a tiempo otorga +300"
+      ]
+    },
     {
       "version": "1.5.1",
       "date": "2026-08-26",
