@@ -1,70 +1,21 @@
 {
   "id": "missile-command",
   "title": "Missile Command",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "created": "2026-07-28",
   "lastModified": "2026-08-26",
-  "description": "Defendé tus ciudades de misiles enemigos con interceptores y misiles teledirigidos.",
+  "description": "Defendé tus ciudades de misiles enemigos con interceptores.",
   "genre": "defensa",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
     {
-      "version": "1.4.2",
+      "version": "1.6.0",
       "date": "2026-08-26",
       "changes": [
-        "Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)"
-      ]
-    },
-    {
-      "version": "1.0.0",
-      "date": "2026-07-28",
-      "changes": ["Versión inicial del juego"]
-    },
-    {
-      "version": "1.1.0",
-      "date": "2026-07-28",
-      "changes": [
-        "Refactor CSS: estética neon compartida en base.css",
-        "README.md con controles y descripción",
-        "Correcciones ESLint"
-      ]
-    },
-    {
-      "version": "1.2.0",
-      "date": "2026-07-30",
-      "changes": [
-        "Canvas ID unificado + setupCanvas() vía shared/display.js",
-        "HUD IDs unificados a nombres legibles",
-        "HTML compartido inyectado via shared/dom.js"
-      ]
-    },
-    {
-      "version": "1.3.0",
-      "date": "2026-07-30",
-      "changes": [
-        "Compartido: shared/loop.js — game loop compartido con dt/RAF/cleanup unificados",
-        "R4: @keyframes shimmerFlow extraído a shared/base.css",
-        "P0: drawGlow() y feedbackBundle() para rendimiento y game feel"
-      ]
-    },
-    {
-      "version": "1.4.0",
-      "date": "2026-07-30",
-      "changes": [
-        "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
-        "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
-        "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
-        "R3: Constantes extraídas (ammo, intervalos de oleadas)",
-        "Fix: refs rotas CANVAS_W/H→CW/CH y c→canvas"
-      ]
-    },
-    {
-      "version": "1.4.1",
-      "date": "2026-08-12",
-      "changes": [
-        "G5: Squash & stretch real — explosiones estiradas (triggerSquash en blasts) + retroceso squash en bases al disparar"
+        "Auditoría: eliminados misiles teledirigidos (guided), misiles inteligentes (smart) y satélites — fiel al arcade original",
+        "HUD badge guiado removido del HTML"
       ]
     },
     {

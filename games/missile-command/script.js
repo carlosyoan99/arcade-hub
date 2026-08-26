@@ -47,17 +47,10 @@ const BLAST_RADIUS = 40;
 const BLAST_DURATION = 0.4;
 const CITY_PTS = 5; // bonus per city at wave end
 const KILL_PTS = 25;
-const SMART_PTS = 50;
-const SAT_PTS = 100;
-const GUIDED_KILLS = 8; // kills para obtener misil teledirigido
-const GUIDED_SPEED = 420;
-const GUIDED_RADIUS = 55;
-const GUIDED_PTS = 150;
 const MIN_AMMO_PER_BASE = 2;
 const MIN_INCOMING_INTERVAL = 0.3;
 const BASE_INCOMING_INTERVAL = 1.2;
 const INCOMING_REDUCTION = 0.05;
-const GUIDED_SLOW_DIST = 0.15;
 
 // ============================================================
 // ESTADO
@@ -72,8 +65,6 @@ const state = {
   waveTimer: 0,
   waveActive: false,
   cityCount: NUM_CITIES,
-  guidedKills: 0,
-  guidedCharge: 0,
 };
 
 // ============================================================
@@ -102,15 +93,6 @@ function pHitCity() {
 function pWaveStart() {
   beep({ freq: 220, freqEnd: 440, duration: 0.15, type: 'triangle', volume: 0.12 });
 }
-function pGuidedLaunch() {
-  beep({ freq: 600, freqEnd: 1800, duration: 0.08, type: 'sine', volume: 0.1 });
-}
-function pGuidedHit(bx, by) {
-  feedbackBundle('medium', bx, by, {
-    color: '#44ff88',
-    onBeep: () => beep({ freq: 800, freqEnd: 200, duration: 0.2, type: 'triangle', volume: 0.18 }),
-  });
-}
 
 // ============================================================
 // PARTÍCULAS (shared)
@@ -122,15 +104,10 @@ function pGuidedHit(bx, by) {
 let missiles = []; // incoming enemy missiles
 let abs = []; // anti-ballistic missiles (player's)
 let blasts = []; // explosion circles
-let smartMissiles = [];
-let satellites = [];
 let cities = [];
 let bases = [];
 let incomingTimer = 0;
 let incomingInterval = 1.2;
-let smartTimer = 0;
-let satTimer = 0;
-let guidedMissile = null;
 const crosshair = { x: CW / 2, y: CH / 2 };
 
 function initLevel() {
@@ -155,20 +132,13 @@ function initLevel() {
   missiles = [];
   abs = [];
   blasts = [];
-  smartMissiles = [];
-  satellites = [];
-  guidedMissile = null;
   state.ammo = START_AMMO;
   state.cityCount = NUM_CITIES;
-  state.guidedKills = 0;
-  state.guidedCharge = 0;
   incomingTimer = 0;
   incomingInterval = Math.max(
     MIN_INCOMING_INTERVAL,
     BASE_INCOMING_INTERVAL - state.wave * INCOMING_REDUCTION,
   );
-  smartTimer = 3 + Math.random() * 2;
-  satTimer = 8 + Math.random() * 4;
 }
 
 function startWave() {
@@ -217,46 +187,6 @@ function fireABM(tx, ty) {
   updateHUD();
 }
 
-function fireGuided() {
-  if (
-    !state.running ||
-    state.gameOver ||
-    !state.waveActive ||
-    state.guidedCharge <= 0 ||
-    guidedMissile
-  )
-    return;
-  // Find nearest base with ammo
-  let bestBase = null,
-    bestDist = Infinity;
-  for (const b of bases) {
-    if (b.ammo <= 0) continue;
-    const d = Math.hypot(b.x - crosshair.x, GROUND_Y - crosshair.y);
-    if (d < bestDist) {
-      bestDist = d;
-      bestBase = b;
-    }
-  }
-  if (!bestBase) return;
-  bestBase.ammo--;
-  state.ammo--;
-  // Retroceso: la base se aplasta brevemente al disparar
-  bestBase.squashIdx = triggerSquash(0.1, 1.3, 0.7);
-  state.guidedCharge--;
-  state.guidedKills = 0;
-  guidedMissile = {
-    x: bestBase.x,
-    y: GROUND_Y,
-    targetX: crosshair.x,
-    targetY: crosshair.y,
-    trail: [],
-    life: 3.5, // segundos antes de autodestruirse
-    alive: true,
-  };
-  pGuidedLaunch();
-  updateHUD();
-}
-
 function spawnMissile() {
   const fromX = Math.random() * CW;
   const target = cities.filter((c) => c.alive);
@@ -272,33 +202,6 @@ function spawnMissile() {
     vx: ((targetY - fromX) / len) * speed,
     vy: (GROUND_Y / len) * speed,
     trail: [],
-    alive: true,
-    isSmart: false,
-  });
-}
-
-function spawnSmartMissile() {
-  const fromX = Math.random() * CW;
-  const speed = 100 + state.wave * 5;
-  smartMissiles.push({
-    x: fromX,
-    y: 0,
-    vx: (Math.random() - 0.5) * speed * 0.3,
-    vy: speed * 0.6,
-    wobble: Math.random() * 3 + 1,
-    wobbleOffset: Math.random() * 6,
-    trail: [],
-    alive: true,
-  });
-}
-
-function spawnSatellite() {
-  const fromLeft = Math.random() > 0.5;
-  const speed = 60 + state.wave * 5;
-  satellites.push({
-    x: fromLeft ? -20 : CW + 20,
-    y: 20 + Math.random() * (CH * 0.3),
-    vx: fromLeft ? speed : -speed,
     alive: true,
   });
 }
@@ -383,11 +286,7 @@ canvas.addEventListener('click', (e) => {
   const ty = (e.clientY - rect.top - oy) / sc;
   crosshair.x = tx;
   crosshair.y = ty;
-  if (state.guidedCharge > 0 && !guidedMissile) {
-    fireGuided();
-  } else {
-    fireABM(tx, ty);
-  }
+  fireABM(tx, ty);
 });
 canvas.addEventListener(
   'touchstart',
@@ -403,11 +302,7 @@ canvas.addEventListener(
     const ty = (touch.clientY - rect.top - oy) / sc;
     crosshair.x = tx;
     crosshair.y = ty;
-    if (state.guidedCharge > 0 && !guidedMissile) {
-      fireGuided();
-    } else {
-      fireABM(tx, ty);
-    }
+    fireABM(tx, ty);
   },
   { passive: false },
 );
@@ -481,7 +376,6 @@ function pG() {
   const sH = !!gp.buttons[9]?.pressed;
   if (fH && !gP.f) {
     if (!state.running) startGame();
-    else if (state.guidedCharge > 0 && !guidedMissile) fireGuided();
     else fireABM(crosshair.x, crosshair.y);
   }
   if (sH && !gP.s && !state.running) startGame();
@@ -535,58 +429,6 @@ function updateMissiles(dt) {
   }
 }
 
-function updateSmartMissiles(dt) {
-  smartTimer -= dt;
-  if (smartTimer <= 0 && state.waveActive && state.wave >= 2) {
-    spawnSmartMissile();
-    smartTimer = 5 + Math.random() * 4 - state.wave * 0.2;
-  }
-
-  for (let i = smartMissiles.length - 1; i >= 0; i--) {
-    const m = smartMissiles[i];
-    m.trail.push({ x: m.x, y: m.y });
-    if (m.trail.length > 25) m.trail.shift();
-    m.x += m.vx * dt + Math.sin((Date.now() / 200) * m.wobble + m.wobbleOffset) * 2;
-    m.y += m.vy * dt;
-    if (m.y >= GROUND_Y) {
-      let hitCity = false;
-      for (const city of cities) {
-        if (city.alive && Math.abs(city.x - m.x) < CITY_R * 2) {
-          city.alive = false;
-          state.cityCount--;
-          pHitCity();
-          spawnParticles(city.x, GROUND_Y, '#ff6b6b', 20, { spd: 100, life: 0.5, smx: 5 });
-          updateHUD();
-          if (state.cityCount <= 0) {
-            endGame();
-            return;
-          }
-          hitCity = true;
-          break;
-        }
-      }
-      if (!hitCity) spawnParticles(m.x, GROUND_Y, '#ff8844', 8, { spd: 60, life: 0.3 });
-      smartMissiles.splice(i, 1);
-    }
-  }
-}
-
-function updateSatellites(dt) {
-  satTimer -= dt;
-  if (satTimer <= 0 && state.waveActive && state.wave >= 3) {
-    spawnSatellite();
-    satTimer = 10 + Math.random() * 5 - state.wave * 0.3;
-  }
-
-  for (let i = satellites.length - 1; i >= 0; i--) {
-    const s = satellites[i];
-    s.x += s.vx * dt;
-    if (s.x < -40 || s.x > CW + 40) {
-      satellites.splice(i, 1);
-    }
-  }
-}
-
 function updateABMs(dt) {
   for (let i = abs.length - 1; i >= 0; i--) {
     const a = abs[i];
@@ -612,7 +454,6 @@ function updateABMs(dt) {
       });
       pExplode();
       spawnParticles(bx, by, '#ffdd88', 10, { spd: 80, life: 0.3 });
-      let killsThisBlast = 0;
       // Kill missiles in blast radius
       for (let mi = missiles.length - 1; mi >= 0; mi--) {
         const m = missiles[mi];
@@ -620,126 +461,12 @@ function updateABMs(dt) {
           state.score += KILL_PTS;
           spawnParticles(m.x, m.y, '#ffdd88', 6, { spd: 50, life: 0.2 });
           missiles.splice(mi, 1);
-          killsThisBlast++;
-          updateHUD();
-        }
-      }
-      for (let si = smartMissiles.length - 1; si >= 0; si--) {
-        const m = smartMissiles[si];
-        if (Math.hypot(m.x - bx, m.y - by) < BLAST_RADIUS) {
-          state.score += SMART_PTS;
-          spawnParticles(m.x, m.y, '#ffaa44', 8, { spd: 60, life: 0.3 });
-          smartMissiles.splice(si, 1);
-          killsThisBlast++;
-          updateHUD();
-        }
-      }
-      for (let si = satellites.length - 1; si >= 0; si--) {
-        const s = satellites[si];
-        if (Math.hypot(s.x - bx, s.y - by) < BLAST_RADIUS * 1.5) {
-          state.score += SAT_PTS;
-          spawnParticles(s.x, s.y, '#aaaaff', 12, { spd: 80, life: 0.4 });
-          satellites.splice(si, 1);
-          killsThisBlast++;
-          updateHUD();
-        }
-      }
-      // Grant guided charge if threshold reached
-      if (killsThisBlast > 0) {
-        state.guidedKills += killsThisBlast;
-        if (state.guidedKills >= GUIDED_KILLS && state.guidedCharge < 1) {
-          state.guidedCharge = 1;
-          beep({ freq: 440, freqEnd: 880, duration: 0.15, type: 'triangle', volume: 0.12 });
           updateHUD();
         }
       }
 
       abs.splice(i, 1);
     }
-  }
-}
-
-function updateGuidedMissile(dt) {
-  if (!guidedMissile) return;
-  const g = guidedMissile;
-  g.life -= dt;
-
-  // Steer towards current crosshair position
-  const dx = crosshair.x - g.x;
-  const dy = crosshair.y - g.y;
-  const dist = Math.hypot(dx, dy);
-  if (dist > 1) {
-    const speed = Math.min(GUIDED_SPEED, dist / GUIDED_SLOW_DIST);
-    g.x += (dx / dist) * speed * dt;
-    g.y += (dy / dist) * speed * dt;
-  }
-
-  // Trail
-  g.trail.push({ x: g.x, y: g.y });
-  if (g.trail.length > 30) g.trail.shift();
-
-  // Check collision with enemy missiles
-  let hitEnemy = false;
-  let hitX = g.x,
-    hitY = g.y;
-  for (let mi = missiles.length - 1; mi >= 0; mi--) {
-    const m = missiles[mi];
-    if (Math.hypot(m.x - g.x, m.y - g.y) < GUIDED_RADIUS) {
-      state.score += KILL_PTS + Math.floor(GUIDED_PTS / 2);
-      spawnParticles(m.x, m.y, '#44ff88', 14, { spd: 100, life: 0.5, smx: 5 });
-      missiles.splice(mi, 1);
-      hitEnemy = true;
-      hitX = m.x;
-      hitY = m.y;
-      break;
-    }
-  }
-  if (!hitEnemy) {
-    for (let si = smartMissiles.length - 1; si >= 0; si--) {
-      const m = smartMissiles[si];
-      if (Math.hypot(m.x - g.x, m.y - g.y) < GUIDED_RADIUS) {
-        state.score += SMART_PTS + GUIDED_PTS;
-        spawnParticles(m.x, m.y, '#44ff88', 14, { spd: 100, life: 0.5, smx: 5 });
-        smartMissiles.splice(si, 1);
-        hitEnemy = true;
-        hitX = m.x;
-        hitY = m.y;
-        break;
-      }
-    }
-  }
-  if (!hitEnemy) {
-    for (let si = satellites.length - 1; si >= 0; si--) {
-      const s = satellites[si];
-      if (Math.hypot(s.x - g.x, s.y - g.y) < GUIDED_RADIUS * 1.5) {
-        state.score += SAT_PTS + GUIDED_PTS;
-        spawnParticles(s.x, s.y, '#44ff88', 14, { spd: 100, life: 0.5, smx: 5 });
-        satellites.splice(si, 1);
-        hitEnemy = true;
-        hitX = s.x;
-        hitY = s.y;
-        break;
-      }
-    }
-  }
-
-  // Explode on: hit enemy, near crosshair, or timeout
-  const nearCrosshair = Math.hypot(g.x - crosshair.x, g.y - crosshair.y) < 20;
-  if (hitEnemy || nearCrosshair || g.life <= 0 || g.y < 0 || g.x < 0 || g.x > CW) {
-    guidedMissile = null;
-    const bx = hitEnemy ? hitX : g.x;
-    const by = hitEnemy ? hitY : g.y;
-    blasts.push({
-      x: bx,
-      y: by,
-      radius: GUIDED_RADIUS,
-      timer: BLAST_DURATION * 1.5,
-      maxTimer: BLAST_DURATION * 1.5,
-      squashIdx: triggerSquash(0.25, 1.5, 0.55),
-    });
-    pGuidedHit(bx, by);
-    spawnParticles(bx, by, '#44ff88', 25, { spd: 120, life: 0.5, smx: 6 });
-    updateHUD();
   }
 }
 
@@ -751,7 +478,7 @@ function updateBlasts(dt) {
   }
 
   // Wave completion check
-  if (state.waveActive && missiles.length === 0 && smartMissiles.length === 0) {
+  if (state.waveActive && missiles.length === 0) {
     // No more incoming, brief pause then next wave
     state.waveTimer += dt;
     if (state.waveTimer > 1.5) {
@@ -872,34 +599,6 @@ function draw() {
     drawGlow(ctx, cx + m.x * s, cy + m.y * s, 2.5 * s, '#ff4444', 0.08, 3);
   }
 
-  // Smart missile trails
-  for (const m of smartMissiles) {
-    for (let i = 0; i < m.trail.length; i++) {
-      const a = (i / m.trail.length) * 0.5;
-      ctx.globalAlpha = a;
-      ctx.fillStyle = '#ff8800';
-      ctx.beginPath();
-      ctx.arc(cx + m.trail[i].x * s, cy + m.trail[i].y * s, 2 * s, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#ff8800';
-    ctx.beginPath();
-    ctx.arc(cx + m.x * s, cy + m.y * s, 3 * s, 0, Math.PI * 2);
-    ctx.fill();
-    drawGlow(ctx, cx + m.x * s, cy + m.y * s, 3 * s, '#ff8800', 0.08, 3);
-  }
-
-  // Satellites
-  for (const s_ of satellites) {
-    const sx = cx + s_.x * sc,
-      sy = cy + s_.y * sc;
-    ctx.fillStyle = '#8888ff';
-    ctx.fillRect(sx - 6 * s, sy - 2 * s, 12 * s, 4 * s);
-    ctx.fillRect(sx - 2 * s, sy - 6 * s, 4 * s, 12 * s);
-    drawGlow(ctx, sx, sy, 6 * s, '#8888ff', 0.04, 3);
-  }
-
   // ABM trails
   for (const a of abs) {
     for (let i = 0; i < a.trail.length; i++) {
@@ -980,36 +679,6 @@ function draw() {
     ctx.stroke();
   }
 
-  // Guided missile
-  if (guidedMissile) {
-    const g = guidedMissile;
-    // Trail
-    for (let i = 0; i < g.trail.length; i++) {
-      const a = (i / g.trail.length) * 0.7;
-      ctx.globalAlpha = a;
-      ctx.fillStyle = '#44ff88';
-      ctx.beginPath();
-      ctx.arc(cx + g.trail[i].x * s, cy + g.trail[i].y * s, (1.5 + i * 0.05) * s, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    // Head with glow (sin shadowBlur)
-    fillWithGlow(
-      ctx,
-      () => {
-        ctx.beginPath();
-        ctx.arc(cx + g.x * s, cy + g.y * s, 3.5 * s, 0, Math.PI * 2);
-      },
-      '#44ff88',
-      0.4,
-      3 * s,
-    );
-    ctx.fillStyle = '#88ffbb';
-    ctx.beginPath();
-    ctx.arc(cx + g.x * s, cy + g.y * s, 2 * s, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
   // Particles
   drawParticles(ctx, ox, oy, sc);
   ctx.restore();
@@ -1023,14 +692,12 @@ const scoreEl = document.getElementById('scoreValue'),
 const ammoEl = document.getElementById('ammoValue'),
   waveEl = document.getElementById('waveValue');
 const bestEl = document.getElementById('bestValue');
-const gdEl = document.getElementById('gdBadge');
 function updateHUD() {
   scoreEl.textContent = String(state.score);
   citiesEl.textContent = '●'.repeat(state.cityCount) + '○'.repeat(NUM_CITIES - state.cityCount);
   ammoEl.textContent = String(state.ammo);
   waveEl.textContent = String(state.wave);
   bestEl.textContent = String(state.best);
-  if (gdEl) gdEl.style.display = state.guidedCharge > 0 ? 'inline-flex' : 'none';
   if (state.score >= 1000) achievements.unlock('missile_thousand');
 }
 
@@ -1043,10 +710,7 @@ const loop = createGameLoop((dt) => {
 
   if (state.running && !state.gameOver) {
     updateMissiles(dt);
-    updateSmartMissiles(dt);
-    updateSatellites(dt);
     updateABMs(dt);
-    updateGuidedMissile(dt);
     updateBlasts(dt);
   }
 
