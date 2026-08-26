@@ -22,7 +22,57 @@
       "date": "2026-08-26",
       "changes": [
         "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js",
         "Fix: ahora libera la trampa de Tab al terminar partida (antes quedaba activa) y el botón hub funciona dentro del iframe del hub"
+      ]
+    },
+    {
+      "version": "1.3.1",
+      "date": "2026-08-26",
+      "changes": [
+        "Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)"
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-07-30",
+      "changes": [
+        "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
+        "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
+        "Fix: lint 0 errores/0 warnings — imports sin uso removidos",
+        "R3: Constantes extraídas (márgenes, límites de oleadas)",
+        "Fix: injectCommonElements() restaurado (crash por elementos faltantes)",
+        "Fix: refs rotas ship→player + línea ime; removida"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Compartido: shared/loop.js — game loop compartido con dt/RAF/cleanup unificados",
+        "R4: @keyframes shimmerFlow extraído a shared/base.css",
+        "P0: drawGlow() y feedbackBundle() para rendimiento y game feel"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-30",
+      "changes": [
+        "Canvas ID unificado + setupCanvas() vía shared/display.js",
+        "HTML compartido inyectado via shared/dom.js"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-07-28",
+      "changes": [
+        "Versión inicial del juego",
+        "Side-scrolling terrain procedural",
+        "Landers que secuestran humanos",
+        "Bombers que lanzan bombas",
+        "Mutantes que persiguen al jugador",
+        "Smart bombs, radar, niveles progresivos",
+        "Soporte para teclado, táctil y gamepad"
       ]
     }
   ]
