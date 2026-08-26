@@ -392,10 +392,10 @@ function resetGhosts() {
       releaseTime: h.release,
       timer: 0,
       scatterTarget: [
-        { x: 0, y: 0 },
-        { x: COLS * CS, y: 0 },
-        { x: 0, y: ROWS * CS },
-        { x: COLS * CS, y: ROWS * CS },
+        { x: 25 * CS, y: 0 }, // blinky → top-right
+        { x: 2 * CS, y: 0 }, // pinky → top-left
+        { x: 27 * CS, y: 30 * CS }, // inky → bottom-right
+        { x: 0, y: 30 * CS }, // clyde → bottom-left
       ][i],
     });
   }
@@ -447,12 +447,12 @@ function updateGhosts(dt) {
       g.x = cx;
       g.y = cy; // snap to center
 
-      // Ghost gate - only passable from inside home
+      // Ghost gate - only eyes can enter (not chase/scatter/fright)
       if (grid[row]?.[col] === 'G') {
-        if (g.mode === 'eyes' || g.mode === 'chase') {
-          // pass through
+        if (g.mode === 'eyes') {
+          // eyes pass through to re-enter home
         } else {
-          continue; // can't go into gate from outside
+          continue; // can't enter gate in chase/scatter/fright
         }
       }
 
@@ -475,8 +475,8 @@ function updateGhosts(dt) {
           }
           if (!best) best = d;
         } else if (g.mode === 'eyes') {
-          // Go towards home (ghost gate area)
-          const target = { x: 14 * CS, y: 11 * CS };
+          // Navigate to ghost house center
+          const target = { x: 14 * CS, y: 14 * CS };
           const nd = Math.hypot(cx + d.dx * CS - target.x, cy + d.dy * CS - target.y);
           if (nd < bestDist) {
             bestDist = nd;
@@ -506,11 +506,18 @@ function updateGhosts(dt) {
     if (g.x < -CS / 2) g.x = CW + CS / 2;
     if (g.x > CW + CS / 2) g.x = -CS / 2;
 
-    // Eyes reach home → respawn
-    if (g.mode === 'eyes' && row === 11 && col === 14) {
-      g.mode = phaseName(state.phaseIdx);
-      g.x = 14 * CS + CS / 2;
-      g.y = 11 * CS + CS / 2;
+    // Eyes navigate to ghost house center, then respawn
+    if (g.mode === 'eyes') {
+      const homeCenter = { x: 14 * CS, y: 14 * CS };
+      const distHome = Math.hypot(g.x - homeCenter.x, g.y - homeCenter.y);
+      if (distHome < CS * 0.5) {
+        // Arrived at home center — respawn
+        g.mode = phaseName(state.phaseIdx);
+        g.x = 14 * CS + CS / 2;
+        g.y = 11 * CS + CS / 2;
+        g.dx = -1;
+        g.dy = 0;
+      }
     }
   }
 }

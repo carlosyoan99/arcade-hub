@@ -42,6 +42,15 @@ const SPLIT_MIN_MASS = 36;
 const EJECT_MIN_MASS = 16;
 const SPLIT_DURATION = 5;
 const EJECT_AMOUNT = 5;
+const MASS_DECAY_RATE = 0.015;
+const MASS_DECAY_MIN = 12;
+const BOOST_SPEED_MULT = 1.8;
+const BOOST_MASS_COST = 8;
+const VIRUS_COUNT = 8;
+const VIRUS_MASS = 120;
+const VIRUS_RADIUS = 35;
+const CHASER_COUNT = 15;
+const CHASER_MASS = 5;
 
 const BOT_NAMES = [
   'Alpha',
@@ -154,6 +163,9 @@ let foods = [];
 let bots = [];
 let ejected = []; // ejected mass blobs
 let splitProjectiles = []; // split half-mass projectiles
+let viruses = []; // green spiky hazards
+let chasers = []; // fleeing chase pellets
+let boosting = false;
 
 // ============================================================
 // SONIDO
@@ -182,6 +194,15 @@ function sfxDeath() {
 }
 function sfxMerge() {
   beep({ freq: 500, freqEnd: 800, duration: 0.1, type: 'triangle', volume: 0.1 });
+}
+function sfxVirus() {
+  beep({ freq: 200, freqEnd: 800, duration: 0.15, type: 'sawtooth', volume: 0.15 });
+}
+function sfxChaser() {
+  beep({ freq: 800, freqEnd: 1200, duration: 0.08, type: 'sine', volume: 0.1 });
+}
+function sfxBoost() {
+  beep({ freq: 300, freqEnd: 500, duration: 0.05, type: 'square', volume: 0.06 });
 }
 
 // ============================================================
@@ -358,6 +379,42 @@ function initFood() {
   for (let i = 0; i < FOOD_COUNT; i++) spawnFood();
 }
 
+function spawnVirus() {
+  const pos = randWorldPos(200);
+  viruses.push({
+    x: pos.x,
+    y: pos.y,
+    mass: VIRUS_MASS,
+    radius: VIRUS_RADIUS,
+    spikePhase: Math.random() * Math.PI * 2,
+    color: '#00ff44',
+  });
+}
+
+function initViruses() {
+  viruses = [];
+  for (let i = 0; i < VIRUS_COUNT; i++) spawnVirus();
+}
+
+function spawnChaser() {
+  const pos = randWorldPos(50);
+  chasers.push({
+    x: pos.x,
+    y: pos.y,
+    mass: CHASER_MASS,
+    radius: massToRadius(CHASER_MASS),
+    vx: rng(-80, 80),
+    vy: rng(-80, 80),
+    color: '#ffdd00',
+    life: 12,
+  });
+}
+
+function initChasers() {
+  chasers = [];
+  for (let i = 0; i < CHASER_COUNT; i++) spawnChaser();
+}
+
 // ============================================================
 // BOTS (IA)
 // ============================================================
@@ -514,8 +571,11 @@ function updateBotAI(bot, dt) {
 // MOVIMIENTO
 // ============================================================
 function moveCell(cell, dt, targetX, targetY) {
+  let speedMult = 1;
+  if (cell.isPlayer && boosting) speedMult = BOOST_SPEED_MULT;
+
   const speed = cell.isPlayer
-    ? Math.max(60, (BASE_SPEED * 3) / Math.sqrt(cell.mass / 10))
+    ? Math.max(60, (BASE_SPEED * 3 * speedMult) / Math.sqrt(cell.mass / 10))
     : Math.max(50, (BASE_SPEED * 2.5) / Math.sqrt(cell.mass / 10));
 
   const dx = targetX - cell.x;
@@ -537,6 +597,8 @@ function moveCell(cell, dt, targetX, targetY) {
 
   // Merge timer (for split cells)
   if (cell.mergeTimer > 0) cell.mergeTimer -= dt;
+
+  return null;
 }
 
 // ============================================================
@@ -686,6 +748,81 @@ function processEating() {
       }
     }
   }
+
+  // Virus collision: cells > VIRUS_MASS touching a virus get split
+  if (cells) {
+    for (let ci = cells.length - 1; ci >= 0; ci--) {
+      const c = cells[ci];
+      for (let vi = viruses.length - 1; vi >= 0; vi--) {
+        const v = viruses[vi];
+        if (c.mass > VIRUS_MASS * 0.9 && dist(c, v) < c.radius + v.radius * 0.6) {
+          // Split the cell into 3 small pieces
+          const splitMass = c.mass / 4;
+          c.mass = splitMass;
+          c.radius = massToRadius(splitMass);
+          c.mergeTimer = SPLIT_DURATION;
+          sfxVirus();
+          spawnParticles(v.x, v.y, '#00ff44', 15, { spd: 120, life: 0.5 });
+          for (let k = 0; k < 3; k++) {
+            const angle = (Math.PI * 2 * k) / 3 + Math.random() * 0.5;
+            const newMass = splitMass * 0.8;
+            cells.push({
+              x: c.x + Math.cos(angle) * 30,
+              y: c.y + Math.sin(angle) * 30,
+              mass: newMass,
+              radius: massToRadius(newMass),
+              vx: Math.cos(angle) * 200,
+              vy: Math.sin(angle) * 200,
+              color: c.color,
+              name: '',
+              isPlayer: false,
+              mergeTimer: SPLIT_DURATION,
+            });
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // Chaser pellets: fleeing orbs that give mass when caught with boost
+  if (cells) {
+    for (const c of cells) {
+      for (let i = chasers.length - 1; i >= 0; i--) {
+        const ch = chasers[i];
+        if (dist(c, ch) < c.radius + ch.radius) {
+          const bonus = boosting ? ch.mass * 3 : ch.mass;
+          c.mass += bonus;
+          c.radius = massToRadius(c.mass);
+          chasers.splice(i, 1);
+          sfxChaser();
+          spawnParticles(ch.x, ch.y, ch.color, 8, { spd: 80, life: 0.3 });
+          setTimeout(
+            () => {
+              if (!state.gameOver) spawnChaser();
+            },
+            5000 + Math.random() * 5000,
+          );
+        }
+      }
+    }
+  }
+
+  // Mass decay over time (prevents camping)
+  if (cells) {
+    for (const c of cells) {
+      if (c.mass > MASS_DECAY_MIN) {
+        c.mass -= c.mass * MASS_DECAY_RATE * (1 / 60);
+        c.radius = massToRadius(c.mass);
+      }
+    }
+  }
+  for (const bot of bots) {
+    if (bot.mass > MASS_DECAY_MIN) {
+      bot.mass -= bot.mass * MASS_DECAY_RATE * (1 / 60);
+      bot.radius = massToRadius(bot.mass);
+    }
+  }
 }
 
 // ============================================================
@@ -793,8 +930,11 @@ function startGame() {
 
   initFood();
   initBots();
+  initViruses();
+  initChasers();
   splitProjectiles = [];
   ejected = [];
+  boosting = false;
 
   cam.x = player.x;
   cam.y = player.y;
@@ -849,8 +989,11 @@ function resetGameState() {
   player = null;
   foods = [];
   bots = [];
+  viruses = [];
+  chasers = [];
   splitProjectiles = [];
   ejected = [];
+  boosting = false;
   clearParticles();
 }
 
@@ -905,6 +1048,16 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     doEject();
   }
+  if (e.code === 'ShiftLeft' && state.running) {
+    e.preventDefault();
+    boosting = true;
+    sfxBoost();
+  }
+});
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'ShiftLeft') {
+    boosting = false;
+  }
 });
 
 // Buttons
@@ -944,6 +1097,27 @@ tcEject.addEventListener('touchend', (e) => {
   tcEject.classList.remove('is-pressed');
 });
 tcEject.addEventListener('touchcancel', () => tcEject.classList.remove('is-pressed'));
+
+const tcBoost = document.getElementById('tcBoost');
+tcBoost.addEventListener(
+  'touchstart',
+  (e) => {
+    e.preventDefault();
+    tcBoost.classList.add('is-pressed');
+    boosting = true;
+    sfxBoost();
+  },
+  { passive: false },
+);
+tcBoost.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  tcBoost.classList.remove('is-pressed');
+  boosting = false;
+});
+tcBoost.addEventListener('touchcancel', () => {
+  tcBoost.classList.remove('is-pressed');
+  boosting = false;
+});
 
 // Gamepad
 const gamepad = createGamepad();
@@ -1031,6 +1205,26 @@ function worldToScreen(wx, wy) {
 function update(dt, worldTx, worldTy) {
   if (!state.running || state.gameOver) return;
 
+  // Boost: consume mass for speed
+  if (boosting && cells && cells.length > 0) {
+    const main = cells[0];
+    if (main.mass > 30) {
+      main.mass -= BOOST_MASS_COST * dt;
+      main.radius = massToRadius(main.mass);
+      // Leave trail
+      if (Math.random() < 0.3) {
+        spawnParticles(main.x, main.y, main.color, 1, {
+          spd: 30,
+          life: 0.4,
+          sm: 2,
+          smx: 3,
+        });
+      }
+    } else {
+      boosting = false;
+    }
+  }
+
   // Move player cells using world coordinates
   if (cells) {
     for (const c of cells) {
@@ -1042,6 +1236,38 @@ function update(dt, worldTx, worldTy) {
   for (const bot of bots) {
     updateBotAI(bot, dt);
     moveCell(bot, dt, bot.targetX, bot.targetY);
+  }
+
+  // Move chasers (fleeing pellets)
+  for (let i = chasers.length - 1; i >= 0; i--) {
+    const ch = chasers[i];
+    ch.x += ch.vx * dt;
+    ch.y += ch.vy * dt;
+    ch.life -= dt;
+    // Flee from nearby large cells
+    const allCells = [...(cells || []), ...bots];
+    for (const c of allCells) {
+      const d = dist(c, ch);
+      if (d < 200 && c.mass > ch.mass * 2) {
+        const dx = ch.x - c.x;
+        const dy = ch.y - c.y;
+        const nd = Math.hypot(dx, dy) || 1;
+        ch.vx += (dx / nd) * 150 * dt;
+        ch.vy += (dy / nd) * 150 * dt;
+      }
+    }
+    // Clamp
+    ch.x = clamp(ch.x, 5, WORLD_W - 5);
+    ch.y = clamp(ch.y, 5, WORLD_H - 5);
+    if (ch.life <= 0) {
+      chasers.splice(i, 1);
+      setTimeout(
+        () => {
+          if (!state.gameOver) spawnChaser();
+        },
+        3000 + Math.random() * 4000,
+      );
+    }
   }
 
   // Move split projectiles
@@ -1155,6 +1381,40 @@ function draw() {
   // Bots
   for (const bot of bots) {
     drawCell(bot);
+  }
+
+  // Viruses (green spiky hazards)
+  for (const v of viruses) {
+    const s = worldToScreen(v.x, v.y);
+    const r = v.radius * cam.zoom;
+    if (s.x < -50 || s.x > canvasW + 50 || s.y < -50 || s.y > canvasH + 50) continue;
+    v.spikePhase += 0.02;
+    ctx.fillStyle = v.color;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    for (let i = 0; i < 16; i++) {
+      const angle = (Math.PI * 2 * i) / 16;
+      const spikeR = r * (i % 2 === 0 ? 1 : 0.65 + Math.sin(v.spikePhase + i) * 0.1);
+      ctx.lineTo(s.x + Math.cos(angle) * spikeR, s.y + Math.sin(angle) * spikeR);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    drawGlow(ctx, s.x, s.y, r, v.color, 0.1, 4);
+  }
+
+  // Chaser pellets (fleeing yellow orbs)
+  for (const ch of chasers) {
+    const s = worldToScreen(ch.x, ch.y);
+    const r = ch.radius * cam.zoom;
+    if (s.x < -20 || s.x > canvasW + 20 || s.y < -20 || s.y > canvasH + 20) continue;
+    ctx.fillStyle = ch.color;
+    ctx.globalAlpha = 0.6 + Math.sin(Date.now() * 0.005) * 0.2;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, Math.max(3, r), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    drawGlow(ctx, s.x, s.y, r, ch.color, 0.15, 3);
   }
 
   // Split projectiles

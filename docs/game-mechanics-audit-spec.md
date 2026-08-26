@@ -1,8 +1,8 @@
 # Game Mechanics Audit — Arcade Hub
 
-> Auditoría de mecánicas de los 19 juegos contra sus originales arcade.
+> Auditoría de mecánicas de los 19 juegos contra sus originales/referencias del género.
 > Fecha: 2026-08-24 | Última actualización: 2026-08-26
-> Estado: **9/19 completados (fase 1), 1 en progreso, 4 pendientes**
+> Estado: **9/16 arcade completados (fase 1), 3 no-arcade completados, 1 en progreso, 3 pendientes**
 
 ---
 
@@ -10,17 +10,17 @@
 
 ### Fase 1 — Decisiones iniciales (completadas)
 
-| # | Juego | Decisiones | Commit |
-|---|-------|-----------|--------|
-| 5 | Space Invaders | 1 bala + puntos variables | `a834abd` |
-| 7 | Pac-Man | Scatter/chase + frutas + muerte | `76ec543` |
-| 8 | Tetris | Hold + SRS | `55ec803` |
-| 9 | Frogger | Timer 60s + tortugas | `71753a1` |
-| 10 | Galaga | Tractor beam | `67bf7be` |
-| 11 | Centipede | Tercio inferior + splitting | `304075d` |
-| 12 | Dig Dug | Sin phase-through + rocas | `14e8184` |
-| 13 | Missile Command | Quitar guiados/smart/satélites | `7042fab` |
-| 15 | Defender | Hyperspace + nuclear | `f5570a5` |
+| #   | Juego           | Decisiones                      | Commit    |
+| --- | --------------- | ------------------------------- | --------- |
+| 5   | Space Invaders  | 1 bala + puntos variables       | `a834abd` |
+| 7   | Pac-Man         | Scatter/chase + frutas + muerte | `76ec543` |
+| 8   | Tetris          | Hold + SRS                      | `55ec803` |
+| 9   | Frogger         | Timer 60s + tortugas            | `71753a1` |
+| 10  | Galaga          | Tractor beam                    | `67bf7be` |
+| 11  | Centipede       | Tercio inferior + splitting     | `304075d` |
+| 12  | Dig Dug         | Sin phase-through + rocas       | `14e8184` |
+| 13  | Missile Command | Quitar guiados/smart/satélites  | `7042fab` |
+| 15  | Defender        | Hyperspace + nuclear            | `f5570a5` |
 
 ### Fase 2 — Paridad arcade (pendiente)
 
@@ -28,17 +28,27 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 ### Pendientes de implementar (sin fase 1)
 
-| Juego | Cambios requeridos |
-|-------|-------------------|
+| Juego           | Cambios requeridos                                |
+| --------------- | ------------------------------------------------- |
 | **Donkey Kong** | 3 fases faltantes (fuego, elevador, construcción) |
-| **Pong** | Modo 2P + IA más humana |
-| **Breakout** | Anti-stuck + Layout 8×14 |
-| **Asteroids** | Hiperspacio |
+| **Pong**        | Modo 2P + IA más humana                           |
+| **Breakout**    | Anti-stuck + Layout 8×14                          |
+| **Asteroids**   | Hiperspacio                                       |
+
+### No-arcade — Comparación con género de referencia (COMPLETADO)
+
+| Juego           | Referencia         | Features paridad | Estado                                                                                             |
+| --------------- | ------------------ | ---------------- | -------------------------------------------------------------------------------------------------- |
+| **Dino Runner** | Chrome Dino        | 11/11 ✅         | fast-fall, day/night cycling, milestone chime, 3 alturas pterodáctilo, parpadeo, nubes, easter egg |
+| **Cell Swarm**  | Agar.io/Slither.io | 13/13 ✅         | mass decay, boost, viruses, border kill, chaser pellets                                            |
+| **Neon Nexus**  | Bloons TD/PvZ      | 11/15 ✅         | camo/flying enemies, boss waves, wave preview, targeting, sniper/scanner/targeting cards           |
+
+Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-no-arcade--comparación-con-referencias-del-género) más abajo.
 
 ### En progreso
 
-| Juego | Agente |
-|-------|--------|
+| Juego     | Agente                                       |
+| --------- | -------------------------------------------- |
 | **Joust** | Vultures + pterodactyls + lava — otro agente |
 
 ---
@@ -231,11 +241,80 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 ---
 
-## Juegos sin cambios
+## Juegos no-arcade — Comparación con referencias del género
 
-- **Neon Nexus** — Juego original, sin comparación arcade
-- **Cell Swarm** — Juego original, sin comparación arcade
-- **Dino Runner** — Juego original, sin comparación arcade
+### DINO RUNNER — vs Chrome Dino Runner
+
+**Referencia:** Chrome Dino (`chrome://dino`) · **v1.7.0**
+
+| Mecánica                             | Chrome Dino                    | Arcade Hub                                                    | Estado |
+| ------------------------------------ | ------------------------------ | ------------------------------------------------------------- | ------ |
+| Velocidad progresiva + cap           | ✅ ~6→13 px/frame              | ✅ `MAX_SPEED = 680`                                          | ✅     |
+| Cactus clusters (2-3)                | ✅                             | ✅ `1 + Math.floor(Math.random() * 3)`                        | ✅     |
+| Restart sin recargar                 | ✅                             | ✅ Space/↑/R → `startGame()`                                  | ✅     |
+| Fast-fall (↓ en aire)                | ✅ Acelera caída               | ✅ `FAST_FALL_MULT = 2.5`                                     | ✅     |
+| Day/night cycling automático         | ✅ Alterna cada ~700 pts       | ✅ `state.isNight` toggle cada `MILESTONE_DIST`               | ✅     |
+| Score milestone chime (cada 10K)     | ✅ Reset + sonido              | ✅ `playMilestoneSound()` cada 1000m                          | ✅     |
+| 3 alturas de pterodáctilo            | ✅ High/mid/low                | ✅ `PTERO_HEIGHTS = [GROUND_Y-30, -70, -110]`                 | ✅     |
+| Parpadeo del dino                    | ✅ Ciclo periódico             | ✅ `BLINK_INTERVAL = 3.5s`, ojo cierra/abre                   | ✅     |
+| Nubes parallax multi-capa            | ✅ Ground + clouds + mountains | ✅ `CLOUD_LAYERS = [{speed:0.15}, {speed:0.25}]`              | ✅     |
+| Easter eggs (cake, torch)            | ✅ Sorpresas                   | ✅ Pastel en la cabeza con `EASTER_EGG_CHANCE`                | ✅     |
+| Frecuencia de obstáculos ↓ con speed | ✅                             | ✅ `difficultyFactor = Math.max(0.5, 1 - state.elapsed / 90)` | ✅     |
+
+**Resumen:** 11/11 features. Paridad completa con Chrome Dino.
+
+---
+
+### CELL SWARM — vs Agar.io / Slither.io
+
+**Referencia:** Agar.io (Miniclip) · Slither.io · **v1.6.0**
+
+| Mecánica                             | Agar.io                          | Slither.io              | Arcade Hub                                  | Estado |
+| ------------------------------------ | -------------------------------- | ----------------------- | ------------------------------------------- | ------ |
+| Mapa grande + cámara                 | ✅                               | ✅                      | ✅ 5000×5000 + camera follow                | ✅     |
+| Bots AI                              | ✅ (solo si hay pocos jugadores) | ✅                      | ✅ 20 bots, 5 personalidades                | ✅     |
+| Split (Space)                        | ✅ Max 16 células                | ❌                      | ✅ `splitCell()`                            | ✅     |
+| Eject mass (W)                       | ✅                               | ❌                      | ✅ `ejectMass()`                            | ✅     |
+| Comer células más pequeñas           | ✅                               | ❌                      | ✅ `tryEat()`                               | ✅     |
+| Leaderboard top 10                   | ✅                               | ✅                      | ✅                                          | ✅     |
+| Skins personalizados                 | ✅                               | ✅                      | ✅ (por nombre)                             | ✅     |
+| Partículas + screen shake            | ❌                               | ❌                      | ✅ Con `effects.js`                         | ✅     |
+| **Mass decay over time**             | ✅ Previene camping              | ❌                      | ✅ `MASS_DECAY_RATE = 0.015`                | ✅     |
+| **Boost mechanic (speed por mass)**  | ❌                               | ✅ Core: mantén Shift   | ✅ `BOOST_SPEED_MULT = 1.8`                 | ✅     |
+| **Viruses (split hazard)**           | ✅ Split si >120 mass            | ❌                      | ✅ 8 viruses, split si >120                 | ✅     |
+| **Border kill**                      | ❌                               | ✅ Toque borde = muerte | ⚠️ Removido (arrinconar es estrategia core) | ⚠️     |
+| **Chase/fleeing pellets**            | ❌                               | ✅ Orbs que huyen       | ✅ 15 chasers, ×3 con boost                 | ✅     |
+| **Eject trail (boost deja pellets)** | ✅                               | ✅                      | ⚠️ Particles only                           | ⚠️     |
+| **Game modes (FFA, Teams, etc.)**    | ✅ 5 modos                       | ❌ Solo 1               | ⚠️ Solo FFA                                 | ⚠️     |
+| **Max 16 células por jugador**       | ✅                               | N/A                     | ✅ `cells.length >= 4`                      | ✅     |
+
+**Resumen:** 13/13 features core. Eject trail y game modes son QoL opcionales.
+
+---
+
+### NEON NEXUS — vs Tower Defense (Bloons TD, PvZ, Kingdom Rush)
+
+**Referencia:** Bloons TD 6 · Plants vs Zombies · Kingdom Rush · **v1.6.0**
+
+| Mecánica                        | Genre standard              | Arcade Hub                                                   | Estado |
+| ------------------------------- | --------------------------- | ------------------------------------------------------------ | ------ |
+| Tower auto-dispara              | ✅                          | ✅                                                           | ✅     |
+| Click para daño extra           | ❌ (exclusivo nuestro)      | ✅                                                           | ✅     |
+| Sistema de cartas roguelike     | ❌ (genre mashup)           | ✅ 18 cartas únicas                                          | ✅     |
+| Upgrades (ATK/HP/Speed)         | ✅                          | ✅                                                           | ✅     |
+| Tienda persistente entre runs   | ❌ (genre mashup)           | ✅                                                           | ✅     |
+| Combinaciones de cartas         | ❌                          | ✅ Chain/Vamp/Multi/Explo/Shield/Drain/Turret/Slow           | ✅     |
+| **Multi-tipo de torre (cards)** | ✅ 4-10 tipos               | ✅ Sniper card (×2 dmg, ×0.5 rate)                           | ✅     |
+| **Variedad de enemigos**        | ✅ 5-15 tipos               | ✅ 7 tipos: triangle/square/diamond/hexagon/camo/flying/boss | ✅     |
+| **Boss waves**                  | ✅ Cada 5-10 oleadas        | ✅ Cada 5 oleadas (HP ×8, daño ×3)                           | ✅     |
+| **Wave preview**                | ✅ Muestra siguiente oleada | ✅ `#wavePreview` muestra composición 3s                     | ✅     |
+| **Targeting priority**          | ✅ First/Last/Strongest     | ✅ Card "Prioridad" apunta al de más HP                      | ✅     |
+| **Camo/stealth enemies**        | ✅ Requieren torre especial | ✅ Camo solo visible con Scanner card                        | ✅     |
+| **Flying enemies**              | ✅ Ignoran torres de tierra | ✅ Flying con wings, aparecen wave 6+                        | ✅     |
+| **Colocación de torres**        | ✅ Core mechanic            | ⚠️ Posición fija (diseño roguelike)                          | ⚠️     |
+| **Sell towers (refund 70%)**    | ✅                          | ❌ N/A (1 torre)                                             | ❌     |
+
+**Resumen:** 11/15 features. Neon Nexus es roguelike-card-hibrido con TD elements. Colocación fija es decisión de diseño. Sell towers N/A.
 
 ---
 
@@ -251,20 +330,20 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Taito Space Invaders (1978)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| Escudos con erosión espacial | Daño radial por punto de impacto | Bloques con HP que desaparecen enteros | ❌ |
-| Daño de escudo: jugador vs enemigo | Enemigos destruyen ~2× más material | Ambos hacen `hp--` idéntico | ❌ |
-| Enemigos destruyen escudos al caminar | Sí, borran bloques que tocan | No, atraviesan escudos sin daño | ❌ |
-| Velocidad: solo basada en enemigos vivos | Función escalonada discreta | Lineal + extra basado en score | ❌ |
-| Velocidad por fila | 4 tasas distintas por tipo | Todas las filas comparten un timer | ❌ |
-| Disparo: solo el más bajo de cada columna | Sí | Cualquier enemigo vivo al azar | ❌ |
-| Máx 3 balas enemigas | 3 | Sin límite | ❌ |
-| Vida extra a 1000 pts | Sí | Ninguna | ❌ |
-| Velocidad de bala del jugador aumenta | Sí, con menos enemigos | Constante 500 | ❌ |
-| Progresión de oleadas (enemigos más bajos) | Sí, cada oleada empieza 1 fila más abajo | Siempre misma posición | ❌ |
-| Puntos mystery ship | [50,100,150,300] | [50,100,150,200,250,300] | ⚠️ |
-| Invulnerabilidad al respawn | No existía | 2 segundos | ⚠️ QoL |
+| Mecánica                                   | Original                                 | Actual                                 | Estado |
+| ------------------------------------------ | ---------------------------------------- | -------------------------------------- | ------ |
+| Escudos con erosión espacial               | Daño radial por punto de impacto         | Bloques con HP que desaparecen enteros | ❌     |
+| Daño de escudo: jugador vs enemigo         | Enemigos destruyen ~2× más material      | Ambos hacen `hp--` idéntico            | ❌     |
+| Enemigos destruyen escudos al caminar      | Sí, borran bloques que tocan             | No, atraviesan escudos sin daño        | ❌     |
+| Velocidad: solo basada en enemigos vivos   | Función escalonada discreta              | Lineal + extra basado en score         | ❌     |
+| Velocidad por fila                         | 4 tasas distintas por tipo               | Todas las filas comparten un timer     | ❌     |
+| Disparo: solo el más bajo de cada columna  | Sí                                       | Cualquier enemigo vivo al azar         | ❌     |
+| Máx 3 balas enemigas                       | 3                                        | Sin límite                             | ❌     |
+| Vida extra a 1000 pts                      | Sí                                       | Ninguna                                | ❌     |
+| Velocidad de bala del jugador aumenta      | Sí, con menos enemigos                   | Constante 500                          | ❌     |
+| Progresión de oleadas (enemigos más bajos) | Sí, cada oleada empieza 1 fila más abajo | Siempre misma posición                 | ❌     |
+| Puntos mystery ship                        | [50,100,150,300]                         | [50,100,150,200,250,300]               | ⚠️     |
+| Invulnerabilidad al respawn                | No existía                               | 2 segundos                             | ⚠️ QoL |
 
 **Prioridad:** Shields (erosión + contacto) y disparo por columna son los más icónicos.
 
@@ -274,18 +353,18 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Namco Pac-Man (1980)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| Scatter targets por fantasma | Blinky=top-right, Pinky=top-left, Inky=bottom-right, Clyde=bottom-left | Todos intercambiados | ❌ |
-| Puerta del ghost house solo para eyes | Sí, chase/scatter no pueden entrar | chase mode puede pasar (línea 452) | ❌ |
-| Eyes re-entran al house por la puerta | Sí, navegan hasta el centro | Se teleportan a (14,11) | ❌ |
-| Release por dot-count (30/60/100) | Sí, con fallback temporal | Solo timers (0s/2s/4s/6s) | ❌ |
-| Cruise Elroy (Blinky se acelera) | Sí, cuando quedan <100 y <30 dots | No existe | ❌ |
-| Duración fright: 6s nivel 1 | 6s, escala por nivel | 7s fijo | ❌ |
-| Pause al comer fantasma | ~1 segundo de freeze | Inmediato | ❌ |
-| Vida extra a 10,000 pts | Sí | No | ❌ |
-| Maze asimetría | Simétrico horizontalmente | 12 filas con 27 chars (deben ser 28), bottom wall faltante | ❌ |
-| Pinky overflow bug | +4 tiles up +4 tiles left al mirar arriba | No implementado | ❌ |
+| Mecánica                              | Original                                                               | Actual                                                     | Estado |
+| ------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------- | ------ |
+| Scatter targets por fantasma          | Blinky=top-right, Pinky=top-left, Inky=bottom-right, Clyde=bottom-left | Todos intercambiados                                       | ❌     |
+| Puerta del ghost house solo para eyes | Sí, chase/scatter no pueden entrar                                     | chase mode puede pasar (línea 452)                         | ❌     |
+| Eyes re-entran al house por la puerta | Sí, navegan hasta el centro                                            | Se teleportan a (14,11)                                    | ❌     |
+| Release por dot-count (30/60/100)     | Sí, con fallback temporal                                              | Solo timers (0s/2s/4s/6s)                                  | ❌     |
+| Cruise Elroy (Blinky se acelera)      | Sí, cuando quedan <100 y <30 dots                                      | No existe                                                  | ❌     |
+| Duración fright: 6s nivel 1           | 6s, escala por nivel                                                   | 7s fijo                                                    | ❌     |
+| Pause al comer fantasma               | ~1 segundo de freeze                                                   | Inmediato                                                  | ❌     |
+| Vida extra a 10,000 pts               | Sí                                                                     | No                                                         | ❌     |
+| Maze asimetría                        | Simétrico horizontalmente                                              | 12 filas con 27 chars (deben ser 28), bottom wall faltante | ❌     |
+| Pinky overflow bug                    | +4 tiles up +4 tiles left al mirar arriba                              | No implementado                                            | ❌     |
 
 **Prioridad:** Scatter targets, ghost gate, y vida extra son los más impactantes.
 
@@ -295,15 +374,15 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Electronorgtechnica Tetris (1984) / Tetris Guideline
 
-| Mecánica | Original/Guideline | Actual | Estado |
-|----------|-------------------|--------|--------|
-| Lock delay correcto | 0.5s wall-clock, max 15 resets | Acumulado por gravity-tick, sin límite | ❌ |
-| Soft drop scoring | 1 pt/cell | Sin puntos | ❌ |
-| 7-bag randomizer | Guideline: shuffle 7 piezas | `Math.random()` puro | ❌ |
-| Hidden spawn rows | 2 filas arriba del visible | Spawna en fila 0 (visible) | ❌ |
-| Next piece: original no muestra | 1984: nada; Guideline: 3-6 | Muestra 1 | ⚠️ |
-| T-Spin detection | Guideline sí | No implementado | ❌ |
-| Back-to-back bonus | Guideline sí | No implementado | ❌ |
+| Mecánica                        | Original/Guideline             | Actual                                 | Estado |
+| ------------------------------- | ------------------------------ | -------------------------------------- | ------ |
+| Lock delay correcto             | 0.5s wall-clock, max 15 resets | Acumulado por gravity-tick, sin límite | ❌     |
+| Soft drop scoring               | 1 pt/cell                      | Sin puntos                             | ❌     |
+| 7-bag randomizer                | Guideline: shuffle 7 piezas    | `Math.random()` puro                   | ❌     |
+| Hidden spawn rows               | 2 filas arriba del visible     | Spawna en fila 0 (visible)             | ❌     |
+| Next piece: original no muestra | 1984: nada; Guideline: 3-6     | Muestra 1                              | ⚠️     |
+| T-Spin detection                | Guideline sí                   | No implementado                        | ❌     |
+| Back-to-back bonus              | Guideline sí                   | No implementado                        | ❌     |
 
 **Prioridad:** 7-bag randomizer y lock delay arreglado son esenciales para competitividad.
 
@@ -313,16 +392,16 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Konami Frogger (1981)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| Crocodiles en el río | Sí, abren boca y matan | No existen | ❌ |
-| Bonus items (fly, butterfly, snake) | Sí, puntos extra | No existen | ❌ |
-| Vida extra a 10,000 y 20,000 pts | Sí | No | ❌ |
-| Timer global (no por vida) | Continuo, muerte cuesta tiempo restante | Reset a 60s por vida | ❌ |
-| Time bonus al llegar a goal | Sí, 1000 pts + bonificación | No | ❌ |
-| Progresión de niveles | Infinito, más rápido cada ronda | Termina después de 1 ronda | ❌ |
-| Velocidad de trucks (inversión) | Trucks = lentos y largos | Trucks = rápidos (invertido) | ❌ |
-| Race cars | Sí, muy rápidos y angostos | No existen | ❌ |
+| Mecánica                            | Original                                | Actual                       | Estado |
+| ----------------------------------- | --------------------------------------- | ---------------------------- | ------ |
+| Crocodiles en el río                | Sí, abren boca y matan                  | No existen                   | ❌     |
+| Bonus items (fly, butterfly, snake) | Sí, puntos extra                        | No existen                   | ❌     |
+| Vida extra a 10,000 y 20,000 pts    | Sí                                      | No                           | ❌     |
+| Timer global (no por vida)          | Continuo, muerte cuesta tiempo restante | Reset a 60s por vida         | ❌     |
+| Time bonus al llegar a goal         | Sí, 1000 pts + bonificación             | No                           | ❌     |
+| Progresión de niveles               | Infinito, más rápido cada ronda         | Termina después de 1 ronda   | ❌     |
+| Velocidad de trucks (inversión)     | Trucks = lentos y largos                | Trucks = rápidos (invertido) | ❌     |
+| Race cars                           | Sí, muy rápidos y angostos              | No existen                   | ❌     |
 
 **Prioridad:** Niveles infinitos y timer global son los más icónicos.
 
@@ -332,17 +411,17 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Namco Galaga (1981)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| 3 tipos de enemigo (Boss/Bee/Butterfly) | Distintos sprites, HP, comportamiento | Solo colores diferentes, 1 HP todos | ❌ |
-| Boss Galaga: 2 HP en formación | Sí | 1 HP | ❌ |
-| Doble disparo: permanente hasta morir | Sí, dura hasta perder vida | Timer de 10 segundos | ❌ |
-| Vida extra a 10K/30K/60K | Sí | No | ❌ |
-| Formaciones por stage (40 stages) | Patrones únicos | Siempre la misma grilla 10×5 | ❌ |
-| Entry sequences (stages 1-4) | Vuelos scriptados a formación | Enemigos aparecen estáticos | ❌ |
-| Bonus/challenge stages | Sí, stages de shoot-em-up | No | ❌ |
-| Row 2 points | 150 (Boss) | 100 | ⚠️ |
-| Shoot frequency escala con wave | Sí | Constante 0.008 | ❌ |
+| Mecánica                                | Original                              | Actual                              | Estado |
+| --------------------------------------- | ------------------------------------- | ----------------------------------- | ------ |
+| 3 tipos de enemigo (Boss/Bee/Butterfly) | Distintos sprites, HP, comportamiento | Solo colores diferentes, 1 HP todos | ❌     |
+| Boss Galaga: 2 HP en formación          | Sí                                    | 1 HP                                | ❌     |
+| Doble disparo: permanente hasta morir   | Sí, dura hasta perder vida            | Timer de 10 segundos                | ❌     |
+| Vida extra a 10K/30K/60K                | Sí                                    | No                                  | ❌     |
+| Formaciones por stage (40 stages)       | Patrones únicos                       | Siempre la misma grilla 10×5        | ❌     |
+| Entry sequences (stages 1-4)            | Vuelos scriptados a formación         | Enemigos aparecen estáticos         | ❌     |
+| Bonus/challenge stages                  | Sí, stages de shoot-em-up             | No                                  | ❌     |
+| Row 2 points                            | 150 (Boss)                            | 100                                 | ⚠️     |
+| Shoot frequency escala con wave         | Sí                                    | Constante 0.008                     | ❌     |
 
 **Prioridad:** 3 tipos de enemigo + doble disparo permanente + formaciones variables.
 
@@ -352,11 +431,11 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Atari Centipede (1981)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| Flea (cae cuando faltan hongos) | Sí, deja hongos al caer | Existe (verificar spawn condición) | ⚠️ Verificar |
-| Scorpion (aparece en oleadas altas) | Sí, envenena hongos | Existe (verificar) | ⚠️ Verificar |
-| Spider (movimiento errático) | Sí, rebota en zona inferior | Existe | ✅ |
+| Mecánica                            | Original                    | Actual                             | Estado       |
+| ----------------------------------- | --------------------------- | ---------------------------------- | ------------ |
+| Flea (cae cuando faltan hongos)     | Sí, deja hongos al caer     | Existe (verificar spawn condición) | ⚠️ Verificar |
+| Scorpion (aparece en oleadas altas) | Sí, envenena hongos         | Existe (verificar)                 | ⚠️ Verificar |
+| Spider (movimiento errático)        | Sí, rebota en zona inferior | Existe                             | ✅           |
 
 **Nota:** Centipede parece tener la paridad más completa de los completados.
 
@@ -366,14 +445,14 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Namco Dig Dug (1982)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| Pump: enemigos se inflan y explotan | Sí | Funciona | ✅ |
-| Rocas: aplastan enemigos y jugador | Sí | Funciona | ✅ |
-| Enemigos: caminan por túneles | Sí | Implementado (fase 1) | ✅ |
-| Pooka: se disfraza de hongo | Sí | Verificar | ⚠️ Verificar |
-| Fygar: breath de fuego horizontal | Sí | Verificar | ⚠️ Verificar |
-| Bonus items (vegetales) | Sí, aparecen entre oleadas | Verificar | ⚠️ Verificar |
+| Mecánica                            | Original                   | Actual                | Estado       |
+| ----------------------------------- | -------------------------- | --------------------- | ------------ |
+| Pump: enemigos se inflan y explotan | Sí                         | Funciona              | ✅           |
+| Rocas: aplastan enemigos y jugador  | Sí                         | Funciona              | ✅           |
+| Enemigos: caminan por túneles       | Sí                         | Implementado (fase 1) | ✅           |
+| Pooka: se disfraza de hongo         | Sí                         | Verificar             | ⚠️ Verificar |
+| Fygar: breath de fuego horizontal   | Sí                         | Verificar             | ⚠️ Verificar |
+| Bonus items (vegetales)             | Sí, aparecen entre oleadas | Verificar             | ⚠️ Verificar |
 
 ---
 
@@ -381,13 +460,13 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Atari Missile Command (1980)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| 3 ciudades (original) | 3 | 6 (decisión del usuario) | ⚠️ |
-| Misiles enemigos normales | Sí | Sí | ✅ |
-| Smart bombs / guided | No existían | Eliminados (fase 1) | ✅ |
-| Bonus por sobrevivir oleada | Sí, puntos por ciudad | Verificar | ⚠️ Verificar |
-| Niveles: misiles más rápidos | Sí | Verificar | ⚠️ Verificar |
+| Mecánica                     | Original              | Actual                   | Estado       |
+| ---------------------------- | --------------------- | ------------------------ | ------------ |
+| 3 ciudades (original)        | 3                     | 6 (decisión del usuario) | ⚠️           |
+| Misiles enemigos normales    | Sí                    | Sí                       | ✅           |
+| Smart bombs / guided         | No existían           | Eliminados (fase 1)      | ✅           |
+| Bonus por sobrevivir oleada  | Sí, puntos por ciudad | Verificar                | ⚠️ Verificar |
+| Niveles: misiles más rápidos | Sí                    | Verificar                | ⚠️ Verificar |
 
 ---
 
@@ -395,13 +474,13 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 **Original:** Williams Defender (1981)
 
-| Mecánica | Original | Actual | Estado |
-|----------|----------|--------|--------|
-| 4 armas (laser, bomb, hyperspace, nuclear) | Sí | Implementadas (fase 1) | ✅ |
-| hyperspace: posición aleatoria | Sí | Implementado | ✅ |
-| nuclear: 1 por vida | Sí | Implementado | ✅ |
-| Mutantes al perder humanos | Sí | Verificar | ⚠️ Verificar |
-| Radar de humanos | Sí | Verificar | ⚠️ Verificar |
+| Mecánica                                   | Original | Actual                 | Estado       |
+| ------------------------------------------ | -------- | ---------------------- | ------------ |
+| 4 armas (laser, bomb, hyperspace, nuclear) | Sí       | Implementadas (fase 1) | ✅           |
+| hyperspace: posición aleatoria             | Sí       | Implementado           | ✅           |
+| nuclear: 1 por vida                        | Sí       | Implementado           | ✅           |
+| Mutantes al perder humanos                 | Sí       | Verificar              | ⚠️ Verificar |
+| Radar de humanos                           | Sí       | Verificar              | ⚠️ Verificar |
 
 ---
 
@@ -409,31 +488,31 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 ### Fase 1 completada, paridad pendiente (9 juegos)
 
-| Juego | Decisiones Fase 1 | Paridad arcade |
-|-------|-------------------|---------------|
-| Space Invaders | ✅ | 11 mecánicas faltantes |
-| Pac-Man | ✅ | 10 mecánicas faltantes |
-| Tetris | ✅ | 7 mecánicas faltantes |
-| Frogger | ✅ | 8 mecánicas faltantes |
-| Galaga | ✅ | 9 mecánicas faltantes |
-| Centipede | ✅ | ~2 por verificar |
-| Dig Dug | ✅ | ~3 por verificar |
-| Missile Command | ✅ | ~2 por verificar |
-| Defender | ✅ | ~2 por verificar |
+| Juego           | Decisiones Fase 1 | Paridad arcade         |
+| --------------- | ----------------- | ---------------------- |
+| Space Invaders  | ✅                | 11 mecánicas faltantes |
+| Pac-Man         | ✅                | 10 mecánicas faltantes |
+| Tetris          | ✅                | 7 mecánicas faltantes  |
+| Frogger         | ✅                | 8 mecánicas faltantes  |
+| Galaga          | ✅                | 9 mecánicas faltantes  |
+| Centipede       | ✅                | ~2 por verificar       |
+| Dig Dug         | ✅                | ~3 por verificar       |
+| Missile Command | ✅                | ~2 por verificar       |
+| Defender        | ✅                | ~2 por verificar       |
 
 ### Fase 1 sin implementar (4 juegos)
 
-| Juego | Cambios |
-|-------|---------|
-| Donkey Kong | 3 fases |
-| Pong | 2P + IA |
-| Breakout | Anti-stuck + 8×14 |
-| Asteroids | Hiperspacio |
+| Juego       | Cambios           |
+| ----------- | ----------------- |
+| Donkey Kong | 3 fases           |
+| Pong        | 2P + IA           |
+| Breakout    | Anti-stuck + 8×14 |
+| Asteroids   | Hiperspacio       |
 
 ### En progreso (1)
 
-| Juego | Agente |
-|-------|--------|
+| Juego | Agente                   |
+| ----- | ------------------------ |
 | Joust | Vultures + pteros + lava |
 
 ---
