@@ -43,8 +43,8 @@ const CPAD = 10;
 
 const LEVELS = 5; // safe zones to fill
 const START_LIVES = 3;
-const TRUCK_SPEED_THRESHOLD = 125;
-const TIME_LIMIT = 60; // segundos por vida (como el arcade)
+const TIME_LIMIT = 60; // global timer per level (arcade-style)
+const CROC_SPAWN_CHANCE = 0.18; // chance a river lane gets a croc
 
 // Lane types
 const ROAD = 'road',
@@ -55,6 +55,7 @@ const ROAD = 'road',
 
 // Lane definitions: [{type, dir, speed, color?}]
 // Row 0 = top (goal), Row 14 = bottom (start)
+// Original Frogger: trucks slow+long, cars medium, race cars fast+narrow
 const LANES = [
   { type: GOAL }, // 0 - goal zone
   { type: SAFE }, // 1 - safe grass
@@ -62,13 +63,13 @@ const LANES = [
   { type: RIVER, dir: -1, speed: 80, color: '#5a7a4a' }, // 3 - logs
   { type: RIVER, dir: 1, speed: 50, color: '#3a9a5a', turtles: true }, // 4 - turtles (se sumergen)
   { type: RIVER, dir: -1, speed: 70, color: '#4a8a6a', turtles: true }, // 5 - turtles (se sumergen)
-  { type: RIVER, dir: 1, speed: 90, color: '#5a8a4a' }, // 6 - logs
+  { type: RIVER, dir: 1, speed: 90, color: '#5a8a4a', croc: true }, // 6 - logs + crocodile
   { type: SAFE }, // 7 - safe grass between road and river
-  { type: ROAD, dir: -1, speed: 120 }, // 8 - cars
-  { type: ROAD, dir: 1, speed: 100 }, // 9 - cars
-  { type: ROAD, dir: -1, speed: 140 }, // 10 - trucks
-  { type: ROAD, dir: 1, speed: 90 }, // 11 - cars
-  { type: ROAD, dir: -1, speed: 110 }, // 12 - cars
+  { type: ROAD, dir: -1, speed: 80 }, // 8 - cars (medium)
+  { type: ROAD, dir: 1, speed: 55 }, // 9 - trucks (slow, long)
+  { type: ROAD, dir: -1, speed: 150 }, // 10 - race cars (fast, narrow)
+  { type: ROAD, dir: 1, speed: 90 }, // 11 - cars (medium)
+  { type: ROAD, dir: -1, speed: 65 }, // 12 - trucks (slow, long)
   { type: SAFE }, // 13 - safe grass
   { type: START }, // 14 - start zone
 ];
@@ -86,8 +87,10 @@ const state = {
   lives: START_LIVES,
   level: 1,
   best: loadBest('frogger2d'),
-  goals: [], // filled goal column indices
+  goals: [],
   timeLeft: TIME_LIMIT,
+  extraLifeGiven: { 10000: false, 20000: false },
+  bonusItems: [],
 };
 
 // ============================================================
@@ -135,23 +138,29 @@ function buildObstacles() {
     const lane = LANES[r];
     if (lane.type === ROAD) {
       const count = 2 + Math.floor(Math.random() * 2);
+      const isTruck = lane.speed < 70;
+      const isRace = lane.speed > 130;
       for (let i = 0; i < count; i++) {
         const x = Math.random() * CW;
-        const isTruck = lane.speed > TRUCK_SPEED_THRESHOLD;
         obstacles.push({
           row: r,
           x,
           y: r * CS + CS / 2,
-          w: isTruck ? CS * 2.5 : CS * 1.8,
-          h: CS * 0.7,
+          w: isTruck ? CS * 2.8 : isRace ? CS * 1.2 : CS * 1.8,
+          h: CS * (isTruck ? 0.75 : isRace ? 0.5 : 0.7),
           dir: lane.dir,
           speed: lane.speed * (0.8 + Math.random() * 0.4),
-          type: isTruck ? 'truck' : 'car',
-          color: isTruck ? '#ff6644' : ['#ffaa44', '#44aaff', '#ff6b6b', '#aa44ff'][i % 4],
+          type: isTruck ? 'truck' : isRace ? 'racecar' : 'car',
+          color: isTruck
+            ? '#ff6644'
+            : isRace
+              ? '#ffff44'
+              : ['#ffaa44', '#44aaff', '#ff6b6b', '#aa44ff'][i % 4],
         });
       }
     } else if (lane.type === RIVER) {
       const useTurtles = !!lane.turtles;
+      const useCroc = !!lane.croc;
       const count = useTurtles ? 3 : 2 + Math.floor(Math.random() * 3);
       for (let i = 0; i < count; i++) {
         const x = Math.random() * CW;
@@ -159,13 +168,12 @@ function buildObstacles() {
           row: r,
           x,
           y: r * CS + CS / 2,
-          w: useTurtles ? CS * 2.1 : CS * (1.5 + Math.random() * 2),
+          w: useTurtles ? CS * 2.1 : useCroc ? CS * 2.5 : CS * (1.5 + Math.random() * 2),
           h: CS * 0.6,
           dir: lane.dir,
           speed: lane.speed * (0.8 + Math.random() * 0.4),
-          type: useTurtles ? 'turtle' : 'log',
+          type: useTurtles ? 'turtle' : useCroc ? 'log' : 'log',
           color: lane.color,
-          // Ciclo de inmersión de las tortugas (visible, con aviso previo)
           ...(useTurtles
             ? {
                 divePeriod: 3.5 + Math.random() * 1.5,
@@ -173,9 +181,57 @@ function buildObstacles() {
                 divePhase: Math.random() * 5,
               }
             : {}),
+          // Crocodile: sits on a log, mouth opens/closes periodically
+          ...(useCroc
+            ? {
+                hasCroc: true,
+                crocMouthOpen: false,
+                crocTimer: Math.random() * 4,
+                crocPeriod: 3 + Math.random() * 2,
+              }
+            : {}),
+        });
+      }
+      // Spawn crocodile separately if lane has croc flag
+      if (useCroc && Math.random() < CROC_SPAWN_CHANCE) {
+        obstacles.push({
+          row: r,
+          x: Math.random() * CW,
+          y: r * CS + CS / 2,
+          w: CS * 2.2,
+          h: CS * 0.7,
+          dir: lane.dir,
+          speed: lane.speed * (0.8 + Math.random() * 0.4),
+          type: 'croc',
+          color: '#2d8a4e',
+          crocMouthOpen: false,
+          crocTimer: Math.random() * 3,
+          crocPeriod: 2.5 + Math.random() * 1.5,
         });
       }
     }
+  }
+  // Spawn bonus items on safe lanes
+  spawnBonusItems();
+}
+
+// Bonus items: fly (200pts), butterfly (100pts), snake (kills)
+function spawnBonusItems() {
+  state.bonusItems = [];
+  // Place 1-2 bonus items on safe lanes (rows 1, 7, 13)
+  const safeLanes = [1, 7, 13];
+  const count = 1 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < count; i++) {
+    const row = safeLanes[Math.floor(Math.random() * safeLanes.length)];
+    const type = Math.random() < 0.3 ? 'snake' : Math.random() < 0.5 ? 'fly' : 'butterfly';
+    state.bonusItems.push({
+      row,
+      x: CS + Math.random() * (CW - CS * 2),
+      y: row * CS + CS / 2,
+      type,
+      timer: 8 + Math.random() * 5, // disappears after timeout
+      collected: false,
+    });
   }
 }
 
@@ -190,12 +246,16 @@ function isPlatform(o) {
   return false;
 }
 
+function isCrocDangerous(o) {
+  // Crocodile with mouth open kills the frog
+  return o.type === 'croc' && o.crocMouthOpen;
+}
+
 function resetFrog() {
   frog.x = (COLS / 2) * CS + CS / 2;
   frog.y = (ROWS - 1) * CS + CS / 2;
   frog.dir = 0;
   moveTimer = 0;
-  state.timeLeft = TIME_LIMIT; // el timer se reinicia por vida/intento
   tenSaid = false;
 }
 
@@ -212,9 +272,21 @@ function resetGame() {
   state.level = 1;
   state.gameOver = false;
   state.goals = [];
+  state.timeLeft = TIME_LIMIT;
+  state.extraLifeGiven = { 10000: false, 20000: false };
   buildObstacles();
   resetFrog();
   document.getElementById('fs').style.display = 'none';
+  updateHUD();
+}
+
+function startLevel() {
+  state.level++;
+  state.goals = [];
+  state.timeLeft = TIME_LIMIT;
+  tenSaid = false;
+  buildObstacles();
+  resetFrog();
   updateHUD();
 }
 function startGame() {
@@ -290,21 +362,41 @@ function checkFrogCollisions() {
   const lane = LANES[row];
   if (!lane) return;
 
+  // Check bonus item collection
+  for (const item of state.bonusItems) {
+    if (item.collected || item.row !== row) continue;
+    if (Math.abs(frog.x - item.x) < CS * 0.6) {
+      item.collected = true;
+      if (item.type === 'snake') {
+        loseLife();
+        return;
+      }
+      const pts = item.type === 'fly' ? 200 * state.level : 100 * state.level;
+      state.score += pts;
+      pGoal();
+      spawnParticles(item.x, item.y, '#ffd700', 10, { spd: 80, life: 0.4, sm: 2, smx: 3 });
+      checkExtraLife();
+      updateHUD();
+    }
+  }
+
   if (lane.type === GOAL) {
-    // Check if in a goal zone
     const col = frog.x / CS;
     let scored = false;
     for (const gx of GOAL_X) {
       if (Math.abs(col - gx) < 0.6 && !state.goals.includes(gx)) {
         state.goals.push(gx);
-        state.score += 100 * state.level;
+        // Time bonus: 10pts per second remaining (arcade-style)
+        const timeBonus = Math.floor(state.timeLeft) * 10;
+        state.score += 100 * state.level + timeBonus;
         pGoal();
         spawnParticles(frog.x, frog.y, '#ffd700', 12, { spd: 80, life: 0.4, sm: 2, smx: 3.5 });
+        checkExtraLife();
         updateHUD();
         scored = true;
         if (state.goals.length >= LEVELS) {
-          pWin();
-          endGame(true);
+          // Infinite levels: start next level instead of ending
+          startLevel();
           return;
         }
         resetFrog();
@@ -318,7 +410,6 @@ function checkFrogCollisions() {
   }
 
   if (lane.type === ROAD) {
-    // Check vehicle collision
     for (const o of obstacles) {
       if (o.row !== row || o.type === 'log') continue;
       if (
@@ -332,20 +423,40 @@ function checkFrogCollisions() {
   }
 
   if (lane.type === RIVER) {
-    // Check if on a log or surfaced turtle
     let onLog = false;
     for (const o of obstacles) {
       if (o.row !== row || !isPlatform(o)) continue;
+      // Crocodile with open mouth kills
+      if (isCrocDangerous(o)) {
+        if (Math.abs(frog.x - o.x) < (o.w + CS * 0.4) / 2) {
+          loseLife();
+          return;
+        }
+        continue;
+      }
       if (Math.abs(frog.x - o.x) < (o.w + CS * 0.4) / 2) {
         onLog = true;
         break;
       }
     }
     if (!onLog) {
-      // Fell in water
       spawnParticles(frog.x, frog.y, '#44aaff', 10, { spd: 60, life: 0.4, smx: 3 });
       loseLife();
     }
+  }
+}
+
+function checkExtraLife() {
+  if (state.score >= 20000 && !state.extraLifeGiven[20000]) {
+    state.extraLifeGiven[20000] = true;
+    state.lives++;
+    beep({ freq: 800, freqEnd: 1200, duration: 0.15, type: 'triangle', volume: 0.2 });
+    say('¡Vida extra!');
+  } else if (state.score >= 10000 && !state.extraLifeGiven[10000]) {
+    state.extraLifeGiven[10000] = true;
+    state.lives++;
+    beep({ freq: 800, freqEnd: 1200, duration: 0.15, type: 'triangle', volume: 0.2 });
+    say('¡Vida extra!');
   }
 }
 
@@ -356,12 +467,20 @@ function updateObstacles(dt) {
     if (o.dir > 0 && o.x > CW + o.w) o.x = -o.w;
     if (o.dir < 0 && o.x < -o.w) o.x = CW + o.w;
 
-    // Carry frog on log or surfaced turtle
+    // Crocodile mouth open/close
+    if (o.type === 'croc' || o.hasCroc) {
+      o.crocTimer += dt;
+      if (o.crocTimer >= o.crocPeriod) {
+        o.crocTimer = 0;
+        o.crocMouthOpen = !o.crocMouthOpen;
+      }
+    }
+
+    // Carry frog on log or surfaced turtle (not on dangerous croc)
     const row = getFrogRow();
-    if (o.row === row && isPlatform(o)) {
+    if (o.row === row && isPlatform(o) && !isCrocDangerous(o)) {
       if (Math.abs(frog.x - o.x) < (o.w + CS * 0.4) / 2) {
         frog.x += o.dir * o.speed * dt;
-        // Keep frog in bounds
         if (frog.x < 0) {
           frog.x = 0;
           loseLife();
@@ -371,6 +490,15 @@ function updateObstacles(dt) {
           loseLife();
         }
       }
+    }
+  }
+
+  // Update bonus item timers
+  for (const item of state.bonusItems) {
+    if (item.collected) continue;
+    item.timer -= dt;
+    if (item.timer <= 0) {
+      item.collected = true;
     }
   }
 }
@@ -667,6 +795,64 @@ function draw() {
       ctx.fillStyle = 'rgba(50,50,50,0.5)';
       ctx.fillRect(ox2 - (o.w / 3) * s, oy2 + (o.h / 2) * s - 2 * s, 4 * s, 4 * s);
       ctx.fillRect(ox2 + (o.w / 3) * s - 4 * s, oy2 + (o.h / 2) * s - 2 * s, 4 * s, 4 * s);
+    } else if (o.type === 'croc') {
+      // Crocodile: green body with open/closed mouth
+      ctx.fillStyle = o.color;
+      roundRect(ctx, ox2 - (o.w / 2) * s, oy2 - (o.h / 2) * s, o.w * s, o.h * s, 3 * s);
+      ctx.fill();
+      drawGlow(ctx, ox2, oy2, o.w * s * 0.3, 'rgba(50,180,80,0.12)', 0.04, 3);
+      // Head + mouth
+      const headX = ox2 + (((o.dir > 0 ? 1 : -1) * o.w) / 2.5) * s;
+      ctx.fillStyle = '#3a9a5a';
+      ctx.beginPath();
+      ctx.arc(headX, oy2, 5 * s, 0, Math.PI * 2);
+      ctx.fill();
+      // Mouth
+      if (o.crocMouthOpen) {
+        ctx.fillStyle = '#ff4444';
+        ctx.beginPath();
+        ctx.arc(headX + (o.dir > 0 ? 4 : -4) * s, oy2, 3.5 * s, 0, Math.PI * 2);
+        ctx.fill();
+        // Teeth
+        ctx.fillStyle = '#fff';
+        for (let t = -1; t <= 1; t++) {
+          ctx.fillRect(headX + (o.dir > 0 ? 2 : -5) * s, oy2 + t * 2 * s - 1 * s, 2 * s, 2 * s);
+        }
+      } else {
+        // Closed mouth line
+        ctx.strokeStyle = '#2d6a3e';
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath();
+        ctx.moveTo(headX, oy2 - 2 * s);
+        ctx.lineTo(headX + (o.dir > 0 ? 5 : -5) * s, oy2);
+        ctx.lineTo(headX, oy2 + 2 * s);
+        ctx.stroke();
+      }
+      // Tail
+      ctx.fillStyle = '#2d7a4a';
+      const tailX = ox2 - (((o.dir > 0 ? 1 : -1) * o.w) / 2.5) * s;
+      ctx.beginPath();
+      ctx.moveTo(tailX, oy2 - 3 * s);
+      ctx.lineTo(tailX - (o.dir > 0 ? 8 : -8) * s, oy2);
+      ctx.lineTo(tailX, oy2 + 3 * s);
+      ctx.fill();
+    } else if (o.type === 'racecar') {
+      // Race car: narrow, fast, yellow with racing stripe
+      ctx.fillStyle = o.color;
+      roundRect(ctx, ox2 - (o.w / 2) * s, oy2 - (o.h / 2) * s, o.w * s, o.h * s, 3 * s);
+      ctx.fill();
+      drawGlow(ctx, ox2, oy2, o.w * s * 0.3, 'rgba(255,255,50,0.12)', 0.04, 3);
+      // Racing stripe
+      ctx.fillStyle = 'rgba(255,0,0,0.4)';
+      ctx.fillRect(ox2 - (o.w / 2) * s + 2 * s, oy2 - 1 * s, o.w * s - 4 * s, 2 * s);
+      // Wheels
+      ctx.fillStyle = 'rgba(50,50,50,0.5)';
+      ctx.beginPath();
+      ctx.arc(ox2 - (o.w / 3) * s, oy2 + (o.h / 2) * s, 2 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(ox2 + (o.w / 3) * s, oy2 + (o.h / 2) * s, 2 * s, 0, Math.PI * 2);
+      ctx.fill();
     } else {
       // Car
       ctx.fillStyle = o.color;
@@ -685,6 +871,48 @@ function draw() {
       ctx.beginPath();
       ctx.arc(ox2 + (o.w / 3) * s, oy2 + (o.h / 2) * s, 2.5 * s, 0, Math.PI * 2);
       ctx.fill();
+    }
+  }
+
+  // Bonus items
+  for (const item of state.bonusItems) {
+    if (item.collected) continue;
+    const ix = cx + item.x * s;
+    const iy = cy + item.y * s;
+    const blink = item.timer < 3 && Math.floor(Date.now() / 200) % 2 === 0;
+    if (blink) continue;
+    if (item.type === 'fly') {
+      // Fly: small golden dot
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      ctx.arc(ix, iy, 4 * s, 0, Math.PI * 2);
+      ctx.fill();
+      drawGlow(ctx, ix, iy, 8 * s, '#ffd700', 0.15, 3);
+    } else if (item.type === 'butterfly') {
+      // Butterfly: colorful wings
+      ctx.fillStyle = '#ff66aa';
+      ctx.beginPath();
+      ctx.ellipse(ix - 4 * s, iy, 5 * s, 3 * s, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#aa66ff';
+      ctx.beginPath();
+      ctx.ellipse(ix + 4 * s, iy, 5 * s, 3 * s, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffff66';
+      ctx.beginPath();
+      ctx.arc(ix, iy, 2 * s, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (item.type === 'snake') {
+      // Snake: red warning
+      ctx.fillStyle = '#ff4444';
+      ctx.beginPath();
+      ctx.arc(ix, iy, 4 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${8 * s}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('!', ix, iy);
     }
   }
 
@@ -816,14 +1044,21 @@ const loop = createGameLoop((dt) => {
     const lane = LANES[row];
     if (lane && lane.type === RIVER) {
       let onLog = false;
+      let onDangerousCroc = false;
       for (const o of obstacles) {
         if (o.row !== row || !isPlatform(o)) continue;
         if (Math.abs(frog.x - o.x) < (o.w + CS * 0.4) / 2) {
+          if (isCrocDangerous(o)) {
+            onDangerousCroc = true;
+            break;
+          }
           onLog = true;
           break;
         }
       }
-      if (!onLog && !state.gameOver) {
+      if (onDangerousCroc && !state.gameOver) {
+        loseLife();
+      } else if (!onLog && !state.gameOver) {
         spawnParticles(frog.x, frog.y, '#44aaff', 10, { spd: 60, life: 0.4, smx: 3 });
         loseLife();
       }

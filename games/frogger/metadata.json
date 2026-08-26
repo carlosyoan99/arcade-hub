@@ -1,7 +1,7 @@
 {
   "id": "frogger",
   "title": "Frogger",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "created": "2026-06-22",
   "lastModified": "2026-08-26",
   "description": "Cruzá la calle y el río esquivando autos y cayendo al agua.",
@@ -10,6 +10,20 @@
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.7.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Paridad arcade: timer global por nivel (no resetea por vida)",
+        "Crocodilos en el río: boca abre/cierra, matan al tocar",
+        "Niveles infinitos: al completar 5 goals, avanza al siguiente nivel",
+        "Race cars: autos angostos y rápidos en carriles de road",
+        "Trucks ahora lentos y largos (como el original)",
+        "Bonus items: fly (200pts), butterfly (100pts), snake (mata)",
+        "Vida extra a 10.000 y 20.000 puntos",
+        "Time bonus al llegar a goal: 10pts por segundo restante"
+      ]
+    },
     {
       "version": "1.6.0",
       "date": "2026-08-26",
