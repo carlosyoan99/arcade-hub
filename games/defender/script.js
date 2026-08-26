@@ -882,8 +882,8 @@ function updateEnemies(dt) {
               state.humans -= 1;
               state.score = Math.max(0, state.score - HUMAN_DEATH_PENALTY);
               spawnParticles(e.x - camera.x, 0, '#ff5e7a', 12);
-              // Spawn a mutant in rage
-              if (Math.random() < 0.3) spawnMutant(e.x, 50);
+              // Spawn a mutant in rage (original: always on human loss)
+              spawnMutant(e.x, 50);
             }
             enemies.splice(i, 1);
             state.landerCount -= 1;
