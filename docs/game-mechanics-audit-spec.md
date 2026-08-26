@@ -1,39 +1,40 @@
 # Game Mechanics Audit — Arcade Hub
 
 > Auditoría de mecánicas de los 19 juegos contra sus originales arcade.
-> Fecha: 2026-08-24 | Estado: **Decisiones aprobadas por el usuario**
+> Fecha: 2026-08-24 | Última actualización: 2026-08-26
+> Estado: **9/19 completados, 1 en progreso, 4 pendientes**
 
 ---
 
-## Resumen de decisiones por juego
+## Estado de implementación
 
-| Juego           | Cambios aprobados                                                                |
-| --------------- | -------------------------------------------------------------------------------- |
-| Pong            | Mantener score 7, Agregar modo 2P local, Hacer IA más humana                     |
-| Breakout        | Agregar anti-stuck, Layout 8×14 original, Mantener 1 bola + 3 vidas              |
-| Snake           | Clásico puro (sin cambios)                                                       |
-| Asteroids       | Agregar Hiperspacio, Mantener invulnerabilidad al respawn                        |
-| Space Invaders  | 1 bala a la vez, Puntos misteriosos variables (50-300)                           |
-| Flappy Bird     | Sin cambios                                                                      |
-| Pac-Man         | Scatter/chase cycles + Frutas bonus + Animación muerte                           |
-| Tetris          | Agregar Hold piece + Rotación SRS                                                |
-| Frogger         | Agregar timer 60s + Tortugas que se sumergen                                     |
-| Galaga          | Agregar tractor beam (atrapón)                                                   |
-| Centipede       | Restringir jugador al tercio inferior + Ciempiés se divide al destruir segmentos |
-| Dig Dug         | Enemigos sin phase-through + Física de rocas más fiel                            |
-| Missile Command | Quitar misiles teledirigidos y satélites (solo misiles normales)                 |
-| Donkey Kong     | Agregar las 4 fases originales (barriles, fuego, elevador, piezas móviles)       |
-| Defender        | Agregar hyperspace + bomba nuclear (4 armas originales)                          |
-| Joust           | Agregar vultures + pterodactyls + lava subiendo                                  |
-| Neon Nexus      | Sin cambios (juego original)                                                     |
-| Cell Swarm      | Sin cambios (juego original)                                                     |
-| Dino Runner     | Sin cambios (juego original)                                                     |
+| #   | Juego           | Estado             | Commit      |
+| --- | --------------- | ------------------ | ----------- |
+| 1   | Pong            | ❌ **Pendiente**   | —           |
+| 2   | Breakout        | ❌ **Pendiente**   | —           |
+| 3   | Snake           | ⏭️ Sin cambios     | —           |
+| 4   | Asteroids       | ❌ **Pendiente**   | —           |
+| 5   | Space Invaders  | ✅ **Completado**  | `a834abd`   |
+| 6   | Flappy Bird     | ⏭️ Sin cambios     | —           |
+| 7   | Pac-Man         | ✅ **Completado**  | `76ec543`   |
+| 8   | Tetris          | ✅ **Completado**  | `55ec803`   |
+| 9   | Frogger         | ✅ **Completado**  | `71753a1`   |
+| 10  | Galaga          | ✅ **Completado**  | `67bf7be`   |
+| 11  | Centipede       | ✅ **Completado**  | `304075d`   |
+| 12  | Dig Dug         | ✅ **Completado**  | `14e8184`   |
+| 13  | Missile Command | ✅ **Completado**  | `7042fab`   |
+| 14  | Donkey Kong     | ❌ **Pendiente**   | —           |
+| 15  | Defender        | ✅ **Completado**  | `f5570a5`   |
+| 16  | Joust           | 🔧 **En progreso** | otro agente |
+| 17  | Neon Nexus      | ⏭️ Sin cambios     | —           |
+| 18  | Cell Swarm      | ⏭️ Sin cambios     | —           |
+| 19  | Dino Runner     | ⏭️ Sin cambios     | —           |
 
 ---
 
 ## Detalle por juego
 
-### 1. PONG
+### 1. PONG — ❌ Pendiente
 
 **Original:** Atari Pong (1972)
 
@@ -49,6 +50,11 @@
 - ✅ **Agregar modo 2 PvP local** — Teclado dividido o turnos
 - ✅ **Hacer IA más humana** — Retrasos ocasionales, ángulos imperfectos, que a veces pierda bola
 
+**Estado de implementación:**
+
+- ❌ Modo 2P: No existe segundo jugador, paddle, score, ni input separado
+- ❌ IA humana: Sin `aiReactionDelay`, `aiAimError`, ni `aiSpeedVariation`
+
 **Implementación sugerida:**
 
 - Modo 2P: Dividir teclado (W/S vs ↑/↓) o turnos con indicador visual
@@ -57,7 +63,7 @@
 
 ---
 
-### 2. BREAKOUT
+### 2. BREAKOUT — ❌ Pendiente
 
 **Original:** Atari Breakout (1976)
 
@@ -73,6 +79,11 @@
 - ✅ **Layout 8×14 original** — Más filas y columnas para dificultad progresiva
 - ✅ **Mantener 1 bola + 3 vidas** — Más moderno y menos frustrante
 
+**Estado de implementación:**
+
+- ❌ Anti-stuck: Sin `ballStuckTimer`, sin reset al golpear ladrillo/paleta, sin force-up
+- ❌ Layout 8×14: Actualmente 5×9 (`BRICK_ROWS=5`, `BRICK_COLS=9`), arrays de colores/puntos con 5 entradas
+
 **Implementación sugerida:**
 
 - Agregar `ballStuckTimer` en game loop, resetear al golpear ladrillo/paleta
@@ -81,23 +92,15 @@
 
 ---
 
-### 3. SNAKE
+### 3. SNAKE — ⏭️ Sin cambios
 
 **Original:** Nokia Snake (1997)
-
-**Hallazgos:**
-
-- Muros = muerte (correcto, como el Nokia clásico)
-- Velocidad progresiva (correcto)
-- Sin power-ups
-
-**Decisiones:**
 
 - ✅ **Clásico puro** — Sin cambios, fiel al Nokia
 
 ---
 
-### 4. ASTEROIDS
+### 4. ASTEROIDS — ❌ Pendiente
 
 **Original:** Atari Asteroids (1979)
 
@@ -112,6 +115,11 @@
 - ✅ **Agregar Hiperspacio** — Botón que teletransporta a posición aleatoria
 - ✅ **Mantener invulnerabilidad** — QoL válida para web
 
+**Estado de implementación:**
+
+- ❌ Hiperspacio: Sin función `hyperspace()`, sin `KeyH`, sin cooldown, sin touch/gamepad binding
+- ✅ Invulnerabilidad: Implementada (`INVINCIBLE_TIME = 2.0`, blinking visual)
+
 **Implementación sugerida:**
 
 - Nuevo input: `KeyH` o botón táctil
@@ -121,9 +129,11 @@
 
 ---
 
-### 5. SPACE INVADERS
+### 5. SPACE INVADERS — ✅ Completado
 
 **Original:** Taito Space Invaders (1978)
+
+**Commit:** `a834abd` · **Versión:** 1.7.0
 
 **Hallazgos:**
 
@@ -136,32 +146,26 @@
 - ✅ **1 bala a la vez** — Más fiel, mayor strategia
 - ✅ **Puntos misteriosos variables** — 50, 100, 150, 200, 250, 300 random
 
-**Implementación sugerida:**
+**Implementado:**
 
-- Limitar `plyBullets.length <= 1` antes de disparar
-- En `mysteryShip` hit: `score += [50,100,150,200,250,300][Math.floor(Math.random()*6)]`
-- Actualizar sonido de mystery ship según puntos
+- ✅ `plyBullets.length === 0` como guard — un solo proyectil en pantalla
+- ✅ `MYSTERY_POINTS = [50,100,150,200,250,300]` + anuncio de puntos
 
 ---
 
-### 6. FLAPPY BIRD
+### 6. FLAPPY BIRD — ⏭️ Sin cambios
 
 **Original:** .GEARS Flappy Bird (2013)
 
-**Hallazgos:**
-
-- Sin errores mecánicos significativos
-- Física correcta (gravedad, flap, tubos)
-
-**Decisiones:**
-
-- ✅ **Sin cambios**
+- ✅ **Sin cambios** — Sin errores mecánicos significativos
 
 ---
 
-### 7. PAC-MAN
+### 7. PAC-MAN — ✅ Completado
 
 **Original:** Namco Pac-Man (1980)
+
+**Commit:** `76ec543` · **Versión:** 1.7.0
 
 **Hallazgos:**
 
@@ -176,17 +180,19 @@
 - ✅ **Frutas bonus** — Fresas, naranjas, etc. aparecen en el laberinto
 - ✅ **Animación muerte** — Pac-Man se contrae/desaparece al morir
 
-**Implementación sugerida:**
+**Implementado:**
 
-- Timer de ciclo: 7s chase → 20s scatter → 7s chase → 20s scatter → 5s chase → 5s scatter → 5s chase → ∞ chase
-- Frutas: Spawnear en posición fija (centro del laberinto) tras comer 70 y 170 puntos
-- Animación muerte: Loop de frames que contrae la boca de Pac-Man hasta desaparecer
+- ✅ Timer de ciclo: 7s chase → 20s scatter → etc.
+- ✅ Frutas en posición fija tras comer puntos
+- ✅ Animación muerte con frames de contração
 
 ---
 
-### 8. TETRIS
+### 8. TETRIS — ✅ Completado
 
 **Original:** Electronorgtechnica Tetris (1984)
+
+**Commit:** `55ec803` · **Versión:** 1.7.0
 
 **Hallazgos:**
 
@@ -199,18 +205,18 @@
 - ✅ **Hold piece** — Tecla para guardar pieza y usarla después
 - ✅ **Rotación SRS** — Sistema de rotación oficial del Tetris Guideline
 
-**Implementación sugerida:**
+**Implementado:**
 
-- Nuevo input: `KeyC` o botón táctil para hold
-- `holdPiece()` → intercambiar pieza actual con hold
-- SRS: Implementar tabla de wall kicks para cada pieza (I, O, T, S, Z, J, L)
-- Mantener DAS y lock delay existentes
+- ✅ Hold piece con `KeyC`
+- ✅ SRS con tabla de wall kicks para I, O, T, S, Z, J, L
 
 ---
 
-### 9. FROGGER
+### 9. FROGGER — ✅ Completado
 
 **Original:** Konami Frogger (1981)
+
+**Commit:** `71753a1` · **Versión:** 1.6.0
 
 **Hallazgos:**
 
@@ -223,18 +229,18 @@
 - ✅ **Timer 60s** — Presión de tiempo por vida
 - ✅ **Tortugas que se sumergen** — En filas de río, algunas tortugas se hunden temporalmente
 
-**Implementación sugerida:**
+**Implementado:**
 
-- `frogTimer = 60` al respawnear, decrementar en game loop
-- Si `frogTimer <= 0` → `loseLife()`
-- En filas de río: agregar tortugas como obstáculos que se sumergen cada 3-5s (ciclo visible)
-- HUD: mostrar timer restante
+- ✅ `frogTimer = 60` al respawnear, HUD muestra tiempo
+- ✅ Tortugas con ciclo de sumergimiento visible
 
 ---
 
-### 10. GALAGA
+### 10. GALAGA — ✅ Completado
 
 **Original:** Namco Galaga (1981)
+
+**Commit:** `67bf7be` · **Versión:** 1.7.0
 
 **Hallazgos:**
 
@@ -246,18 +252,19 @@
 
 - ✅ **Tractor beam** — Mecánica icónica donde un enemigo captura la nave del jugador
 
-**Implementación sugerida:**
+**Implementado:**
 
-- En oleadas pares: 1 enemigo desciende con "beam" visual
-- Si el jugador no lo destruye a tiempo → nave capturada (se vuelve enemigo)
-- Al destruir al captor → nave recuperada (doble disparo temporal)
-- Animación del beam: rectángulo semitransparente que se expande/contrae
+- ✅ Tractor beam en oleadas pares
+- ✅ Captura → nave enemiga → destruir captor → recuperar (doble disparo)
+- ✅ Animación del beam
 
 ---
 
-### 11. CENTIPEDE
+### 11. CENTIPEDE — ✅ Completado
 
 **Original:** Atari Centipede (1981)
+
+**Commit:** `304075d` · **Versión:** 1.6.0
 
 **Hallazgos:**
 
@@ -270,17 +277,18 @@
 - ✅ **Restringir movimiento** — Jugador limitado al tercio inferior
 - ✅ **Splitting del ciempiés** — Al destruir un segmento, los restantes se convierten en ciempiés independientes
 
-**Implementación sugerida:**
+**Implementado:**
 
-- `PLAYER_TOP_RATIO = 0.55` → ajustar a `0.66` (tercio inferior)
-- En `updateBullets`: al destruir segmento `i`, crear nuevo segmento head en `segments[i+1]` si existe
-- El nuevo ciempiés hereda dirección del segmento destruido
+- ✅ `PLAYER_TOP_RATIO` ajustado a ~0.66 (tercio inferior)
+- ✅ Splitting real: segmento destruido genera nuevo ciempiés cabeza
 
 ---
 
-### 12. DIG DUG
+### 12. DIG DUG — ✅ Completado
 
 **Original:** Namco Dig Dug (1982)
+
+**Commit:** `14e8184` · **Versión:** 1.6.0
 
 **Hallazgos:**
 
@@ -291,19 +299,20 @@
 **Decisiones:**
 
 - ✅ **Sin phase-through** — Enemigos caminan por túneles (no atraviesan tierra)
-- ✅ **Física de rocas más fiel** — Ro caen gradualmente, pueden aplastar enemigos y jugador
+- ✅ **Física de rocas más fiel** — Rocas caen gradualmente, pueden aplastar enemigos y jugador
 
-**Implementación sugerida:**
+**Implementado:**
 
-- En `updateEnemies`: eliminar `Math.random() < 0.3` que permite phase-through
-- Enemigos solo pueden moverse a celdas `T.EMPTY`
-- Rocas: gradientes de velocidad (aceleración gravitacional), colisión más precisa
+- ✅ `isEmpty()` como único gate de movimiento — sin `Math.random() < 0.3` para dirt
+- ✅ `fallingRocks[]` array — múltiples rocas cayendo simultáneamente
 
 ---
 
-### 13. MISSILE COMMAND
+### 13. MISSILE COMMAND — ✅ Completado
 
 **Original:** Atari Missile Command (1980)
+
+**Commit:** `7042fab` · **Versión:** 1.6.0
 
 **Hallazgos:**
 
@@ -315,16 +324,15 @@
 - ✅ **Quitar teledirigidos y satélites** — Solo misiles normales
 - ⚠️ **6 ciudades se mantienen** — El usuario no pidió reducir a 3
 
-**Implementación sugerida:**
+**Implementado:**
 
-- Eliminar `smartMissiles[]`, `satellites[]`, `guidedMissile`
-- Eliminar `fireGuided()`, `spawnSmartMissile()`, `spawnSatellite()`
-- Eliminar `state.guidedKills`, `state.guidedCharge`
-- Simplificar lógica de oleadas: solo `missiles[]`
+- ✅ Eliminados: `smartMissiles[]`, `satellites[]`, `guidedMissile`, `fireGuided()`, `spawnSmartMissile()`, `spawnSatellite()`, `state.guidedKills`, `state.guidedCharge`
+- ✅ Solo queda `missiles[]` (amenaza normal)
+- ✅ Badge guiado removido del HTML
 
 ---
 
-### 14. DONKEY KONG
+### 14. DONKEY KONG — ❌ Pendiente
 
 **Original:** Nintendo Donkey Kong (1981)
 
@@ -341,6 +349,14 @@
   3. **Fase 3 — Elevador**: Plataformas móviles, Mario debe saltar entre ellas
   4. **Fase 4 — Piezas**: Piezas del andamio que Mario debe completar
 
+**Estado de implementación:**
+
+- ✅ Fase 1 (barriles): Implementada — DK lanza barriles, colisión, física
+- ❌ Fase 2 (fuego): Sin `fireballs[]`, sin AI de persecución
+- ❌ Fase 3 (elevador): Plataformas todas estáticas (`PLATFORMS` const), sin movimiento
+- ❌ Fase 4 (construcción): Sin piezas de andamio, sin mecánica de completar
+- ❌ Sin enum de fases, sin transiciones animadas, sin level cycling
+
 **Implementación sugerida:**
 
 - Crear `Phases` enum: `BARRELS`, `FIRE`, `ELEVATOR`, `CONSTRUCTION`
@@ -350,9 +366,11 @@
 
 ---
 
-### 15. DEFENDER
+### 15. DEFENDER — ✅ Completado
 
 **Original:** Williams Defender (1981)
+
+**Commit:** `f5570a5` · **Versión:** 1.5.0
 
 **Hallazgos:**
 
@@ -365,16 +383,18 @@
 - ✅ **Agregar hyperspace** — Teletransporte a posición aleatoria
 - ✅ **Agregar bomba nuclear** — Destruye todos los enemigos en pantalla (1 uso por vida)
 
-**Implementación sugerida:**
+**Implementado:**
 
-- Hyperspace: `KeyH` → `player.x = random(WORLD_W)`, cooldown 5s
-- Nuclear: `KeyN` → destruir todos los enemigos, 1 uso por vida
-- UI: Mostrar usos restantes de nuclear en HUD
-- Ambos consumibles: se regeneran al perder vida
+- ✅ `KeyH` → `useHyperspace()` — teleport random, cooldown 5s, invulnerabilidad 0.5s
+- ✅ `KeyN` → `useNuclear()` — destruye todos los enemigos + libera cautivos, 1 uso/vida
+- ✅ Regeneran al morir (`loseLife()` resetea ambos)
+- ✅ HUD: `nuclearDisplay` + `hyperspaceDisplay` con cooldown
+- ✅ Touch: ☢️ (nuclear) + ⚡ (hiperspacio)
+- ✅ Gamepad: botón X (hyperspace) + botón Y (nuclear)
 
 ---
 
-### 16. JOUST
+### 16. JOUST — 🔧 En progreso (otro agente)
 
 **Original:** Williams Joust (1982)
 
@@ -389,13 +409,6 @@
 - ✅ **Agregar vultures** — Enemigos que vuelan sin jinete, más rápidos
 - ✅ **Agregar pterodactyls** — Aparecen en oleadas altas, vuelan recto y rápido
 - ✅ **Agregar lava subiendo** — Lava visual que sube gradualmente, tocarla = muerte
-
-**Implementación sugerida:**
-
-- Vultures: enemigos rápidos sin平台, se mueven en patrones erráticos
-- Pterodactyls: spawnear a partir de oleada 5, vuelan horizontal a alta velocidad
-- Lava: `lavaY` que sube 1px/frame, colisión con jugador = loseLife
-- Lava puede empujar huevos y enemigos hacia arriba
 
 ---
 
@@ -421,30 +434,22 @@
 
 ---
 
-## Prioridad de implementación sugerida
+## Trabajo restante
 
-### Alta prioridad (mecánicas icónicas faltantes)
+### Pendientes de implementar (4 juegos)
 
-1. **Pac-Man** — Scatter/chase + frutas + animación muerte
-2. **Tetris** — Hold piece + SRS
-3. **Donkey Kong** — 4 fases
-4. **Galaga** — Tractor beam
+| Juego           | Cambios requeridos                                                      | Prioridad |
+| --------------- | ----------------------------------------------------------------------- | --------- |
+| **Donkey Kong** | 3 fases faltantes (fuego, elevador, construcción) + enum + transiciones | Alta      |
+| **Pong**        | Modo 2P local + IA más humana                                           | Baja      |
+| **Breakout**    | Anti-stuck (5s timer) + Layout 8×14                                     | Baja      |
+| **Asteroids**   | Hiperspacio (KeyH, cooldown 3s)                                         | Baja      |
 
-### Media prioridad (correcciones de fidelidad)
+### En progreso (1 juego)
 
-5. **Space Invaders** — 1 bala + puntos variables
-6. **Centipede** — Restricción de movimiento + splitting
-7. **Frogger** — Timer + tortugas
-8. **Defender** — Hyperspace + nuclear
-9. **Joust** — Vultures + pteros + lava
-
-### Baja prioridad (mejoras QoL)
-
-10. **Pong** — Modo 2P + IA humana
-11. **Breakout** — Anti-stuck + layout 8×14
-12. **Asteroids** — Hiperspacio
-13. **Dig Dug** — Sin phase-through + rocas
-14. **Missile Command** — Quitar teledirigidos/satélites
+| Juego     | Cambios requeridos                      | Agente      |
+| --------- | --------------------------------------- | ----------- |
+| **Joust** | Vultures + pterodactyls + lava subiendo | Otro agente |
 
 ---
 
