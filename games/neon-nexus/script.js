@@ -85,7 +85,39 @@ const ENEMY_TYPES = {
     sides: 6,
     reward: 5,
   },
+  camo: {
+    r: 11,
+    hp: 30,
+    speed: 70,
+    color: 'rgba(100,100,100,0.3)',
+    glow: 'rgba(100,100,100,0.15)',
+    sides: 5,
+    reward: 2,
+    camo: true,
+  },
+  flying: {
+    r: 12,
+    hp: 35,
+    speed: 55,
+    color: '#ff8a65',
+    glow: 'rgba(255,138,101,0.4)',
+    sides: 3,
+    reward: 3,
+    flying: true,
+  },
+  boss: {
+    r: 30,
+    hp: 800,
+    speed: 20,
+    color: '#ff4444',
+    glow: 'rgba(255,68,68,0.5)',
+    sides: 8,
+    reward: 20,
+    boss: true,
+  },
 };
+
+const WAVE_PREVIEW_EL = document.getElementById('wavePreview');
 
 const CARD_POOL = [
   { id: 'chain', name: '⚡ Cadena', desc: 'Proyectiles encadenan a +1 enemigo', rarity: 'common' },
@@ -125,6 +157,24 @@ const CARD_POOL = [
     id: 'globalSlow',
     name: '🌀 Ralentización Global',
     desc: 'Ralentiza 25% a todos los enemigos',
+    rarity: 'common',
+  },
+  {
+    id: 'sniper',
+    name: '🎯 Francotirador',
+    desc: 'Proyectiles ×2 daño, ×0.5 cadencia, rango ilimitado',
+    rarity: 'epic',
+  },
+  {
+    id: 'scanner',
+    name: '📡 Scanner',
+    desc: 'Detecta enemigos camuflados (los muestra visibles)',
+    rarity: 'rare',
+  },
+  {
+    id: 'targeting',
+    name: '🔍 Prioridad',
+    desc: 'Torre apunta al enemigo con más HP primero',
     rarity: 'common',
   },
 ];
@@ -285,6 +335,9 @@ function loadPerm() {
     turret: false,
     regenShield: false,
     globalSlow: 0,
+    sniper: 0,
+    scanner: false,
+    targeting: false,
   };
 }
 
@@ -305,6 +358,10 @@ function calcTowerStats() {
   // Apply card multipliers
   if (state.cards.atkSpd > 0) state.fireRate *= 1 + state.cards.atkSpd * 0.4;
   if (state.cards.atkUp > 0) state.towerATK *= 1 + state.cards.atkUp * 0.4;
+  if (state.cards.sniper > 0) {
+    state.towerATK *= 1 + state.cards.sniper * 1.0;
+    state.fireRate *= 0.5;
+  }
   state.shieldHP = p.startShield ? 20 : 0;
   state.upgCost = { atk: 10, hp: 10, spd: 15 };
 }
@@ -314,6 +371,15 @@ function calcTowerStats() {
 // ============================================================
 function getWaveEnemies(wave) {
   const types = [];
+  const isBossWave = wave % 5 === 0 && wave > 0;
+
+  if (isBossWave) {
+    types.push('boss');
+    const base = 3 + wave;
+    for (let i = 0; i < base; i++) types.push('triangle');
+    return types;
+  }
+
   const base = 3 + wave * 2;
   if (wave <= 2) {
     for (let i = 0; i < base; i++) types.push('triangle');
@@ -336,7 +402,44 @@ function getWaveEnemies(wave) {
     for (let i = 0; i < di; i++) types.push('diamond');
     for (let i = 0; i < hx; i++) types.push('hexagon');
   }
+
+  // Add camo enemies starting wave 4
+  if (wave >= 4) {
+    const camoCount = Math.min(Math.floor(base * 0.12), 3);
+    for (let i = 0; i < camoCount; i++) types.push('camo');
+  }
+
+  // Add flying enemies starting wave 6
+  if (wave >= 6) {
+    const flyCount = Math.min(Math.floor(base * 0.1), 2);
+    for (let i = 0; i < flyCount; i++) types.push('flying');
+  }
+
   return types;
+}
+
+function getWavePreview(wave) {
+  const nextWave = wave + 1;
+  if (nextWave % 5 === 0 && nextWave > 0) {
+    return `Boss Wave ${nextWave}`;
+  }
+  const types = getWaveEnemies(nextWave);
+  const counts = {};
+  for (const t of types) {
+    counts[t] = (counts[t] || 0) + 1;
+  }
+  const icons = {
+    triangle: '△',
+    square: '□',
+    diamond: '◇',
+    hexagon: '⬡',
+    camo: '?',
+    flying: '↑',
+    boss: '★',
+  };
+  return Object.entries(counts)
+    .map(([t, c]) => `${icons[t] || t}×${c}`)
+    .join(' ');
 }
 
 function spawnEnemy(type) {
@@ -365,6 +468,10 @@ function spawnEnemy(type) {
     frozen: 0,
     targetX: TOWER_CX,
     targetY: TOWER_CY,
+    camo: def.camo || false,
+    flying: def.flying || false,
+    boss: def.boss || false,
+    detected: false,
   });
 }
 
@@ -381,6 +488,9 @@ function spawnWave() {
   if (state.wave >= 10 && !achievements.has('neon_wave10')) {
     achievements.unlock('neon_wave10');
   }
+  if (state.wave >= 20 && !achievements.has('neon_wave20')) {
+    achievements.unlock('neon_wave20');
+  }
   state.spawnInterval = Math.max(
     MIN_SPAWN_INTERVAL,
     BASE_SPAWN_INTERVAL - state.wave * SPAWN_REDUCTION,
@@ -392,6 +502,25 @@ function spawnWave() {
 
   if (state.perm.startShield > 0) {
     state.shieldHP = 20;
+  }
+
+  // Wave preview
+  if (WAVE_PREVIEW_EL) {
+    const preview = getWavePreview(state.wave);
+    WAVE_PREVIEW_EL.textContent = preview;
+    WAVE_PREVIEW_EL.style.display = 'block';
+    setTimeout(() => {
+      WAVE_PREVIEW_EL.style.display = 'none';
+    }, 3000);
+  }
+
+  // Boss wave announcement
+  if (state.wave % 5 === 0 && state.wave > 0) {
+    feedbackBundle('large', TOWER_CX, TOWER_CY, {
+      color: '#ff4444',
+      noFlash: true,
+      onBeep: () => {},
+    });
   }
 
   state._waveQueue = types;
@@ -450,6 +579,7 @@ function findNearestEnemy() {
     nd = Infinity;
   for (const e of enemies) {
     if (e.frozen > 0) continue;
+    if (e.camo && !e.detected && !state.cards.scanner) continue;
     const d = Math.hypot(e.x - TOWER_CX, e.y - TOWER_CY);
     if (d < nd) {
       nd = d;
@@ -457,6 +587,22 @@ function findNearestEnemy() {
     }
   }
   return nearest;
+}
+
+function findTargetEnemy() {
+  if (!state.cards.targeting) return findNearestEnemy();
+  // Targeting priority: most HP first
+  let target = null,
+    maxHp = -1;
+  for (const e of enemies) {
+    if (e.frozen > 0) continue;
+    if (e.camo && !e.detected && !state.cards.scanner) continue;
+    if (e.hp > maxHp) {
+      maxHp = e.hp;
+      target = e;
+    }
+  }
+  return target;
 }
 
 // ============================================================
@@ -948,6 +1094,13 @@ function updateEnemies(dt) {
     }
   }
 
+  // Scanner detection: reveal camo enemies
+  if (state.cards.scanner) {
+    for (const e of enemies) {
+      if (e.camo) e.detected = true;
+    }
+  }
+
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
 
@@ -970,7 +1123,8 @@ function updateEnemies(dt) {
     }
 
     if (dist < TOWER_R + e.r) {
-      towerTakeDamage(10);
+      const dmg = e.boss ? 30 : 10;
+      towerTakeDamage(dmg);
       enemies.splice(i, 1);
       continue;
     }
@@ -1168,7 +1322,7 @@ function updateTower(dt) {
   // ── Auto-fire principal ──
   state.towerFireTimer -= dt;
   if (state.towerFireTimer <= 0) {
-    const target = findNearestEnemy();
+    const target = findTargetEnemy();
     if (target) {
       fireProjectile(target);
       state.towerFireTimer = 1 / state.fireRate;
@@ -1182,7 +1336,7 @@ function updateTower(dt) {
     if (!state._turretTimer) state._turretTimer = 0;
     state._turretTimer -= dt;
     if (state._turretTimer <= 0) {
-      const tTarget = findNearestEnemy();
+      const tTarget = findTargetEnemy();
       if (tTarget) {
         const dmg = state.towerATK * 0.5;
         const angle = Math.atan2(tTarget.y - TOWER_CY, tTarget.x - TOWER_CX);
@@ -1323,24 +1477,85 @@ function draw() {
     const ey = oy + e.y * s;
     const er = e.r * s;
 
+    // Skip camo enemies unless detected
+    if (e.camo && !e.detected && !state.cards.scanner) continue;
+
     ctx.save();
     ctx.translate(ex, ey);
     ctx.rotate(e.rot);
 
-    ctx.fillStyle = e.color;
-
-    ctx.beginPath();
-    const sides = e.sides;
-    for (let si = 0; si < sides; si++) {
-      const a = (si / sides) * Math.PI * 2 - Math.PI / 2;
-      const px2 = Math.cos(a) * er;
-      const py2 = Math.sin(a) * er;
-      if (si === 0) ctx.moveTo(px2, py2);
-      else ctx.lineTo(px2, py2);
+    // Flying enemies: draw with wings
+    if (e.flying) {
+      ctx.fillStyle = e.color;
+      // Wings
+      ctx.beginPath();
+      ctx.moveTo(-er * 1.2, 0);
+      ctx.lineTo(0, -er * 0.6);
+      ctx.lineTo(er * 1.2, 0);
+      ctx.lineTo(0, er * 0.6);
+      ctx.closePath();
+      ctx.fill();
+      drawGlow(ctx, ex, ey, er * 0.8, e.glow, 0.08, 3);
+    } else if (e.boss) {
+      // Boss: pulsing octagon with inner glow
+      const bossPulse = 1 + Math.sin(Date.now() * 0.003) * 0.1;
+      ctx.fillStyle = e.color;
+      ctx.beginPath();
+      for (let si = 0; si < e.sides; si++) {
+        const a = (si / e.sides) * Math.PI * 2 - Math.PI / 2;
+        const px2 = Math.cos(a) * er * bossPulse;
+        const py2 = Math.sin(a) * er * bossPulse;
+        if (si === 0) ctx.moveTo(px2, py2);
+        else ctx.lineTo(px2, py2);
+      }
+      ctx.closePath();
+      ctx.fill();
+      drawGlow(ctx, ex, ey, er * 0.8, e.glow, 0.12, 5);
+      // Inner ring
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 2 * s;
+      ctx.beginPath();
+      ctx.arc(0, 0, er * 0.5, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (e.camo && e.detected) {
+      // Camo: semi-transparent with scan lines
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = e.color;
+      ctx.beginPath();
+      const sides = e.sides;
+      for (let si = 0; si < sides; si++) {
+        const a = (si / sides) * Math.PI * 2 - Math.PI / 2;
+        const px2 = Math.cos(a) * er;
+        const py2 = Math.sin(a) * er;
+        if (si === 0) ctx.moveTo(px2, py2);
+        else ctx.lineTo(px2, py2);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      // Scanner ring
+      ctx.strokeStyle = 'rgba(0,245,255,0.4)';
+      ctx.lineWidth = 1.5 * s;
+      ctx.setLineDash([3 * s, 3 * s]);
+      ctx.beginPath();
+      ctx.arc(0, 0, er + 6 * s, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      ctx.fillStyle = e.color;
+      ctx.beginPath();
+      const sides = e.sides;
+      for (let si = 0; si < sides; si++) {
+        const a = (si / sides) * Math.PI * 2 - Math.PI / 2;
+        const px2 = Math.cos(a) * er;
+        const py2 = Math.sin(a) * er;
+        if (si === 0) ctx.moveTo(px2, py2);
+        else ctx.lineTo(px2, py2);
+      }
+      ctx.closePath();
+      ctx.fill();
+      drawGlow(ctx, ex, ey, er * 0.6, e.glow, 0.06, 3);
     }
-    ctx.closePath();
-    ctx.fill();
-    drawGlow(ctx, ex, ey, er * 0.6, e.glow, 0.06, 3);
 
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 1 * s;

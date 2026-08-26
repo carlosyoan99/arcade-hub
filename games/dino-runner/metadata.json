@@ -1,7 +1,7 @@
 {
   "id": "dino-runner",
   "title": "Dino Runner",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "created": "2026-06-08",
   "lastModified": "2026-08-26",
   "description": "Corré, saltá y agachate para esquivar cactus y pterodáctilos.",
@@ -10,6 +10,27 @@
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.7.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Chrome Dino parity: fast-fall (↓ en aire acelera caída)",
+        "Day/night cycling automático cada 100m",
+        "Pterodáctilos con 3 alturas fijas (high/mid/low)",
+        "Parpadeo del dino cada 3.5s",
+        "Nubes parallax multi-capa",
+        "Easter egg: pastel en la cabeza del dino",
+        "Milestone chime cada 1000m"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js"
+      ]
+    },
     {
       "version": "1.5.2",
       "date": "2026-08-26",
@@ -73,14 +94,6 @@
       "date": "2026-08-12",
       "changes": [
         "G5: Squash & stretch real — stretch al saltar (triggerSquash) y squash al aterrizar, aplicado en drawDino()"
-      ]
-    },
-    {
-      "version": "1.6.0",
-      "date": "2026-08-26",
-      "changes": [
-        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
-        "Refactor: récords vía shared/scores.js"
       ]
     }
   ]

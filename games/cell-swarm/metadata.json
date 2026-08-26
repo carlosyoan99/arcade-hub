@@ -1,7 +1,7 @@
 {
   "id": "cell-swarm",
   "title": "Cell Swarm",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "created": "2026-07-28",
   "lastModified": "2026-08-26",
   "description": "Battle royale de células. Crece comiendo comida y células más pequeñas, huye de las más grandes. ¡Divide, eyecta y conviértete en la célula más grande del mapa!",
@@ -10,6 +10,27 @@
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Agar.io/Slither.io parity: mass decay over time (previene camping)",
+        "Boost mechanic (Shift):速度 × 1.8 consumiendo masa",
+        "Viruses: obstáculos verdes que dividen células > 120 mass",
+        "Border kill: tocar el borde del mundo = muerte instantánea",
+        "Chaser pellets: orugas amarillas que huyen y dan bonus ×3 con boost",
+        "Touch: botón de boost (⚡)"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js",
+        "Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida"
+      ]
+    },
     {
       "version": "1.4.2",
       "date": "2026-08-26",
@@ -66,15 +87,6 @@
       "date": "2026-08-12",
       "changes": [
         "Logros: 6 logros con achievements.unlock() — primera presa, cazador, splitter, masa récord (200), titán (500), alfa (rank #1)"
-      ]
-    },
-    {
-      "version": "1.5.0",
-      "date": "2026-08-26",
-      "changes": [
-        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
-        "Refactor: récords vía shared/scores.js",
-        "Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida"
       ]
     }
   ]

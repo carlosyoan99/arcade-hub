@@ -55,6 +55,16 @@ const MAX_SPEED = 680;
 const SPEED_RAMP = 2.8; // aceleración por segundo
 const SPAWN_MIN = 0.9;
 const SPAWN_MAX = 1.9;
+const FAST_FALL_MULT = 2.5;
+const BLINK_INTERVAL = 3.5;
+const BLINK_DURATION = 0.12;
+const MILESTONE_DIST = 100;
+const PTERO_HEIGHTS = [GROUND_Y - 30, GROUND_Y - 70, GROUND_Y - 110];
+const CLOUD_LAYERS = [
+  { speed: 0.15, y: 60, count: 4, size: 30 },
+  { speed: 0.25, y: 100, count: 5, size: 20 },
+];
+const EASTER_EGG_CHANCE = 0.03;
 
 // ============================================================
 // ESTADO
@@ -67,6 +77,12 @@ const state = {
   speed: BASE_SPEED,
   elapsed: 0,
   nextSpawnIn: 1.2,
+  isNight: false,
+  lastMilestone: 0,
+  blinkTimer: 0,
+  isBlinking: false,
+  cloudOffset: 0,
+  groundOffset2: 0,
 };
 
 // Jugador
@@ -75,9 +91,11 @@ const player = {
   vy: 0,
   onGround: true,
   ducking: false,
+  fastFalling: false,
   legPhase: 0,
   scaleY: 1,
   squashIdx: -1,
+  hat: null,
 };
 
 // Hitbox del dino según postura
@@ -133,6 +151,11 @@ function playCollisionSound() {
 function playRecordSound() {
   [660, 880, 1100].forEach((freq, i) => {
     setTimeout(() => beep({ freq, duration: 0.1, type: 'triangle', volume: 0.16 }), i * 90);
+  });
+}
+function playMilestoneSound() {
+  [880, 1100, 1320].forEach((freq, i) => {
+    setTimeout(() => beep({ freq, duration: 0.08, type: 'square', volume: 0.12 }), i * 70);
   });
 }
 
@@ -294,9 +317,17 @@ function jump() {
 
 function setDuck(active) {
   if (!state.running || state.gameOver) return;
-  if (active && !player.onGround) return;
-  player.ducking = active;
-  if (active) playDuckSound();
+  if (active && !player.onGround) {
+    player.fastFalling = true;
+    return;
+  }
+  if (active && player.onGround) {
+    player.ducking = true;
+    playDuckSound();
+  } else {
+    player.ducking = false;
+    player.fastFalling = false;
+  }
 }
 
 function resetGame() {
@@ -306,12 +337,20 @@ function resetGame() {
   state.elapsed = 0;
   state.nextSpawnIn = 1.2;
   state.gameOver = false;
+  state.isNight = false;
+  state.lastMilestone = 0;
+  state.blinkTimer = BLINK_INTERVAL;
+  state.isBlinking = false;
+  state.cloudOffset = 0;
+  state.groundOffset2 = 0;
   player.y = GROUND_Y;
   player.vy = 0;
   player.onGround = true;
   player.ducking = false;
+  player.fastFalling = false;
   player.legPhase = 0;
   player.scaleY = 1;
+  player.hat = null;
   groundOffset = 0;
   finalScoreEl.style.display = 'none';
   updateHUD();
@@ -367,8 +406,9 @@ function endGame() {
 function updatePlayer(dt) {
   const wasOnGround = player.onGround;
 
-  // Gravedad
-  player.vy += GRAVITY * dt;
+  // Gravedad — fast-fall aplica gravedad extra
+  const gravMult = player.fastFalling && !player.onGround ? FAST_FALL_MULT : 1;
+  player.vy += GRAVITY * gravMult * dt;
   player.y += player.vy * dt;
 
   if (player.y >= GROUND_Y) {
@@ -447,7 +487,8 @@ function spawnCactus() {
 }
 
 function spawnBird() {
-  const flyY = GROUND_Y - 50 - Math.random() * 70;
+  const tier = Math.floor(Math.random() * PTERO_HEIGHTS.length);
+  const flyY = PTERO_HEIGHTS[tier];
   obstacles.push({
     type: 'bird',
     x: COURT_W + 40,
@@ -514,24 +555,57 @@ function draw() {
   const cw = COURT_W * s;
   const ch = COURT_H * s;
 
-  // --- Fondo: cielo degradado ---
+  // --- Fondo: cielo degradado (day/night cycling) ---
   const skyGrad = ctx.createLinearGradient(ox, oy, ox, oy + ch);
-  skyGrad.addColorStop(0, '#1a1a3e');
-  skyGrad.addColorStop(0.6, '#0d1a24');
-  skyGrad.addColorStop(1, '#0a0a14');
+  if (state.isNight) {
+    skyGrad.addColorStop(0, '#0a0a2e');
+    skyGrad.addColorStop(0.6, '#060d1a');
+    skyGrad.addColorStop(1, '#040810');
+  } else {
+    skyGrad.addColorStop(0, '#1a1a3e');
+    skyGrad.addColorStop(0.6, '#0d1a24');
+    skyGrad.addColorStop(1, '#0a0a14');
+  }
   ctx.fillStyle = skyGrad;
   ctx.fillRect(ox, oy, cw, ch);
 
-  // --- Estrellas / puntos distantes ---
-  // (usando posición fija pseudoaleatoria)
-  ctx.fillStyle = 'rgba(255,255,255,0.08)';
-  for (let i = 0; i < 30; i++) {
-    const sx = (i * 137.5 + 50) % cw;
-    const sy = (i * 97.3 + 20) % (ch * 0.4);
-    const sr = 0.5 + (i % 3) * 0.5;
-    ctx.beginPath();
-    ctx.arc(ox + sx, oy + sy, sr * s, 0, Math.PI * 2);
-    ctx.fill();
+  // --- Estrellas (solo de noche) ---
+  if (state.isNight) {
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    for (let i = 0; i < 40; i++) {
+      const sx = (i * 137.5 + 50) % cw;
+      const sy = (i * 97.3 + 20) % (ch * 0.4);
+      const sr = 0.5 + (i % 3) * 0.5;
+      ctx.beginPath();
+      ctx.arc(ox + sx, oy + sy, sr * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    for (let i = 0; i < 20; i++) {
+      const sx = (i * 137.5 + 50) % cw;
+      const sy = (i * 97.3 + 20) % (ch * 0.35);
+      const sr = 0.3 + (i % 3) * 0.3;
+      ctx.beginPath();
+      ctx.arc(ox + sx, oy + sy, sr * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // --- Nubes (parallax multi-capa) ---
+  for (const layer of CLOUD_LAYERS) {
+    ctx.fillStyle = state.isNight ? 'rgba(100,120,160,0.08)' : 'rgba(255,255,255,0.06)';
+    for (let i = 0; i < layer.count; i++) {
+      const cx =
+        ((i * (cw / layer.count) + state.cloudOffset * layer.speed) % (cw + layer.size * 2)) -
+        layer.size;
+      const cy = oy + layer.y * s + (i % 2) * 15 * s;
+      const cw2 = layer.size * s;
+      const ch2 = layer.size * 0.4 * s;
+      ctx.beginPath();
+      ctx.ellipse(ox + cx, cy, cw2, ch2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   // --- Montañas lejanas ---
@@ -655,17 +729,41 @@ function drawDino(x, y, s, legPhase, scaleY, isDucking, squashIdx) {
     roundRect(ctx, sc(4), headY - headH + sc(8), headW - sc(4), sc(6), sc(2));
     ctx.fill();
 
-    // Ojo
-    fillWithGlow(
-      ctx,
-      () => {
-        ctx.beginPath();
-        ctx.arc(sc(12), headY - headH + sc(6), sc(2.5), 0, Math.PI * 2);
-      },
-      '#ffffff',
-      0.4,
-      3 * s,
-    );
+    // Ojo (con parpadeo)
+    if (!state.isBlinking) {
+      fillWithGlow(
+        ctx,
+        () => {
+          ctx.beginPath();
+          ctx.arc(sc(12), headY - headH + sc(6), sc(2.5), 0, Math.PI * 2);
+        },
+        '#ffffff',
+        0.4,
+        3 * s,
+      );
+    } else {
+      // Ojo cerrado: línea horizontal
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = sc(1.5);
+      ctx.beginPath();
+      ctx.moveTo(sc(9), headY - headH + sc(6));
+      ctx.lineTo(sc(15), headY - headH + sc(6));
+      ctx.stroke();
+    }
+
+    // Easter egg: pastel en la cabeza
+    if (player.hat === 'cake') {
+      const cakeY = headY - headH - sc(4);
+      ctx.fillStyle = '#ff6b9d';
+      roundRect(ctx, sc(6), cakeY - sc(6), sc(10), sc(6), sc(2));
+      ctx.fill();
+      ctx.fillStyle = '#ffe066';
+      roundRect(ctx, sc(8), cakeY - sc(8), sc(6), sc(3), sc(1));
+      ctx.fill();
+      // Vela
+      ctx.fillStyle = '#ff4444';
+      ctx.fillRect(sc(10), cakeY - sc(10), sc(2), sc(3));
+    }
 
     // Cola
     ctx.fillStyle = color;
@@ -818,6 +916,37 @@ const loop = createGameLoop((dt) => {
     state.elapsed += dt;
     state.speed = Math.min(MAX_SPEED, BASE_SPEED + state.elapsed * SPEED_RAMP);
     state.distance += state.speed * dt * 0.04;
+
+    // Night cycling: toggle every MILESTONE_DIST
+    const currentMilestone = Math.floor(state.distance / MILESTONE_DIST);
+    if (currentMilestone > state.lastMilestone) {
+      state.lastMilestone = currentMilestone;
+      state.isNight = !state.isNight;
+      // Milestone chime every 10 milestones (1000m)
+      if (currentMilestone % 10 === 0) {
+        playMilestoneSound();
+      }
+    }
+
+    // Blink timer
+    state.blinkTimer -= dt;
+    if (state.blinkTimer <= 0) {
+      if (state.isBlinking) {
+        state.isBlinking = false;
+        state.blinkTimer = BLINK_INTERVAL;
+      } else {
+        state.isBlinking = true;
+        state.blinkTimer = BLINK_DURATION;
+      }
+    }
+
+    // Cloud scroll
+    state.cloudOffset += state.speed * dt * 0.3;
+
+    // Easter egg: hat on dino
+    if (!player.hat && state.distance > 100 && Math.random() < EASTER_EGG_CHANCE * dt) {
+      player.hat = 'cake';
+    }
 
     updatePlayer(dt);
     updateGround(dt);

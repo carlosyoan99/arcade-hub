@@ -1,7 +1,7 @@
 {
   "id": "neon-nexus",
   "title": "Neon Nexus",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "created": "2026-07-28",
   "lastModified": "2026-08-26",
   "description": "Defiende tu torre geométrica contra oleadas de formas neon en este tower defense roguelike. Haz clic para dañar, mejora tu torre y elige cartas de poder entre oleadas.",
@@ -10,6 +10,29 @@
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "TD genre parity: camo enemies (requieren Scanner para ver)",
+        "TD genre parity: flying enemies (aparecen wave 6+)",
+        "TD genre parity: boss waves cada 5 oleadas (HP ×8, daño ×3)",
+        "TD genre parity: wave preview (muestra composición próxima oleada)",
+        "TD genre parity: targeting priority (card Prioridad apunta al de más HP)",
+        "Nueva card: Francotirador (×2 daño, ×0.5 cadencia)",
+        "Nueva card: Scanner (detecta enemigos camuflados)",
+        "Nueva card: Prioridad (targeting por HP)",
+        "Logro: oleada 20"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Fix: ahora libera la trampa de Tab al terminar partida (antes quedaba activa) y el botón hub funciona dentro del iframe del hub"
+      ]
+    },
     {
       "version": "1.4.2",
       "date": "2026-08-26",
@@ -67,14 +90,6 @@
       "date": "2026-08-12",
       "changes": [
         "Logros: 5 logros con achievements.unlock() — primer kill, oleada 5, oleada 10, aniquilador (50 kills), comprador (1ª compra tienda)"
-      ]
-    },
-    {
-      "version": "1.5.0",
-      "date": "2026-08-26",
-      "changes": [
-        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
-        "Fix: ahora libera la trampa de Tab al terminar partida (antes quedaba activa) y el botón hub funciona dentro del iframe del hub"
       ]
     }
   ]

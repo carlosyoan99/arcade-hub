@@ -50,10 +50,10 @@ const GAMES = {
     icon: '🦖',
     controls: [
       'Espacio / ↑ / W / tocar para saltar',
-      '↓ / S para agacharte',
+      '↓ / S para agacharte o caer rápido en el aire',
       'Gamepad: botón A para saltar',
     ],
-    goal: 'Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad aumenta con el tiempo.',
+    goal: 'Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad aumenta con el tiempo. Day/night cicla cada 100m.',
     achievements: [
       { icon: '🦖', name: 'Corredor incansable', desc: 'Sobreviví 500 unidades en Dino Runner' },
     ],
@@ -200,7 +200,7 @@ const GAMES = {
       '←→ para elegir carta entre oleadas',
       'Gamepad: Stick para moverse, botones A/B/X/Y',
     ],
-    goal: 'Defendé tu torre geométrica contra oleadas de formas neon. Elegí cartas de poder entre oleadas para construir tu build. Sobreviví el mayor tiempo posible en este tower defense roguelike.',
+    goal: 'Defendé tu torre contra oleadas de formas neon. Cada 5 oleadas aparece un Boss. Enemigos camuflados (?) solo se ven con Scanner. Los enemigos voladores (↑) aparecen desde la oleada 6.',
     achievements: [],
   },
   'cell-swarm': {
@@ -210,9 +210,10 @@ const GAMES = {
       'Mouse / deslizar para mover tu célula',
       'Espacio para dividirte (Split)',
       'E para eyectar masa (Eject)',
+      'Shift para Boost (×1.8 velocidad, consume masa)',
       'Gamepad: Stick para mover, A dividir, B eyectar',
     ],
-    goal: 'Crece comiendo células más pequeñas y comida. Huí de las más grandes. Usá Split para cazar presas rápidas o escapar. Convertite en la célula más grande del mapa.',
+    goal: 'Crece comiendo células más pequeñas y comida. Huí de las más grandes. El boost te da velocidad extra. ¡Cuidado con los viruses verdes y el borde del mapa!',
     achievements: [],
   },
   'donkey-kong': {
