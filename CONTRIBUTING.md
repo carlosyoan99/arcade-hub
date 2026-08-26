@@ -193,7 +193,7 @@ npm run check    # lint + format + verify + test (todo en uno)
 | `shared/dom.js`          | `injectCommonElements()` — loading, `#announce` aria-live, game bar                                                                                         |
 | `shared/loop.js`         | `createGameLoop()` — RAF + dt + cleanup unificado                                                                                                           |
 | `shared/input.js`        | `createGamepad()`, `bindHoldButton()`                                                                                                                       |
-| `shared/music.js`       | `startMusic(gameId)`, `stopMusic()`, `musicEnabled()`, `setMusicEnabled()` — música lofi procedural por juego                                                |
+| `shared/music.js`        | `startMusic(gameId)`, `stopMusic()`, `musicEnabled()`, `setMusicEnabled()` — música lofi procedural por juego                                               |
 
 **Reglas:**
 

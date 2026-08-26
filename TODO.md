@@ -81,7 +81,7 @@
 - [x] **P8**: Agregar `shared/display.js` y `dom.js` a SW FILES
 - [x] **P9**: Migrar shadowBlur en snake, asteroids, pacman, frogger, digdug, missile-command, donkey-kong, cell-swarm, neon-nexus
 - [x] **P0-extra (2026-07-31)**: Migración total de `ctx.shadowBlur` → glows sin blur en 19/19 juegos — `fillWithGlow()`/`strokeWithGlow()` nuevos en `shared/effects.js` + `drawGlow()` para círculos. Verificado: **0 usos de `shadowBlur` restantes** en `games/*/script.js`.
-- [ ] **P10**: Probar rendimiento con Chrome DevTools Performance tab
+- [x] **P10**: Pruebas de rendimiento con Chrome DevTools — **19/19 juegos ✅** (ver abajo)
 
 **Nota:** Tras la migración de P9 quedaban ~115 usos decorativos de `ctx.shadowBlur` (fondos, HUD, bordes, entidades fuera de loops) — todos migrados a la técnica de halo translúcido (`fillWithGlow`/`strokeWithGlow`) el 2026-07-31.
 
@@ -174,11 +174,32 @@ Auditoría de hub + 19 juegos (foco, contraste, reduced-motion, ARIA, touch targ
 
 ---
 
-## 🔲 PENDIENTE — Fase P10: Pruebas de rendimiento
+## ✅ COMPLETADO — Fase P10: Pruebas de rendimiento (2026-08-24)
 
-| #   | Tarea                              | Detalle                                                                                  |
-| --- | ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| P10 | **Probar rendimiento en DevTools** | Abrir juegos con Chrome DevTools Performance tab, verificar frame drops en oleadas altas |
+> Ejecutado con `scripts/profile.js` — Chrome DevTools Protocol headless, 8s por juego.
+> Todos los juegos: **60-61 FPS**, **0 Long Tasks**, **0 CLS**, **heap 2-9MB**.
+
+| Juego           | FPS (avg/min/max) | Long Tasks | CLS | Heap Max | Nodes |
+| --------------- | ----------------- | ---------- | --- | -------- | ----- |
+| pong            | 61/59/63          | 0          | 0   | 4MB      | 3812  |
+| breakout        | 61/60/63          | 0          | 0   | 4MB      | 4200  |
+| snake           | 60/57/63          | 0          | 0   | 5MB      | 4588  |
+| asteroids       | 61/60/63          | 0          | 0   | 5MB      | 4976  |
+| space-invaders  | 60/58/62          | 0          | 0   | 5MB      | 4958  |
+| flappy-bird     | 61/60/63          | 0          | 0   | 5MB      | 5346  |
+| pacman          | 61/59/62          | 0          | 0   | 6MB      | 5734  |
+| tetris          | 61/60/63          | 0          | 0   | 6MB      | 6122  |
+| frogger         | 61/59/63          | 0          | 0   | 6MB      | 6510  |
+| galaga          | 61/60/63          | 0          | 0   | 6MB      | 6898  |
+| centipede       | 61/59/63          | 0          | 0   | 7MB      | 7286  |
+| digdug          | 60/58/63          | 0          | 0   | 7MB      | 7674  |
+| missile-command | 61/60/62          | 0          | 0   | 7MB      | 7598  |
+| neon-nexus      | 60/58/62          | 0          | 0   | 7MB      | 7928  |
+| cell-swarm      | 61/61/62          | 0          | 0   | 7MB      | 8254  |
+| defender        | 61/59/62          | 0          | 0   | 8MB      | 8642  |
+| donkey-kong     | 61/58/63          | 0          | 0   | 8MB      | 9030  |
+| joust           | 61/60/62          | 0          | 0   | 9MB      | 9418  |
+| dino-runner     | 61/59/63          | 0          | 0   | 9MB      | 9806  |
 
 ---
 
@@ -204,12 +225,12 @@ Templates disponibles en `.agents/skills/assets/`:
 | **R2**    | `refactor`            | shared/loop.js      | ✅ **Completado** (19/19 juegos)        |
 | **R3**    | `refactor`            | Magic numbers       | ✅ **Completado** (parcial sin commit)  |
 | **R4**    | `refactor`            | CSS cleanup         | ✅ **Completado**                       |
-| **P0**    | Rendimiento           | shadowBlur+SW       | ✅ **9/10** (falta P10)                 |
+| **P0**    | Rendimiento           | shadowBlur+SW       | ✅ **10/10 completo**                   |
 | **G1–G5** | `game-feel`           | Game feel           | ✅ **Completado** (19/19, squash 17/19) |
 | **H1**    | `premium-frontend-ui` | Premium hub UI      | ✅ **7/7 completo**                     |
 | **D**     | `create-readme`       | Documentación       | ✅ **Completado** (D1-D6)               |
 | **M**     | `audit-integrity`     | Mejoras menores     | ✅ **Completado** (7/7)                 |
-| **P10**   | DevTools              | Pruebas rendimiento | 🔲 **Pendiente**                        |
+| **P10**   | DevTools              | Pruebas rendimiento | ✅ **Completado** (19/19 60fps, 0 LT)   |
 | **N1**    | `game-engine`         | Nuevos juegos       | 🟢 **Futuro**                           |
 
 ---
@@ -260,6 +281,6 @@ Templates disponibles en `.agents/skills/assets/`:
 ### 🧹 Pendientes de repo
 
 - [ ] **Commitear archivos sin trackear**: `AGENTS.md`, `skills-lock.json` y las 5 autoskills (`.agents/skills/{accessibility,frontend-design,nodejs-backend-patterns,nodejs-best-practices,seo}/`) — necesarios para reproducir el setup de skills (ver `skills-lock.json`)
-- [ ] **P10**: Pruebas de rendimiento con Chrome DevTools Performance tab (única fase pendiente)
+- [x] **P10**: Pruebas de rendimiento completadas — 19/19 juegos a 60fps, 0 Long Tasks, 0 CLS (2026-08-24)
 - [ ] **N1**: Nuevos juegos (templates en `.agents/skills/assets/`)
 - [ ] Clarificar en `CLAUDE.md` que de las 26 skills listadas solo 5 son autoskills cargables vía `skill()` (las 21 restantes son docs en `.agents/skills/*.md` no registradas en `skills-lock.json`)
