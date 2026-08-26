@@ -1,6 +1,6 @@
 # 👾 Space Invaders
 
-**Versión:** 1.5.0 | **Género:** Space Shooter | **Última actualización:** 2026-07-30
+**Versión:** 1.5.1 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
 
 Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos, nave misteriosa y velocidad progresiva.
 
@@ -51,6 +51,7 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 
 ## Changelog
 
+- **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
 - **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`

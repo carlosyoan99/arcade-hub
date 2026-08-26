@@ -1,6 +1,6 @@
 # 🚀 Defender
 
-**Versión:** 1.3.0 | **Género:** Shooter | **Última actualización:** 2026-07-30
+**Versión:** 1.3.1 | **Género:** Shooter | **Última actualización:** 2026-08-26
 
 Side-scrolling shooter clásico. Defendé a los humanos de la invasión alienígena en un mundo que se desplaza horizontalmente.
 
@@ -58,6 +58,7 @@ Side-scrolling shooter clásico. Defendé a los humanos de la invasión alieníg
 
 ## Changelog
 
+- **1.3.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.3.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (márgenes, límites de oleadas); fix refs rotas ship→player
 - **1.2.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
 - **1.1.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HTML compartido vía `shared/dom.js`

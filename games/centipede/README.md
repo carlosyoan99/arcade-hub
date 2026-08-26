@@ -1,6 +1,6 @@
 # 🐛 Centipede
 
-**Versión:** 1.5.0 | **Género:** Arcade | **Última actualización:** 2026-07-30
+**Versión:** 1.5.1 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruyas se convierte en un hongo nuevo. ¡Cuidado con la araña saltarina, las pulgas y los escorpiones!
 
@@ -51,6 +51,7 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 
 ## Changelog
 
+- **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (velocidades, intervalos de olas); fix refs rotas mouseX/Y→player.x/y
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
 - **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`

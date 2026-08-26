@@ -1,6 +1,6 @@
 # ◈ Neon Nexus
 
-**Versión:** 1.4.1 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-08-12
+**Versión:** 1.4.2 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-08-26
 
 Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara automáticamente, haz clic para daño extra, mejora con estrellas y elige cartas de poder entre oleadas.
 
@@ -59,6 +59,7 @@ Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara au
 
 ## Changelog
 
+- **1.4.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.4.1** (2026-08-12): Sistema de logros completo — 5 logros con `achievements.unlock()` (primer kill, oleada 5, oleada 10, aniquilador, comprador)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (spawn, escudo, upgrades); fix `injectCommonElements()` restaurado
 - **1.3.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

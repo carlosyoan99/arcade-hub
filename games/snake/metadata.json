@@ -1,15 +1,22 @@
 {
   "id": "snake",
   "title": "Snake",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "created": "2026-06-05",
-  "lastModified": "2026-07-31",
+  "lastModified": "2026-08-26",
   "description": "La serpiente clásica. Atrapá la comida para crecer sin chocarte.",
   "genre": "arcade",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.5.2",
+      "date": "2026-08-26",
+      "changes": [
+        "Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-06-05",

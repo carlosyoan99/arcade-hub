@@ -1,15 +1,22 @@
 {
   "id": "missile-command",
   "title": "Missile Command",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "created": "2026-07-28",
-  "lastModified": "2026-08-12",
+  "lastModified": "2026-08-26",
   "description": "Defendé tus ciudades de misiles enemigos con interceptores y misiles teledirigidos.",
   "genre": "defensa",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.4.2",
+      "date": "2026-08-26",
+      "changes": [
+        "Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-07-28",

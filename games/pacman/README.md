@@ -1,6 +1,6 @@
 # 🟡 Pac-Man
 
-**Versión:** 1.5.0 | **Género:** Laberinto | **Última actualización:** 2026-07-30
+**Versión:** 1.5.1 | **Género:** Laberinto | **Última actualización:** 2026-08-26
 
 Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets te dejan comer fantasmas. ¡4 IAs distintas!
 
@@ -49,6 +49,7 @@ Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets t
 
 ## Changelog
 
+- **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; fix refs rotas pacman→pac
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`
 - **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`

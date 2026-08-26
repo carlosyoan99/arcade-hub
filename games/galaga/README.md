@@ -1,6 +1,6 @@
 # 🛸 Galaga
 
-**Versión:** 1.5.0 | **Género:** Space Shooter | **Última actualización:** 2026-07-30
+**Versión:** 1.5.1 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
 
 Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y sobreviví el mayor tiempo posible.
 
@@ -49,6 +49,7 @@ Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y s
 
 ## Changelog
 
+- **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; constantes extraídas (SHIP_MARGIN, MIN_DIVE_INTERVAL, MAX_DIVERS)
 - **1.3.0** (2026-07-30): Canvas ID unificado + `setupCanvas()` vía `shared/display.js`; HUD IDs legibles; HTML compartido vía `shared/dom.js`

@@ -2,6 +2,7 @@ import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad, bindHoldButton } from '../../shared/input.js';
@@ -351,6 +352,7 @@ function resetGame() {
 function startGame() {
   ensureAudio();
   startAmbient();
+  startMusic('breakout');
   if (state.best >= 1000) achievements.unlock('breakout_thousand');
   resetGame();
   state.running = true;
@@ -761,6 +763,7 @@ updateHUD();
 function cleanup() {
   loop.stop();
   document.removeEventListener('keydown', trapTab);
+  stopMusic();
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);

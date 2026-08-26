@@ -1,6 +1,6 @@
 # 🟣 Cell Swarm
 
-**Versión:** 1.4.1 | **Género:** Battle Royale | **Última actualización:** 2026-08-12
+**Versión:** 1.4.2 | **Género:** Battle Royale | **Última actualización:** 2026-08-26
 
 Battle royale de células neón. Crece comiendo comida y células más pequeñas, divide tu masa para cazar, eyecta para distraer. ¡Conviértete en la célula más grande del mapa!
 
@@ -61,6 +61,7 @@ Battle royale de células neón. Crece comiendo comida y células más pequeñas
 
 ## Changelog
 
+- **1.4.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.4.1** (2026-08-12): Sistema de logros completo — 6 logros con `achievements.unlock()` (primera presa, cazador, splitter, masa récord, titán, alfa)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.3.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

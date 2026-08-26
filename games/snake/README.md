@@ -1,6 +1,6 @@
 # 🐍 Snake
 
-**Versión:** 1.5.1 | **Género:** Arcade | **Última actualización:** 2026-07-31
+**Versión:** 1.5.2 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin chocarte contra las paredes ni contra vos mismo.
 
@@ -48,6 +48,7 @@ El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin ch
 
 ## Changelog
 
+- **1.5.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.1** (2026-07-31): R1: coordenadas de grid `.z/.dz` renombradas a `.y/.dy` — último vestigio 3D eliminado
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

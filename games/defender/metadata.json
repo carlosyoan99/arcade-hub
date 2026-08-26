@@ -1,15 +1,22 @@
 {
   "id": "defender",
   "title": "Defender",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "created": "2026-07-28",
-  "lastModified": "2026-07-30",
+  "lastModified": "2026-08-26",
   "description": "Side-scrolling shooter. Defendé a los humanos de la invasión alienígena en un mundo scrolleante.",
   "genre": "shooter",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.3.1",
+      "date": "2026-08-26",
+      "changes": [
+        "Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-07-28",

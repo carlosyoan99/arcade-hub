@@ -2,6 +2,7 @@ import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -765,6 +766,7 @@ function startGame() {
   clearSquashes();
   ensureAudio();
   startAmbient();
+  startMusic('cell-swarm');
 
   state.running = true;
   state.gameOver = false;
@@ -1332,6 +1334,7 @@ const loop = createGameLoop((dt) => {
 function cleanup() {
   loop.stop();
   document.removeEventListener('keydown', trapTab);
+  stopMusic();
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);

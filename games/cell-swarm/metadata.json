@@ -1,15 +1,22 @@
 {
   "id": "cell-swarm",
   "title": "Cell Swarm",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "created": "2026-07-28",
-  "lastModified": "2026-08-12",
+  "lastModified": "2026-08-26",
   "description": "Battle royale de células. Crece comiendo comida y células más pequeñas, huye de las más grandes. ¡Divide, eyecta y conviértete en la célula más grande del mapa!",
   "genre": "battle-royale",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "1.4.2",
+      "date": "2026-08-26",
+      "changes": [
+        "Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-07-28",

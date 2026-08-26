@@ -2,6 +2,7 @@ import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -374,6 +375,7 @@ function startGame() {
   clearSquashes();
   ensureAudio();
   startAmbient();
+  startMusic('defender');
   clearParticles();
   state.running = true;
   state.gameOver = false;
@@ -1438,6 +1440,7 @@ updateHUD();
 function cleanup() {
   loop.stop();
   stopAmbient();
+  stopMusic();
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);

@@ -2,6 +2,7 @@ import { showHelp } from '../../shared/help.js';
 import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -173,6 +174,7 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('galaga');
   startAmbient();
+  startMusic('galaga');
   document.getElementById('overlay').classList.add('hidden');
   document.addEventListener('keydown', trapTab);
   if (state.best >= 2000) achievements.unlock('galaga_twothousand');
@@ -779,6 +781,7 @@ function cleanup() {
   loop.stop();
   document.removeEventListener('keydown', trapTab);
   stopAmbient();
+  stopMusic();
   closeAudio();
 }
 window.addEventListener('beforeunload', cleanup);
