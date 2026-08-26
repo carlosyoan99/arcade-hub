@@ -1,6 +1,6 @@
 # 🟡 Pac-Man
 
-**Versión:** 1.5.1 | **Género:** Laberinto | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Laberinto | **Última actualización:** 2026-08-26
 
 Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets te dejan comer fantasmas. ¡4 IAs distintas!
 
@@ -23,6 +23,9 @@ Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets t
 ## Características
 
 - 👻 4 fantasmas con IA individual: Blinky (persecución), Pinky (emboscada), Inky (aleatorio), Clyde (tímido)
+- 🔄 Ciclos scatter/chase como el arcade: los fantasmas alternan entre perseguir y ir a sus esquinas, invirtiendo dirección en cada cambio
+- 🍒 Frutas bonus (cereza → melón) que aparecen bajo la casa al comer 70 y 170 puntos
+- 💀 Animación de muerte clásica: la boca se abre hasta tragarse todo el círculo
 - 🟡 Power pellets para comer fantasmas
 - 💥 Game feel: screen shake, hit-stop, partículas neon al comer fantasmas y puntos
 - 🏆 Récord persistido en `localStorage`
@@ -49,6 +52,7 @@ Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets t
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Mecánicas arcade — ciclos scatter/chase con inversión (7s/20s/7s/20s/5s/5s/5s → chase ∞), frutas bonus al comer 70/170 puntos (100–1000 pts) y animación de muerte clásica
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; fix refs rotas pacman→pac
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

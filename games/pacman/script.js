@@ -1,9 +1,9 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad, bindHoldButton } from '../../shared/input.js';
 import {
@@ -20,6 +20,9 @@ import {
 } from '../../shared/effects.js';
 
 injectCommonElements();
+
+const shell = setupGameShell('pacman');
+
 /* ============================================================
    PAC-MAN 2D — Arcade Hub
    Canvas 2D, sin dependencias externas.
@@ -45,6 +48,20 @@ const GHOST_SPEED = 80,
   GHOST_FRIGHT_SPEED = 50,
   GHOST_HOME_SPEED = 120;
 const PAC_SPEED = 120;
+// Ciclos scatter/chase (arcade nivel 1): alternan y terminan en chase infinito
+const MODE_SCHEDULE = [7, 20, 7, 20, 5, 5, 5];
+// Frutas bonus: aparecen al comer 70 y 170 puntos, en el pasillo bajo la casa
+const FRUIT_DOTS = [70, 170];
+const FRUIT_TIME = 9;
+const FRUIT_POS = { x: 13 * CS + CS / 2, y: 19 * CS + CS / 2 };
+const FRUITS = [
+  { name: 'cereza', pts: 100, body: '#ff4466', leaf: '#39ff14' },
+  { name: 'frutilla', pts: 300, body: '#ff5577', leaf: '#39ff14' },
+  { name: 'naranja', pts: 500, body: '#ffaa44', leaf: '#39ff14' },
+  { name: 'manzana', pts: 700, body: '#ee4444', leaf: '#39ff14' },
+  { name: 'melón', pts: 1000, body: '#88dd44', leaf: '#39ff14' },
+];
+const DEATH_TIME = 1.4;
 // const DOT_COUNT = 244; // total dots in level (including pellets)
 
 // Directions
@@ -107,6 +124,12 @@ const state = {
   frightened: 0, // timer for fright mode
   dotsLeft: 0,
   ghostCombo: 0,
+  phaseIdx: 0, // índice en MODE_SCHEDULE (par = scatter, impar = chase)
+  modeTimer: 0,
+  dotsEaten: 0,
+  fruitsSpawned: 0,
+  fruit: null, // { idx, timer }
+  dying: 0, // timer de la animación de muerte
 };
 
 // ============================================================
@@ -145,6 +168,9 @@ function playDeath() {
 }
 function playFright() {
   beep({ freq: 200, freqEnd: 400, duration: 0.3, type: 'sine', volume: 0.1 });
+}
+function playFruit() {
+  beep({ freq: 600, freqEnd: 1200, duration: 0.12, type: 'square', volume: 0.14 });
 }
 
 // ============================================================
@@ -271,6 +297,7 @@ function updatePac(dt) {
       grid[pRow][pCol] = ' ';
       state.dotsLeft--;
       state.score += SCORE_DOT;
+      state.dotsEaten++;
       playDot();
       spawnParticles(pCol * CS + CS / 2, pRow * CS + CS / 2, '#ffe066', 4, {
         spd: 40,
@@ -285,6 +312,7 @@ function updatePac(dt) {
       state.score += SCORE_PELLET;
       state.frightened = FRIGHT_TIME;
       state.ghostCombo = 0;
+      state.dotsEaten++;
       playPellet();
       playFright();
       // Reverse ghosts
@@ -323,6 +351,31 @@ const GHOST_HOME = [
 ];
 
 let ghosts = [];
+// Ciclos scatter/chase: las fases pares del schedule son scatter, impares chase
+function phaseName(i) {
+  return i % 2 === 0 ? 'scatter' : 'chase';
+}
+function resetModeSchedule() {
+  state.phaseIdx = 0;
+  state.modeTimer = MODE_SCHEDULE[0];
+}
+function updateModeSchedule(dt) {
+  if (state.frightened > 0) return; // el ciclo se pausa durante el fright (como el arcade)
+  if (state.phaseIdx >= MODE_SCHEDULE.length) return; // chase infinito
+  state.modeTimer -= dt;
+  while (state.modeTimer <= 0 && state.phaseIdx < MODE_SCHEDULE.length - 1) {
+    state.phaseIdx++;
+    state.modeTimer += MODE_SCHEDULE[state.phaseIdx];
+    // Al cambiar de fase los fantasmas activos invierten dirección
+    const m = phaseName(state.phaseIdx);
+    for (const g of ghosts)
+      if (g.mode === 'chase' || g.mode === 'scatter') {
+        g.mode = m;
+        g.dx *= -1;
+        g.dy *= -1;
+      }
+  }
+}
 function resetGhosts() {
   ghosts = [];
   for (let i = 0; i < 4; i++) {
@@ -352,7 +405,7 @@ function releaseGhosts(dt) {
     if (g.mode === 'home') {
       g.timer += dt;
       if (g.timer >= g.releaseTime) {
-        g.mode = 'chase';
+        g.mode = phaseName(state.phaseIdx);
         g.x = 14 * CS + CS / 2;
         g.y = 11 * CS + CS / 2; // ghost gate exit
         g.dx = -1;
@@ -368,7 +421,7 @@ function updateGhosts(dt) {
     state.frightened -= dt;
     if (state.frightened <= 0) {
       state.frightened = 0;
-      for (const g of ghosts) if (g.mode === 'fright') g.mode = 'chase';
+      for (const g of ghosts) if (g.mode === 'fright') g.mode = phaseName(state.phaseIdx);
     }
   }
 
@@ -454,10 +507,39 @@ function updateGhosts(dt) {
 
     // Eyes reach home → respawn
     if (g.mode === 'eyes' && row === 11 && col === 14) {
-      g.mode = 'chase';
+      g.mode = phaseName(state.phaseIdx);
       g.x = 14 * CS + CS / 2;
       g.y = 11 * CS + CS / 2;
     }
+  }
+}
+
+// ============================================================
+// FRUTA BONUS
+// ============================================================
+function updateFruit(dt) {
+  if (state.fruit) {
+    state.fruit.timer -= dt;
+    if (state.fruit.timer <= 0) {
+      state.fruit = null;
+      return;
+    }
+    if (Math.hypot(pac.x - FRUIT_POS.x, pac.y - FRUIT_POS.y) < CS * 0.7) {
+      const f = FRUITS[state.fruit.idx];
+      state.score += f.pts;
+      playFruit();
+      feedbackBundle('medium', FRUIT_POS.x, FRUIT_POS.y, { color: f.body });
+      say(`Fruta ${f.name}: +${f.pts}`);
+      state.fruit = null;
+      updateHUD();
+    }
+  } else if (
+    state.fruitsSpawned < FRUIT_DOTS.length &&
+    state.dotsEaten >= FRUIT_DOTS[state.fruitsSpawned]
+  ) {
+    state.fruit = { idx: state.fruitsSpawned, timer: FRUIT_TIME };
+    state.fruitsSpawned++;
+    say(`Apareció una fruta: ${FRUITS[state.fruit.idx].name}`);
   }
 }
 
@@ -519,6 +601,11 @@ function resetGame() {
   state.paused = false;
   state.frightened = 0;
   state.ghostCombo = 0;
+  state.dotsEaten = 0;
+  state.fruitsSpawned = 0;
+  state.fruit = null;
+  state.dying = 0;
+  resetModeSchedule();
   buildMaze();
   resetPac();
   resetGhosts();
@@ -534,7 +621,7 @@ function startGame() {
   state.running = true;
   achievements.incrementPlays('pacman');
   document.getElementById('overlay').classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   if (state.best >= 2000) achievements.unlock('pacman_twothousand');
   say('Pac-Man: comenzó la partida. Comé todos los puntos y esquivá a los fantasmas.');
 }
@@ -554,19 +641,26 @@ function togglePause() {
 }
 
 function loseLife() {
+  if (state.dying > 0) return;
   state.lives--;
+  state.dying = DEATH_TIME;
   playDeath();
-  // Death animation particles
-  spawnParticles(pac.x, pac.y, '#ffe066', 20, { spd: 80, life: 0.6, sm: 3, smx: 6 });
+  spawnParticles(pac.x, pac.y, '#ffe066', 12, { spd: 60, life: 0.5, sm: 2, smx: 4 });
   updateHUD();
+}
+
+function finishDeath() {
+  state.dying = 0;
   if (state.lives <= 0) {
     endGame();
     return;
   }
-  // Reset positions
   resetPac();
   resetGhosts();
   state.frightened = 0;
+  state.ghostCombo = 0;
+  resetModeSchedule();
+  say(`Te quedan ${state.lives} vidas.`);
 }
 
 function endGame() {
@@ -585,7 +679,7 @@ function endGame() {
   finalScore.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   hintEl.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   say('Pac-Man: game over.');
   updateHUD();
 }
@@ -699,9 +793,6 @@ const announce = document.getElementById('announce');
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
-}
 
 document.getElementById('overlay').addEventListener('click', () => {
   if (!state.running) startGame();
@@ -728,6 +819,89 @@ function pollGamepad() {
 // ============================================================
 // RENDER
 // ============================================================
+function drawFruit(x, y, s, idx) {
+  const f = FRUITS[idx % FRUITS.length];
+  if (idx === 0) {
+    // Cerezas: dos bolitas con tallo
+    ctx.strokeStyle = f.leaf;
+    ctx.lineWidth = 1.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(x - 3 * s, y + 1 * s);
+    ctx.quadraticCurveTo(x, y - 5 * s, x + 4 * s, y - 5 * s);
+    ctx.moveTo(x + 2 * s, y + 0 * s);
+    ctx.quadraticCurveTo(x + 3 * s, y - 3 * s, x + 4 * s, y - 5 * s);
+    ctx.stroke();
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.arc(x - 3 * s, y + 3 * s, 3 * s, 0, Math.PI * 2);
+      },
+      f.body,
+      0.4,
+      3 * s,
+    );
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.arc(x + 2 * s, y + 1.5 * s, 3 * s, 0, Math.PI * 2);
+      },
+      f.body,
+      0.4,
+      3 * s,
+    );
+  } else if (idx === 1) {
+    // Frutilla: cuerpo cónico con hoja
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.moveTo(x - 4 * s, y - 2 * s);
+        ctx.quadraticCurveTo(x, y + 6 * s, x + 4 * s, y - 2 * s);
+        ctx.quadraticCurveTo(x, y - 5 * s, x - 4 * s, y - 2 * s);
+      },
+      f.body,
+      0.4,
+      3 * s,
+    );
+    ctx.fillStyle = f.leaf;
+    ctx.fillRect(x - 2.5 * s, y - 4.5 * s, 5 * s, 2 * s);
+  } else {
+    // Naranja / manzana / melón: círculo con hoja (el color cambia)
+    fillWithGlow(
+      ctx,
+      () => {
+        ctx.beginPath();
+        ctx.arc(x, y + 1 * s, idx === 4 ? 5 * s : 4.5 * s, 0, Math.PI * 2);
+      },
+      f.body,
+      0.4,
+      3 * s,
+    );
+    ctx.strokeStyle = '#7a4a21';
+    ctx.lineWidth = 1.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 3.5 * s);
+    ctx.lineTo(x + 1 * s, y - 6 * s);
+    ctx.stroke();
+    ctx.fillStyle = f.leaf;
+    ctx.beginPath();
+    ctx.ellipse(x + 3 * s, y - 5 * s, 2.5 * s, 1.2 * s, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    if (idx === 4) {
+      // Melón: vetas oscuras
+      ctx.strokeStyle = 'rgba(0,60,0,0.35)';
+      ctx.lineWidth = 1 * s;
+      for (const off of [-3, 0, 3]) {
+        ctx.beginPath();
+        ctx.ellipse(x + off * s, y + 1 * s, 1.6 * s, 4.8 * s, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvasW, canvasH);
   const so = getShakeOffset();
@@ -800,9 +974,12 @@ function draw() {
       }
     }
 
+  // Fruta bonus
+  if (state.fruit) drawFruit(cx + FRUIT_POS.x * s, cy + FRUIT_POS.y * s, s, state.fruit.idx);
+
   // Ghosts
   for (const g of ghosts) {
-    if (g.mode === 'home') continue;
+    if (g.mode === 'home' || state.dying > 0) continue;
     const gx = cx + g.x * s,
       gy = cy + g.y * s;
     const frightFlash =
@@ -883,9 +1060,16 @@ function draw() {
   if (state.running || state.gameOver) {
     const px = cx + pac.x * s,
       py = cy + pac.y * s;
-    const mouth = state.gameOver ? 0 : pac.mouthAngle;
-    const startAngle = Math.atan2(pac.dir.dy, pac.dir.dx) - Math.PI / 2 + mouth;
-    const endAngle = Math.atan2(pac.dir.dy, pac.dir.dx) - Math.PI / 2 - mouth + Math.PI * 2;
+    let mouth = state.gameOver ? 0 : pac.mouthAngle;
+    let dir = pac.dir;
+    if (state.dying > 0) {
+      // Animación clásica: la boca se abre hasta tragarse todo el círculo
+      const t = Math.min(1, 1 - state.dying / DEATH_TIME);
+      mouth = 0.4 + t * (Math.PI - 0.4);
+      dir = D.UP;
+    }
+    const startAngle = Math.atan2(dir.dy, dir.dx) - Math.PI / 2 + mouth;
+    const endAngle = Math.atan2(dir.dy, dir.dx) - Math.PI / 2 - mouth + Math.PI * 2;
 
     fillWithGlow(
       ctx,
@@ -939,10 +1123,18 @@ const loop = createGameLoop((dt) => {
   updateShake(dt);
 
   if (state.running && !state.gameOver && !state.paused) {
-    releaseGhosts(dt);
-    updatePac(dt);
-    updateGhosts(dt);
-    checkGhostCollisions();
+    if (state.dying > 0) {
+      // Animación de muerte: todo lo demás queda congelado
+      state.dying -= dt;
+      if (state.dying <= 0) finishDeath();
+    } else {
+      releaseGhosts(dt);
+      updatePac(dt);
+      updateGhosts(dt);
+      updateModeSchedule(dt);
+      updateFruit(dt);
+      checkGhostCollisions();
+    }
   }
 
   updateSquashes(dt);
@@ -955,28 +1147,6 @@ resetPac();
 resetGhosts();
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-// Help button
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('pacman'));

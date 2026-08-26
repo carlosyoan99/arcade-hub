@@ -1,7 +1,7 @@
 {
   "id": "pacman",
   "title": "Pac-Man",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "created": "2026-06-18",
   "lastModified": "2026-08-26",
   "description": "Comé todos los puntos del laberinto esquivando fantasmas con 4 IAs distintas.",
@@ -10,6 +10,15 @@
   "license": "MIT",
   "repository": "github.com/carlos/arcade-hub",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Mecánicas arcade: ciclos scatter/chase con inversión de fantasmas (schedule nivel 1)",
+        "Frutas bonus en el pasillo bajo la casa (al comer 70 y 170 puntos)",
+        "Animación de muerte clásica: la boca se abre hasta tragarse el círculo"
+      ]
+    },
     {
       "version": "1.5.1",
       "date": "2026-08-26",
