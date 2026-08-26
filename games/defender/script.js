@@ -4,6 +4,7 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -68,6 +69,7 @@ const state = {
   running: false,
   gameOver: false,
   score: 0,
+  best: loadBest('defender2d'),
   lives: INITIAL_LIVES,
   humans: INITIAL_HUMANS,
   smartBombs: INITIAL_BOMBS,
@@ -471,10 +473,14 @@ function endGame() {
   stopAmbient();
   state.running = false;
   state.gameOver = true;
+  if (state.score > state.best) {
+    state.best = state.score;
+    saveBest('defender2d', state.best);
+  }
   playGameOver();
   overlayText.textContent = '¡Game Over! 💀';
   finalScoreEl.style.display = 'block';
-  finalScoreEl.textContent = `Puntaje: ${state.score} · Nivel: ${state.level}`;
+  finalScoreEl.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
   overlay.classList.remove('hidden');
 }
