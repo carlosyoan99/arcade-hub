@@ -5,7 +5,7 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v10';
+const STATIC_CACHE = 'arcadehub-static-v11';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
