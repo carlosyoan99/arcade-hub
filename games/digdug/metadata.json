@@ -1,7 +1,7 @@
 {
   "id": "digdug",
   "title": "Dig Dug",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "created": "2026-07-25",
   "lastModified": "2026-08-26",
   "description": "Excavá túneles, inflá enemigos hasta que exploten o derrumbá rocas sobre ellos.",
@@ -56,6 +56,14 @@
         "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
         "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js"
       ]
     }
   ]

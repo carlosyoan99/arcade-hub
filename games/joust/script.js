@@ -1,8 +1,9 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
+import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -26,7 +27,7 @@ import {
 
 injectCommonElements();
 
-document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
+const shell = setupGameShell('joust');
 
 /* ============================================================
    JOUST — Arcade Hub
@@ -250,9 +251,6 @@ overlay.addEventListener('click', () => {
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
-}
 
 // ── LÓGICA DEL JUEGO ──
 
@@ -287,7 +285,7 @@ function startGame() {
   achievements.incrementPlays('joust');
   initPlayer();
   overlay.classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   hintEl.innerHTML =
     '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espacio</kbd> / <kbd>↑</kbd> aletear · <kbd>R</kbd> reiniciar';
   say(`Joust: oleada ${state.wave}. Sobreviví y derrotá a los enemigos.`);
@@ -351,16 +349,16 @@ function endGame() {
   stopAmbient();
   state.running = false;
   state.gameOver = true;
-  const best = parseInt(localStorage.getItem('joust_best') || '0');
+  const best = loadBest('joust');
   if (state.score > best) {
-    localStorage.setItem('joust_best', String(state.score));
+    saveBest('joust', state.score);
   }
   overlayText.textContent = '¡Game Over! 💀';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Puntaje: ${state.score} · Récord: ${Math.max(state.score, best)}`;
   hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
   say(`Joust: Game Over. Puntaje final: ${state.score}.`);
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   overlay.classList.remove('hidden');
 }
 
@@ -1098,28 +1096,6 @@ const loop = createGameLoop((dt) => {
 initPlayer();
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopAmbient();
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('joust'));

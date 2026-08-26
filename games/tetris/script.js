@@ -4,6 +4,7 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGamepad } from '../../shared/input.js';
 import {
   updateShake,
@@ -249,7 +250,7 @@ const state = {
   score: 0,
   lines: 0,
   level: 1,
-  best: Number(localStorage.getItem('tetris2d_best') || 0),
+  best: loadBest('tetris2d'),
 };
 
 // Grid: 0 = empty, else color string
@@ -736,7 +737,7 @@ function endGame() {
   playGameOver();
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('tetris2d_best', String(state.best));
+    saveBest('tetris2d', state.best);
     if (state.best >= 500) achievements.unlock('tetris_fivehundo');
   }
   const ot = document.getElementById('ot'),

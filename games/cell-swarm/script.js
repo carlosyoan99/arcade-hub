@@ -1,8 +1,9 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
+import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -19,7 +20,7 @@ import {
 
 injectCommonElements();
 
-document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
+const shell = setupGameShell('cell-swarm');
 
 /* ============================================================
    CELL SWARM — Arcade Hub
@@ -100,9 +101,6 @@ const announce = document.getElementById('announce');
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
-}
 
 const nameOverlay = document.getElementById('nameOverlay');
 const nameInput = document.getElementById('nameInput');
@@ -141,7 +139,7 @@ const state = {
   playerName: '',
   targetX: canvasW / 2,
   targetY: canvasH / 2,
-  bestMass: Number(localStorage.getItem('cellswarm_best') || 0),
+  bestMass: loadBest('cellswarm'),
   kills: 0,
   eatKills: 0,
 };
@@ -775,7 +773,7 @@ function startGame() {
   overlay.classList.add('hidden');
   nameOverlay.classList.add('hidden');
 
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   say('Cell Swarm: crecé devorando células más pequeñas.');
   cells = [createPlayerCell(WORLD_W / 2 + rng(-200, 200), WORLD_H / 2 + rng(-200, 200), MIN_MASS)];
   player = cells[0];
@@ -815,7 +813,7 @@ function endGame(killedBy) {
   if (cells) for (const c of cells) finalMass += c.mass;
   if (finalMass > state.bestMass) {
     state.bestMass = Math.floor(finalMass);
-    localStorage.setItem('cellswarm_best', String(state.bestMass));
+    saveBest('cellswarm', state.bestMass);
   }
 
   // Logros de masa
@@ -837,7 +835,7 @@ function endGame(killedBy) {
   overlayText.textContent = `☠ ${killedBy || 'Alguien'} te devoró ☠`;
   finalScoreEl.textContent = `Masa final: ${Math.floor(finalMass)} · Mejor: ${state.bestMass}`;
   overlay.classList.remove('hidden');
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   say('Cell Swarm: te devoraron.');
   updateHUD();
 }
@@ -1331,27 +1329,6 @@ const loop = createGameLoop((dt) => {
 });
 
 // ── Init ──
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('cell-swarm'));

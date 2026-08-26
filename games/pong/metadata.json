@@ -1,9 +1,9 @@
 {
   "id": "pong",
   "title": "Pong",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "created": "2026-06-01",
-  "lastModified": "2026-08-24",
+  "lastModified": "2026-08-26",
   "description": "El clásico de tenis de mesa. Primero en llegar a 7 puntos gana.",
   "genre": "deportes",
   "author": "Arcade Hub",
@@ -65,6 +65,13 @@
       "date": "2026-08-24",
       "changes": [
         "Música: tema lofi procedural 'Midnight Rally' (shared/music.js) + toggle 🎵 en game-bar"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados"
       ]
     }
   ]

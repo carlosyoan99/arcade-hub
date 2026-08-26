@@ -3,6 +3,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -68,7 +69,7 @@ const state = {
   gameOver: false,
   score: 0,
   lives: START_LIVES,
-  best: Number(localStorage.getItem('asteroids2d_best') || 0),
+  best: loadBest('asteroids2d'),
   invincibleTimer: 0,
 };
 
@@ -442,7 +443,7 @@ function endGame() {
   state.gameOver = true;
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('asteroids2d_best', String(state.best));
+    saveBest('asteroids2d', state.best);
   }
   overlayText.textContent = '💥 ¡Game Over!';
   finalScoreEl.style.display = 'block';

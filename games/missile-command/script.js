@@ -3,6 +3,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -65,7 +66,7 @@ const state = {
   running: false,
   gameOver: false,
   score: 0,
-  best: Number(localStorage.getItem('missile2d_best') || 0),
+  best: loadBest('missile2d'),
   wave: 1,
   ammo: START_AMMO,
   waveTimer: 0,
@@ -338,7 +339,7 @@ function endGame() {
   stopAmbient();
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('missile2d_best', String(state.best));
+    saveBest('missile2d', state.best);
   }
   const ot = document.getElementById('ot'),
     fs = document.getElementById('fs'),

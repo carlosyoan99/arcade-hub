@@ -83,68 +83,40 @@ export function bindHoldButton(target, onDown, onUp) {
   const btn = typeof target === 'string' ? document.getElementById(target) : target;
   if (!btn) return () => {};
 
-  function handleTouchStart(e) {
-    e.preventDefault();
+  /** Ejecuta un callback sin que un error rompa la UX. */
+  function safeCall(fn, ...args) {
     try {
-      onDown();
+      fn?.(...args);
     } catch (err) {
-      // silenciar errores del callback para no romper la UX
       /* eslint-disable no-console */
-      console.warn('bindHoldButton onDown error', err);
+      console.warn('bindHoldButton callback error', err);
       /* eslint-enable no-console */
     }
+  }
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    safeCall(onDown);
     btn.classList.add('is-pressed');
   }
   function handleTouchEnd(e) {
     if (e && e.preventDefault) e.preventDefault();
-    try {
-      onUp?.();
-    } catch (err) {
-      /* eslint-disable no-console */
-      console.warn('bindHoldButton onUp error', err);
-      /* eslint-enable no-console */
-    }
+    safeCall(onUp);
     btn.classList.remove('is-pressed');
   }
   function handleTouchCancel() {
-    try {
-      onUp?.();
-    } catch (err) {
-      /* eslint-disable no-console */
-      console.warn('bindHoldButton onUp error', err);
-      /* eslint-enable no-console */
-    }
+    safeCall(onUp);
     btn.classList.remove('is-pressed');
   }
   function handleMouseDown(e) {
     if (e && e.preventDefault) e.preventDefault();
-    try {
-      onDown();
-    } catch (err) {
-      /* eslint-disable no-console */
-      console.warn('bindHoldButton onDown error', err);
-      /* eslint-enable no-console */
-    }
+    safeCall(onDown);
     // Note: mouse down does not add is-pressed class because :active handles it visually in many CSS setups
   }
   function handleMouseUp() {
-    try {
-      onUp?.();
-    } catch (err) {
-      /* eslint-disable no-console */
-      console.warn('bindHoldButton onUp error', err);
-      /* eslint-enable no-console */
-    }
+    safeCall(onUp);
   }
-  function handleMouseLeave() {
-    try {
-      onUp?.();
-    } catch (err) {
-      /* eslint-disable no-console */
-      console.warn('bindHoldButton onUp error', err);
-      /* eslint-enable no-console */
-    }
-  }
+  const handleMouseLeave = handleMouseUp;
 
   btn.addEventListener('touchstart', handleTouchStart, { passive: false });
   btn.addEventListener('touchend', handleTouchEnd, { passive: false });

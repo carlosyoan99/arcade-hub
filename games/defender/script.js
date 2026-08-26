@@ -1,8 +1,8 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -24,7 +24,7 @@ import {
 
 injectCommonElements();
 
-document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
+const shell = setupGameShell('defender');
 
 /* ============================================================
    DEFENDER — Arcade Hub
@@ -1437,23 +1437,6 @@ generateTerrain();
 generateHumans();
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  stopAmbient();
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  window.location.href = '../../index.html';
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('defender'));

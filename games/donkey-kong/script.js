@@ -1,8 +1,8 @@
-import { showHelp } from '../../shared/help.js';
-import { ensureAudio, beep, startAmbient, stopAmbient, closeAudio } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
+import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -24,7 +24,7 @@ import {
 
 injectCommonElements();
 
-document.documentElement.dataset.theme = localStorage.getItem('arcadehub_theme') || 'dark';
+const shell = setupGameShell('donkey-kong');
 
 /* ============================================================
    DONKEY KONG — Arcade Hub
@@ -245,9 +245,6 @@ const announce = document.getElementById('announce');
 function say(msg) {
   if (announce) announce.textContent = msg;
 }
-function trapTab(e) {
-  if (e.key === 'Tab') e.preventDefault();
-}
 
 overlay.addEventListener('click', () => {
   if (!state.running && !state.gameOver) startGame();
@@ -280,7 +277,7 @@ function startGame() {
   achievements.incrementPlays('donkey-kong');
   initPlayer();
   overlay.classList.add('hidden');
-  document.addEventListener('keydown', trapTab);
+  shell.enableTabTrap();
   say('Donkey Kong: ayudá a Mario a escalar la obra.');
   hintEl.innerHTML =
     '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espacio</kbd> / <kbd>↑</kbd> saltar · <kbd>R</kbd> reiniciar';
@@ -311,7 +308,7 @@ function endGame() {
   finalScoreEl.textContent = `Puntaje: ${state.score} · Nivel: ${state.level}`;
   hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
   overlay.classList.remove('hidden');
-  document.removeEventListener('keydown', trapTab);
+  shell.disableTabTrap();
   say('Donkey Kong: game over.');
   updateHUD();
 }
@@ -778,28 +775,6 @@ const loop = createGameLoop((dt) => {
 initPlayer();
 updateHUD();
 
-function cleanup() {
-  loop.stop();
-  document.removeEventListener('keydown', trapTab);
-  stopAmbient();
-  stopMusic();
-  closeAudio();
-}
-window.addEventListener('beforeunload', cleanup);
-window.addEventListener('pagehide', cleanup);
+shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();
-
-// Game Bar
-document.getElementById('hubBtn')?.addEventListener('click', () => {
-  if (window.self !== window.top) {
-    window.top.location.hash = '';
-  } else {
-    window.location.href = '../../index.html';
-  }
-});
-document.getElementById('fsBtn')?.addEventListener('click', () => {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
-});
-document.getElementById('helpBtn')?.addEventListener('click', () => showHelp('donkey-kong'));

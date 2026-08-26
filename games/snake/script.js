@@ -4,6 +4,7 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
@@ -64,7 +65,7 @@ const state = {
   gameOver: false,
   paused: false,
   score: 0,
-  best: Number(localStorage.getItem('snake2d_best') || 0),
+  best: loadBest('snake2d'),
   speedLevel: 1,
 };
 
@@ -397,7 +398,7 @@ function endGame() {
 
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('snake2d_best', String(state.best));
+    saveBest('snake2d', state.best);
   }
 
   playDeathSound();

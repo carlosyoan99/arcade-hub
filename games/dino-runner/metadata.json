@@ -1,7 +1,7 @@
 {
   "id": "dino-runner",
   "title": "Dino Runner",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "created": "2026-06-08",
   "lastModified": "2026-08-26",
   "description": "Corré, saltá y agachate para esquivar cactus y pterodáctilos.",
@@ -73,6 +73,14 @@
       "date": "2026-08-12",
       "changes": [
         "G5: Squash & stretch real — stretch al saltar (triggerSquash) y squash al aterrizar, aplicado en drawDino()"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js"
       ]
     }
   ]

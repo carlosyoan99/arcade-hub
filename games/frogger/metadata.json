@@ -1,7 +1,7 @@
 {
   "id": "frogger",
   "title": "Frogger",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "created": "2026-06-22",
   "lastModified": "2026-08-26",
   "description": "Cruzá la calle y el río esquivando autos y cayendo al agua.",
@@ -74,6 +74,15 @@
         "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
         "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js",
+        "Fix: teardown de audio garantizado en cleanup"
       ]
     }
   ]

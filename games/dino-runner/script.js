@@ -3,6 +3,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -62,7 +63,7 @@ const state = {
   running: false,
   gameOver: false,
   distance: 0,
-  best: Number(localStorage.getItem('dinorunner2d_best') || 0),
+  best: loadBest('dinorunner2d'),
   speed: BASE_SPEED,
   elapsed: 0,
   nextSpawnIn: 1.2,
@@ -337,7 +338,7 @@ function endGame() {
   const isNewRecord = dist > state.best;
   if (isNewRecord) {
     state.best = dist;
-    localStorage.setItem('dinorunner2d_best', String(state.best));
+    saveBest('dinorunner2d', state.best);
   }
 
   playCollisionSound();

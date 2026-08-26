@@ -1,7 +1,7 @@
 {
   "id": "tetris",
   "title": "Tetris",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "created": "2026-06-20",
   "lastModified": "2026-08-26",
   "description": "Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos.",
@@ -74,6 +74,14 @@
       "date": "2026-08-24",
       "changes": [
         "Música: tema lofi-chiptune 'Neon Blocks' (shared/music.js) + toggle 🎵 en game-bar"
+      ]
+    },
+    {
+      "version": "1.7.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js"
       ]
     }
   ]

@@ -1,7 +1,7 @@
 {
   "id": "galaga",
   "title": "Galaga",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "created": "2026-07-15",
   "lastModified": "2026-08-26",
   "description": "Destruí oleadas de invasores en formación con picados en espiral.",
@@ -74,6 +74,14 @@
         "G1-G5: Game feel completo — feedbackBundle() integrado + squash & stretch + hit-stop",
         "P0: Rendimiento — shadowBlur eliminado de loops, drawGlow() implementado",
         "Fix: lint 0 errores/0 warnings — imports sin uso removidos"
+      ]
+    },
+    {
+      "version": "1.7.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js"
       ]
     }
   ]

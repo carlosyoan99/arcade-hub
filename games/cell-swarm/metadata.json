@@ -1,7 +1,7 @@
 {
   "id": "cell-swarm",
   "title": "Cell Swarm",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "created": "2026-07-28",
   "lastModified": "2026-08-26",
   "description": "Battle royale de células. Crece comiendo comida y células más pequeñas, huye de las más grandes. ¡Divide, eyecta y conviértete en la célula más grande del mapa!",
@@ -66,6 +66,15 @@
       "date": "2026-08-12",
       "changes": [
         "Logros: 6 logros con achievements.unlock() — primera presa, cazador, splitter, masa récord (200), titán (500), alfa (rank #1)"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados",
+        "Refactor: récords vía shared/scores.js",
+        "Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida"
       ]
     }
   ]

@@ -4,6 +4,7 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad, bindHoldButton } from '../../shared/input.js';
 import {
@@ -63,7 +64,7 @@ const state = {
   gameOver: false,
   score: 0,
   lives: START_LIVES,
-  best: Number(localStorage.getItem('spaceinv2d_best') || 0),
+  best: loadBest('spaceinv2d'),
   invincibleTimer: 0,
 };
 
@@ -223,7 +224,7 @@ function endGame(won) {
   state.gameOver = true;
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('spaceinv2d_best', String(state.best));
+    saveBest('spaceinv2d', state.best);
     if (state.best >= 2000) achievements.unlock('invaders_twothousand');
   }
   const overlayText = document.getElementById('overlayText'),

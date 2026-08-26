@@ -4,6 +4,7 @@ import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad, bindHoldButton } from '../../shared/input.js';
 import {
@@ -83,7 +84,7 @@ const state = {
   score: 0,
   lives: START_LIVES,
   level: 1,
-  best: Number(localStorage.getItem('breakout2d_best') || 0),
+  best: loadBest('breakout2d'),
   ballSpeed: BALL_LAUNCH_SPEED_BASE,
 };
 
@@ -392,7 +393,7 @@ function endGame() {
 
   if (state.score > state.best) {
     state.best = state.score;
-    localStorage.setItem('breakout2d_best', String(state.best));
+    saveBest('breakout2d', state.best);
   }
 
   playGameOverTone();

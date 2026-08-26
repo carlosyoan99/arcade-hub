@@ -3,6 +3,7 @@ import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
+import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
@@ -57,7 +58,7 @@ const state = {
   running: false,
   gameOver: false,
   score: 0,
-  best: Number(localStorage.getItem('flappy2d_best') || 0),
+  best: loadBest('flappy2d'),
 };
 
 // ============================================================
@@ -126,7 +127,7 @@ function endGame() {
   const isBest = state.score > state.best;
   if (isBest) {
     state.best = state.score;
-    localStorage.setItem('flappy2d_best', String(state.best));
+    saveBest('flappy2d', state.best);
     pHit();
     pBest();
     if (state.best >= 10) achievements.unlock('flappy_decathlon');
