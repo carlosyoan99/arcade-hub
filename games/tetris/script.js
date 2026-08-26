@@ -35,9 +35,11 @@ const shell = setupGameShell('tetris');
 // ============================================================
 const COLS = 10,
   ROWS = 20,
+  HIDDEN_ROWS = 2, // filas ocultas arriba del visible
+  TOTAL_ROWS = ROWS + HIDDEN_ROWS,
   CS = 28;
 const CW = COLS * CS,
-  CH = ROWS * CS;
+  CH = ROWS * CS; // solo las visibles en el canvas
 const CPAD = 10;
 const BASE_DROP_SPEED = 1;
 const SPEED_PER_LEVEL = 0.08;
@@ -379,8 +381,8 @@ function collides(blocks, px, py) {
   for (const [bx, by] of blocks) {
     const gx = px + bx,
       gy = py + by;
-    if (gx < 0 || gx >= COLS || gy >= ROWS) return true;
-    if (gy >= 0 && grid[gy][gx] !== 0) return true;
+    if (gx < 0 || gx >= COLS || gy >= TOTAL_ROWS) return true;
+    if (gy >= 0 && grid[gy] && grid[gy][gx] !== 0) return true;
   }
   return false;
 }
@@ -390,7 +392,7 @@ function lockPiece() {
   for (const [bx, by] of piece.blocks) {
     const gx = piece.x + bx,
       gy = piece.y + by;
-    if (gy >= 0 && gy < ROWS && gx >= 0 && gx < COLS) {
+    if (gy >= 0 && gy < TOTAL_ROWS && gx >= 0 && gx < COLS) {
       grid[gy][gx] = piece.color;
     }
   }
@@ -402,7 +404,7 @@ function lockPiece() {
 
 function clearLines() {
   let cleared = 0;
-  for (let r = ROWS - 1; r >= 0; r--) {
+  for (let r = TOTAL_ROWS - 1; r >= 0; r--) {
     if (grid[r].every((c) => c !== 0)) {
       grid.splice(r, 1);
       grid.unshift(new Array(COLS).fill(0));
@@ -418,8 +420,8 @@ function clearLines() {
     // Particles
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        if (grid[r][c] !== 0 && r < 3) {
-          spawnParticles(c * CS + CS / 2, r * CS + CS / 2, grid[r][c], 3, {
+        if (grid[r][c] !== 0 && r < HIDDEN_ROWS + 3) {
+          spawnParticles(c * CS + CS / 2, (r - HIDDEN_ROWS) * CS + CS / 2, grid[r][c], 3, {
             spd: 60,
             life: 0.3,
             sm: 1.5,
@@ -719,7 +721,7 @@ function resetGame() {
   state.gameOver = false;
   state.paused = false;
   grid = [];
-  for (let r = 0; r < ROWS; r++) grid.push(new Array(COLS).fill(0));
+  for (let r = 0; r < TOTAL_ROWS; r++) grid.push(new Array(COLS).fill(0));
   nextPiece = randomPiece();
   piece = null;
   holdName = null;
@@ -822,6 +824,11 @@ function updateGame(dt) {
     dropTimer = 0;
     if (!collides(piece.blocks, piece.x, piece.y + 1)) {
       piece.y++;
+      // Soft drop scoring: 1 point per cell (original Tetris)
+      if (input.down) {
+        state.score += 1;
+        updateHUD();
+      }
     }
   }
 }
@@ -874,7 +881,8 @@ function draw() {
   // Placed blocks
   for (let r = 0; r < ROWS; r++)
     for (let c = 0; c < COLS; c++) {
-      if (grid[r][c] !== 0) drawBlock(cx + c * CS * s, cy + r * CS * s, CS * s, grid[r][c], s);
+      if (grid[r][c] !== 0)
+        drawBlock(cx + c * CS * s, cy + (r - HIDDEN_ROWS) * CS * s, CS * s, grid[r][c], s);
     }
 
   // Ghost piece
@@ -884,7 +892,8 @@ function draw() {
     for (const [bx, by] of piece.blocks) {
       const gx = piece.x + bx,
         gy2 = gy + by;
-      if (gy2 >= 0) drawBlock(cx + gx * CS * s, cy + gy2 * CS * s, CS * s, piece.color, s);
+      if (gy2 >= HIDDEN_ROWS)
+        drawBlock(cx + gx * CS * s, cy + (gy2 - HIDDEN_ROWS) * CS * s, CS * s, piece.color, s);
     }
     ctx.globalAlpha = 1;
   }
@@ -894,7 +903,8 @@ function draw() {
     for (const [bx, by] of piece.blocks) {
       const gx = piece.x + bx,
         gy = piece.y + by;
-      if (gy >= 0) drawBlock(cx + gx * CS * s, cy + gy * CS * s, CS * s, piece.color, s);
+      if (gy >= HIDDEN_ROWS)
+        drawBlock(cx + gx * CS * s, cy + (gy - HIDDEN_ROWS) * CS * s, CS * s, piece.color, s);
     }
   }
 
