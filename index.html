@@ -1680,40 +1680,7 @@
           mask: none;
           padding: 0;
         }
-        #customCursor,
         .magnetic-wrap {
-          display: none !important;
-        }
-      }
-
-      /* ═══════════════════════════════════════════════════
-         H2 — CUSTOM CURSOR
-         ═══════════════════════════════════════════════════ */
-      #customCursor {
-        position: fixed;
-        width: 20px;
-        height: 20px;
-        border: 1.5px solid var(--cyan-neon);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 9999;
-        transform: translate(-50%, -50%);
-        will-change: transform;
-        transition:
-          width 0.2s ease,
-          height 0.2s ease,
-          border-color 0.2s ease,
-          background 0.2s ease;
-        mix-blend-mode: difference;
-      }
-      #customCursor.hovering {
-        width: 32px;
-        height: 32px;
-        border-color: var(--pink-neon);
-        background: rgba(255, 45, 120, 0.08);
-      }
-      @media (hover: none) and (pointer: coarse) {
-        #customCursor {
           display: none !important;
         }
       }
@@ -2077,9 +2044,6 @@
     </style>
   </head>
   <body>
-    <!-- ═══ CUSTOM CURSOR (H2) — pointer:fine only ═══ -->
-    <div id="customCursor" aria-hidden="true"></div>
-
     <!-- ═══ SPLIT DOORS (H1) — entry sequence ═══ -->
     <div class="split-door-left" aria-hidden="true"></div>
     <div class="split-door-right" aria-hidden="true"></div>
@@ -3211,40 +3175,6 @@
           document.documentElement.requestFullscreen().catch(() => {});
         else document.exitFullscreen().catch(() => {});
       });
-
-      /* ═══════════════════════════════════════════════════
-         H2 — CUSTOM CURSOR LERP
-         ═══════════════════════════════════════════════════ */
-      (function initCursor() {
-        const cursor = document.getElementById('customCursor');
-        if (!cursor || matchMedia('(hover: none) and (pointer: coarse)').matches) return;
-        let mx = -100,
-          my = -100;
-        let cx = -100,
-          cy = -100;
-        let ticking = false;
-
-        document.addEventListener('mousemove', (e) => {
-          mx = e.clientX;
-          my = e.clientY;
-          if (!ticking) {
-            requestAnimationFrame(() => {
-              ticking = false;
-              cx += (mx - cx) * 0.2;
-              cy += (my - cy) * 0.2;
-              cursor.style.transform = `translate(${cx - 10}px, ${cy - 10}px)`;
-            });
-            ticking = true;
-          }
-        });
-
-        // Magnetic hover effect on interactive elements
-        const interactiveEls = document.querySelectorAll('.view-btn, #themeToggle, .card.ready');
-        for (const el of interactiveEls) {
-          el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
-          el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
-        }
-      })();
 
       /* ═══════════════════════════════════════════════════
          H4 — SCROLL-AWARE HEADER
