@@ -58,6 +58,7 @@ Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas clásicas
 ## Changelog
 
 - **1.5.0** (2026-08-26): Vultures + Pterodactyls + lava subiendo gradualmente
+- **1.4.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados); fix: ahora libera la trampa de Tab al terminar partida (antes quedaba activa)
 - **1.3.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.3.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.2.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

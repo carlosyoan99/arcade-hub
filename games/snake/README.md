@@ -1,6 +1,6 @@
 # 🐍 Snake
 
-**Versión:** 1.5.2 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin chocarte contra las paredes ni contra vos mismo.
 
@@ -16,15 +16,17 @@ El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin ch
 | ⌨️ Teclado  | Mover abajo                   | `↓` / `S`               |
 | ⌨️ Teclado  | Mover izquierda               | `←` / `A`               |
 | ⌨️ Teclado  | Mover derecha                 | `→` / `D`               |
-| ⌨️ Teclado  | Empezar / Pausa               | `Espacio`               |
+| ⌨️ Teclado  | Pausar / Reanudar             | `Espacio` / `P`         |
+| ⌨️ Teclado  | Reiniciar                     | `R`                     |
 | 🎮 Gamepad  | Movimiento                    | D-pad / Stick izquierdo |
+| 🎮 Gamepad  | Empezar / Pausar              | Start / Select          |
 | 👆 Táctil   | D-pad direccional en pantalla |                         |
 
 ## Características
 
 - 🐍 Velocidad progresiva a medida que crecés
 - 💥 Game feel: screen shake, hit-stop, partículas neon al comer y al morir
-- 📊 Puntaje y récord persistido en `localStorage`
+- 📊 Puntaje y récord persistido en `localStorage` vía `shared/scores.js`
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para teclado, táctil y gamepad
 
@@ -38,16 +40,18 @@ El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin ch
 - Game loop con `shared/loop.js` (`createGameLoop` con RAF + dt + cleanup)
 - Canvas responsive con `shared/display.js` (`setupCanvas` con DPR + letterboxing + resize debounce)
 - HTML compartido inyectado vía `shared/dom.js` (`injectCommonElements`)
+- Shell compartido vía `shared/shell.js` (`setupGameShell`: game-bar, trampa de Tab y cleanup unificados)
 - Estilos neon desde `shared/base.css` (overlay, HUD, touch controls, game bar, noise CRT)
 - Audio sintetizado con `shared/audio.js` (Web Audio API: beep, ambient drone)
 - Game feel: screen shake por trauma, hit-stop, squash & stretch, partículas con object pool (500), `feedbackBundle` por tiers
 - Rendimiento: glow sin `shadowBlur` (`drawGlow`), object pooling
 - Accesibilidad: `aria-live` announcements, `trapTab()` focus trapping, prefers-reduced-motion → `setShakeScale(0)`, modal de ayuda accesible (role=dialog + focus trap), canvas con `role="img"`, zoom móvil habilitado, `:focus-visible` global
-- Persistencia en `localStorage` con key namespaced
-- 3 modos de entrada: teclado (flechas/WASD + Espacio + R), táctil (d-pad responsive), gamepad (polling en loop)
+- Persistencia en `localStorage` con key namespaced (`snake2d` vía `shared/scores.js`)
+- 3 modos de entrada: teclado (flechas/WASD + Espacio/P + R), táctil (d-pad responsive), gamepad (polling en loop)
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía shared/scores.js | Fix: teardown de audio garantizado en cleanup
 - **1.5.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.1** (2026-07-31): R1: coordenadas de grid `.z/.dz` renombradas a `.y/.dy` — último vestigio 3D eliminado
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings

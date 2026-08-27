@@ -42,8 +42,10 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 - Game loop con `shared/loop.js` (`createGameLoop` con RAF + dt + cleanup)
 - Canvas responsive con `shared/display.js` (`setupCanvas` con DPR + letterboxing + resize debounce)
 - HTML compartido inyectado vía `shared/dom.js` (`injectCommonElements`)
+- Shell compartido y game-bar vía `shared/shell.js`
 - Estilos neon desde `shared/base.css` (overlay, HUD, touch controls, game bar, noise CRT)
 - Audio sintetizado con `shared/audio.js` (Web Audio API: beep, ambient drone)
+- Récords persistentes vía `shared/scores.js`
 - Game feel: screen shake por trauma, hit-stop, squash & stretch, partículas con object pool (500), `feedbackBundle` por tiers
 - Rendimiento: glow sin `shadowBlur` (`drawGlow`), anti-tunneling en sub-pasos, object pooling
 - Accesibilidad: `aria-live` announcements, `trapTab()` focus trapping, prefers-reduced-motion → `setShakeScale(0)`, modal de ayuda accesible (role=dialog + focus trap), canvas con `role="img"`, zoom móvil habilitado, `:focus-visible` global
@@ -52,7 +54,7 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 
 ## Changelog
 
-- **1.6.0** (2026-08-26): Mecánicas arcade — splitting real del ciempiés (la cola se vuelve un ciempiés independiente con cabeza propia) y movimiento del jugador restringido al tercio inferior
+- **1.6.0** (2026-08-26): Fidelidad arcade — el jugador se mueve solo por el tercio inferior de la pantalla y splitting clásico (al destruir un segmento, la cola se convierte en un ciempiés independiente) | Refactor: shell compartido `shared/shell.js` — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía `shared/scores.js` | Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (velocidades, intervalos de olas); fix refs rotas mouseX/Y→player.x/y
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

@@ -1,6 +1,6 @@
 # 🦍 Donkey Kong
 
-**Versión:** 1.3.1 | **Género:** Plataformas | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Plataformas | **Última actualización:** 2026-08-27
 
 Ayudá a Mario a escalar la obra en construcción. Esquivá los barriles que lanza Donkey Kong, subí por las escaleras y llegá hasta la cima.
 
@@ -23,7 +23,10 @@ Ayudá a Mario a escalar la obra en construcción. Esquivá los barriles que lan
 ## Características
 
 - 🦍 Donkey Kong en la cima lanzando barriles
-- 🪜 4 niveles de plataformas con escaleras
+- 🪜 4 fases arcade que rotan por nivel: Barriles (25m), Fuego (50m), Elevador (75m) y Construcción (100m)
+- 🔨 Fase Construcción: power-up martillo que destruye barriles (100 pts c/u) con invulnerabilidad de 4.5s; los barriles ruedan y caen por el hueco central del girder removible
+- 📈 Progresión de dificultad: los girder ensanchan su hueco central según el nivel
+- 🏷️ HUD muestra la fase actual junto al nivel
 - ⏱️ Temporizador por nivel (60 segundos)
 - 💥 Game feel: screen shake, hit-stop, squash & stretch, partículas neon al saltar y al morir
 - 🏆 Puntaje y vidas persistidos
@@ -36,6 +39,7 @@ Ayudá a Mario a escalar la obra en construcción. Esquivá los barriles que lan
 - 🏆 **Manos firmes** — Alcanzá 5.000 puntos en una partida
 - 🏆 **Escalador maestro** — Llegá al nivel 10
 - 🏆 **Primer piso** — Llegá al nivel 2
+- 🏆 **Destructor de barriles** — Destruí 3 barriles con el martillo
 
 ## Detalles técnicos
 
@@ -54,6 +58,9 @@ Ayudá a Mario a escalar la obra en construcción. Esquivá los barriles que lan
 
 ## Changelog
 
+- **1.6.0** (2026-08-27): Fase Construcción (100m) fiel al arcade — reemplaza «Plataformas móviles», los barriles ruedan y caen por el hueco central del girder removible; power-up martillo para destruir barriles (100 pts c/u) con invulnerabilidad de 4.5s y logro `dk_hammer` al destruir 3; progresión de dificultad que ensancha el hueco central del girder según el nivel
+- **1.5.0** (2026-08-26): 4 fases arcade — Barriles (25m), Fuego (50m), Elevador (75m), Plataformas móviles (100m); progresión cíclica (niveles 1→barriles, 2→fuego, 3→elevador, 4→móviles, 5→barriles...); HUD muestra la fase actual junto al nivel
+- **1.4.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados)
 - **1.3.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.3.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.2.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

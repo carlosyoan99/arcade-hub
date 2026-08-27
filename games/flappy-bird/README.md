@@ -1,6 +1,6 @@
 # 🐤 Flappy Bird
 
-**Versión:** 1.5.1 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Volá esquivando tubos. Tocá la pantalla o presioná Espacio para aletear. ¡A ver cuánto durás!
 
@@ -51,6 +51,7 @@ Volá esquivando tubos. Tocá la pantalla o presioná Espacio para aletear. ¡A 
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`; fix teardown de audio garantizado en cleanup
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.4.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`; constantes extraídas (PIPE_MARGIN, BIRD_R, PIPE_SPAWN_MIN)

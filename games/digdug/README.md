@@ -1,6 +1,6 @@
 # ⛏️ Dig Dug
 
-**Versión:** 1.4.1 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrumbá rocas sobre ellos. Dos tipos de enemigos con IA propia.
 
@@ -25,6 +25,8 @@ Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrum
 - 🎈 Inflar enemigos hasta que exploten
 - 🪨 Rocas que caen y aplastan enemigos
 - 👾 Dos tipos de enemigos: Pooka (redondo) y Fygar (dragón)
+- 🍄 Pooka se disfraza de hongo rojo con manchas periódicamente (cada 4-8s); disfrazado no se mueve, y un jugador cercano (≤2 tiles) o la bomba de aire lo saca del disfraz
+- ♟️ Los enemigos caminan solo por túneles vacíos (sin phase-through); las rocas pueden caer varias a la vez
 - 💥 Game feel: screen shake, hit-stop, partículas neon al inflar y explotar
 - 🏆 Récord persistido en `localStorage`
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
@@ -50,6 +52,9 @@ Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrum
 
 ## Changelog
 
+- **1.7.0** (2026-08-26): Paridad arcade — Pooka se disfraza de hongo periódicamente (cada 4-8s), disfrazado no se mueve y aparece como hongo rojo con manchas; un jugador cercano (≤2 tiles) o la bomba de aire saca al Pooka del disfraz
+- **1.6.0** (2026-08-26): Auditoría — eliminado el phase-through de enemigos (solo caminan por túneles vacíos); las rocas ahora soportan múltiples cayendo simultáneamente
+- **1.5.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`
 - **1.4.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
 - **1.3.0** (2026-07-30): Migración a `shared/loop.js`; `shimmerFlow` a `base.css`; `drawGlow()` y `feedbackBundle()`

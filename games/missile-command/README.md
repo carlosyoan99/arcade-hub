@@ -1,8 +1,8 @@
 # 🚀 Missile Command
 
-**Versión:** 1.4.2 | **Género:** Defensa | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Defensa | **Última actualización:** 2026-08-26
 
-Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dispará interceptores. Misiles inteligentes y satélites desde la oleada 2.
+Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dispará interceptores.
 
 ## Captura
 
@@ -24,8 +24,6 @@ Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dis
 - 🚀 Misiles enemigos con estela, desde 3 direcciones
 - 💥 Interceptores con explosión de área (daña misiles cercanos)
 - 🏙️ 6 ciudades para defender
-- 🎯 Misiles inteligentes que cambian de dirección (oleada 2+)
-- 🛰️ Satélites que lanzan múltiples misiles (oleada 2+)
 - 💥 Game feel: screen shake, hit-stop, partículas neon en explosiones
 - 🏆 Récord persistido en `localStorage`
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
@@ -51,6 +49,8 @@ Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dis
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): Auditoría — eliminados misiles teledirigidos (guided), misiles inteligentes (smart) y satélites, fiel al arcade original; HUD badge guiado removido del HTML
+- **1.5.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`
 - **1.4.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.4.1** (2026-08-12): Squash & stretch real — explosiones estiradas (`triggerSquash` en blasts) + retroceso squash en las bases al disparar (cierra G5)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (ammo, intervalos de oleadas); fix refs rotas

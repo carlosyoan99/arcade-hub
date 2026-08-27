@@ -28,7 +28,7 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 - 🎯 Fidelidad arcade: un solo disparo del jugador en pantalla a la vez — cada tiro cuenta
 - ⚡ Disparos enemigos que aumentan con el nivel
 - 💥 Game feel: screen shake, hit-stop, partículas neon en explosiones
-- 🏆 Récord persistido en `localStorage`
+- 🏆 Récord persistido en `localStorage` vía `shared/scores.js`
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para teclado, táctil y gamepad
 
@@ -42,17 +42,18 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 - Game loop con `shared/loop.js` (`createGameLoop` con RAF + dt + cleanup)
 - Canvas responsive con `shared/display.js` (`setupCanvas` con DPR + letterboxing + resize debounce)
 - HTML compartido inyectado vía `shared/dom.js` (`injectCommonElements`)
+- Shell compartido vía `shared/shell.js` (`setupGameShell`: game-bar, trampa de Tab y cleanup unificados)
 - Estilos neon desde `shared/base.css` (overlay, HUD, touch controls, game bar, noise CRT)
 - Audio sintetizado con `shared/audio.js` (Web Audio API: beep, ambient drone)
 - Game feel: screen shake por trauma, hit-stop, squash & stretch, partículas con object pool (500), `feedbackBundle` por tiers
 - Rendimiento: glow sin `shadowBlur` (`drawGlow`), anti-tunneling en sub-pasos, object pooling
 - Accesibilidad: `aria-live` announcements, `trapTab()` focus trapping, prefers-reduced-motion → `setShakeScale(0)`, modal de ayuda accesible (role=dialog + focus trap), canvas con `role="img"`, zoom móvil habilitado, `:focus-visible` global
-- Persistencia en `localStorage` con key namespaced
+- Persistencia en `localStorage` con key namespaced (`spaceinv2d` vía `shared/scores.js`)
 - 3 modos de entrada: teclado (flechas + Espacio + R), táctil (botones responsive), gamepad (polling en loop)
 
 ## Changelog
 
-- **1.7.0** (2026-08-26): Mecánicas arcade — disparo único del jugador en pantalla y nave misteriosa con puntos variables (50–300)
+- **1.7.0** (2026-08-26): Fidelidad arcade: un solo disparo del jugador en pantalla a la vez | Nave misteriosa con puntos variables aleatorios (50–300) como el original | Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía shared/scores.js | Fix: teardown de audio garantizado en cleanup
 - **1.6.0** (2026-08-26): Refactor — récords vía `shared/scores.js` + shell compartido
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings

@@ -1,6 +1,6 @@
 # 🦖 Dino Runner
 
-**Versión:** 1.5.2 | **Género:** Plataformas | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Plataformas | **Última actualización:** 2026-08-26
 
 Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad aumenta con el tiempo. ¿Cuánto podés durar?
 
@@ -14,6 +14,7 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 | ----------- | -------------------------------------- | --------------------- |
 | ⌨️ Teclado  | Saltar                                 | `Espacio` / `↑`       |
 | ⌨️ Teclado  | Agacharse                              | `↓`                   |
+| ⌨️ Teclado  | Fast-fall (↓ en el aire)               | `↓`                   |
 | ⌨️ Teclado  | Empezar                                | `Espacio` / `R`       |
 | 🎮 Gamepad  | Saltar                                 | Botón A / X           |
 | 🎮 Gamepad  | Agacharse                              | Botón B / stick abajo |
@@ -23,7 +24,13 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 
 - 🏃‍♂️ Velocidad progresiva con el tiempo
 - 🌵 Cactus de distintos tamaños y clusters
-- 🦅 Pterodáctilos a partir de cierta distancia
+- 🦅 Pterodáctilos con 3 alturas fijas (high/mid/low) a partir de cierta distancia
+- ⚡ Fast-fall: presioná ↓ en el aire para acelerar la caída
+- 🌙 Ciclo día/noche automático cada 100 m
+- 👁️ Parpadeo del dino cada 3.5 s
+- ☁️ Nubes parallax multi-capa
+- 🎂 Easter egg: pastel en la cabeza del dino
+- 🔔 Chime de hito cada 1000 m
 - 💥 Game feel: screen shake, hit-stop, partículas neon al chocar y al saltar
 - 🏆 Récord persistido en `localStorage`
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
@@ -38,6 +45,7 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 
 - Agacharse solo funciona en el suelo (no en el aire)
 - La velocidad máxima se alcanza gradualmente
+- En el aire, ↓ acelera la caída para esquivar mejor a los pterodáctilos
 
 ## Detalles técnicos
 
@@ -55,6 +63,8 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 
 ## Changelog
 
+- **1.7.0** (2026-08-26): Paridad Chrome Dino — fast-fall (↓ en el aire acelera la caída), day/night cycling automático cada 100m, pterodáctilos con 3 alturas fijas (high/mid/low), parpadeo del dino cada 3.5s, nubes parallax multi-capa, easter egg (pastel en la cabeza del dino) y milestone chime cada 1000m
+- **1.6.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`
 - **1.5.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.1** (2026-08-12): Squash & stretch real — stretch al saltar (`triggerSquash`) y squash al aterrizar, aplicado en `drawDino()` (cierra G5)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: hitbox del dino extraída a constantes; fix refs rotas

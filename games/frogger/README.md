@@ -1,8 +1,8 @@
 # 🐸 Frogger
 
-**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
-Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. ¡Llegá a las 5 zonas seguras!
+Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. Completá las 5 zonas seguras y avanzá a niveles infinitos.
 
 ## Captura
 
@@ -22,11 +22,15 @@ Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. ¡Llegá
 
 ## Características
 
-- 🚗 Múltiples carriles con vehículos (autos, camiones)
+- 🚗 Múltiples carriles con vehículos: camiones lentos y largos, autos medianos y race cars angostos y rápidos
 - 🪵 Troncos flotantes y tortugas para cruzar el río
 - 🐢 Tortugas que se sumergen: en dos filas del río hay grupos de tortugas con ciclo de inmersión visible (parpadean antes de hundirse); si te hunden con ellas encima, perdés la vida
-- ⏱️ Timer de 60s por vida con barra neon y aviso a los 10 segundos
-- 🏆 5 zonas seguras para completar el nivel
+- 🐊 Cocodrilos en el río: abren y cierran la boca periódicamente y matan al tocarlos
+- ⏱️ Timer global de 60s por nivel (no resetea por vida) con barra neon y aviso a los 10 segundos
+- 🏆 5 zonas seguras para completar el nivel; al completarlos avanza a niveles infinitos
+- 🎁 Bonus en los carriles seguros: mosca (200 pts), mariposa (100 pts) y serpiente (mata)
+- ❤️ Vida extra al llegar a 10.000 y 20.000 puntos
+- ⏳ Time bonus al llegar a un goal: 10 pts por segundo restante
 - 💥 Game feel: screen shake, hit-stop, partículas neon al morir y al completar nivel
 - 🏆 Récord persistido en `localStorage`
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
@@ -52,6 +56,7 @@ Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. ¡Llegá
 
 ## Changelog
 
+- **1.7.0** (2026-08-26): Paridad arcade — timer global por nivel (no resetea por vida), cocodrilos en el río (boca abre/cierra y matan al tocar), niveles infinitos (al completar 5 goals avanza al siguiente nivel), race cars angostos y rápidos, trucks lentos y largos, bonus items (fly 200 pts, butterfly 100 pts, snake mata), vida extra a 10.000 y 20.000 puntos y time bonus de 10 pts por segundo restante al llegar a un goal
 - **1.6.0** (2026-08-26): Mecánicas arcade — timer de 60s por vida (barra + aviso) y tortugas sumergibles en filas 4 y 5 del río con ciclo visible y parpadeo previo
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings

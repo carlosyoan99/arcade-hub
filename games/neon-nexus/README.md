@@ -1,6 +1,6 @@
 # ◈ Neon Nexus
 
-**Versión:** 1.4.2 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-08-26
 
 Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara automáticamente, haz clic para daño extra, mejora con estrellas y elige cartas de poder entre oleadas.
 
@@ -25,13 +25,18 @@ Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara au
 ## Características
 
 - 🗼 Torre que dispara automáticamente a los enemigos
-- 🃏 Sistema de cartas roguelike entre oleadas (15 cartas únicas)
+- 🃏 Sistema de cartas roguelike entre oleadas (17 cartas únicas)
 - ⭐ Mejoras en tiempo real (ATK, HP, Velocidad) con estrellas
 - 🏪 Tienda permanente con mejoras entre runs
+- 🎯 Enemigos camuflados (requieren la card Scanner para verlos) y voladores (oleada 6+)
+- 👑 Boss waves cada 5 oleadas (HP ×8, daño ×3)
+- 👁️ Wave preview: muestra la composición de la próxima oleada
+- 🔍 Card Prioridad: la torre apunta al enemigo con más HP
+- 🎯 Card Francotirador (×2 daño, ×0.5 cadencia) y 📡 Card Scanner (detecta camuflados)
 - 🔄 Combinaciones de cartas: Cadena, Vampirismo, Multishot, Explosión, Escudo, Drenar, Torreta, Ralentización Global y más
 - 💥 Game feel: screen shake, hit-stop, partículas neon en impactos y kills
 - 🏆 Récord de oleada persistido en `localStorage`
-- 🎖️ 4 logros desbloqueables (primer kill, oleada 5, oleada 10, aniquilador)
+- 🎖️ 5 logros desbloqueables (primer kill, oleadas 5/10/20, aniquilador, comprador)
 - ♿ Accesibilidad: anuncios `aria-live`, prefers-reduced-motion
 - 🎮 Soporte para mouse, teclado, táctil y gamepad
 
@@ -42,6 +47,7 @@ Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara au
 - 🏰 **Imbatible** — Llegá a la oleada 10
 - ☠️ **Aniquilador** — Eliminá 50 enemigos en una partida
 - 🛒 **Comprador** — Hacé tu primera compra en la tienda
+- 🗿 **Coloso** — Llegá a la oleada 20
 
 ## Detalles técnicos
 
@@ -59,6 +65,8 @@ Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara au
 
 ## Changelog
 
+- **1.6.0** (2026-08-26): TD genre parity — enemigos camuflados (requieren Scanner), voladores (oleada 6+), boss waves cada 5 oleadas (HP ×8, daño ×3), wave preview y targeting priority (Prioridad → más HP); nuevas cards Francotirador, Scanner y Prioridad; logro de oleada 20
+- **1.5.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados); fix: libera la trampa de Tab al terminar partida y el botón hub funciona dentro del iframe del hub
 - **1.4.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.4.1** (2026-08-12): Sistema de logros completo — 5 logros con `achievements.unlock()` (primer kill, oleada 5, oleada 10, aniquilador, comprador)
 - **1.4.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (spawn, escudo, upgrades); fix `injectCommonElements()` restaurado
