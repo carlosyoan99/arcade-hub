@@ -272,8 +272,8 @@ function nextWave() {
 // Mouse / pointer
 canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();
-  crosshair.x = (e.clientX - rect.left - ox) / sc;
-  crosshair.y = (e.clientY - rect.top - oy) / sc;
+  crosshair.x = Math.max(0, Math.min(CW, (e.clientX - rect.left - ox) / sc));
+  crosshair.y = Math.max(0, Math.min(CH, (e.clientY - rect.top - oy) / sc));
 });
 
 canvas.addEventListener('click', (e) => {
@@ -300,9 +300,9 @@ canvas.addEventListener(
     const rect = canvas.getBoundingClientRect();
     const tx = (touch.clientX - rect.left - ox) / sc;
     const ty = (touch.clientY - rect.top - oy) / sc;
-    crosshair.x = tx;
-    crosshair.y = ty;
-    fireABM(tx, ty);
+    crosshair.x = Math.max(0, Math.min(CW, tx));
+    crosshair.y = Math.max(0, Math.min(CH, ty));
+    fireABM(crosshair.x, crosshair.y);
   },
   { passive: false },
 );
@@ -455,15 +455,17 @@ function updateABMs(dt) {
       pExplode();
       spawnParticles(bx, by, '#ffdd88', 10, { spd: 80, life: 0.3 });
       // Kill missiles in blast radius
+      let killed = false;
       for (let mi = missiles.length - 1; mi >= 0; mi--) {
         const m = missiles[mi];
         if (Math.hypot(m.x - bx, m.y - by) < BLAST_RADIUS) {
           state.score += KILL_PTS;
           spawnParticles(m.x, m.y, '#ffdd88', 6, { spd: 50, life: 0.2 });
           missiles.splice(mi, 1);
-          updateHUD();
+          killed = true;
         }
       }
+      if (killed) updateHUD();
 
       abs.splice(i, 1);
     }

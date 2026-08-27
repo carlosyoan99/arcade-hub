@@ -472,7 +472,7 @@ function moveSnake() {
       food.y * CELL_SIZE + CELL_SIZE / 2,
       '#6ee7b7',
       12,
-      { speed: 120, life: 0.5 },
+      { spd: 120, life: 0.5 },
     );
     if (!spawnFood()) {
       // Ganaste (llenaste el tablero) — raro, pero manejarlo

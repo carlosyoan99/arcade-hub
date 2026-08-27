@@ -6,8 +6,16 @@ import { beep } from './audio.js';
 
 const ACH_KEY = 'ach_data';
 
+function _loadData() {
+  try {
+    return JSON.parse(localStorage.getItem(ACH_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
 export const achievements = {
-  _data: JSON.parse(localStorage.getItem(ACH_KEY) || '{}'),
+  _data: _loadData(),
   unlock(id) {
     if (!this._data[id]) {
       this._data[id] = true;
@@ -19,15 +27,27 @@ export const achievements = {
     return !!this._data[id];
   },
   incrementPlays(gameId) {
-    const plays = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
-    plays[gameId] = (plays[gameId] || 0) + 1;
-    localStorage.setItem('arcadehub_plays', JSON.stringify(plays));
+    try {
+      const plays = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+      plays[gameId] = (plays[gameId] || 0) + 1;
+      localStorage.setItem('arcadehub_plays', JSON.stringify(plays));
+    } catch {
+      /* storage unavailable */
+    }
   },
   getPlays(gameId) {
-    const plays = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
-    return plays[gameId] || 0;
+    try {
+      const plays = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+      return plays[gameId] || 0;
+    } catch {
+      return 0;
+    }
   },
   getAllPlays() {
-    return JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+    try {
+      return JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+    } catch {
+      return {};
+    }
   },
 };

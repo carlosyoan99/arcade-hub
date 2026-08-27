@@ -678,7 +678,7 @@ function draw() {
     ctx.closePath();
     ctx.stroke();
     ctx.restore();
-    drawGlow(ctx, ax, ay, a.size * s * 0.5, 'rgba(180,200,220,0.06)', 0.04, 3);
+    drawGlow(ctx, ax, ay, a.radius * s * 0.5, 'rgba(180,200,220,0.06)', 0.04, 3);
   }
 
   // Balas

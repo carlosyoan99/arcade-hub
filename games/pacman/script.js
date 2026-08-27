@@ -137,7 +137,7 @@ const state = {
   fruitsSpawned: 0,
   fruit: null, // { idx, timer }
   dying: 0, // timer de la animación de muerte
-  extraLifeGiven: false,
+  nextExtraLife: 10000,
 };
 
 // ============================================================
@@ -653,7 +653,7 @@ function resetGame() {
   state.fruitsSpawned = 0;
   state.fruit = null;
   state.dying = 0;
-  state.extraLifeGiven = false;
+  state.nextExtraLife = 10000;
   resetModeSchedule();
   buildMaze();
   resetPac();
@@ -737,6 +737,7 @@ function endGame() {
 }
 
 function winGame() {
+  stopMusic();
   state.running = false;
   state.gameOver = true;
   if (state.score > state.best) {
@@ -752,6 +753,7 @@ function winGame() {
   finalScore.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   hintEl.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
   document.getElementById('overlay').classList.remove('hidden');
+  shell.disableTabTrap();
   updateHUD();
 }
 
@@ -1161,8 +1163,8 @@ const scoreEl = document.getElementById('scoreValue'),
   livesEl = document.getElementById('livesValue'),
   bestEl = document.getElementById('bestValue');
 function checkExtraLife() {
-  if (!state.extraLifeGiven && state.score >= 10000) {
-    state.extraLifeGiven = true;
+  while (state.score >= state.nextExtraLife) {
+    state.nextExtraLife += 10000;
     state.lives++;
     say('¡Vida extra!');
     spawnParticles(CW / 2, CH / 2, '#6ee7b7', 20, { spd: 100, life: 0.6 });

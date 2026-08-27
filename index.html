@@ -2212,6 +2212,10 @@
         }));
 
         function draw() {
+          if (paused) {
+            rafId = null;
+            return;
+          }
           t += 0.003;
 
           if (trans.active) {
@@ -2317,11 +2321,27 @@
           }
           ctx.globalAlpha = 1;
 
-          requestAnimationFrame(draw);
+          rafId = requestAnimationFrame(draw);
         }
 
-        draw();
-        return { setTheme };
+        let paused = false;
+        let rafId = null;
+        // Pausa/reanuda el bucle: detiene el draw (y cancela el rAF pendiente)
+        // para no gastar CPU/batería con un juego abierto encima o en pestaña oculta.
+        function setPaused(v) {
+          paused = v;
+          if (paused) {
+            if (rafId) {
+              cancelAnimationFrame(rafId);
+              rafId = null;
+            }
+          } else if (rafId == null) {
+            rafId = requestAnimationFrame(draw);
+          }
+        }
+
+        rafId = requestAnimationFrame(draw);
+        return { setTheme, setPaused };
       })();
 
       /* ── Per-game accent colors (matching new palette) ── */
@@ -2549,6 +2569,9 @@
         const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
 
         const creationOrder = {
+          'donkey-kong': 19,
+          defender: 18,
+          joust: 17,
           'neon-nexus': 16,
           'cell-swarm': 15,
           'missile-command': 14,
@@ -2837,7 +2860,7 @@
       })();
 
       /* ── Achievements panel ── */
-      (function renderAchievements() {
+      function renderAchievements() {
         const achData = JSON.parse(localStorage.getItem('ach_data') || '{}');
         const achGrid = document.getElementById('achGrid');
         const achCount = document.getElementById('achCount');
@@ -2939,10 +2962,11 @@
           `;
           achGrid.appendChild(card);
         }
-      })();
+      }
+      renderAchievements();
 
       /* ── Stats panel ── */
-      (function renderStats() {
+      function renderStats() {
         const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
         const statsGrid = document.getElementById('statsGrid');
         const statSummary = document.getElementById('statSummary');
@@ -3027,13 +3051,16 @@
           `;
           statsGrid.appendChild(card);
         }
-      })();
+      }
+      renderStats();
 
       /* ── Hash routing for games ── */
       const gameContainer = document.getElementById('gameContainer');
       const gameFrame = document.getElementById('gameFrame');
 
       function showGame(game) {
+        // Pausa el canvas de fondo: el iframe lo tapa y no tiene sentido dibujar.
+        if (bgCanvas.setPaused) bgCanvas.setPaused(true);
         // H6: Staggered page transition
         gameContainer.classList.remove('hidden');
         gameContainer.classList.add('game-entering');
@@ -3066,6 +3093,21 @@
       }
 
       function hideGame() {
+        // Reanuda el canvas de fondo al volver al hub.
+        if (bgCanvas.setPaused) bgCanvas.setPaused(false);
+        // Refresh stats & achievements with fresh localStorage data
+        const achGridEl = document.getElementById('achGrid');
+        if (achGridEl) {
+          achGridEl.innerHTML = '';
+          renderAchievements();
+        }
+        const statsGridEl = document.getElementById('statsGrid');
+        if (statsGridEl) {
+          statsGridEl.innerHTML = '';
+          const top3Old = statsGridEl.parentNode.querySelector('.top3-section');
+          if (top3Old) top3Old.remove();
+          renderStats();
+        }
         // H6: Fade out transition
         gameContainer.classList.add('hidden');
         gameContainer.setAttribute('aria-hidden', 'true');
@@ -3109,6 +3151,13 @@
       }
 
       window.addEventListener('hashchange', handleHash);
+      // Pausa el canvas de fondo cuando la pestaña queda en segundo plano y lo
+      // reanuda al volver, salvo que haya un juego abierto (que ya lo mantiene pausado).
+      document.addEventListener('visibilitychange', () => {
+        if (!bgCanvas || !bgCanvas.setPaused) return;
+        if (document.hidden) bgCanvas.setPaused(true);
+        else if (!gameFrame.src) bgCanvas.setPaused(false);
+      });
       // La barra superior (Arcade / Fullscreen / Música / Configuración / Ayuda)
       // la inyecta cada juego (shared/dom.js + shell.js) dentro del iframe; el
       // hub solo gestiona la navegación (Esc/añadir-hash) y el cambio de ruta.

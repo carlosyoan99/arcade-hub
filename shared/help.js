@@ -307,7 +307,12 @@ export function showHelp(gameId) {
   if (!g) return;
 
   // Leer logros desbloqueados
-  const achData = JSON.parse(localStorage.getItem('ach_data') || '{}');
+  let achData = {};
+  try {
+    achData = JSON.parse(localStorage.getItem('ach_data') || '{}');
+  } catch {
+    /* corrupt storage */
+  }
 
   // Crear backdrop
   const backdrop = document.createElement('div');
@@ -504,15 +509,19 @@ export function showHelp(gameId) {
     .then((meta) => {
       metaSection.innerHTML = '';
 
+      // Escapar texto para prevenir XSS
+      const esc = (s) =>
+        String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
       // Versión y fecha
       const infoRow = document.createElement('div');
       infoRow.style.cssText =
         "display:flex;align-items:center;justify-content:center;gap:12px;font-size:10px;font-family:'Orbitron',monospace;letter-spacing:1px;color:" +
         (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)');
       infoRow.innerHTML = `
-        <span style="display:flex;align-items:center;gap:4px">📦 v${meta.version}</span>
+        <span style="display:flex;align-items:center;gap:4px">📦 v${esc(meta.version)}</span>
         <span style="opacity:0.3">·</span>
-        <span style="display:flex;align-items:center;gap:4px">📅 ${meta.created}</span>
+        <span style="display:flex;align-items:center;gap:4px">📅 ${esc(meta.created)}</span>
       `;
       metaSection.appendChild(infoRow);
 
@@ -541,9 +550,9 @@ export function showHelp(gameId) {
           .map(
             (entry) => `
           <div style="padding:8px 10px;margin-top:6px;border-radius:6px;background:${isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'};border:1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}">
-            <div style="font-size:9px;font-family:'Orbitron',monospace;letter-spacing:1px;color:${isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'};margin-bottom:4px">v${entry.version} — ${entry.date}</div>
+            <div style="font-size:9px;font-family:'Orbitron',monospace;letter-spacing:1px;color:${isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'};margin-bottom:4px">v${esc(entry.version)} — ${esc(entry.date)}</div>
             <ul style="margin:0;padding:0 0 0 14px;list-style:none">
-              ${entry.changes.map((c) => `<li style="font-size:10px;padding:1px 0;opacity:0.5;line-height:1.4"><span style="opacity:0.3;margin-right:4px">›</span>${c}</li>`).join('')}
+              ${entry.changes.map((c) => `<li style="font-size:10px;padding:1px 0;opacity:0.5;line-height:1.4"><span style="opacity:0.3;margin-right:4px">›</span>${esc(c)}</li>`).join('')}
             </ul>
           </div>
         `,

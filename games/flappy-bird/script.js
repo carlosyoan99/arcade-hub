@@ -309,7 +309,7 @@ document.getElementById('overlay').addEventListener('click', () => {
 
 // Gamepad
 const gamepad = createGamepad();
-const gP = { f: false };
+const gP = { f: false, s: false };
 
 function pG() {
   const gp = gamepad.pad;

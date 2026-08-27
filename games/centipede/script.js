@@ -242,7 +242,7 @@ function resetGame() {
   scorpionTimer = scorpionInterval;
   moveTimer = 0;
   spawnMushrooms(NUM_MUSHROOMS_INIT);
-  spawnCentipede(12);
+  spawnCentipede(INITIAL_SEGMENTS);
   document.getElementById('fs').style.display = 'none';
   updateHUD();
 }
@@ -270,6 +270,9 @@ function loseLife() {
     endGame();
     return;
   }
+  // Reposition player to safe zone
+  player.x = CW / 2;
+  player.y = CH - 30;
   state.invincibleTimer = 2;
 }
 

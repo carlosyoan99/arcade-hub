@@ -162,11 +162,8 @@ function playMilestoneSound() {
 // ============================================================
 // ENTRADA: TECLADO
 // ============================================================
-const keys = {};
 
 window.addEventListener('keydown', (e) => {
-  keys[e.code] = true;
-
   if (e.code === 'Space' || e.code === 'ArrowUp') {
     e.preventDefault();
     if (!state.running) startGame();
@@ -181,7 +178,6 @@ window.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('keyup', (e) => {
-  keys[e.code] = false;
   if (e.code === 'ArrowDown') setDuck(false);
 });
 

@@ -647,7 +647,6 @@ function updatePlayer(dt) {
   }
 
   // Cooldowns
-  if (player.fireCooldown > 0) player.fireCooldown -= dt;
   if (state.hyperspaceCooldown > 0) state.hyperspaceCooldown -= dt;
 
   // Invincibility countdown

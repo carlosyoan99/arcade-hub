@@ -399,7 +399,7 @@ function loseLife() {
   spawnParticles(ball.x, paddle.y, '#ff6b6b', 14, {
     spd: 160,
     life: 0.5,
-    gravity: true,
+    gravity: -350,
     friction: 0.97,
   });
   parkBallOnPaddle();
