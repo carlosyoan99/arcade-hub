@@ -49,8 +49,16 @@
 
     <!-- Touch controls -->
     <div id="touchControls">
-      <button id="btnUp" aria-label="Arriba">▲</button>
-      <button id="btnDown" class="down" aria-label="Abajo">▼</button>
+      <div class="touch-p1">
+        <span class="touch-label">P1</span>
+        <button id="btnUp" aria-label="P1 Arriba">▲</button>
+        <button id="btnDown" class="down" aria-label="P1 Abajo">▼</button>
+      </div>
+      <div class="touch-p2" id="touchP2" style="display: none">
+        <span class="touch-label">P2</span>
+        <button id="btnP2Up" aria-label="P2 Arriba">▲</button>
+        <button id="btnP2Down" class="down" aria-label="P2 Abajo">▼</button>
+      </div>
     </div>
 
     <script type="module" src="./script.js"></script>

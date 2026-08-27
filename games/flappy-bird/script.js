@@ -39,11 +39,26 @@ const CW = 600,
 const GRAVITY = 1200;
 const FLAP_VEL = -380;
 const PIPE_W = 50;
-const PIPE_GAP = 140;
-const PIPE_SPEED = 200;
-const PIPE_SPAWN_INTERVAL = 1.6;
-const PIPE_SPAWN_MIN = 0.8;
+const PIPE_GAP_BASE = 140;
+const PIPE_GAP_MIN = 90;
+const PIPE_SPEED_BASE = 200;
+const PIPE_SPEED_MAX = 320;
+const PIPE_SPAWN_BASE = 1.6;
+const PIPE_SPAWN_MIN = 0.6;
 const PIPE_SPAWN_VAR = 0.4;
+
+function getPipeGap() {
+  const reduction = Math.min(state.score * 2, PIPE_GAP_BASE - PIPE_GAP_MIN);
+  return PIPE_GAP_BASE - reduction;
+}
+function getPipeSpeed() {
+  const increase = Math.min(state.score * 3, PIPE_SPEED_MAX - PIPE_SPEED_BASE);
+  return PIPE_SPEED_BASE + increase;
+}
+function getPipeSpawnInterval() {
+  const reduction = Math.min(state.score * 0.04, PIPE_SPAWN_BASE - PIPE_SPAWN_MIN);
+  return PIPE_SPAWN_BASE - reduction;
+}
 const PIPE_MARGIN = 60;
 const PIPE_REMOVE = -20;
 const BIRD_R = 10;
@@ -175,12 +190,14 @@ function updateBird(dt) {
 }
 
 function spawnPipe() {
+  const gap = getPipeGap();
   const minY = PIPE_MARGIN;
-  const maxY = CH - PIPE_GAP - GROUND_H - PIPE_MARGIN;
+  const maxY = CH - gap - GROUND_H - PIPE_MARGIN;
   const gapY = minY + Math.random() * (maxY - minY);
   pipes.push({
     x: CW + PIPE_W,
     gapY: gapY,
+    gap: gap,
     passed: false,
   });
 }
@@ -189,12 +206,12 @@ function updatePipes(dt) {
   pipeTimer -= dt;
   if (pipeTimer <= 0) {
     spawnPipe();
-    pipeTimer = PIPE_SPAWN_INTERVAL * (PIPE_SPAWN_MIN + Math.random() * PIPE_SPAWN_VAR);
+    pipeTimer = getPipeSpawnInterval() * (PIPE_SPAWN_MIN + Math.random() * PIPE_SPAWN_VAR);
   }
 
   for (let i = pipes.length - 1; i >= 0; i--) {
     const p = pipes[i];
-    p.x -= PIPE_SPEED * dt;
+    p.x -= getPipeSpeed() * dt;
 
     // Score al pasar
     if (!p.passed && p.x + PIPE_W < BIRD_X) {
@@ -221,7 +238,7 @@ function checkCollisions() {
   for (const p of pipes) {
     // Tubo superior (de 0 a gapY)
     if (bx + br > p.x && bx - br < p.x + PIPE_W) {
-      if (by - br < p.gapY || by + br > p.gapY + PIPE_GAP) {
+      if (by - br < p.gapY || by + br > p.gapY + p.gap) {
         endGame();
         return;
       }
@@ -373,7 +390,7 @@ function draw() {
     // Tubo superior
     drawPipe(px, cy, pw, p.gapY * s);
     // Tubo inferior
-    drawPipe(px, cy + (p.gapY + PIPE_GAP) * s, pw, (CH - GROUND_H - p.gapY - PIPE_GAP) * s);
+    drawPipe(px, cy + (p.gapY + p.gap) * s, pw, (CH - GROUND_H - p.gapY - p.gap) * s);
   }
 
   // Pájaro

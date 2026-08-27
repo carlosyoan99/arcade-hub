@@ -158,16 +158,16 @@ function playLaunchSound() {
 }
 function playLifeLostSound() {
   beep({ freq: 260, freqEnd: 90, duration: 0.35, type: 'sawtooth', volume: 0.2 });
-  triggerShake(5);
+  triggerShake(0.4);
 }
 function playLevelClearFanfare() {
-  triggerShake(4);
+  triggerShake(0.3);
   [660, 880, 1100].forEach((freq, i) => {
     setTimeout(() => beep({ freq, duration: 0.1, type: 'triangle', volume: 0.16 }), i * 90);
   });
 }
 function playGameOverTone() {
-  triggerShake(6);
+  triggerShake(0.5);
   [440, 330, 220, 110].forEach((freq, i) => {
     setTimeout(() => beep({ freq, duration: 0.2, type: 'sawtooth', volume: 0.18 }), i * 140);
   });

@@ -135,17 +135,16 @@ function playLoseTone() {
 // ENTRADA
 const keys = { up: false, down: false, p2Up: false, p2Down: false };
 window.addEventListener('keydown', (e) => {
-  // Player 1: W/S or ↑/↓
-  if (['ArrowUp', 'KeyW'].includes(e.code)) {
-    e.preventDefault();
-    keys.up = true;
-  }
-  if (['ArrowDown', 'KeyS'].includes(e.code)) {
-    e.preventDefault();
-    keys.down = true;
-  }
-  // Player 2: ↑/↓ when in 2P mode (W/S already taken by P1)
   if (state.twoPlayer) {
+    // 2P: P1=W/S, P2=↑/↓
+    if (e.code === 'KeyW') {
+      e.preventDefault();
+      keys.up = true;
+    }
+    if (e.code === 'KeyS') {
+      e.preventDefault();
+      keys.down = true;
+    }
     if (e.code === 'ArrowUp') {
       e.preventDefault();
       keys.p2Up = true;
@@ -153,6 +152,16 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowDown') {
       e.preventDefault();
       keys.p2Down = true;
+    }
+  } else {
+    // 1P: W/S or ↑/↓
+    if (['ArrowUp', 'KeyW'].includes(e.code)) {
+      e.preventDefault();
+      keys.up = true;
+    }
+    if (['ArrowDown', 'KeyS'].includes(e.code)) {
+      e.preventDefault();
+      keys.down = true;
     }
   }
   if (e.code === 'Space') {
@@ -168,14 +177,18 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     state.twoPlayer = !state.twoPlayer;
     updateModeDisplay();
+    updateTouchControls();
   }
 });
 window.addEventListener('keyup', (e) => {
-  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
-  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
   if (state.twoPlayer) {
+    if (e.code === 'KeyW') keys.up = false;
+    if (e.code === 'KeyS') keys.down = false;
     if (e.code === 'ArrowUp') keys.p2Up = false;
     if (e.code === 'ArrowDown') keys.p2Down = false;
+  } else {
+    if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
+    if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
   }
 });
 
@@ -197,6 +210,32 @@ bindHoldButton(
     keys.down = false;
   },
 );
+
+// P2 touch controls (shown in 2P mode)
+const p2Up = document.getElementById('btnP2Up');
+const p2Down = document.getElementById('btnP2Down');
+if (p2Up) {
+  bindHoldButton(
+    p2Up,
+    () => {
+      keys.p2Up = true;
+    },
+    () => {
+      keys.p2Up = false;
+    },
+  );
+}
+if (p2Down) {
+  bindHoldButton(
+    p2Down,
+    () => {
+      keys.p2Down = true;
+    },
+    () => {
+      keys.p2Down = false;
+    },
+  );
+}
 
 // GAMEPAD
 const gamepad = createGamepad();
@@ -235,6 +274,11 @@ function say(msg) {
 function updateModeDisplay() {
   const modeEl = document.getElementById('modeDisplay');
   if (modeEl) modeEl.textContent = state.twoPlayer ? '2P' : '1P';
+}
+
+function updateTouchControls() {
+  const touchP2El = document.getElementById('touchP2');
+  if (touchP2El) touchP2El.style.display = state.twoPlayer ? '' : 'none';
 }
 
 // LÓGICA

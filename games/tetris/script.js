@@ -951,7 +951,7 @@ function draw() {
   );
 
   // Placed blocks
-  for (let r = 0; r < ROWS; r++)
+  for (let r = HIDDEN_ROWS; r < TOTAL_ROWS; r++)
     for (let c = 0; c < COLS; c++) {
       if (grid[r][c] !== 0)
         drawBlock(cx + c * CS * s, cy + (r - HIDDEN_ROWS) * CS * s, CS * s, grid[r][c], s);

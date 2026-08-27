@@ -56,15 +56,19 @@ const SHIELDS = 4;
 const ROW_COLORS = ['#ff6b6b', '#ff8a65', '#ffe066', '#6ee7b7', '#6ec6ff'];
 const ROW_POINTS = [30, 20, 20, 10, 10];
 
-// Velocidad escalonada por enemigos vivos (original: función discreta)
+// Velocidad escalonada por enemigos vivos + escala por oleada
 function getInvaderInterval(aliveCount) {
   const total = INVADER_ROWS * INVADER_COLS;
   const ratio = aliveCount / total;
   // Original: 4 intervals — lento → medio → rápido → muy rápido
-  if (ratio > 0.75) return 0.55;
-  if (ratio > 0.5) return 0.4;
-  if (ratio > 0.25) return 0.25;
-  return 0.12;
+  let interval;
+  if (ratio > 0.75) interval = 0.55;
+  else if (ratio > 0.5) interval = 0.4;
+  else if (ratio > 0.25) interval = 0.25;
+  else interval = 0.12;
+  // Scale down by wave (faster invaders each wave)
+  const waveFactor = Math.max(0.5, 1 - (state.wave - 1) * 0.06);
+  return interval * waveFactor;
 }
 
 // ── ESTADO ──
@@ -317,7 +321,8 @@ function updateInvaders(dt) {
     const shooters = Object.values(lowestByCol);
     if (shooters.length > 0) {
       const shooter = shooters[Math.floor(Math.random() * shooters.length)];
-      enBullets.push({ x: shooter.x, y: shooter.y + INVADER_H / 2, vy: INVADER_BULLET_SPEED });
+      const waveSpeed = INVADER_BULLET_SPEED + (state.wave - 1) * 15;
+      enBullets.push({ x: shooter.x, y: shooter.y + INVADER_H / 2, vy: waveSpeed });
     }
   }
 
