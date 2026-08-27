@@ -74,6 +74,110 @@ const SCORE_BEAM_KILL = 300;
 const SCORE_RESCUE = 500;
 
 // ============================================================
+// FORMATION PATTERNS — 8 layouts únicos que rotan por stage
+// Cada patrón es un array de {row, col} -> offset {dx, dy} desde la posición base.
+// Los offsets son relativos a la cuadrícula base (ENEMY_W + ENEMY_GAP spacing).
+// ============================================================
+const FORMATION_PATTERNS = [
+  // 0: Classic grid (original Galaga)
+  null,
+  // 1: Diamond
+  (r, c) => {
+    const cx = ENEMY_COLS / 2 - 0.5;
+    const cy = ENEMY_ROWS / 2 - 0.5;
+    const dist = Math.abs(r - cy) + Math.abs(c - cx);
+    return { dx: 0, dy: dist * 4 };
+  },
+  // 2: Arrow (V pointing down)
+  (r, c) => {
+    const cx = ENEMY_COLS / 2 - 0.5;
+    return { dx: 0, dy: Math.abs(c - cx) * 3 + r * 2 };
+  },
+  // 3: Chevron rows (zigzag horizontal)
+  (r, c) => ({ dx: (r % 2 === 0 ? 1 : -1) * (c % 3) * 3, dy: 0 }),
+  // 4: V formation (pointed bottom)
+  (r, c) => {
+    const cx = ENEMY_COLS / 2 - 0.5;
+    return { dx: (c - cx) * 2, dy: Math.abs(c - cx) * 3 + r * 2 };
+  },
+  // 5: Hourglass (narrow middle)
+  (r, c) => {
+    const cy = ENEMY_ROWS / 2 - 0.5;
+    const narrowFactor = 1 - Math.abs(r - cy) * 0.25;
+    const cx = ENEMY_COLS / 2 - 0.5;
+    return { dx: (c - cx) * (1 - narrowFactor) * 4, dy: 0 };
+  },
+  // 6: Scattered (random-looking but deterministic)
+  (r, c) => ({
+    dx: (((r * 7 + c * 13) % 5) - 2) * 5,
+    dy: (((r * 11 + c * 3) % 5) - 2) * 3,
+  }),
+  // 7: Invader silhouette (classic space invader shape)
+  (r, c) => {
+    // Row 0: narrow top (cols 3-6 only → skip others)
+    // Row 1-2: wider
+    // Row 3-4: arms extending
+    const mask = [
+      [0, 0, 0, 1, 1, 1, 1, 0, 0, 0], // boss row: 4 in center
+      [0, 0, 1, 1, 1, 1, 1, 1, 0, 0], // bee row 1
+      [1, 0, 1, 1, 1, 1, 1, 1, 0, 1], // bee row 2: arms
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // butterfly row 3
+      [1, 0, 1, 0, 0, 0, 0, 1, 0, 1], // butterfly row 4: legs
+    ];
+    return mask[r] && mask[r][c] ? { dx: 0, dy: 0 } : { dx: 0, dy: 30, skip: true };
+  },
+];
+
+// ============================================================
+// ENTRY SEQUENCES — vuelos scriptados para los primeros 4 stages
+// Cada secuencia define un grupo de enemigos con trayectoria de entrada.
+// ============================================================
+const ENTRY_SEQUENCES = [
+  // Stage 1: Butterflies from left, Bees from right, Bosses from top
+  [
+    { type: 'butterfly', row: 3, startSide: 'left', cols: [0, 1, 2, 3, 4] },
+    { type: 'butterfly', row: 4, startSide: 'right', cols: [5, 6, 7, 8, 9] },
+    { type: 'bee', row: 1, startSide: 'left', cols: [0, 1, 2, 3, 4] },
+    { type: 'bee', row: 2, startSide: 'right', cols: [5, 6, 7, 8, 9] },
+    { type: 'boss', row: 0, startSide: 'top', cols: [3, 4, 5, 6] },
+  ],
+  // Stage 2: All from bottom, swooping up
+  [
+    { type: 'boss', row: 0, startSide: 'bottom', cols: [2, 3, 4, 5, 6, 7] },
+    { type: 'bee', row: 1, startSide: 'bottom', cols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    { type: 'bee', row: 2, startSide: 'bottom', cols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    { type: 'butterfly', row: 3, startSide: 'bottom', cols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    { type: 'butterfly', row: 4, startSide: 'bottom', cols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+  ],
+  // Stage 3: Diagonal sweeps
+  [
+    { type: 'butterfly', row: 3, startSide: 'left', cols: [0, 1, 2, 3, 4] },
+    { type: 'butterfly', row: 4, startSide: 'left', cols: [5, 6, 7, 8, 9] },
+    { type: 'bee', row: 1, startSide: 'right', cols: [0, 1, 2, 3, 4] },
+    { type: 'bee', row: 2, startSide: 'right', cols: [5, 6, 7, 8, 9] },
+    { type: 'boss', row: 0, startSide: 'left', cols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+  ],
+  // Stage 4: Split groups from sides
+  [
+    { type: 'boss', row: 0, startSide: 'left', cols: [0, 1, 2, 3, 4] },
+    { type: 'boss', row: 0, startSide: 'right', cols: [5, 6, 7, 8, 9] },
+    { type: 'bee', row: 1, startSide: 'right', cols: [0, 1, 2, 3, 4] },
+    { type: 'bee', row: 2, startSide: 'left', cols: [5, 6, 7, 8, 9] },
+    { type: 'butterfly', row: 3, startSide: 'bottom', cols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    { type: 'butterfly', row: 4, startSide: 'bottom', cols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] },
+  ],
+];
+
+// ============================================================
+// BONUS/CHALLENGE STAGE CONSTANTS
+// ============================================================
+const BONUS_EVERY = 5; // bonus stage every N waves
+const BONUS_FLIGHT_SPEED = 160;
+const BONUS_FLIGHT_INTERVAL = 0.4;
+const BONUS_DURATION = 15; // seconds
+const BONUS_ENEMY_COUNT = 40;
+
+// ============================================================
 // ESTADO
 // ============================================================
 const state = {
@@ -127,6 +231,11 @@ function pBeam() {
 function pCapture() {
   beep({ freq: 600, freqEnd: 120, duration: 0.6, type: 'sawtooth', volume: 0.16 });
 }
+function pBonusStage() {
+  [440, 550, 660, 880, 1100].forEach((ff, i) =>
+    setTimeout(() => beep({ freq: ff, duration: 0.1, type: 'triangle', volume: 0.15 }), i * 80),
+  );
+}
 
 // ============================================================
 // PARTÍCULAS
@@ -151,19 +260,46 @@ let beamCooldown = 0;
 let doubleShotActive = false; // permanente tras rescatar la nave capturada
 let extraLivesGiven = 0; // track which thresholds have been given
 
+// Entry sequence state
+let entryState = null; // { groups: [...], groupIdx, spawnIdx, spawnTimer, active }
+
+// Bonus stage state
+let bonusStage = false;
+let bonusFlighters = []; // enemies flying freely in bonus stage
+let bonusFlightTimer = 0;
+let bonusStageTimer = 0;
+let bonusKills = 0;
+
+// ============================================================
+// FORMATION PATTERN HELPERS
+// ============================================================
+function getFormationPos(wave, row, col) {
+  const baseX = (CW - (ENEMY_COLS * ENEMY_W + (ENEMY_COLS - 1) * ENEMY_GAP)) / 2 + ENEMY_W / 2;
+  const baseY = 45;
+  const x = baseX + col * (ENEMY_W + ENEMY_GAP);
+  const y = baseY + row * (ENEMY_H + ENEMY_GAP);
+
+  const patternIdx = (wave - 1) % FORMATION_PATTERNS.length;
+  const patternFn = FORMATION_PATTERNS[patternIdx];
+  if (!patternFn) return { x, y, skip: false };
+
+  const offset = patternFn(row, col);
+  return { x: x + (offset.dx || 0), y: y + (offset.dy || 0), skip: !!offset.skip };
+}
+
 function buildEnemies() {
   enemies = [];
-  const tw = ENEMY_COLS * ENEMY_W + (ENEMY_COLS - 1) * ENEMY_GAP;
-  const sx = (CW - tw) / 2 + ENEMY_W / 2;
   for (let r = 0; r < ENEMY_ROWS; r++) {
     const typeName = ROW_TYPE[r];
     const type = ENEMY_TYPES[typeName];
     for (let co = 0; co < ENEMY_COLS; co++) {
+      const pos = getFormationPos(state.wave, r, co);
+      if (pos.skip) continue; // pattern masks out this cell
       enemies.push({
-        x: sx + co * (ENEMY_W + ENEMY_GAP),
-        y: 45 + r * (ENEMY_H + ENEMY_GAP),
-        homeX: sx + co * (ENEMY_W + ENEMY_GAP),
-        homeY: 45 + r * (ENEMY_H + ENEMY_GAP),
+        x: pos.x,
+        y: pos.y,
+        homeX: pos.x,
+        homeY: pos.y,
         w: ENEMY_W,
         h: ENEMY_H,
         alive: true,
@@ -175,6 +311,10 @@ function buildEnemies() {
         color2: type.color2,
         points: type.points,
         diving: false,
+        entering: false,
+        entryProgress: 0,
+        entryTarget: { x: pos.x, y: pos.y },
+        entryStart: { x: 0, y: 0 },
       });
     }
   }
@@ -183,6 +323,263 @@ function buildEnemies() {
   diveTimer = diveInterval;
   bonusActive = false;
   beam = null;
+}
+
+// ============================================================
+// ENTRY SEQUENCE
+// ============================================================
+function startEntrySequence() {
+  const seqIdx = (state.wave - 1) % ENTRY_SEQUENCES.length;
+  const seq = ENTRY_SEQUENCES[seqIdx];
+  entryState = {
+    groups: seq.map((g) => ({
+      type: g.type,
+      row: g.row,
+      startSide: g.startSide,
+      cols: [...g.cols],
+    })),
+    groupIdx: 0,
+    spawnIdx: 0,
+    spawnTimer: 0,
+    active: true,
+    totalEnemies: seq.reduce((s, g) => s + g.cols.length, 0),
+    spawned: 0,
+  };
+}
+
+function getEntryStartPos(side) {
+  switch (side) {
+    case 'left':
+      return { x: -40, y: CH * 0.3 + Math.random() * CH * 0.4 };
+    case 'right':
+      return { x: CW + 40, y: CH * 0.3 + Math.random() * CH * 0.4 };
+    case 'top':
+      return { x: CW * 0.3 + Math.random() * CW * 0.4, y: -40 };
+    case 'bottom':
+      return { x: CW * 0.2 + Math.random() * CW * 0.6, y: CH + 40 };
+    default:
+      return { x: CW / 2, y: -40 };
+  }
+}
+
+function updateEntrySequence(dt) {
+  if (!entryState || !entryState.active) return;
+
+  entryState.spawnTimer += dt;
+  if (entryState.spawnTimer < 0.12) return; // stagger spawns
+  entryState.spawnTimer = 0;
+
+  // Find next group with remaining cols
+  while (
+    entryState.groupIdx < entryState.groups.length &&
+    entryState.spawnIdx >= entryState.groups[entryState.groupIdx].cols.length
+  ) {
+    entryState.groupIdx++;
+    entryState.spawnIdx = 0;
+  }
+
+  if (entryState.groupIdx >= entryState.groups.length) {
+    entryState.active = false;
+    entryState = null;
+    return;
+  }
+
+  const group = entryState.groups[entryState.groupIdx];
+  const col = group.cols[entryState.spawnIdx];
+  const typeName = group.type;
+  const type = ENEMY_TYPES[typeName];
+  const pos = getFormationPos(state.wave, group.row, col);
+  const startPos = getEntryStartPos(group.startSide);
+
+  const enemy = {
+    x: startPos.x,
+    y: startPos.y,
+    homeX: pos.x,
+    homeY: pos.y,
+    w: ENEMY_W,
+    h: ENEMY_H,
+    alive: true,
+    row: group.row,
+    col: col,
+    type: typeName,
+    hp: type.hp,
+    color: type.color,
+    color2: type.color2,
+    points: type.points,
+    diving: false,
+    entering: true,
+    entryProgress: 0,
+    entryTarget: { x: pos.x, y: pos.y },
+    entryStart: { x: startPos.x, y: startPos.y },
+    entrySpeed: 200 + Math.random() * 60,
+  };
+
+  // For bottom entry, arc upward to target
+  if (group.startSide === 'bottom') {
+    const midX = (startPos.x + pos.x) / 2 + (Math.random() - 0.5) * 200;
+    const midY = Math.min(startPos.y, pos.y) - 100 - Math.random() * 100;
+    enemy.entryMid = { x: midX, y: midY };
+  }
+
+  enemies.push(enemy);
+  entryState.spawnIdx++;
+  entryState.spawned++;
+
+  // Check if all groups are done
+  if (entryState.spawned >= entryState.totalEnemies) {
+    entryState.active = false;
+    entryState = null;
+  }
+}
+
+function updateEnemyEntry(e, dt) {
+  if (!e.entering) return;
+
+  const target = e.entryTarget;
+  const dx = target.x - e.x;
+  const dy = target.y - e.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  if (dist < 5) {
+    e.x = target.x;
+    e.y = target.y;
+    e.entering = false;
+    return;
+  }
+
+  // If we have a midpoint (bottom entry), use bezier-like movement
+  if (e.entryMid) {
+    const mid = e.entryMid;
+    e.entryProgress += dt * 0.8;
+    const t = Math.min(e.entryProgress, 1);
+    // Quadratic bezier: (1-t)²·start + 2(1-t)t·mid + t²·end
+    const t1 = (1 - t) * (1 - t);
+    const t2 = 2 * (1 - t) * t;
+    const t3 = t * t;
+    e.x = t1 * e.entryStart.x + t2 * mid.x + t3 * target.x;
+    e.y = t1 * e.entryStart.y + t2 * mid.y + t3 * target.y;
+  } else {
+    // Simple linear movement toward target
+    const speed = e.entrySpeed || 200;
+    e.x += (dx / dist) * speed * dt;
+    e.y += (dy / dist) * speed * dt;
+  }
+}
+
+// ============================================================
+// BONUS/CHALLENGE STAGE
+// ============================================================
+function startBonusStage() {
+  bonusStage = true;
+  bonusFlighters = [];
+  bonusFlightTimer = 0;
+  bonusStageTimer = BONUS_DURATION;
+  bonusKills = 0;
+
+  // Spawn 40 enemies in waves from sides
+  for (let i = 0; i < BONUS_ENEMY_COUNT; i++) {
+    const typeName = ROW_TYPE[i % 5];
+    const type = ENEMY_TYPES[typeName];
+    const side = i % 2 === 0 ? 'left' : 'right';
+    bonusFlighters.push({
+      x: side === 'left' ? -40 - i * 15 : CW + 40 + i * 15,
+      y: 60 + (i % 8) * 50 + Math.sin(i * 0.7) * 30,
+      w: ENEMY_W,
+      h: ENEMY_H,
+      alive: true,
+      type: typeName,
+      hp: 1,
+      color: type.color,
+      color2: type.color2,
+      points: type.points,
+      vx: side === 'left' ? BONUS_FLIGHT_SPEED + i * 3 : -(BONUS_FLIGHT_SPEED + i * 3),
+      vy: Math.sin(i * 1.3) * 40,
+      dir: side === 'left' ? 1 : -1,
+      phase: i * 0.3,
+    });
+  }
+
+  pBonusStage();
+  say('⭐ BONUS STAGE ⭐ ¡Derribá todo lo que puedas!');
+}
+
+function updateBonusStage(dt) {
+  if (!bonusStage) return;
+
+  bonusStageTimer -= dt;
+
+  // Spawn enemies over time
+  bonusFlightTimer += dt;
+  const activeFlighters = bonusFlighters.filter((f) => f.alive);
+  if (bonusFlightTimer > BONUS_FLIGHT_INTERVAL && activeFlighters.length < 12) {
+    bonusFlightTimer = 0;
+    // Activate next batch
+    for (const f of bonusFlighters) {
+      if (!f.alive) continue;
+      if (f.x < -30 || f.x > CW + 30) {
+        // Still off-screen, activate
+        break;
+      }
+    }
+  }
+
+  // Update flighters
+  for (const f of bonusFlighters) {
+    if (!f.alive) continue;
+    f.x += f.vx * dt;
+    f.y += f.vy * dt + Math.sin(Date.now() / 400 + f.phase) * 20 * dt;
+
+    // Wrap around vertically
+    if (f.y < 30) f.vy = Math.abs(f.vy);
+    if (f.y > SHIP_Y - 40) f.vy = -Math.abs(f.vy);
+
+    // Remove if off-screen horizontally
+    if ((f.dir === 1 && f.x > CW + 60) || (f.dir === -1 && f.x < -60)) {
+      f.alive = false;
+    }
+  }
+
+  // Check if bonus stage is over
+  const remaining = bonusFlighters.filter((f) => f.alive).length;
+  if (bonusStageTimer <= 0 || remaining === 0) {
+    endBonusStage();
+  }
+}
+
+function endBonusStage() {
+  bonusStage = false;
+  const bonus = bonusKills * 100;
+  if (bonus > 0) {
+    state.score += bonus;
+    say(`⭐ Bonus: ${bonusKills} kills × 100 = ${bonus} pts ⭐`);
+  } else {
+    say('⭐ Bonus stage complete ⭐');
+  }
+  checkExtraLives();
+  updateHUD();
+  nextWave();
+}
+
+function checkBonusCollisions() {
+  if (!bonusStage) return;
+
+  for (let i = pBullets.length - 1; i >= 0; i--) {
+    const b = pBullets[i];
+    for (const f of bonusFlighters) {
+      if (!f.alive) continue;
+      if (Math.abs(b.x - f.x) < ENEMY_W / 2 && Math.abs(b.y - f.y) < ENEMY_H / 2) {
+        f.alive = false;
+        bonusKills++;
+        state.score += f.points;
+        pExplode();
+        spawnParticles(f.x, f.y, f.color, 12, { spd: 80, life: 0.35 });
+        pBullets.splice(i, 1);
+        updateHUD();
+        checkExtraLives();
+        break;
+      }
+    }
+  }
 }
 
 function resetGame() {
@@ -199,6 +596,9 @@ function resetGame() {
   beamCooldown = 0;
   doubleShotActive = false;
   extraLivesGiven = 0;
+  entryState = null;
+  bonusStage = false;
+  bonusFlighters = [];
   buildEnemies();
   document.getElementById('fs').style.display = 'none';
   updateHUD();
@@ -381,9 +781,9 @@ function pG() {
 // FÍSICA / LÓGICA
 // ============================================================
 function updateFormation(dt) {
-  if (bonusActive) return;
-  const alive = enemies.filter((e) => e.alive && !e.diving);
-  if (alive.length === 0) {
+  if (bonusActive || bonusStage) return;
+  const alive = enemies.filter((e) => e.alive && !e.diving && !e.entering);
+  if (alive.length === 0 && (!entryState || !entryState.active)) {
     pBonus();
     nextWave();
     return;
@@ -396,13 +796,17 @@ function updateFormation(dt) {
   while (formationTimer >= interval) {
     formationTimer -= interval;
     let hitEdge = false;
-    for (const e of alive) {
+    for (const e of enemies) {
+      if (!e.alive || e.diving || e.entering) continue;
       e.x += formationDir * 8;
       if (e.x > CW - 30 || e.x < 30) hitEdge = true;
     }
     if (hitEdge) {
       formationDir *= -1;
-      for (const e of alive) e.y += 4;
+      for (const e of enemies) {
+        if (!e.alive || e.diving || e.entering) continue;
+        e.y += 4;
+      }
     }
   }
 
@@ -417,7 +821,7 @@ function updateFormation(dt) {
 }
 
 function startDive() {
-  const alive = enemies.filter((e) => e.alive && !e.diving);
+  const alive = enemies.filter((e) => e.alive && !e.diving && !e.entering);
   if (alive.length < 2) return;
 
   // Tractor beam: en oleadas pares un enemigo hace el picado especial
@@ -586,7 +990,17 @@ function nextWave() {
   state.wave++;
   if (state.wave >= 10) achievements.unlock('galaga_veteran');
   pWave();
-  buildEnemies();
+
+  // Bonus stage every N waves
+  if (state.wave % BONUS_EVERY === 0) {
+    startBonusStage();
+  } else {
+    // Start entry sequence for first 4 waves, then instant spawn
+    buildEnemies();
+    if (state.wave <= ENTRY_SEQUENCES.length) {
+      startEntrySequence();
+    }
+  }
   updateHUD();
 }
 
@@ -782,6 +1196,20 @@ function draw() {
     4,
   );
 
+  // Bonus stage: draw flighters
+  if (bonusStage) {
+    for (const f of bonusFlighters) {
+      if (!f.alive) continue;
+      const fx = cx + f.x * s,
+        fy = cy + f.y * s,
+        fw = ENEMY_W * s,
+        fh = ENEMY_H * s;
+      ctx.fillStyle = f.color;
+      drawEnemy(fx, fy, fw, fh, f.type);
+      drawGlow(ctx, fx, fy, fw * 0.5, f.color, 0.12, 3);
+    }
+  }
+
   // Rayo tractor: línea telegráfica durante el descenso
   if (beam && beam.phase === 'descend') {
     const bx = cx + beam.e.beamX * s;
@@ -823,9 +1251,9 @@ function draw() {
     ctx.stroke();
   }
 
-  // Enemies in formation
+  // Enemies in formation (skip entering ones — they draw below)
   for (const e of enemies) {
-    if (!e.alive || e.diving) continue;
+    if (!e.alive || e.diving || e.entering) continue;
     const ex = cx + e.x * s,
       ey = cy + e.y * s,
       ew = ENEMY_W * s,
@@ -834,6 +1262,29 @@ function draw() {
     drawEnemy(ex, ey, ew, eh, e.type);
     drawGlow(ctx, ex, ey, ew * 0.5, e.color, 0.1, 3);
     if (e.hasCaptive) drawCapturedShip(ex, ey, ew, eh);
+  }
+
+  // Entering enemies (flying to formation)
+  for (const e of enemies) {
+    if (!e.alive || !e.entering) continue;
+    const ex = cx + e.x * s,
+      ey = cy + e.y * s,
+      ew = ENEMY_W * s,
+      eh = ENEMY_H * s;
+    ctx.fillStyle = e.color;
+    drawEnemy(ex, ey, ew, eh, e.type);
+    drawGlow(ctx, ex, ey, ew * 0.7, e.color, 0.2, 4);
+    // Trail effect during entry
+    ctx.fillStyle = `rgba(${e.color === '#ff6b6b' ? '255,107,107' : e.color === '#ffe066' ? '255,224,102' : '110,231,183'},0.15)`;
+    ctx.beginPath();
+    ctx.arc(
+      cx + (e.x - (e.entryTarget.x - e.x) * 0.1) * s,
+      cy + (e.y - (e.entryTarget.y - e.y) * 0.1) * s,
+      ew * 0.3,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
   }
 
   // Diving enemies
@@ -880,13 +1331,46 @@ function draw() {
     }
   }
 
-  // Bonus wave indicator
-  if (bonusActive) {
+  // Bonus stage HUD
+  if (bonusStage) {
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = `bold ${16 * s}px 'Courier New',monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      `⭐ BONUS: ${bonusKills} kills | ${Math.max(0, Math.ceil(bonusStageTimer))}s`,
+      cx + (CW * s) / 2,
+      cy + 20 * s,
+    );
+  }
+
+  // Bonus wave indicator (old system — when few enemies remain)
+  if (bonusActive && !bonusStage) {
     ctx.fillStyle = 'rgba(255,255,255,0.1)';
     ctx.font = `${18 * s}px 'Courier New',monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('⭐ BONUS ⭐', cx + (CW * s) / 2, cy + (CH * s) / 2);
+  }
+
+  // Formation pattern indicator (subtle)
+  if (!bonusStage && state.wave > 1) {
+    const patternIdx = (state.wave - 1) % FORMATION_PATTERNS.length;
+    const patternNames = [
+      'Classic',
+      'Diamond',
+      'Arrow',
+      'Chevron',
+      'V',
+      'Hourglass',
+      'Scattered',
+      'Invader',
+    ];
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.font = `${10 * s}px 'Courier New',monospace`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillText(patternNames[patternIdx], cx + (CW - 10) * s, cy + 10 * s);
   }
 
   // Particles
@@ -931,8 +1415,8 @@ function drawEnemy(x, y, w, h, typeName) {
     ctx.fill();
     // Stripes
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    for (let s = -1; s <= 1; s++) {
-      ctx.fillRect(x - w * 0.35, y + s * h * 0.2, w * 0.7, h * 0.08);
+    for (let si = -1; si <= 1; si++) {
+      ctx.fillRect(x - w * 0.35, y + si * h * 0.2, w * 0.7, h * 0.08);
     }
     // Wings
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
@@ -1054,20 +1538,32 @@ const loop = createGameLoop((dt) => {
   updateShake(dt);
 
   if (state.running && !state.gameOver) {
-    updatePlayer(dt);
-    updateFormation(dt);
-    updateDiving(dt);
-    updateBullets(dt);
+    if (bonusStage) {
+      // Bonus stage: only player + flighter collision
+      updatePlayer(dt);
+      updateBonusStage(dt);
+      checkBonusCollisions();
+    } else {
+      // Normal stage
+      updateEntrySequence(dt);
+      for (const e of enemies) {
+        if (e.entering) updateEnemyEntry(e, dt);
+      }
+      updatePlayer(dt);
+      updateFormation(dt);
+      updateDiving(dt);
+      updateBullets(dt);
 
-    // Check for bonus state (when very few enemies left)
-    const aliveCount = enemies.filter((e) => e.alive && !e.diving).length;
-    if (aliveCount <= 3 && aliveCount > 0 && !bonusActive) {
-      bonusActive = true;
-      bonusTimer = 3;
-    }
-    if (bonusActive) {
-      bonusTimer -= dt;
-      if (bonusTimer <= 0) bonusActive = false;
+      // Check for bonus state (when very few enemies left)
+      const aliveCount = enemies.filter((e) => e.alive && !e.diving && !e.entering).length;
+      if (aliveCount <= 3 && aliveCount > 0 && !bonusActive) {
+        bonusActive = true;
+        bonusTimer = 3;
+      }
+      if (bonusActive) {
+        bonusTimer -= dt;
+        if (bonusTimer <= 0) bonusActive = false;
+      }
     }
   }
 
