@@ -149,6 +149,9 @@ export function feedbackBundle(tier, x, y, opts = {}) {
 // ──────────────────────────────────────────────
 const POOL_MAX = 500;
 const pool = [];
+// Índice (exclusivo) hasta el cual puede haber partículas vivas. Permite
+// recorrer solo la parte útil del pool en vez de las POOL_MAX completas.
+let poolUpper = 0;
 
 /**
  * Obtiene una partícula inactiva del pool, o crea una nueva si hace falta.
@@ -157,12 +160,14 @@ function allocParticle() {
   for (let i = 0; i < pool.length; i++) {
     if (!pool[i].alive) {
       pool[i].alive = true;
+      if (i + 1 > poolUpper) poolUpper = i + 1;
       return pool[i];
     }
   }
   if (pool.length >= POOL_MAX) return null;
   const p = { alive: true };
   pool.push(p);
+  poolUpper = pool.length;
   return p;
 }
 
@@ -202,7 +207,7 @@ export function spawnParticles(x, y, color, count = 10, opts = {}) {
  * Marca las muertas como inactivas (sin splice). Llamar una vez por frame.
  */
 export function updateParticles(dt) {
-  for (let i = 0; i < pool.length; i++) {
+  for (let i = 0; i < poolUpper; i++) {
     const p = pool[i];
     if (!p.alive) continue;
     p.x += p.vx * dt;
@@ -217,6 +222,10 @@ export function updateParticles(dt) {
     p.life -= dt;
     if (p.life <= 0) {
       p.alive = false;
+      // Si murió la última viva, recortar el recorrido del pool.
+      if (i === poolUpper - 1) {
+        while (poolUpper > 0 && !pool[poolUpper - 1].alive) poolUpper--;
+      }
     }
   }
 }
@@ -229,7 +238,7 @@ export function updateParticles(dt) {
  * @param {number} sc - Factor de escala
  */
 export function drawParticles(ctx, ox = 0, oy = 0, sc = 1) {
-  for (let i = 0; i < pool.length; i++) {
+  for (let i = 0; i < poolUpper; i++) {
     const p = pool[i];
     if (!p.alive) continue;
     const a = Math.max(0, p.life / p.ml);
@@ -256,6 +265,7 @@ export function clearParticles() {
   for (let i = 0; i < pool.length; i++) {
     pool[i].alive = false;
   }
+  poolUpper = 0;
 }
 
 // ──────────────────────────────────────────────

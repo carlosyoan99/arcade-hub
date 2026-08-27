@@ -2196,20 +2196,64 @@
 
         setTheme(document.documentElement.dataset.theme || 'dark', true);
 
+        /* Caché de gradientes radiales: se recrean solo cuando cambian el
+           tamaño, la paleta o el centro (cuantizado), no en cada frame. */
+        const gradCache = new Map();
+        function clearGradientCache() {
+          gradCache.clear();
+        }
+        function cachedGrad(key, x0, y0, r0, x1, y1, r1, stops) {
+          let c = gradCache.get(key);
+          if (
+            !c ||
+            c.x0 !== x0 ||
+            c.y0 !== y0 ||
+            c.r0 !== r0 ||
+            c.x1 !== x1 ||
+            c.y1 !== y1 ||
+            c.r1 !== r1
+          ) {
+            const g = ctx.createRadialGradient(x0, y0, r0, x1, y1, r1);
+            for (const [off, col] of stops) g.addColorStop(off, col);
+            c = { x0, y0, r0, x1, y1, r1, grad: g };
+            gradCache.set(key, c);
+          }
+          return c.grad;
+        }
+
         function resize() {
           w = canvas.width = window.innerWidth;
           h = canvas.height = window.innerHeight;
+          // Las estrellas se re-generan para cubrir la nueva ventana.
+          scatterStars();
+          // Los gradientes dependen del tamaño: invalidar la caché.
+          clearGradientCache();
         }
-        window.addEventListener('resize', resize);
+        // Debounce del resize: agrupa ráfagas de eventos en un solo frame.
+        let resizeRaf = null;
+        window.addEventListener('resize', () => {
+          if (resizeRaf) cancelAnimationFrame(resizeRaf);
+          resizeRaf = requestAnimationFrame(() => {
+            resizeRaf = null;
+            resize();
+          });
+        });
         resize();
 
-        const stars = Array.from({ length: 120 }, () => ({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          size: Math.random() * 1.5 + 0.3,
-          speed: Math.random() * 0.15 + 0.02,
-          seed: Math.random(),
-        }));
+        const stars = [];
+        function scatterStars() {
+          stars.length = 0;
+          for (let i = 0; i < 120; i++) {
+            stars.push({
+              x: Math.random() * w,
+              y: Math.random() * h,
+              size: Math.random() * 1.5 + 0.3,
+              speed: Math.random() * 0.15 + 0.02,
+              seed: Math.random(),
+            });
+          }
+        }
+        scatterStars();
 
         function draw() {
           if (paused) {
@@ -2231,61 +2275,69 @@
 
           ctx.clearRect(0, 0, w, h);
 
-          // Deep space gradient
-          const grad1 = ctx.createRadialGradient(
-            w * 0.5 + Math.sin(t * 0.4) * w * 0.2,
-            h * 0.5 + Math.cos(t * 0.3) * h * 0.15,
+          // Deep space gradient (centro animado, tamaño caché según tamaño/paleta)
+          ctx.fillStyle = cachedGrad(
+            rgba(colors.bg[0]) + '|' + rgba(colors.bg[1]) + '|' + rgba(colors.bg[2]),
+            Math.round(w * 0.5 + Math.sin(t * 0.4) * w * 0.2),
+            Math.round(h * 0.5 + Math.cos(t * 0.3) * h * 0.15),
             0,
-            w * 0.5,
-            h * 0.5,
-            w * 0.8,
+            Math.round(w * 0.5),
+            Math.round(h * 0.5),
+            Math.round(w * 0.8),
+            [
+              [0, rgba(colors.bg[0])],
+              [0.4, rgba(colors.bg[1])],
+              [1, rgba(colors.bg[2])],
+            ],
           );
-          grad1.addColorStop(0, rgba(colors.bg[0]));
-          grad1.addColorStop(0.4, rgba(colors.bg[1]));
-          grad1.addColorStop(1, rgba(colors.bg[2]));
-          ctx.fillStyle = grad1;
           ctx.fillRect(0, 0, w, h);
 
           // Nebula glow 1 — cyan
-          const g2 = ctx.createRadialGradient(
-            w * 0.35 + Math.sin(t * 0.2) * w * 0.12,
-            h * 0.4 + Math.cos(t * 0.25) * h * 0.1,
+          ctx.fillStyle = cachedGrad(
+            rgba(colors.neb1) + '|' + rgba({ ...colors.neb1, a: 0 }),
+            Math.round(w * 0.35 + Math.sin(t * 0.2) * w * 0.12),
+            Math.round(h * 0.4 + Math.cos(t * 0.25) * h * 0.1),
             0,
-            w * 0.35,
-            h * 0.4,
-            w * 0.35,
+            Math.round(w * 0.35),
+            Math.round(h * 0.4),
+            Math.round(w * 0.35),
+            [
+              [0, rgba(colors.neb1)],
+              [1, rgba({ ...colors.neb1, a: 0 })],
+            ],
           );
-          g2.addColorStop(0, rgba(colors.neb1));
-          g2.addColorStop(1, rgba({ ...colors.neb1, a: 0 }));
-          ctx.fillStyle = g2;
           ctx.fillRect(0, 0, w, h);
 
           // Nebula glow 2 — pink neon
-          const g3 = ctx.createRadialGradient(
-            w * 0.7 + Math.cos(t * 0.15) * w * 0.1,
-            h * 0.65 + Math.sin(t * 0.2) * h * 0.08,
+          ctx.fillStyle = cachedGrad(
+            rgba(colors.neb2) + '|' + rgba({ ...colors.neb2, a: 0 }),
+            Math.round(w * 0.7 + Math.cos(t * 0.15) * w * 0.1),
+            Math.round(h * 0.65 + Math.sin(t * 0.2) * h * 0.08),
             0,
-            w * 0.7,
-            h * 0.65,
-            w * 0.3,
+            Math.round(w * 0.7),
+            Math.round(h * 0.65),
+            Math.round(w * 0.3),
+            [
+              [0, rgba(colors.neb2)],
+              [1, rgba({ ...colors.neb2, a: 0 })],
+            ],
           );
-          g3.addColorStop(0, rgba(colors.neb2));
-          g3.addColorStop(1, rgba({ ...colors.neb2, a: 0 }));
-          ctx.fillStyle = g3;
           ctx.fillRect(0, 0, w, h);
 
           // Nebula glow 3 — gold
-          const g4 = ctx.createRadialGradient(
-            w * 0.2 + Math.sin(t * 0.18) * w * 0.08,
-            h * 0.8 + Math.cos(t * 0.22) * h * 0.06,
+          ctx.fillStyle = cachedGrad(
+            rgba(colors.neb3) + '|' + rgba({ ...colors.neb3, a: 0 }),
+            Math.round(w * 0.2 + Math.sin(t * 0.18) * w * 0.08),
+            Math.round(h * 0.8 + Math.cos(t * 0.22) * h * 0.06),
             0,
-            w * 0.2,
-            h * 0.8,
-            w * 0.25,
+            Math.round(w * 0.2),
+            Math.round(h * 0.8),
+            Math.round(w * 0.25),
+            [
+              [0, rgba(colors.neb3)],
+              [1, rgba({ ...colors.neb3, a: 0 })],
+            ],
           );
-          g4.addColorStop(0, rgba(colors.neb3));
-          g4.addColorStop(1, rgba({ ...colors.neb3, a: 0 }));
-          ctx.fillStyle = g4;
           ctx.fillRect(0, 0, w, h);
 
           // Grid pattern
@@ -2750,10 +2802,11 @@
               if (c.parentNode) c.parentNode.removeChild(c);
             });
             // Add new cards after removals
+            const domIds = new Set(Array.from(grid.children).map((c) => c.dataset.gameId));
             for (const [i, game] of filtered.entries()) {
-              const inDom = Array.from(grid.children).some((c) => c.dataset.gameId === game.id);
-              if (!inDom) {
+              if (!domIds.has(game.id)) {
                 grid.appendChild(renderCard(game, i, playsData));
+                domIds.add(game.id);
               }
             }
             updateSchema(filtered, searchTerm);
@@ -2762,10 +2815,11 @@
         }
 
         // No removals needed — just add new cards
+        const domIds = new Set(Array.from(grid.children).map((c) => c.dataset.gameId));
         for (const [i, game] of filtered.entries()) {
-          const inDom = Array.from(grid.children).some((c) => c.dataset.gameId === game.id);
-          if (!inDom) {
+          if (!domIds.has(game.id)) {
             grid.appendChild(renderCard(game, i, playsData));
+            domIds.add(game.id);
           }
         }
 

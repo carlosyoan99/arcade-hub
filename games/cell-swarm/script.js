@@ -941,7 +941,7 @@ function startGame() {
   cam.zoom = 1;
 
   achievements.incrementPlays('cell-swarm');
-  updateHUD();
+  updateHUD(true);
 }
 
 function endGame(killedBy) {
@@ -978,7 +978,7 @@ function endGame(killedBy) {
   overlay.classList.remove('hidden');
   shell.disableTabTrap();
   say('Cell Swarm: te devoraron.');
-  updateHUD();
+  updateHUD(true);
 }
 
 function resetGameState() {
@@ -1536,10 +1536,17 @@ function drawCell(cell) {
 // ============================================================
 // HUD
 // ============================================================
-function updateHUD() {
+// El ranking y el leaderboard se recalculan con throttle: son costosos y
+// updateHUD se invoca cada frame; la masa (en vivo) se actualiza siempre.
+let _lastLBUpdate = 0;
+function updateHUD(force) {
   let totalMass = 0;
   if (cells) for (const c of cells) totalMass += c.mass;
   massValueEl.textContent = Math.floor(totalMass);
+
+  const now = performance.now();
+  if (!force && now - _lastLBUpdate < 250) return;
+  _lastLBUpdate = now;
 
   // Compute rank
   const all = [...(bots || [])];
@@ -1553,20 +1560,31 @@ function updateHUD() {
     achievements.unlock('cellswarm_alpha');
   }
 
-  // Leaderboard
+  // Leaderboard. Se construye con nodos y textContent para evitar inyección de
+  // HTML/XSS a través del nombre del jugador (entrada de usuario).
   const top10 = all.slice(0, 10);
-  let html = '';
+  lbEntriesEl.textContent = '';
   for (let i = 0; i < top10.length; i++) {
     const entry = top10[i];
     const isPlayer = entry.isPlayer;
-    const name = isPlayer ? state.playerName : entry.name || '???';
-    html += `<div class="lb-entry${isPlayer ? ' is-player' : ''}">
-      <span class="lb-rank">${i + 1}</span>
-      <span class="lb-name">${name}</span>
-      <span class="lb-mass">${Math.floor(entry.mass)}</span>
-    </div>`;
+    const row = document.createElement('div');
+    row.className = 'lb-entry' + (isPlayer ? ' is-player' : '');
+
+    const rank = document.createElement('span');
+    rank.className = 'lb-rank';
+    rank.textContent = String(i + 1);
+
+    const name = document.createElement('span');
+    name.className = 'lb-name';
+    name.textContent = isPlayer ? state.playerName : entry.name || '???';
+
+    const mass = document.createElement('span');
+    mass.className = 'lb-mass';
+    mass.textContent = String(Math.floor(entry.mass));
+
+    row.append(rank, name, mass);
+    lbEntriesEl.appendChild(row);
   }
-  lbEntriesEl.innerHTML = html;
 }
 
 // ============================================================

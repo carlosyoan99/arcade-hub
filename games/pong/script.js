@@ -324,7 +324,12 @@ function endGame(playerWon) {
   stopMusic();
   state.running = false;
   state.gameOver = true;
-  if (playerWon) {
+  const is2P = state.twoPlayer;
+  if (is2P) {
+    // 2P: resultado neutro, sin streak ni fanfarria de "1 jugador".
+    playScoreSound(playerWon);
+    spawnParticles(ball.x, ball.y, playerWon ? '#6ee7b7' : '#00f0ff', 24);
+  } else if (playerWon) {
     state.wins += 1;
     localStorage.setItem('pong2d_wins', String(state.wins));
     playWinFanfare();
@@ -334,13 +339,22 @@ function endGame(playerWon) {
     playLoseTone();
     spawnParticles(ball.x, ball.y, '#ff8a65', 24);
   }
-  overlayText.textContent = playerWon ? '¡Ganaste! 🏆' : 'Perdiste 💀';
+  overlayText.textContent = is2P
+    ? playerWon
+      ? '¡Gana P1! 🏆'
+      : '¡Gana P2! 🏆'
+    : playerWon
+      ? '¡Ganaste! 🏆'
+      : 'Perdiste 💀';
   finalScoreEl.style.display = 'block';
-  finalScoreEl.textContent = `${state.playerScore} - ${state.aiScore} · Victorias: ${state.wins}`;
+  finalScoreEl.textContent = is2P
+    ? `P1 ${state.playerScore} - ${state.aiScore} P2`
+    : `${state.playerScore} - ${state.aiScore} · Victorias: ${state.wins}`;
   shell.disableTabTrap();
   hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar  ·  <kbd>Tab</kbd> modo 1P/2P`;
   overlay.classList.remove('hidden');
-  if (playerWon) say('Pong: ganaste la partida.');
+  if (is2P) say(`Pong: gana el ${playerWon ? 'Jugador 1' : 'Jugador 2'}.`);
+  else if (playerWon) say('Pong: ganaste la partida.');
   else say('Pong: perdiste la partida.');
   updateHUD();
 }
@@ -361,6 +375,9 @@ function updatePlayer2Paddle(dt) {
   let dir = 0;
   if (keys.p2Up) dir -= 1;
   if (keys.p2Down) dir += 1;
+  // En 2P el gamepad gobierna al jugador 2 (mismo esquema que las flechas ↑/↓),
+  // que antes quedaba sin control de gamepad.
+  if (gamepadAxis !== 0) dir = Math.sign(gamepadAxis);
   player2Paddle.y += dir * PADDLE_SPEED * dt;
   player2Paddle.y = Math.max(PADDLE_HALF_LEN, Math.min(COURT_H - PADDLE_HALF_LEN, player2Paddle.y));
   player2Paddle.x = COURT_W - PADDLE_X_OFFSET - PADDLE_WIDTH / 2;

@@ -1,4 +1,4 @@
-import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
@@ -716,6 +716,7 @@ function finishDeath() {
 
 function endGame() {
   stopMusic();
+  stopAmbient();
   state.running = false;
   state.gameOver = true;
   if (state.score > state.best) {
@@ -738,6 +739,7 @@ function endGame() {
 
 function winGame() {
   stopMusic();
+  stopAmbient();
   state.running = false;
   state.gameOver = true;
   if (state.score > state.best) {
