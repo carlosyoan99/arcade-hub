@@ -11,12 +11,20 @@
 
 /** Lee el récord guardado para el prefijo dado (0 si no existe). */
 export function loadBest(prefix) {
-  return Number(localStorage.getItem(prefix + '_best') || 0);
+  try {
+    return Number(localStorage.getItem(prefix + '_best') || 0);
+  } catch {
+    return 0;
+  }
 }
 
 /** Guarda el récord para el prefijo dado. */
 export function saveBest(prefix, score) {
-  localStorage.setItem(prefix + '_best', String(score));
+  try {
+    localStorage.setItem(prefix + '_best', String(score));
+  } catch {
+    // storage bloqueado o no disponible: ignorar (mejor esfuerzo)
+  }
 }
 
 /** Guarda solo si `score` supera el récord actual. Devuelve el récord vigente. */

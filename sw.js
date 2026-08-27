@@ -86,8 +86,14 @@ const FILES = [
 ];
 
 // ── Instalación: precachear assets estáticos ──
+// Se cachea archivo por archivo (allSettled) para que un solo 404 no
+// tumbe todo el precache; el install completa con el resto ya cacheado.
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(FILES)));
+  event.waitUntil(
+    caches
+      .open(STATIC_CACHE)
+      .then((cache) => Promise.allSettled(FILES.map((file) => cache.add(file)))),
+  );
   self.skipWaiting();
 });
 
@@ -127,11 +133,34 @@ self.addEventListener('fetch', (event) => {
           caches.open(META_CACHE).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match(event.request)),
+        .catch(() =>
+          caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            // Sin copia en caché y sin red: nunca resolver undefined.
+            return new Response(JSON.stringify({ error: 'offline' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            });
+          }),
+        ),
     );
     return;
   }
 
   // ── Assets estáticos (HTML, CSS, JS, etc.): cache-first ──
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+  // Con fallback offline: en navegaciones sin red se sirve el hub cacheado;
+  // el resto devuelve un 503 por defecto (nunca resolve undefined).
+  event.respondWith(
+    caches.match(event.request).then(
+      (cached) =>
+        cached ||
+        fetch(event.request).catch(async () => {
+          if (event.request.mode === 'navigate') {
+            const home = await caches.match('./');
+            if (home) return home;
+          }
+          return new Response('Recurso no disponible sin conexión', { status: 503 });
+        }),
+    ),
+  );
 });
