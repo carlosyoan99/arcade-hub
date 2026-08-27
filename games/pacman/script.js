@@ -44,7 +44,7 @@ const START_LIVES = 3;
 const SCORE_DOT = 10,
   SCORE_PELLET = 50;
 const SCORE_GHOST = [200, 400, 800, 1600];
-const FRIGHT_TIME = 7;
+const FRIGHT_TIME = 6;
 const GHOST_SPEED = 80,
   GHOST_FRIGHT_SPEED = 50,
   GHOST_HOME_SPEED = 120,
@@ -132,6 +132,7 @@ const state = {
   frightened: 0, // timer for fright mode
   dotsLeft: 0,
   ghostCombo: 0,
+  ghostPause: 0, // brief freeze when eating a ghost
   phaseIdx: 0, // índice en MODE_SCHEDULE (par = scatter, impar = chase)
   modeTimer: 0,
   dotsEaten: 0,
@@ -620,6 +621,7 @@ function checkGhostCollisions() {
         g.mode = 'eyes';
         state.score += SCORE_GHOST[Math.min(state.ghostCombo, 3)];
         state.ghostCombo++;
+        state.ghostPause = 1; // freeze ~1s on ghost eat
         playGhost();
         spawnParticles(g.x, g.y, '#ffe066', 15, { spd: 100, life: 0.5, sm: 2, smx: 3.5 });
         updateHUD();
@@ -642,6 +644,7 @@ function resetGame() {
   state.gameOver = false;
   state.paused = false;
   state.frightened = 0;
+  state.ghostPause = 0;
   state.ghostCombo = 0;
   state.dotsEaten = 0;
   state.fruitsSpawned = 0;
@@ -701,6 +704,7 @@ function finishDeath() {
   resetPac();
   resetGhosts();
   state.frightened = 0;
+  state.ghostPause = 0;
   state.ghostCombo = 0;
   resetModeSchedule();
   say(`Te quedan ${state.lives} vidas.`);
@@ -1179,6 +1183,10 @@ const loop = createGameLoop((dt) => {
       // Animación de muerte: todo lo demás queda congelado
       state.dying -= dt;
       if (state.dying <= 0) finishDeath();
+    } else if (state.ghostPause > 0) {
+      // Brief freeze when eating a ghost (~1s)
+      state.ghostPause -= dt;
+      checkGhostCollisions();
     } else {
       releaseGhosts(dt);
       updatePac(dt);

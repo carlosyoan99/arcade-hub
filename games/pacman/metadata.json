@@ -77,6 +77,14 @@
       ]
     },
     {
+      "version": "1.8.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Paridad arcade: fright duration 6s (antes 7s) — duración original del cabinet",
+        "Paridad arcade: pausa de 1s al comer fantasma — freeze visual clásico"
+      ]
+    },
+    {
       "version": "1.7.0",
       "date": "2026-08-26",
       "changes": [
