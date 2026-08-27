@@ -1,7 +1,7 @@
 # Game Mechanics Audit — Arcade Hub
 
 > Auditoría de mecánicas de los 19 juegos contra sus originales/referencias del género.
-> Fecha: 2026-08-24 | Última actualización: 2026-08-26
+> Fecha: 2026-08-24 | Última actualización: 2026-08-27
 > Estado: **14/14 arcade completados + paridad, 3 no-arcade completados, 0 pendientes**
 
 ---
@@ -22,18 +22,9 @@
 | 13  | Missile Command | Quitar guiados/smart/satélites  | `7042fab` |
 | 15  | Defender        | Hyperspace + nuclear            | `f5570a5` |
 
-### Fase 2 — Paridad arcade (pendiente)
+### Fase 2 — Paridad arcade (completada)
 
-Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
-
-### Pendientes de implementar (sin fase 1)
-
-| Juego           | Cambios requeridos                                |
-| --------------- | ------------------------------------------------- |
-| **Donkey Kong** | 3 fases faltantes (fuego, elevador, construcción) |
-| **Pong**        | Modo 2P + IA más humana                           |
-| **Breakout**    | Anti-stuck + Layout 8×14                          |
-| **Asteroids**   | Hiperspacio                                       |
+- Todos los juegos arcade alcanzaron paridad con sus originales (ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo).
 
 ### No-arcade — Comparación con género de referencia (COMPLETADO)
 
@@ -45,17 +36,13 @@ Ver [## Paridad arcade por juego](#paridad-arcade-por-juego) más abajo.
 
 Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-no-arcade--comparación-con-referencias-del-género) más abajo.
 
-### En progreso
-
-| Juego     | Agente                                       |
-| --------- | -------------------------------------------- |
-| **Joust** | Vultures + pterodactyls + lava — otro agente |
+---
 
 ---
 
 ## Detalle por juego — Fase 1 completada
 
-### 1. PONG — ❌ Pendiente
+### 1. PONG — ✅ Completada
 
 **Original:** Atari Pong (1972)
 
@@ -65,11 +52,11 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 - ✅ **Agregar modo 2 PvP local** — Teclado dividido (W/S vs ↑/↓)
 - ✅ **Hacer IA más humana** — `aiReactionDelay`, `aiAimError`, `aiSpeedVariation`
 
-**Estado:** Sin implementar. No existe segundo jugador ni IA humana.
+**Estado:** Implementado. Modo 2P local + IA humana.
 
 ---
 
-### 2. BREAKOUT — ❌ Pendiente
+### 2. BREAKOUT — ✅ Completada
 
 **Original:** Atari Breakout (1976)
 
@@ -79,7 +66,7 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 - ✅ **Layout 8×14 original** — Más filas y columnas
 - ✅ **Mantener 1 bola + 3 vidas**
 
-**Estado:** Sin implementar. Layout actual 5×9, sin anti-stuck.
+**Estado:** Implementado. Layout 8×14 (`BRICK_ROWS=8`, `BRICK_COLS=14`) + anti-stuck (`ANTI_STUCK_TIME`).
 
 ---
 
@@ -87,7 +74,7 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 ---
 
-### 4. ASTEROIDS — ❌ Pendiente
+### 4. ASTEROIDS — ✅ Completada
 
 **Original:** Atari Asteroids (1979)
 
@@ -96,7 +83,7 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 - ✅ **Agregar Hiperspacio** — `KeyH`, cooldown 3s
 - ✅ **Mantener invulnerabilidad al respawn**
 
-**Estado:** Solo invulnerabilidad implementada. Sin hiperspacio.
+**Estado:** Implementado. Hiperspacio + invulnerabilidad al respawn.
 
 ---
 
@@ -204,15 +191,19 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 ---
 
-### 14. DONKEY KONG — ❌ Pendiente
+### 14. DONKEY KONG — ✅ Fase Construcción completada
 
-**Original:** Nintendo Donkey Kong (1981)
+**Original:** Nintendo Donkey Kong (1981) · **v1.6.0**
 
 **Decisiones:**
 
-- ✅ **4 fases:** Barriles ✓ · Fuego ✗ · Elevador ✗ · Construcción ✗
+- ✅ **4 fases arcade:**
+  - Barriles (25m) ✓
+  - Fuego (50m) ✓
+  - Elevador (75m) ✓
+  - **Construcción (100m)** ✓ — giradores removibles con hueco central por el que caen los barriles + power-up **martillo** que destruye barriles (100 pts c/u), invulnerabilidad 4.5s, logro `dk_hammer` al destruir 3. Dificultad escala ensanchando el hueco según nivel.
 
-**Estado:** Solo fase 1 (barriles) implementada.
+**Estado:** 4 fases completas.
 
 ---
 
