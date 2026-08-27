@@ -1,4 +1,4 @@
-import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
@@ -256,6 +256,9 @@ function resetFrog() {
   frog.y = (ROWS - 1) * CS + CS / 2;
   frog.dir = 0;
   moveTimer = 0;
+  // Al reaparecer la rana se reinicia el reloj: un timeout solo cuesta una vida,
+  // no debe volver a dispararse cada frame hasta agotar todas las vidas.
+  state.timeLeft = TIME_LIMIT;
   tenSaid = false;
 }
 
@@ -317,6 +320,7 @@ function loseLife() {
 
 function endGame(won) {
   stopMusic();
+  stopAmbient();
   state.running = false;
   state.gameOver = true;
   if (state.score > state.best) {

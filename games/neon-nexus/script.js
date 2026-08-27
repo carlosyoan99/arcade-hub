@@ -296,6 +296,7 @@ const state = {
   // In-battle upgrade levels (persist across card picks)
   atkLevel: 0,
   spdLevel: 0,
+  hpLevel: 0,
 
   upgCost: { atk: 10, hp: 10, spd: 15 },
   clickTimer: 0,
@@ -347,8 +348,10 @@ function savePerm(id, val) {
 
 function calcTowerStats() {
   const p = state.perm;
-  state.towerMaxHP = 100 + p.maxHP * 20;
-  state.towerHP = state.towerMaxHP;
+  // Max HP = base + perm upgrades + in-battle HP upgrade (persiste entre cartas).
+  state.towerMaxHP = 100 + p.maxHP * 20 + (state.hpLevel || 0) * 15;
+  // No se toca state.towerHP aquí: el HP actual se preserva entre recálculos
+  // (la curación a tope ocurre solo al reiniciar la partida, ver resetGame).
   // Base ATK = perm + in-battle upgrades
   const baseATK = 10 + p.atkBonus * 3 + (state.atkLevel || 0) * 3;
   state.towerATK = baseATK;
@@ -631,7 +634,9 @@ function resetGame() {
   loadPerm();
   state.atkLevel = 0;
   state.spdLevel = 0;
+  state.hpLevel = 0;
   calcTowerStats();
+  state.towerHP = state.towerMaxHP;
   state.wave = 0;
   state.kills = 0;
   state.stars = 0;
@@ -690,6 +695,9 @@ function endGame() {
 }
 
 function towerTakeDamage(dmg) {
+  // El daño recibido reinicia la ventana de "2s sin daño" para la regeneración
+  // del escudo; de lo contrario el escudo se regeneraría incluso bajo ataque continuo.
+  state._lastHitTimer = 0;
   if (state.shieldHP > 0) {
     if (state.shieldHP >= dmg) {
       state.shieldHP -= dmg;
@@ -747,6 +755,7 @@ function offerCards() {
   state.offeredCards = picked;
   renderCards(picked);
   cardOverlay.classList.remove('hidden');
+  gpShowOverlay();
   state.paused = true;
 }
 
@@ -863,11 +872,7 @@ document.getElementById('shopClose').addEventListener('click', () => {
 // ============================================================
 // ENTRADA: TECLADO
 // ============================================================
-const keys = {};
-
 window.addEventListener('keydown', (e) => {
-  keys[e.code] = true;
-
   if ((e.code === 'Space' || e.code === 'Enter') && !state.running && !state.gameOver) {
     e.preventDefault();
     startGame();
@@ -889,6 +894,7 @@ window.addEventListener('keydown', (e) => {
     overlay.classList.add('hidden');
     renderShop();
     shopOverlay.classList.remove('hidden');
+    gpShowOverlay();
   }
 
   if (e.code === 'Digit1' && state.running) {
@@ -903,10 +909,6 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     upgradeSpd();
   }
-});
-
-window.addEventListener('keyup', (e) => {
-  keys[e.code] = false;
 });
 
 // ============================================================
@@ -969,8 +971,11 @@ function upgradeHP() {
   const cost = state.upgCost.hp;
   if (state.stars < cost) return;
   state.stars -= cost;
+  state.hpLevel = (state.hpLevel || 0) + 1;
+  // Recalcula el máximo incluyendo el nivel de HP para que la mejora persista
+  // entre cartas/oleadas (antes se perdía en el siguiente calcTowerStats).
+  calcTowerStats();
   const heal = 15;
-  state.towerMaxHP += heal;
   state.towerHP = Math.min(state.towerHP + heal, state.towerMaxHP);
   state.upgCost.hp = Math.floor(cost * 1.35);
   sfxUpgrade();
@@ -1056,6 +1061,36 @@ overlay.addEventListener('click', () => {
 const gamepad = createGamepad();
 let prevBtn0 = false;
 let prevBtn9 = false;
+let prevNavX = 0;
+let prevNavY = 0;
+let gpFocus = 0;
+
+// Elementos navegables por gamepad según el overlay abierto.
+function gpGetTargets() {
+  if (!cardOverlay.classList.contains('hidden')) {
+    return [...cardEls].filter((el) => el.style.display !== 'none');
+  }
+  if (!shopOverlay.classList.contains('hidden')) {
+    return [...shopItemsEl.querySelectorAll('.shop-item:not(.owned)')];
+  }
+  return [];
+}
+
+// Resalta el elemento con foco virtual (clase .gp-focus).
+function gpApplyFocus() {
+  cardEls.forEach((el) => el.classList.remove('gp-focus'));
+  shopItemsEl.querySelectorAll('.shop-item').forEach((el) => el.classList.remove('gp-focus'));
+  const targets = gpGetTargets();
+  if (!targets.length) return;
+  gpFocus = Math.max(0, Math.min(targets.length - 1, gpFocus));
+  targets[gpFocus].classList.add('gp-focus');
+}
+
+// Llama al abrir un overlay para reiniciar el foco virtual.
+function gpShowOverlay() {
+  gpFocus = 0;
+  gpApplyFocus();
+}
 
 function pollGamepad() {
   const gp = gamepad.pad;
@@ -1063,6 +1098,49 @@ function pollGamepad() {
 
   const btnA = !!gp.buttons[0]?.pressed;
   const btnStart = !!gp.buttons[9]?.pressed;
+  const axisX = gp.axes[0] ?? 0;
+  const axisY = gp.axes[1] ?? 0;
+  const dpadLeft = !!gp.buttons[14]?.pressed;
+  const dpadRight = !!gp.buttons[15]?.pressed;
+  const dpadUp = !!gp.buttons[12]?.pressed;
+  const dpadDown = !!gp.buttons[13]?.pressed;
+
+  const targets = gpGetTargets();
+  if (targets.length) {
+    // Navegación: izquierda/derecha en las cartas, arriba/abajo en la tienda.
+    const horizontal = cardOverlay.classList.contains('hidden') === false;
+    let navX = 0;
+    let navY = 0;
+    if (horizontal) {
+      if (axisX < -0.5 || dpadLeft) navX = -1;
+      else if (axisX > 0.5 || dpadRight) navX = 1;
+    } else {
+      if (axisY < -0.5 || dpadUp) navY = -1;
+      else if (axisY > 0.5 || dpadDown) navY = 1;
+    }
+    if ((navX !== 0 && prevNavX === 0) || (navY !== 0 && prevNavY === 0)) {
+      const step = navX !== 0 ? navX : navY;
+      gpFocus = (gpFocus + step + targets.length) % targets.length;
+      gpApplyFocus();
+    }
+
+    // Confirmar con A: seleccionar carta o comprar item de la tienda.
+    if (btnA && !prevBtn0 && targets[gpFocus]) {
+      const target = targets[gpFocus];
+      if (!cardOverlay.classList.contains('hidden')) {
+        pickCard(parseInt(target.dataset.idx, 10));
+      } else {
+        buyShop(target.dataset.id);
+        gpFocus = Math.min(gpFocus, gpGetTargets().length - 1);
+      }
+    }
+
+    prevNavX = navX;
+    prevNavY = navY;
+    prevBtn0 = btnA;
+    prevBtn9 = btnStart;
+    return;
+  }
 
   if (btnA && !prevBtn0) {
     if (!state.running) startGame();
@@ -1075,8 +1153,11 @@ function pollGamepad() {
     overlay.classList.add('hidden');
     renderShop();
     shopOverlay.classList.remove('hidden');
+    gpShowOverlay();
   }
 
+  prevNavX = 0;
+  prevNavY = 0;
   prevBtn0 = btnA;
   prevBtn9 = btnStart;
 }

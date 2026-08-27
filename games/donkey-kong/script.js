@@ -145,7 +145,7 @@ function playLevelUp() {
 }
 
 // ── ENTRADA ──
-const keys = { left: false, right: false, jump: false };
+const keys = { left: false, right: false, jump: false, up: false };
 window.addEventListener('keydown', (e) => {
   if (['ArrowLeft', 'KeyA'].includes(e.code)) {
     e.preventDefault();
@@ -162,6 +162,9 @@ window.addEventListener('keydown', (e) => {
       jumpPressed = true;
     }
   }
+  if (['ArrowUp', 'KeyW'].includes(e.code)) {
+    keys.up = true;
+  }
   if (e.code === 'KeyR') {
     e.preventDefault();
     startGame();
@@ -172,6 +175,9 @@ window.addEventListener('keyup', (e) => {
   if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
   if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
     jumpReleased = true;
+  }
+  if (['ArrowUp', 'KeyW'].includes(e.code)) {
+    keys.up = false;
   }
 });
 
@@ -226,9 +232,11 @@ bindTouch(
   'btnUp',
   () => {
     jumpPressed = true;
+    keys.up = true;
   },
   () => {
     jumpReleased = true;
+    keys.up = false;
   },
 );
 
@@ -244,6 +252,8 @@ function pollGamepad() {
   else if (!(gp.axes[0] < -0.3)) keys.left = false;
   if (axis > 0.3) keys.right = true;
   else if (!(gp.axes[0] > 0.3)) keys.right = false;
+  // D-pad arriba (botón 12) o stick izquierdo hacia arriba (eje Y) suben escaleras.
+  keys.up = !!(gp.buttons[12]?.pressed || (gp.axes[1] ?? 0) < -0.3);
   const jumpBtn = !!(gp.buttons[0]?.pressed || gp.buttons[12]?.pressed);
   if (jumpBtn && !prevJumpBtn) {
     if (!state.running && !state.gameOver) startGame();

@@ -275,6 +275,12 @@
   box-shadow: 0 8px 30px rgba(0, 245, 255, 0.12);
 }
 
+#cardOverlay .card.gp-focus {
+  transform: translateY(-4px) scale(1.03);
+  border-color: rgba(0, 245, 255, 0.55);
+  box-shadow: 0 8px 30px rgba(0, 245, 255, 0.25);
+}
+
 #cardOverlay .card .card-rarity {
   position: absolute;
   top: 6px;
@@ -373,6 +379,11 @@
 .shop-item:hover {
   border-color: rgba(192, 132, 252, 0.3);
   background: rgba(192, 132, 252, 0.06);
+}
+
+.shop-item.gp-focus {
+  border-color: rgba(192, 132, 252, 0.6);
+  background: rgba(192, 132, 252, 0.1);
 }
 
 .shop-item.owned {
