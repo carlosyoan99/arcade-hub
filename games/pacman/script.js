@@ -113,7 +113,7 @@ const MAZE_DATA = [
   "WWW.WW.WW.WWWWWW.WW.WW.WWWWW",
   "WWW.WW.WW.WWWWWW.WW.WW.WWWWW",
   "W....WW...WWWWWW...WW....WWW",
-  "WWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+  "W...WW....WWWWWW...WW....WWW",
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWW",
 ];
 
@@ -295,6 +295,8 @@ function updatePac(dt) {
   // Tunnel wrapping
   if (pac.x < -CS / 2) pac.x = CW + CS / 2;
   if (pac.x > CW + CS / 2) pac.x = -CS / 2;
+  // Vertical bounds: keep Pac-Man within maze
+  pac.y = Math.max(CS / 2, Math.min(CH - CS / 2, pac.y));
 
   // Eat dots
   const pCol = Math.round((pac.x - CS / 2) / CS);
