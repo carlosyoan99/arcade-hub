@@ -223,7 +223,7 @@ function resetGame() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('missile-command');
   startMusic('missile-command');
   resetGame();
   state.running = true;

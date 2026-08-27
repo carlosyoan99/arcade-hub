@@ -482,7 +482,7 @@ function setupPhaseEntities() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('donkey-kong');
   startMusic('donkey-kong');
   state.running = true;
   state.gameOver = false;

@@ -410,7 +410,7 @@ function generateHumans() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('defender');
   startMusic('defender');
   clearParticles();
   state.running = true;

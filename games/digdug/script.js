@@ -237,7 +237,7 @@ function resetGame() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('digdug');
   startMusic('digdug');
   resetGame();
   spawnEnemies();

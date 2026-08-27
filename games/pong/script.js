@@ -309,7 +309,7 @@ function resetGame() {
 }
 function startGame() {
   ensureAudio();
-  startAmbient();
+  startAmbient('pong');
   startMusic('pong');
   resetGame();
   state.running = true;

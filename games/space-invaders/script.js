@@ -219,7 +219,7 @@ function resetGame() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('space-invaders');
   startMusic('space-invaders');
   if (state.best >= 2000) achievements.unlock('invaders_twothousand');
   resetGame();

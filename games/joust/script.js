@@ -272,7 +272,7 @@ function initPlayer() {
 
 function startGame() {
   ensureAudio();
-  startAmbient();
+  startAmbient('joust');
   startMusic('joust');
   state.running = true;
   state.gameOver = false;

@@ -250,7 +250,7 @@ function resetGame() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('centipede');
   startMusic('centipede');
   resetGame();
   state.running = true;

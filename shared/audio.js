@@ -40,24 +40,69 @@ export function beep({
 
 let ambientNodes = null;
 
-export function startAmbient() {
+/* ── Ambient presets per game (freq1, freq2, filterFreq, volume) ── */
+const AMBIENT_PRESETS = {
+  _default: { f1: 55, f2: 65.41, filter: 180, vol: 0.025, wave1: 'triangle', wave2: 'sine' },
+  pong: { f1: 55, f2: 65.41, filter: 160, vol: 0.02, wave1: 'triangle', wave2: 'sine' },
+  tetris: { f1: 65.41, f2: 82.41, filter: 200, vol: 0.02, wave1: 'triangle', wave2: 'sine' },
+  pacman: { f1: 73.42, f2: 87.31, filter: 220, vol: 0.018, wave1: 'sine', wave2: 'triangle' },
+  'space-invaders': {
+    f1: 48.99,
+    f2: 55,
+    filter: 150,
+    vol: 0.022,
+    wave1: 'sawtooth',
+    wave2: 'sine',
+  },
+  galaga: { f1: 55, f2: 73.42, filter: 190, vol: 0.02, wave1: 'triangle', wave2: 'sawtooth' },
+  frogger: { f1: 82.41, f2: 98, filter: 240, vol: 0.018, wave1: 'sine', wave2: 'triangle' },
+  centipede: { f1: 48.99, f2: 61.74, filter: 170, vol: 0.022, wave1: 'sawtooth', wave2: 'sine' },
+  breakout: { f1: 65.41, f2: 82.41, filter: 200, vol: 0.02, wave1: 'triangle', wave2: 'sine' },
+  snake: { f1: 55, f2: 65.41, filter: 160, vol: 0.02, wave1: 'sine', wave2: 'sine' },
+  'donkey-kong': { f1: 73.42, f2: 87.31, filter: 210, vol: 0.02, wave1: 'triangle', wave2: 'sine' },
+  defender: { f1: 41.2, f2: 48.99, filter: 140, vol: 0.025, wave1: 'sawtooth', wave2: 'triangle' },
+  digdug: { f1: 65.41, f2: 73.42, filter: 190, vol: 0.02, wave1: 'triangle', wave2: 'sine' },
+  asteroids: { f1: 41.2, f2: 55, filter: 130, vol: 0.022, wave1: 'sine', wave2: 'sine' },
+  'missile-command': {
+    f1: 48.99,
+    f2: 55,
+    filter: 150,
+    vol: 0.025,
+    wave1: 'sawtooth',
+    wave2: 'sine',
+  },
+  joust: { f1: 82.41, f2: 98, filter: 230, vol: 0.018, wave1: 'triangle', wave2: 'sine' },
+  'flappy-bird': { f1: 87.31, f2: 110, filter: 260, vol: 0.015, wave1: 'sine', wave2: 'triangle' },
+  'dino-runner': {
+    f1: 55,
+    f2: 73.42,
+    filter: 180,
+    vol: 0.022,
+    wave1: 'triangle',
+    wave2: 'sawtooth',
+  },
+  'neon-nexus': { f1: 55, f2: 65.41, filter: 170, vol: 0.02, wave1: 'triangle', wave2: 'sine' },
+  'cell-swarm': { f1: 61.74, f2: 73.42, filter: 185, vol: 0.02, wave1: 'sine', wave2: 'triangle' },
+};
+
+export function startAmbient(gameId) {
   if (ambientNodes) return;
-  // Aseguramos audio context — puede que no exista si no se llamó a ensureAudio previamente
   const a = ensureAudio();
   if (!a) return;
+  const preset = AMBIENT_PRESETS[gameId] || AMBIENT_PRESETS._default;
   try {
     const o1 = a.createOscillator(),
       o2 = a.createOscillator();
     const g = a.createGain(),
       f = a.createBiquadFilter();
-    o1.type = 'triangle';
-    o1.frequency.setValueAtTime(55, a.currentTime);
-    o2.type = 'sine';
-    o2.frequency.setValueAtTime(65.41, a.currentTime);
+    o1.type = preset.wave1;
+    o1.frequency.setValueAtTime(preset.f1, a.currentTime);
+    o2.type = preset.wave2;
+    o2.frequency.setValueAtTime(preset.f2, a.currentTime);
     f.type = 'lowpass';
-    f.frequency.setValueAtTime(180, a.currentTime);
+    f.frequency.setValueAtTime(preset.filter, a.currentTime);
     g.gain.setValueAtTime(0, a.currentTime);
-    g.gain.linearRampToValueAtTime(0.025, a.currentTime + 1);
+    g.gain.linearRampToValueAtTime(preset.vol, a.currentTime + 1);
     o1.connect(f);
     o2.connect(f);
     f.connect(g);
@@ -66,7 +111,6 @@ export function startAmbient() {
     o2.start();
     ambientNodes = { osc1: o1, osc2: o2, gain: g, filter: f };
   } catch (err) {
-    // AudioContext may be closed or creation failed (autoplay policy); warn in dev
     /* eslint-disable no-console */
     if (typeof console !== 'undefined' && console.warn) {
       console.warn('startAmbient failed:', err);

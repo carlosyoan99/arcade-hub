@@ -807,7 +807,7 @@ function resetGame() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('tetris');
   startMusic('tetris');
   if (state.best >= 500) achievements.unlock('tetris_fivehundo');
   resetGame();

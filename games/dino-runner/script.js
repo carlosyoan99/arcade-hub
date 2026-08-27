@@ -358,7 +358,7 @@ function resetGame() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('dino-runner');
   startMusic('dino-runner');
   if (state.best >= 500) achievements.unlock('dino_fivehundo');
   resetGame();

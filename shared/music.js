@@ -73,7 +73,7 @@ function freq(note) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-/** 'Dm9' → notas del acorde (voicing cerrado, raíz grave aparte) */
+/* ── Chords: voicings para los temas ── */
 const CHORDS = {
   Dm9: ['D3', 'F3', 'A3', 'C4', 'E4'],
   Fmaj7: ['F3', 'A3', 'C4', 'E4'],
@@ -81,13 +81,21 @@ const CHORDS = {
   F: ['F2', 'A2', 'C3', 'F3'],
   C: ['C3', 'E3', 'G3', 'C4'],
   G: ['G2', 'B2', 'D3', 'G3'],
+  Em: ['E2', 'G2', 'B2', 'E3'],
+  Dm: ['D2', 'F2', 'A2', 'D3'],
+  Bm: ['B1', 'D2', 'F#2', 'B2'],
+  D: ['D2', 'F#2', 'A2', 'D3'],
+  A: ['A1', 'C#2', 'E2', 'A2'],
+  E: ['E2', 'G#2', 'B2', 'E3'],
+  Gm: ['G1', 'Bb1', 'D2', 'G2'],
+  Cm: ['C2', 'Eb2', 'G2', 'C3'],
 };
 
 /* ── Temas por juego: datos puros ───────────────────────────────
-   bpm: tempo lofi (70-90) · steps: corcheas · '-' silencio
+   bpm: tempo · steps: corcheas · '-' silencio
    chord: un acorde cada 8 pasos (1 compás)                       */
 const SONGS = {
-  /* Pong — "Midnight Rally": lounge minimalista, dos acordes lentos */
+  /* Pong — "Midnight Rally": lounge minimalista */
   pong: {
     bpm: 72,
     chord: ['Dm9', 'Dm9', 'Fmaj7', 'Fmaj7'],
@@ -96,13 +104,166 @@ const SONGS = {
     leadWave: 'sine',
   },
 
-  /* Tetris — "Neon Blocks": chiptune-lofi melódico, i-VI-III-VII */
+  /* Tetris — "Neon Blocks": chiptune melódico */
   tetris: {
     bpm: 86,
     chord: ['Am', 'F', 'C', 'G'],
     bass: 'A1 A1 - E2 - A1 E2 -  F2 F2 - C3 - F2 C3 -  C2 C2 - G2 - C2 G2 -  G2 G2 - D3 - G2 B2 -',
     lead: 'E4 - C4 D4 E4 - D4 C4  A3 - C4 A3 - G3 A3 -  G3 - E3 G3 C4 - B3 G3  B3 - D4 E4 D4 - B3 G3',
     leadWave: 'square',
+  },
+
+  /* Space Invaders — "Void Patrol": tenso, sci-fi minimal */
+  'space-invaders': {
+    bpm: 78,
+    chord: ['Em', 'C', 'G', 'Dm'],
+    bass: 'E1 - - E1 - - B1 -  C2 - - C2 - G2 -  G1 - - G1 - - D2 -  D1 - - D1 - A1 -',
+    lead: '- - B3 - - E4 - -  - C4 - - - G3 - -  - - D4 - - B3 - -  - - A3 - - F3 - -',
+    leadWave: 'sawtooth',
+  },
+
+  /* Pac-Man — "Waka Waka": playful, upbeat arpeggios */
+  pacman: {
+    bpm: 110,
+    chord: ['C', 'G', 'Am', 'F'],
+    bass: 'C2 - G1 - C2 - - -  G1 - D2 - G1 - - -  A1 - E2 - A1 - - -  F1 - C2 - F1 - - -',
+    lead: 'E4 G4 - E4 C4 - G3 -  D4 F4 - D4 B3 - G3 -  C4 E4 - C4 A3 - E3 -  A3 C4 - A3 F3 - C3 -',
+    leadWave: 'square',
+  },
+
+  /* Galaga — "Star Duel": intense, fast arpeggios */
+  galaga: {
+    bpm: 95,
+    chord: ['Dm', 'A', 'Gm', 'A'],
+    bass: 'D2 - A1 - D2 - - -  A1 - E2 - A1 - - -  G1 - D2 - G1 - - -  A1 - E2 - A1 - - -',
+    lead: 'D4 - F4 - A4 - F4  A3 - C4 - E4 - C4  G3 - Bb3 - D4 - Bb3  A3 - C#4 - E4 - C#4',
+    leadWave: 'sawtooth',
+  },
+
+  /* Frogger — "River Hop": bouncy, adventurous */
+  frogger: {
+    bpm: 92,
+    chord: ['G', 'C', 'Em', 'D'],
+    bass: 'G1 - D2 - G1 - - -  C2 - G2 - C2 - - -  E1 - B1 - E1 - - -  D1 - A1 - D1 - - -',
+    lead: 'B3 - D4 - G4 - D4  E4 - G4 - C5 - G4  G4 - B4 - E5 - B4  F#4 - A4 - D5 - A4',
+    leadWave: 'triangle',
+  },
+
+  /* Centipede — "Mushroom Panic": frantic, staccato */
+  centipede: {
+    bpm: 100,
+    chord: ['Am', 'Dm', 'E', 'Am'],
+    bass: 'A1 - E2 - A1 - - -  D2 - A2 - D2 - - -  E1 - B1 - E1 - - -  A1 - E2 - A1 - - -',
+    lead: 'A3 - C4 - E4 - C4  D4 - F4 - A4 - F4  E4 - G#4 - B4 - G#4  A4 - E4 - C4 - A3',
+    leadWave: 'square',
+  },
+
+  /* Breakout — "Neon Bounce": rhythmic, satisfying bricks */
+  breakout: {
+    bpm: 88,
+    chord: ['F', 'C', 'Gm', 'Am'],
+    bass: 'F1 - C2 - F1 - - -  C2 - G2 - C2 - - -  G1 - D2 - G1 - - -  A1 - E2 - A1 - - -',
+    lead: 'A3 - C4 - F4 - C4  G4 - E4 - C4 - G3  Bb3 - D4 - G4 - D4  C4 - A3 - E3 - C3',
+    leadWave: 'triangle',
+  },
+
+  /* Snake — "Slither": minimal, pulsing, hypnotic */
+  snake: {
+    bpm: 80,
+    chord: ['Dm', 'Gm', 'Am', 'Dm'],
+    bass: 'D2 - - A1 - D2 - -  G1 - - D2 - G1 - -  A1 - - E2 - A1 - -  D2 - - A1 - D2 - -',
+    lead: '- D4 - - - A3 - -  - G3 - - - D3 - -  - E4 - - - C4 - -  - D4 - - - A3 - -',
+    leadWave: 'sine',
+  },
+
+  /* Donkey Kong — "Barrel Roll": bouncy, tropical vibe */
+  'donkey-kong': {
+    bpm: 96,
+    chord: ['C', 'G', 'Am', 'F'],
+    bass: 'C2 - G1 - C2 - - -  G1 - D2 - G1 - - -  A1 - E2 - A1 - - -  F1 - C2 - F1 - - -',
+    lead: 'E4 - G4 - C5 - G4  D4 - F4 - B4 - F4  C4 - E4 - A4 - E4  A3 - C4 - F4 - C4',
+    leadWave: 'triangle',
+  },
+
+  /* Defender — "Radar Sweep": dark, atmospheric */
+  defender: {
+    bpm: 76,
+    chord: ['Dm', 'Bm', 'Gm', 'A'],
+    bass: 'D2 - - A1 - D2 - -  B1 - - F#2 - B1 - -  G1 - - D2 - G1 - -  A1 - - E2 - A1 - -',
+    lead: '- F4 - - - D4 - -  - B3 - - - F#3 - -  - D4 - - - Bb3 - -  - C4 - - - A3 - -',
+    leadWave: 'sawtooth',
+  },
+
+  /* Dig Dug — "Underground": bouncy, subterranean feel */
+  digdug: {
+    bpm: 84,
+    chord: ['C', 'Em', 'F', 'G'],
+    bass: 'C2 - G1 - C2 - - -  E1 - B1 - E1 - - -  F1 - C2 - F1 - - -  G1 - D2 - G1 - - -',
+    lead: 'E4 - G4 - C5 - G4  B3 - E4 - G4 - E4  A3 - C4 - F4 - C4  B3 - D4 - G4 - D4',
+    leadWave: 'triangle',
+  },
+
+  /* Asteroids — "Deep Space": ambient, spacious */
+  asteroids: {
+    bpm: 68,
+    chord: ['Em', 'C', 'G', 'Dm'],
+    bass: 'E1 - - - B1 - - -  C2 - - - G2 - - -  G1 - - - D2 - - -  D1 - - - A1 - - -',
+    lead: '- - B3 - - - E4 -  - - C4 - - - G3 -  - - D4 - - - B3 -  - - A3 - - - F3 -',
+    leadWave: 'sine',
+  },
+
+  /* Missile Command — "Incoming": tense, urgent */
+  'missile-command': {
+    bpm: 82,
+    chord: ['Dm', 'Gm', 'A', 'Dm'],
+    bass: 'D2 - A1 - D2 - - -  G1 - D2 - G1 - - -  A1 - E2 - A1 - - -  D2 - A1 - D2 - - -',
+    lead: 'D4 - F4 - A4 - F4  G4 - Bb4 - D5 - Bb4  A4 - C#5 - E5 - C#5  D5 - A4 - F4 - D4',
+    leadWave: 'sawtooth',
+  },
+
+  /* Joust — "Cloud Battle": heroic, soaring */
+  joust: {
+    bpm: 90,
+    chord: ['G', 'D', 'Em', 'C'],
+    bass: 'G1 - D2 - G1 - - -  D1 - A1 - D1 - - -  E1 - B1 - E1 - - -  C2 - G2 - C2 - - -',
+    lead: 'B3 - D4 - G4 - D4  F#4 - A4 - D5 - A4  G4 - B4 - E5 - B4  E4 - G4 - C5 - G4',
+    leadWave: 'triangle',
+  },
+
+  /* Flappy Bird — "Wing Beat": cheerful, light */
+  'flappy-bird': {
+    bpm: 105,
+    chord: ['C', 'F', 'G', 'C'],
+    bass: 'C2 - G1 - C2 - - -  F1 - C2 - F1 - - -  G1 - D2 - G1 - - -  C2 - G1 - C2 - - -',
+    lead: 'E4 - G4 - C5 - G4  A4 - F4 - C4 - F4  B3 - D4 - G4 - D4  C4 - E4 - G4 - E4',
+    leadWave: 'sine',
+  },
+
+  /* Dino Runner — "Desert Sprint": driving, relentless */
+  'dino-runner': {
+    bpm: 98,
+    chord: ['Am', 'F', 'C', 'G'],
+    bass: 'A1 - E2 - A1 - - -  F1 - C2 - F1 - - -  C2 - G2 - C2 - - -  G1 - D2 - G1 - - -',
+    lead: 'A3 - C4 - E4 - C4  F4 - A4 - C5 - A4  G4 - E4 - C4 - G3  D4 - B3 - G3 - D3',
+    leadWave: 'square',
+  },
+
+  /* Neon Nexus — "Tower Pulse": strategic, building tension */
+  'neon-nexus': {
+    bpm: 85,
+    chord: ['Dm', 'Bb', 'F', 'C'],
+    bass: 'D2 - A1 - D2 - - -  Bb1 - F2 - Bb1 - - -  F1 - C2 - F1 - - -  C2 - G2 - C2 - - -',
+    lead: 'F4 - A4 - D5 - A4  D4 - F4 - Bb4 - F4  C4 - F4 - A4 - F4  E4 - G4 - C5 - G4',
+    leadWave: 'triangle',
+  },
+
+  /* Cell Swarm — "Micro Battle": pulsing, organic */
+  'cell-swarm': {
+    bpm: 88,
+    chord: ['Em', 'Am', 'Dm', 'G'],
+    bass: 'E1 - B1 - E1 - - -  A1 - E2 - A1 - - -  D2 - A2 - D2 - - -  G1 - D2 - G1 - - -',
+    lead: 'B3 - E4 - G4 - E4  C4 - E4 - A4 - E4  F4 - A4 - D5 - A4  D4 - G4 - B4 - G4',
+    leadWave: 'sine',
   },
 };
 

@@ -610,7 +610,7 @@ function startGame() {
   resetGame();
   state.running = true;
   achievements.incrementPlays('galaga');
-  startAmbient();
+  startAmbient('galaga');
   startMusic('galaga');
   document.getElementById('overlay').classList.add('hidden');
   shell.enableTabTrap();

@@ -652,7 +652,7 @@ function resetGame() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('neon-nexus');
   startMusic('neon-nexus');
   resetGame();
   state.running = true;

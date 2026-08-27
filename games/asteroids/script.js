@@ -416,7 +416,7 @@ function resetGame() {
 
 function startGame() {
   ensureAudio();
-  startAmbient();
+  startAmbient('asteroids');
   startMusic('asteroids');
   if (state.best >= 1000) achievements.unlock('asteroids_thousand');
   resetGame();

@@ -367,7 +367,7 @@ function resetGame() {
 
 function startGame() {
   ensureAudio();
-  startAmbient();
+  startAmbient('breakout');
   startMusic('breakout');
   if (state.best >= 1000) achievements.unlock('breakout_thousand');
   resetGame();

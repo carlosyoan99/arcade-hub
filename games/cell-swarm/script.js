@@ -900,7 +900,7 @@ function doEject() {
 function startGame() {
   clearSquashes();
   ensureAudio();
-  startAmbient();
+  startAmbient('cell-swarm');
   startMusic('cell-swarm');
 
   state.running = true;
