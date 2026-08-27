@@ -71,11 +71,17 @@ const BARREL_SPEED = 120;
 const MAX_BARRELS = 6;
 
 // ── 4 FASES ARCADE ──
-const PHASE_NAMES = ['Barriles', 'Fuego', 'Elevador', 'Plataformas'];
+const PHASE_NAMES = ['Barriles', 'Fuego', 'Elevador', 'Construcción'];
 const FIRE_SPEED = 60;
 const MAX_FIRES = 3;
 const FIRE_SPAWN_INTERVAL = 3.0;
 const ELEVATOR_SPEED = 60;
+
+// Fase 4 — Construcción (100m)
+const HAMMER_TIME = 4.5; // segundos de invulnerabilidad al destruir barriles
+const CONSTRUCTION_MAX_BARRELS = 8;
+const HAMMER_POINTS = 100; // pts por barril destruido
+const HAMMER_ACHIEVEMENT_NEED = 3; // barriles para logro
 
 // ── ESTADO ──
 const state = {
@@ -92,7 +98,10 @@ const player = { x: 0, y: 0, vx: 0, vy: 0, w: PLAYER_W, h: PLAYER_H, onGround: f
 const barrels = [];
 const fires = [];
 const elevators = [];
-const movingPlatforms = [];
+const barriers = []; // girder removible de la fase construcción
+let hammerActive = false; // invulnerabilidad + destruye barriles
+let hammerTimer = 0;
+let hammerBroke = 0; // conteo para logro
 let coyoteTimer = 0;
 let bufferTimer = 0;
 let jumpPressed = false;
@@ -272,7 +281,12 @@ function clearPhaseEntities() {
   barrels.length = 0;
   fires.length = 0;
   elevators.length = 0;
-  movingPlatforms.length = 0;
+  barriers.length = 0;
+  hammerActive = false;
+  hammerTimer = 0;
+  hammerBroke = 0;
+  resetHammerPickup();
+  barrelSpawnTimer = 0;
 }
 
 // ── FASE 2: Fuego ──
@@ -381,39 +395,69 @@ function updateElevators(dt) {
   }
 }
 
-// ── FASE 4: Plataformas móviles ──
-function spawnMovingPlatforms() {
-  movingPlatforms.length = 0;
-  const defs = [
-    { x: 0, y: 3, w: 3, dir: 1, xMin: 0, xMax: 8 },
-    { x: 6, y: 6, w: 3, dir: -1, xMin: 2, xMax: 10 },
-    { x: 2, y: 9, w: 4, dir: 1, xMin: 0, xMax: 7 },
-    { x: 8, y: 3, w: 2, dir: -1, xMin: 4, xMax: 12 },
-  ];
-  for (const d of defs) {
-    movingPlatforms.push({
-      x: d.x * TILE,
-      y: d.y * TILE,
-      w: d.w * TILE,
-      h: TILE * 0.4,
-      dir: d.dir,
-      xMin: d.xMin * TILE,
-      xMax: d.xMax * TILE,
-    });
+// ── FASE 4: Construcción (100m) ──
+// Girders removibles + martillo que destruye barriles.
+function spawnBarriers() {
+  barriers.length = 0;
+  // Un girder superior con un hueco central que el jugador debe esquivar.
+  // El barril cae por el hueco mientras el martillo permite destruirlo.
+  barriers.push({
+    x: TILE,
+    y: 2 * TILE,
+    w: 6 * TILE,
+    h: TILE * 0.5,
+    gapX: 0,
+    gapW: 0,
+    broken: false,
+  });
+  barriers.push({
+    x: 9 * TILE,
+    y: 4.2 * TILE,
+    w: 3 * TILE,
+    h: TILE * 0.5,
+    gapX: 0,
+    gapW: 0,
+    broken: false,
+  });
+}
+
+function updateBarriers(_dt) {
+  // Los girder no se mueven; son estáticos. La progresión de huecos la
+  // controla el nivel (más huecos = más difícil).
+  const extra = Math.min(2, Math.floor((state.level - 1) / 2));
+  for (const b of barriers) {
+    if (b.broken) continue;
+    b.gapX = TILE * 2 + (b.w - 2 * TILE) * Math.random();
+    b.gapW = TILE * 0.6 * (1 + extra * 0.4);
   }
 }
 
-function updateMovingPlatforms(dt) {
-  for (const mp of movingPlatforms) {
-    mp.x += mp.dir * 80 * dt;
-    if (mp.x <= mp.xMin) {
-      mp.x = mp.xMin;
-      mp.dir = 1;
+// ── FASE 4: Power-up martillo ──
+let hammerPickup = { x: 5 * TILE, y: 6 * TILE, w: TILE * 0.8, h: TILE * 0.8, taken: false };
+function resetHammerPickup() {
+  hammerPickup = { x: 5 * TILE, y: 6 * TILE, w: TILE * 0.8, h: TILE * 0.8, taken: false };
+}
+
+function playHammer() {
+  beep({ freq: 900, freqEnd: 1400, duration: 0.15, type: 'square', volume: 0.12 });
+}
+
+function updateHammer(dt) {
+  if (hammerActive) {
+    hammerTimer -= dt;
+    if (hammerTimer <= 0) {
+      hammerActive = false;
+      say('Martillo agotado.');
     }
-    if (mp.x + mp.w >= mp.xMax) {
-      mp.x = mp.xMax - mp.w;
-      mp.dir = -1;
-    }
+    return;
+  }
+  const pr = getPlayerRect();
+  if (rectCollide(pr, hammerPickup)) {
+    hammerPickup.taken = true;
+    hammerActive = true;
+    hammerTimer = HAMMER_TIME;
+    playHammer();
+    say('¡Martillo! Destruí los barriles.');
   }
 }
 
@@ -432,7 +476,7 @@ function setupPhaseEntities() {
   clearPhaseEntities();
   state.phase = getPhaseForLevel(state.level);
   if (state.phase === 2) spawnElevators();
-  if (state.phase === 3) spawnMovingPlatforms();
+  if (state.phase === 3) spawnBarriers();
 }
 
 function startGame() {
@@ -630,20 +674,19 @@ function updatePlayer(dt) {
     }
   }
 
-  // Fase 4: moving platform collision
+  // Fase 4: girder removible collision — el jugador puede pararse en los
+  // girder de construcción siempre que no caiga por el hueco central.
   if (state.phase === 3) {
     const pr = getPlayerRect();
-    for (const mp of movingPlatforms) {
-      if (
-        pr.x + pr.w > mp.x &&
-        pr.x < mp.x + mp.w &&
-        pr.y + pr.h >= mp.y &&
-        pr.y + pr.h <= mp.y + mp.h + 8 &&
-        player.vy >= 0
-      ) {
-        player.y = mp.y - player.h;
-        player.vy = 0;
-        player.onGround = true;
+    for (const b of barriers) {
+      if (b.broken) continue;
+      const fallIntoGap = pr.x + pr.w > b.gapX && pr.x < b.gapX + b.gapW && pr.y + pr.h >= b.y;
+      if (!fallIntoGap && pr.x + pr.w > b.x && pr.x < b.x + b.w) {
+        if (pr.y + pr.h >= b.y && pr.y + pr.h <= b.y + b.h + 8 && player.vy >= 0) {
+          player.y = b.y - player.h;
+          player.vy = 0;
+          player.onGround = true;
+        }
       }
     }
   }
@@ -656,8 +699,8 @@ function updatePlayer(dt) {
     levelComplete();
   }
 
-  // Barrel collision (fase 1)
-  if (state.phase === 0) {
+  // Barrel collision (fase 1 y fase 4 — Construcción tiene barriles)
+  if (state.phase === 0 || state.phase === 3) {
     const pr2 = getPlayerRect();
     for (let i = barrels.length - 1; i >= 0; i--) {
       const b = barrels[i];
@@ -668,6 +711,16 @@ function updatePlayer(dt) {
         h: BARREL_RADIUS * 2,
       };
       if (rectCollide(pr2, br)) {
+        if (hammerActive) {
+          barrels.splice(i, 1);
+          state.score += HAMMER_POINTS;
+          hammerBroke += 1;
+          spawnParticles(br.x + br.w / 2, br.y + br.h / 2, '#ffcc00', 6);
+          playHammer();
+          if (hammerBroke >= HAMMER_ACHIEVEMENT_NEED) achievements.unlock('dk_hammer');
+          updateHUD();
+          continue;
+        }
         loseLife();
         break;
       }
@@ -688,6 +741,17 @@ function updatePlayer(dt) {
 }
 
 function spawnBarrel() {
+  if (state.phase === 3) {
+    // En la fase Construcción, los barriles ruedan por el girder superior
+    // y caen por su hueco central.
+    barrels.push({
+      x: 8 * TILE,
+      y: 2.2 * TILE,
+      vx: (Math.random() > 0.5 ? 1 : -1) * BARREL_SPEED * 1.2,
+      vy: 0,
+    });
+    return;
+  }
   barrels.push({
     x: 7 * TILE,
     y: 0.8 * TILE,
@@ -704,6 +768,28 @@ function updateBarrels(dt) {
     b.y += b.vy * dt;
 
     let onPlat = false;
+    // Fase 4: barriles caen por el hueco del girder de construcción
+    if (state.phase === 3) {
+      for (const brr of barriers) {
+        if (brr.broken) continue;
+        if (
+          b.x + BARREL_RADIUS > brr.x &&
+          b.x - BARREL_RADIUS < brr.x + brr.w &&
+          b.y + BARREL_RADIUS > brr.y &&
+          b.y + BARREL_RADIUS < brr.y + brr.h + 8 &&
+          b.vy >= 0
+        ) {
+          // Si el barril está encima del hueco, no lo detiene (cae)
+          const overGap = b.x > brr.gapX && b.x < brr.gapX + brr.gapW;
+          if (!overGap) {
+            b.y = brr.y - BARREL_RADIUS;
+            b.vy = 0;
+            if (b.x < brr.x + 8) b.vx = Math.abs(b.vx);
+            else if (b.x > brr.x + brr.w - 8) b.vx = -Math.abs(b.vx);
+          }
+        }
+      }
+    }
     for (const p of PLATFORMS) {
       const pr = { x: p.x * TILE, y: p.y * TILE, w: p.w * TILE, h: p.h * TILE };
       if (
@@ -835,23 +921,56 @@ function draw() {
     }
   }
 
-  // Fase 4: Plataformas móviles
+  // Fase 4: Girders de construcción + martillo
   if (state.phase === 3) {
-    for (const mp of movingPlatforms) {
-      const mx = ox + mp.x * s;
-      const my = oy + mp.y * s;
-      const mw = mp.w * s;
-      const mh = mp.h * s;
-      const mg = ctx.createLinearGradient(mx, my, mx, my + mh);
-      mg.addColorStop(0, '#44ff88');
-      mg.addColorStop(1, '#22aa55');
-      ctx.fillStyle = mg;
-      roundRect(ctx, mx, my, mw, mh, 3 * s);
+    for (const b of barriers) {
+      if (b.broken) continue;
+      const bx = ox + b.x * s;
+      const by = oy + b.y * s;
+      const bw = b.w * s;
+      const bh = b.h * s;
+      const bg = ctx.createLinearGradient(bx, by, bx, by + bh);
+      bg.addColorStop(0, '#44ff88');
+      bg.addColorStop(1, '#22aa55');
+      ctx.fillStyle = bg;
+      roundRect(ctx, bx, by, bw, bh, 3 * s);
       ctx.fill();
-      drawGlow(ctx, mx + mw / 2, my + mh / 2, mw * 0.3, 'rgba(68,255,136,0.15)', 0.05, 3);
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      drawGlow(ctx, bx + bw / 2, by + bh / 2, bw * 0.3, 'rgba(68,255,136,0.15)', 0.05, 3);
+      // Hueco central
+      ctx.fillStyle = '#0b0a10';
+      ctx.fillRect(ox + b.gapX * s, oy + b.y * s, b.gapW * s, b.h * s);
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
       ctx.font = `${10 * s}px sans-serif`;
-      ctx.fillText(mp.dir > 0 ? '▶' : '◀', mx + mw / 2 - 4 * s, my + mh / 2 + 3 * s);
+      ctx.fillText('▼', bx + bw / 2 - 4 * s, by + bh / 2 + 3 * s);
+    }
+
+    // Martillo (power-up)
+    if (!hammerPickup.taken) {
+      const hx = ox + (hammerPickup.x + hammerPickup.w / 2) * s;
+      const hy = oy + hammerPickup.y * s;
+      const hs = s * 1.2;
+      ctx.save();
+      ctx.translate(hx, hy);
+      ctx.rotate(-0.5);
+      ctx.fillStyle = '#8B4513';
+      roundRect(ctx, -2 * s, -14 * hs, 4 * s, 14 * hs, 1 * s);
+      ctx.fill();
+      ctx.fillStyle = '#e0e0e0';
+      roundRect(ctx, -10 * hs, -22 * hs, 20 * hs, 10 * hs, 2 * s);
+      ctx.fill();
+      ctx.fillStyle = '#999';
+      roundRect(ctx, -10 * hs, -22 * hs, 20 * hs, 3 * hs, 1 * hs);
+      ctx.fill();
+      ctx.restore();
+      drawGlow(ctx, hx, hy, 12 * s, 'rgba(255,220,0,0.35)', 0.12, 4);
+    } else if (hammerActive) {
+      // Indicador de martillo activo junto al jugador
+      const hx = ox + (player.x + player.w / 2) * s;
+      const hy = oy + (player.y - 8) * s;
+      drawGlow(ctx, hx, hy, 14 * s, 'rgba(255,220,0,0.4)', 0.15, 5);
+      ctx.fillStyle = '#ffcc00';
+      ctx.font = `${14 * s}px sans-serif`;
+      ctx.fillText('🔨', hx - 6 * s, hy + 4 * s);
     }
   }
 
@@ -1034,7 +1153,14 @@ const loop = createGameLoop((dt) => {
     } else if (state.phase === 2) {
       updateElevators(dt);
     } else if (state.phase === 3) {
-      updateMovingPlatforms(dt);
+      updateBarriers(dt);
+      updateHammer(dt);
+      updateBarrels(dt);
+      barrelSpawnTimer -= dt;
+      if (barrelSpawnTimer <= 0 && barrels.length < CONSTRUCTION_MAX_BARRELS) {
+        spawnBarrel();
+        barrelSpawnTimer = Math.max(0.6, 1.8 - state.level * 0.1);
+      }
     }
 
     timeAcc += dt;
