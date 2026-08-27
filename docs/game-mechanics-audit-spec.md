@@ -354,15 +354,15 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 | Scatter targets por fantasma          | Blinky=top-right, Pinky=top-left, Inky=bottom-right, Clyde=bottom-left | ✅ Targets corregidos por fantasma                            | ✅     |
 | Puerta del ghost house solo para eyes | Sí, chase/scatter no pueden entrar                                     | ✅ Chase/scatter no pueden entrar                             | ✅     |
 | Eyes re-entran al house por la puerta | Sí, navegan hasta el centro                                            | ✅ Navegan hasta el centro del house                          | ✅     |
-| Release por dot-count (30/60/100)     | Sí, con fallback temporal                                              | ❌ Solo timers (0s/2s/4s/6s)                                  | ❌     |
-| Cruise Elroy (Blinky se acelera)      | Sí, cuando quedan <100 y <30 dots                                      | ❌ No existe                                                  | ❌     |
-| Duración fright: 6s nivel 1           | 6s, escala por nivel                                                   | ❌ 7s fijo                                                    | ❌     |
-| Pause al comer fantasma               | ~1 segundo de freeze                                                   | ❌ Inmediato                                                  | ❌     |
+| Release por dot-count (30/60/100)     | Sí, con fallback temporal                                              | ✅ `DOT_RELEASE=[0,0,30,60]` con fallback timer               | ✅     |
+| Cruise Elroy (Blinky se acelera)      | Sí, cuando quedan <100 y <30 dots                                      | ✅ `ELROY1_DOTS=20` (+5%), `ELROY2_DOTS=10` (+10%)            | ✅     |
+| Duración fright: 6s nivel 1           | 6s, escala por nivel                                                   | ✅ `FRIGHT_TIME = 6`                                          | ✅     |
+| Pause al comer fantasma               | ~1 segundo de freeze                                                   | ✅ `ghostPause = 1` — freeze 1s, solo checkCollisions         | ✅     |
 | Vida extra a 10,000 pts               | Sí                                                                     | ✅ Vida extra a 10K                                           | ✅     |
 | Maze asimetría                        | Simétrico horizontalmente                                              | ❌ 12 filas con 27 chars (deben ser 28), bottom wall faltante | ❌     |
 | Pinky overflow bug                    | +4 tiles up +4 tiles left al mirar arriba                              | ❌ No implementado                                            | ❌     |
 
-**Resumen:** 4/10 features. Scatter/gate/eyes/extra-life son los más icónicos implementados.
+**Resumen:** 8/10 features core. Quedan: maze asimetría + Pinky overflow (ambos bugs icónicos de bajo impacto).
 
 ---
 
@@ -427,11 +427,11 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 **Original:** Atari Centipede (1981)
 
-| Mecánica                            | Original                    | Actual                             | Estado       |
-| ----------------------------------- | --------------------------- | ---------------------------------- | ------------ |
-| Flea (cae cuando faltan hongos)     | Sí, deja hongos al caer     | Existe (verificar spawn condición) | ⚠️ Verificar |
-| Scorpion (aparece en oleadas altas) | Sí, envenena hongos         | Existe (verificar)                 | ⚠️ Verificar |
-| Spider (movimiento errático)        | Sí, rebota en zona inferior | Existe                             | ✅           |
+| Mecánica                            | Original                    | Actual                                                     | Estado |
+| ----------------------------------- | --------------------------- | ---------------------------------------------------------- | ------ |
+| Flea (cae cuando faltan hongos)     | Sí, deja hongos al caer     | ✅ `spawnFlea()`, `fleaInterval`, deja trail de hongos     | ✅     |
+| Scorpion (aparece en oleadas altas) | Sí, envenena hongos         | ✅ `spawnScorpion()`, `scorpionInterval`, `poisoned: true` | ✅     |
+| Spider (movimiento errático)        | Sí, rebota en zona inferior | Existe                                                     | ✅     |
 
 **Nota:** Centipede parece tener la paridad más completa de los completados.
 
@@ -441,14 +441,14 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 **Original:** Namco Dig Dug (1982)
 
-| Mecánica                            | Original                   | Actual                | Estado       |
-| ----------------------------------- | -------------------------- | --------------------- | ------------ |
-| Pump: enemigos se inflan y explotan | Sí                         | Funciona              | ✅           |
-| Rocas: aplastan enemigos y jugador  | Sí                         | Funciona              | ✅           |
-| Enemigos: caminan por túneles       | Sí                         | Implementado (fase 1) | ✅           |
-| Pooka: se disfraza de hongo         | Sí                         | Verificar             | ⚠️ Verificar |
-| Fygar: breath de fuego horizontal   | Sí                         | Verificar             | ⚠️ Verificar |
-| Bonus items (vegetales)             | Sí, aparecen entre oleadas | Verificar             | ⚠️ Verificar |
+| Mecánica                            | Original                   | Actual                                                 | Estado       |
+| ----------------------------------- | -------------------------- | ------------------------------------------------------ | ------------ |
+| Pump: enemigos se inflan y explotan | Sí                         | Funciona                                               | ✅           |
+| Rocas: aplastan enemigos y jugador  | Sí                         | Funciona                                               | ✅           |
+| Enemigos: caminan por túneles       | Sí                         | Implementado (fase 1)                                  | ✅           |
+| Pooka: se disfraza de hongo         | Sí                         | ✅ `disguised`/`disguiseTimer`, hongo rojo con manchas | ✅           |
+| Fygar: breath de fuego horizontal   | Sí                         | Verificar                                              | ⚠️ Verificar |
+| Bonus items (vegetales)             | Sí, aparecen entre oleadas | Verificar                                              | ⚠️ Verificar |
 
 ---
 
@@ -456,13 +456,13 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 **Original:** Atari Missile Command (1980)
 
-| Mecánica                     | Original              | Actual                   | Estado       |
-| ---------------------------- | --------------------- | ------------------------ | ------------ |
-| 3 ciudades (original)        | 3                     | 6 (decisión del usuario) | ⚠️           |
-| Misiles enemigos normales    | Sí                    | Sí                       | ✅           |
-| Smart bombs / guided         | No existían           | Eliminados (fase 1)      | ✅           |
-| Bonus por sobrevivir oleada  | Sí, puntos por ciudad | Verificar                | ⚠️ Verificar |
-| Niveles: misiles más rápidos | Sí                    | Verificar                | ⚠️ Verificar |
+| Mecánica                     | Original              | Actual                                          | Estado |
+| ---------------------------- | --------------------- | ----------------------------------------------- | ------ |
+| 3 ciudades (original)        | 3                     | 6 (decisión del usuario)                        | ⚠️     |
+| Misiles enemigos normales    | Sí                    | Sí                                              | ✅     |
+| Smart bombs / guided         | No existían           | Eliminados (fase 1)                             | ✅     |
+| Bonus por sobrevivir oleada  | Sí, puntos por ciudad | ✅ `CITY_PTS=5 × wave` por ciudad viva          | ✅     |
+| Niveles: misiles más rápidos | Sí                    | ✅ `120 + wave*8 + rand*40` — escala con oleada | ✅     |
 
 ---
 
@@ -470,13 +470,13 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 **Original:** Williams Defender (1981)
 
-| Mecánica                                   | Original | Actual                 | Estado       |
-| ------------------------------------------ | -------- | ---------------------- | ------------ |
-| 4 armas (laser, bomb, hyperspace, nuclear) | Sí       | Implementadas (fase 1) | ✅           |
-| hyperspace: posición aleatoria             | Sí       | Implementado           | ✅           |
-| nuclear: 1 por vida                        | Sí       | Implementado           | ✅           |
-| Mutantes al perder humanos                 | Sí       | Verificar              | ⚠️ Verificar |
-| Radar de humanos                           | Sí       | Verificar              | ⚠️ Verificar |
+| Mecánica                                   | Original | Actual                                                 | Estado |
+| ------------------------------------------ | -------- | ------------------------------------------------------ | ------ |
+| 4 armas (laser, bomb, hyperspace, nuclear) | Sí       | Implementadas (fase 1)                                 | ✅     |
+| hyperspace: posición aleatoria             | Sí       | Implementado                                           | ✅     |
+| nuclear: 1 por vida                        | Sí       | Implementado                                           | ✅     |
+| Mutantes al perder humanos                 | Sí       | ✅ 100% spawn al perder humano (`spawnMutant`)         | ✅     |
+| Radar de humanos                           | Sí       | ✅ Mini-radar bottom-left con dots de enemigos/humanos | ✅     |
 
 ---
 
@@ -484,22 +484,22 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 ### Todos los juegos completados
 
-| Juego           | Fase 1 | Paridad arcade         |
-| --------------- | ------ | ---------------------- |
-| Space Invaders  | ✅     | ✅ 11/11 features core |
-| Pac-Man         | ✅     | ✅ 4/10 features core  |
-| Tetris          | ✅     | ✅ 4/7 features core   |
-| Frogger         | ✅     | ✅ 8/8 features        |
-| Galaga          | ✅     | ✅ 6/9 features core   |
-| Centipede       | ✅     | ✅ Verificado          |
-| Dig Dug         | ✅     | ✅ Verificado          |
-| Missile Command | ✅     | ✅ Verificado          |
-| Defender        | ✅     | ✅ Verificado          |
-| Donkey Kong     | ✅     | ✅ 4 fases completas   |
-| Pong            | ✅     | ✅ 2P + IA humanizada  |
-| Breakout        | ✅     | ✅ Anti-stuck + 8×14   |
-| Asteroids       | ✅     | ✅ Hiperspacio         |
-| Joust           | ✅     | ✅ Vultures + pteros   |
+| Juego           | Fase 1 | Paridad arcade                                              |
+| --------------- | ------ | ----------------------------------------------------------- |
+| Space Invaders  | ✅     | ✅ 11/11 features core                                      |
+| Pac-Man         | ✅     | ✅ 8/10 features core                                       |
+| Tetris          | ✅     | ✅ 4/7 features core                                        |
+| Frogger         | ✅     | ✅ 8/8 features                                             |
+| Galaga          | ✅     | ✅ 6/9 features core                                        |
+| Centipede       | ✅     | ✅ 3/3 features (Flea/Scorpion/Spider)                      |
+| Dig Dug         | ✅     | ✅ 4/6 features (Pooka disguise ✅, Fygar+bonus pendientes) |
+| Missile Command | ✅     | ✅ 4/5 features (bonus+speed ✅, 3 cities decisión)         |
+| Defender        | ✅     | ✅ 5/5 features (mutants+radar ✅)                          |
+| Donkey Kong     | ✅     | ✅ 4 fases completas                                        |
+| Pong            | ✅     | ✅ 2P + IA humanizada                                       |
+| Breakout        | ✅     | ✅ Anti-stuck + 8×14                                        |
+| Asteroids       | ✅     | ✅ Hiperspacio                                              |
+| Joust           | ✅     | ✅ Vultures + pteros                                        |
 
 ### No-arcade — Completado
 

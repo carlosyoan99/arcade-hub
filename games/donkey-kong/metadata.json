@@ -50,6 +50,15 @@
       ]
     },
     {
+      "version": "1.5.0",
+      "date": "2026-08-26",
+      "changes": [
+        "4 fases arcade: Barriles (25m), Fuego (50m), Elevador (75m), Plataformas móviles (100m)",
+        "Progresión ciclica: niveles 1→barriles, 2→fuego, 3→elevador, 4→móviles, 5→barriles...",
+        "HUD muestra fase actual junto al nivel"
+      ]
+    },
+    {
       "version": "1.4.0",
       "date": "2026-08-26",
       "changes": [
