@@ -2,7 +2,7 @@
 
 > Auditoría de mecánicas de los 19 juegos contra sus originales/referencias del género.
 > Fecha: 2026-08-24 | Última actualización: 2026-08-26
-> Estado: **16/16 arcade completados + paridad, 3 no-arcade completados, 0 pendientes**
+> Estado: **14/14 arcade completados + paridad, 3 no-arcade completados, 0 pendientes**
 
 ---
 
@@ -405,21 +405,21 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 ### Galaga — Paridad
 
-**Original:** Namco Galaga (1981) · **v1.8.0**
+**Original:** Namco Galaga (1981) · **v1.9.0**
 
-| Mecánica                                | Original                              | Actual                                                   | Estado |
-| --------------------------------------- | ------------------------------------- | -------------------------------------------------------- | ------ |
-| 3 tipos de enemigo (Boss/Bee/Butterfly) | Distintos sprites, HP, comportamiento | ✅ Boss(2HP,corona,150pts), Bee(rayas,100pts), Butterfly | ✅     |
-| Boss Galaga: 2 HP en formación          | Sí                                    | ✅ Requiere 2 impactos                                   | ✅     |
-| Doble disparo: permanente hasta morir   | Sí, dura hasta perder vida            | ✅ Permanente tras rescatar nave capturada               | ✅     |
-| Vida extra a 10K/30K/60K                | Sí                                    | ✅ Vidas extra a 10K/30K/60K                             | ✅     |
-| Formaciones por stage (40 stages)       | Patrones únicos                       | ❌ Siempre la misma grilla 10×5                          | ❌     |
-| Entry sequences (stages 1-4)            | Vuelos scriptados a formación         | ❌ Enemigos aparecen estáticos                           | ❌     |
-| Bonus/challenge stages                  | Sí, stages de shoot-em-up             | ❌ No                                                    | ❌     |
-| Row 2 points                            | 150 (Boss)                            | ✅ 150 para Boss                                         | ✅     |
-| Shoot frequency escala con wave         | Sí                                    | ✅ Escala con la oleada                                  | ✅     |
+| Mecánica                                | Original                              | Actual                                                                                | Estado |
+| --------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------- | ------ |
+| 3 tipos de enemigo (Boss/Bee/Butterfly) | Distintos sprites, HP, comportamiento | ✅ Boss(2HP,corona,150pts), Bee(rayas,100pts), Butterfly                              | ✅     |
+| Boss Galaga: 2 HP en formación          | Sí                                    | ✅ Requiere 2 impactos                                                                | ✅     |
+| Doble disparo: permanente hasta morir   | Sí, dura hasta perder vida            | ✅ Permanente tras rescatar nave capturada                                            | ✅     |
+| Vida extra a 10K/30K/60K                | Sí                                    | ✅ Vidas extra a 10K/30K/60K                                                          | ✅     |
+| Formaciones por stage (40 stages)       | Patrones únicos                       | ✅ 8 patrones rotativos (classic/diamond/arrow/chevron/V/hourglass/scattered/invader) | ✅     |
+| Entry sequences (stages 1-4)            | Vuelos scriptados a formación         | ✅ Vuelos scriptados desde lados con bezier paths, 4 secuencias                       | ✅     |
+| Bonus/challenge stages                  | Sí, stages de shoot-em-up             | ✅ Cada 5 oleadas: 40 enemigos vuelan libremente, 15s, 100pts/kill                    | ✅     |
+| Row 2 points                            | 150 (Boss)                            | ✅ 150 para Boss                                                                      | ✅     |
+| Shoot frequency escala con wave         | Sí                                    | ✅ Escala con la oleada                                                               | ✅     |
 
-**Resumen:** 6/9 features. Los 3 faltantes (formaciones, entry sequences, bonus stages) son avanzados.
+**Resumen:** 9/9 features core. Paridad completa.
 
 ---
 
@@ -490,7 +490,7 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 | Pac-Man         | ✅     | ✅ 8/10 features core                                       |
 | Tetris          | ✅     | ✅ 4/7 features core                                        |
 | Frogger         | ✅     | ✅ 8/8 features                                             |
-| Galaga          | ✅     | ✅ 6/9 features core                                        |
+| Galaga          | ✅     | ✅ 9/9 features core                                        |
 | Centipede       | ✅     | ✅ 3/3 features (Flea/Scorpion/Spider)                      |
 | Dig Dug         | ✅     | ✅ 4/6 features (Pooka disguise ✅, Fygar+bonus pendientes) |
 | Missile Command | ✅     | ✅ 4/5 features (bonus+speed ✅, 3 cities decisión)         |
