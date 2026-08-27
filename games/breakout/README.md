@@ -35,6 +35,7 @@ Rompe todos los ladrillos con la pelota. 8 filas de colores, niveles progresivos
 - 🏆 **Rompedor de récords** — Alcanzá 1.000 puntos de récord
 - 🏆 **Veterano** — Alcanzá el nivel 5
 - 🏆 **Perfecto** — Ganá una partida sin perder vida
+
 ## Consejos
 
 - Tratá de mantener la pelota en el centro de la paleta para tener más control de la dirección

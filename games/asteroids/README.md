@@ -37,6 +37,7 @@ Navegá por el espacio destruyendo asteroides. Los grandes se parten en medianos
 - 🏆 **Pionero espacial** — Alcanzá 1.000 puntos de récord
 - 🏆 **Hiperspacio** — Usá el hiperspacio una vez
 - 🏆 **Superviviente** — Completá una oleada sin morir
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

@@ -41,6 +41,7 @@ Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. Complet�
 - 🏆 **Rana experta** — Alcanzá 1.000 puntos de récord
 - 🏆 **Héroe** — Alcanzá 3 goals en una partida
 - 🏆 **Coleccionista** — Comé un bonus item
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

@@ -45,6 +45,7 @@ Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progres
 - 🏆 **Constructor de líneas** — Alcanzá 500 puntos de récord
 - 🏆 **Tetris** — Completá 4 líneas de una vez
 - 🏆 **Siglo** — Completá 100 líneas en total
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

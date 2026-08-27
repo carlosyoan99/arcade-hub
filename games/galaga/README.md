@@ -36,6 +36,7 @@ Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y s
 - 🏆 **As del espacio** — Alcanzá 2.000 puntos de récord
 - 🏆 **Boss Kill** — Derrotá un Boss Galaga
 - 🏆 **Veterano** — Alcanzá la oleada 10
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

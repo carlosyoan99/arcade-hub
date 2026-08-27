@@ -35,6 +35,7 @@ El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin ch
 - 🏆 **Decatlón** — Alcanzá 10 puntos de récord
 - 🏆 **Creciente** — Alcanzá 25 puntos
 - 🏆 **Demonio de velocidad** — Alcanzá velocidad máxima
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

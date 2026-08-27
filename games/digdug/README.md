@@ -37,6 +37,7 @@ Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrum
 - 🏆 **Excavador experto** — Alcanzá 1.000 puntos de récord
 - 🏆 **Aplastamiento** — Aplatá un enemigo con una roca
 - 🏆 **Profundo** — Alcanzá la oleada 5
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

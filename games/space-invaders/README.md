@@ -37,6 +37,7 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 - 🏆 **Conquistador galáctico** — Alcanzá 2.000 puntos de récord
 - 🏆 **Misterioso** — Derribá la nave misteriosa
 - 🏆 **Veterano** — Alcanzá la oleada 5
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

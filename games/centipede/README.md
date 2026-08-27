@@ -37,6 +37,7 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 - 🏆 **Cazador de ciempiés** — Alcanzá 1.000 puntos de récord
 - 🏆 **5000 puntos** — Alcanzá 5000 puntos
 - 🏆 **Veterano de oleadas** — Alcanzá la oleada 5
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

@@ -30,6 +30,7 @@ Volá esquivando tubos. Tocá la pantalla o presioná Espacio para aletear. ¡A 
 
 - 🏆 **Decatlón alado** — Alcanzá 10 puntos de récord
 - 🏆 **Maestro** — Alcanzá 20 puntos
+
 ## Consejos
 
 - Aleteá con ritmo constante, no en ráfagas

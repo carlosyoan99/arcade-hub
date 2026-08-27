@@ -38,6 +38,7 @@ Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets t
 - 🏆 **Maestro del laberinto** — Alcanzá 2.000 puntos de récord
 - 🏆 **Frutero** — Comé una fruta
 - 🏆 **Cazafantasmas** — Comé 4 fantasmas con una power pellet
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

@@ -34,6 +34,7 @@ Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dis
 - 🏆 **Defensor de la humanidad** — Alcanzá 1.000 puntos en una partida
 - 🏆 **Protector** — Sobreviví con todas las ciudades
 - 🏆 **Superviviente** — Alcanzá la oleada 5
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

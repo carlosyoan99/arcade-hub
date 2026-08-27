@@ -42,6 +42,7 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 - 🏆 **Velocista** — Alcanzá 500 puntos de récord
 - 🏆 **Maratón** — Corré 1000m
 - 🏆 **Búho nocturno** — Sobreviví la noche
+
 ## Consejos
 
 - Agacharse solo funciona en el suelo (no en el aire)

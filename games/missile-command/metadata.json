@@ -73,9 +73,7 @@
     {
       "version": "1.0.0",
       "date": "2026-07-28",
-      "changes": [
-        "Versión inicial del juego"
-      ]
+      "changes": ["Versión inicial del juego"]
     }
   ]
 }

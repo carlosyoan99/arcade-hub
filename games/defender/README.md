@@ -49,6 +49,7 @@ Side-scrolling shooter clásico. Defendé a los humanos de la invasión alieníg
 - 🏆 **Nuclear** — Usá la bomba nuclear una vez
 - 🏆 **Hiperspacio** — Usá el hiperspacio una vez
 - 🏆 **5 oleadas** — Sobreviví 5 oleadas
+
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
