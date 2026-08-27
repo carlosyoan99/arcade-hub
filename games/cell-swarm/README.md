@@ -1,6 +1,6 @@
 # 🟣 Cell Swarm
 
-**Versión:** 1.6.0 | **Género:** Battle Royale | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Battle Royale | **Última actualización:** 2026-08-26
 
 Battle royale de células neón. Crece comiendo comida y células más pequeñas, divide tu masa para cazar, eyecta para distraer. ¡Conviértete en la célula más grande del mapa!
 
@@ -69,6 +69,7 @@ Battle royale de células neón. Crece comiendo comida y células más pequeñas
 
 ## Changelog
 
+- **1.7.0** (2026-08-27): stopMusic/stopAmbient + ambient drone único
 - **1.6.0** (2026-08-26): Fidelidad Agar.io/Slither.io — mass decay con el tiempo (previene camping), boost (`Shift`, ×1.8 consumiendo masa), viruses que dividen células > 120 masa, border kill (tocar el borde = muerte), chaser pellets que huyen y dan bonus ×3 con boost, y botón de boost táctil (⚡)
 - **1.5.0** (2026-08-26): Refactor: shell compartido `shared/shell.js` — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía `shared/scores.js` | Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida
 - **1.4.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

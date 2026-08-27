@@ -1,6 +1,6 @@
 # 🛸 Galaga
 
-**Versión:** 1.7.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
+**Versión:** 1.9.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
 
 Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y sobreviví el mayor tiempo posible.
 
@@ -34,7 +34,8 @@ Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y s
 ## Logros
 
 - 🏆 **As del espacio** — Alcanzá 2.000 puntos de récord
-
+- 🏆 **Boss Kill** — Derrotá un Boss Galaga
+- 🏆 **Veterano** — Alcanzá la oleada 10
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -51,6 +52,7 @@ Destruí oleadas de invasores en formación. Esquivá sus picados en espiral y s
 
 ## Changelog
 
+- **1.9.0** (2026-08-27): 8 formations + entry sequences + bonus stages + fix achievement bug + stopMusic/stopAmbient
 - **1.7.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`
 - **1.6.0** (2026-08-26): Mecánica icónica — tractor beam en oleadas pares: captura de nave con animación de haz expansivo, rescate al destruir al portador (doble disparo 10s) y bonus por interrumpirlo
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

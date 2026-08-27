@@ -1,6 +1,6 @@
 # 🧱 Breakout
 
-**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Rompe todos los ladrillos con la pelota. 8 filas de colores, niveles progresivos y récord persistido.
 
@@ -33,7 +33,8 @@ Rompe todos los ladrillos con la pelota. 8 filas de colores, niveles progresivos
 ## Logros
 
 - 🏆 **Rompedor de récords** — Alcanzá 1.000 puntos de récord
-
+- 🏆 **Veterano** — Alcanzá el nivel 5
+- 🏆 **Perfecto** — Ganá una partida sin perder vida
 ## Consejos
 
 - Tratá de mantener la pelota en el centro de la paleta para tener más control de la dirección
@@ -57,6 +58,7 @@ Rompe todos los ladrillos con la pelota. 8 filas de colores, niveles progresivos
 
 ## Changelog
 
+- **1.7.0** (2026-08-27): Layout 8×14 + anti-stuck + stopMusic/stopAmbient + shake reducido + achievements
 - **1.6.0** (2026-08-26): Refactor: shell compartido `shared/shell.js` — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía `shared/scores.js` | Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings

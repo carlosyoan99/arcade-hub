@@ -1,6 +1,6 @@
 # 🐸 Frogger
 
-**Versión:** 1.7.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.8.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. Completá las 5 zonas seguras y avanzá a niveles infinitos.
 
@@ -39,7 +39,8 @@ Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. Complet�
 ## Logros
 
 - 🏆 **Rana experta** — Alcanzá 1.000 puntos de récord
-
+- 🏆 **Héroe** — Alcanzá 3 goals en una partida
+- 🏆 **Coleccionista** — Comé un bonus item
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -56,6 +57,7 @@ Cruzá la calle y el río esquivando autos, camiones y cayendo al agua. Complet�
 
 ## Changelog
 
+- **1.8.0** (2026-08-27): stopMusic/stopAmbient + ambient drone único + achievements
 - **1.7.0** (2026-08-26): Paridad arcade — timer global por nivel (no resetea por vida), cocodrilos en el río (boca abre/cierra y matan al tocar), niveles infinitos (al completar 5 goals avanza al siguiente nivel), race cars angostos y rápidos, trucks lentos y largos, bonus items (fly 200 pts, butterfly 100 pts, snake mata), vida extra a 10.000 y 20.000 puntos y time bonus de 10 pts por segundo restante al llegar a un goal
 - **1.6.0** (2026-08-26): Mecánicas arcade — timer de 60s por vida (barra + aviso) y tortugas sumergibles en filas 4 y 5 del río con ciclo visible y parpadeo previo
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

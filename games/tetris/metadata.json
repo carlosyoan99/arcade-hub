@@ -1,15 +1,30 @@
 {
   "id": "tetris",
   "title": "Tetris",
-  "version": "1.9.0",
+  "version": "2.0.0",
   "created": "2026-06-20",
-  "lastModified": "2026-08-26",
+  "lastModified": "2026-08-27",
   "description": "Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos.",
   "genre": "puzzle",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "2.0.0",
+      "date": "2026-08-27",
+      "changes": [
+        "7-bag randomizer (Fisher-Yates)",
+        "Lock delay 0.5s wall-clock, max 15 resets",
+        "Hidden spawn rows (2 rows)",
+        "Soft drop scoring (1 pt/cell)",
+        "3 next pieces (Guideline)",
+        "T-Spin detection + back-to-back",
+        "Fix render loop (bottom rows visible)",
+        "stopMusic/stopAmbient en endGame",
+        "Achievements: tetris_tetris, tetris_century"
+      ]
+    },
     {
       "version": "1.9.0",
       "date": "2026-08-26",
@@ -23,7 +38,9 @@
     {
       "version": "1.8.0",
       "date": "2026-08-26",
-      "changes": ["Paridad arcade: soft drop scoring (1 punto por celda bajada)"]
+      "changes": [
+        "Paridad arcade: soft drop scoring (1 punto por celda bajada)"
+      ]
     },
     {
       "version": "1.7.0",
@@ -43,7 +60,9 @@
     {
       "version": "1.0.0",
       "date": "2026-06-20",
-      "changes": ["Versión inicial del juego"]
+      "changes": [
+        "Versión inicial del juego"
+      ]
     },
     {
       "version": "1.1.0",

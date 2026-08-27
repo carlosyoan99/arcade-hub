@@ -1,6 +1,6 @@
 # ◈ Neon Nexus
 
-**Versión:** 1.6.0 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Tower Defense Roguelike | **Última actualización:** 2026-08-26
 
 Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara automáticamente, haz clic para daño extra, mejora con estrellas y elige cartas de poder entre oleadas.
 
@@ -65,6 +65,7 @@ Defiende tu torre geométrica contra oleadas de formas neon. La torre dispara au
 
 ## Changelog
 
+- **1.7.0** (2026-08-27): stopMusic/stopAmbient + ambient drone único
 - **1.6.0** (2026-08-26): TD genre parity — enemigos camuflados (requieren Scanner), voladores (oleada 6+), boss waves cada 5 oleadas (HP ×8, daño ×3), wave preview y targeting priority (Prioridad → más HP); nuevas cards Francotirador, Scanner y Prioridad; logro de oleada 20
 - **1.5.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados); fix: libera la trampa de Tab al terminar partida y el botón hub funciona dentro del iframe del hub
 - **1.4.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

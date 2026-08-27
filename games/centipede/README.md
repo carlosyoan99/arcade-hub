@@ -1,6 +1,6 @@
 # 🐛 Centipede
 
-**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruyas se convierte en un hongo nuevo. ¡Cuidado con la araña saltarina, las pulgas y los escorpiones!
 
@@ -35,7 +35,8 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 ## Logros
 
 - 🏆 **Cazador de ciempiés** — Alcanzá 1.000 puntos de récord
-
+- 🏆 **5000 puntos** — Alcanzá 5000 puntos
+- 🏆 **Veterano de oleadas** — Alcanzá la oleada 5
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -54,6 +55,7 @@ Dispará al ciempiés mientras serpentea entre hongos. Cada segmento que destruy
 
 ## Changelog
 
+- **1.7.0** (2026-08-27): stopMusic/stopAmbient + ambient drone único + achievements
 - **1.6.0** (2026-08-26): Fidelidad arcade — el jugador se mueve solo por el tercio inferior de la pantalla y splitting clásico (al destruir un segmento, la cola se convierte en un ciempiés independiente) | Refactor: shell compartido `shared/shell.js` — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía `shared/scores.js` | Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings; R3: constantes extraídas (velocidades, intervalos de olas); fix refs rotas mouseX/Y→player.x/y

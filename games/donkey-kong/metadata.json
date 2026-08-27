@@ -14,6 +14,15 @@
       "version": "1.6.0",
       "date": "2026-08-27",
       "changes": [
+        "4 fases completas (Barriles/Fuego/Elevador/Construcción)",
+        "stopMusic/stopAmbient en endGame",
+        "Ambient drone único"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-08-27",
+      "changes": [
         "Fase Construcción (100m) fiel al arcade: reemplaza 'Plataformas móviles', barriles ruedan y caen por el hueco central del girder removible",
         "Power-up martillo: recogelo para destruir barriles (100 pts c/u) con invulnerabilidad de 4.5s; logro `dk_hammer` al destruir 3",
         "Progresión de dificultad: los girder ensanchan su hueco central según el nivel"
@@ -29,7 +38,9 @@
     {
       "version": "1.0.0",
       "date": "2026-07-28",
-      "changes": ["Versión inicial del juego"]
+      "changes": [
+        "Versión inicial del juego"
+      ]
     },
     {
       "version": "1.1.0",

@@ -1,6 +1,6 @@
 # 🐍 Snake
 
-**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin chocarte contra las paredes ni contra vos mismo.
 
@@ -33,7 +33,8 @@ El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin ch
 ## Logros
 
 - 🏆 **Decatlón** — Alcanzá 10 puntos de récord
-
+- 🏆 **Creciente** — Alcanzá 25 puntos
+- 🏆 **Demonio de velocidad** — Alcanzá velocidad máxima
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -51,6 +52,7 @@ El clásico de la serpiente. Atrapá la comida para crecer y sumar puntos sin ch
 
 ## Changelog
 
+- **1.7.0** (2026-08-27): stopMusic/stopAmbient + ambient drone único + achievements
 - **1.6.0** (2026-08-26): Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía shared/scores.js | Fix: teardown de audio garantizado en cleanup
 - **1.5.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.1** (2026-07-31): R1: coordenadas de grid `.z/.dz` renombradas a `.y/.dy` — último vestigio 3D eliminado

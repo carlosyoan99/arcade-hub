@@ -1,15 +1,25 @@
 {
   "id": "flappy-bird",
   "title": "Flappy Bird",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "created": "2026-06-15",
-  "lastModified": "2026-08-26",
+  "lastModified": "2026-08-27",
   "description": "Volá esquivando tubos. Tocá la pantalla o presioná Espacio para aletear.",
   "genre": "arcade",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "1.7.0",
+      "date": "2026-08-27",
+      "changes": [
+        "Difficulty progression (gap 140→90, speed 200→320)",
+        "stopMusic/stopAmbient en endGame",
+        "Ambient drone único",
+        "Achievement: flappy_master"
+      ]
+    },
     {
       "version": "1.5.1",
       "date": "2026-08-26",
@@ -20,7 +30,9 @@
     {
       "version": "1.0.0",
       "date": "2026-06-15",
-      "changes": ["Versión inicial del juego"]
+      "changes": [
+        "Versión inicial del juego"
+      ]
     },
     {
       "version": "1.1.0",

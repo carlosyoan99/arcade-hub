@@ -1,6 +1,6 @@
 # 🧊 Tetris
 
-**Versión:** 1.9.0 | **Género:** Puzzle | **Última actualización:** 2026-08-26
+**Versión:** 2.0.0 | **Género:** Puzzle | **Última actualización:** 2026-08-26
 
 Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progresivos. ¡Clásico infinito!
 
@@ -43,7 +43,8 @@ Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progres
 ## Logros
 
 - 🏆 **Constructor de líneas** — Alcanzá 500 puntos de récord
-
+- 🏆 **Tetris** — Completá 4 líneas de una vez
+- 🏆 **Siglo** — Completá 100 líneas en total
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -62,6 +63,7 @@ Armá líneas con las 7 piezas que caen. Rotación, ghost piece, niveles progres
 
 ## Changelog
 
+- **2.0.0** (2026-08-27): Fix render loop (bottom rows visible) + stopMusic/stopAmbient + achievements
 - **1.9.0** (2026-08-26): T-Spin detection: full T-Spin (3+ corners) y mini T-Spin (2 front corners) | Back-to-back bonus: ×1.5 score en Tetrises/T-Spins consecutivos sin line clear normal | T-Spin scoring: Single 400, Double 800, Triple 1200, Mini Single 100 | B2B indicator en HUD + T-Spin/Tetris announcements
 - **1.8.0** (2026-08-26): Paridad arcade: soft drop scoring (1 punto por celda bajada)
 - **1.7.0** (2026-08-26): Paridad arcade: 7-bag randomizer (Fisher-Yates) + lock delay 0.5s wall-clock con max 15 resets

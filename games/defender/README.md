@@ -1,6 +1,6 @@
 # 🚀 Defender
 
-**Versión:** 1.5.0 | **Género:** Shooter | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Shooter | **Última actualización:** 2026-08-26
 
 Side-scrolling shooter clásico. Defendé a los humanos de la invasión alienígena en un mundo que se desplaza horizontalmente.
 
@@ -46,7 +46,9 @@ Side-scrolling shooter clásico. Defendé a los humanos de la invasión alieníg
 - 🏆 **Primera baja** — Eliminá tu primer enemigo
 - 🏆 **Tres bombas** — Usá 3 bombas inteligentes
 - 🏆 **Comandante** — Alcanzá 10.000 puntos en una partida
-
+- 🏆 **Nuclear** — Usá la bomba nuclear una vez
+- 🏆 **Hiperspacio** — Usá el hiperspacio una vez
+- 🏆 **5 oleadas** — Sobreviví 5 oleadas
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -66,6 +68,7 @@ Side-scrolling shooter clásico. Defendé a los humanos de la invasión alieníg
 
 ## Changelog
 
+- **1.6.0** (2026-08-27): Mutants 100% + stopMusic/stopAmbient + ambient drone único + achievements
 - **1.5.0** (2026-08-26): Auditoría — agregados hiperspacio (teleport, 5s cooldown, tecla `H`) y bomba nuclear (1 por vida, tecla `N`) — las 4 armas del original
 - **1.4.0** (2026-08-26): Refactor: shell compartido `shared/shell.js` — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía `shared/scores.js` | Fix: ahora libera la trampa de Tab al terminar partida (antes quedaba activa) y el botón hub funciona dentro del iframe del hub
 - **1.3.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

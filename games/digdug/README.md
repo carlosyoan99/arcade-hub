@@ -1,6 +1,6 @@
 # ⛏️ Dig Dug
 
-**Versión:** 1.6.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Arcade | **Última actualización:** 2026-08-26
 
 Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrumbá rocas sobre ellos. Dos tipos de enemigos con IA propia.
 
@@ -35,7 +35,8 @@ Excavá túneles en la tierra, inflá a los enemigos hasta que exploten o derrum
 ## Logros
 
 - 🏆 **Excavador experto** — Alcanzá 1.000 puntos de récord
-
+- 🏆 **Aplastamiento** — Aplatá un enemigo con una roca
+- 🏆 **Profundo** — Alcanzá la oleada 5
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas

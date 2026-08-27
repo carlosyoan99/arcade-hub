@@ -1,6 +1,6 @@
 # 🦖 Dino Runner
 
-**Versión:** 1.7.0 | **Género:** Plataformas | **Última actualización:** 2026-08-26
+**Versión:** 1.8.0 | **Género:** Plataformas | **Última actualización:** 2026-08-26
 
 Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad aumenta con el tiempo. ¿Cuánto podés durar?
 
@@ -40,7 +40,8 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 ## Logros
 
 - 🏆 **Velocista** — Alcanzá 500 puntos de récord
-
+- 🏆 **Maratón** — Corré 1000m
+- 🏆 **Búho nocturno** — Sobreviví la noche
 ## Consejos
 
 - Agacharse solo funciona en el suelo (no en el aire)
@@ -63,6 +64,7 @@ Corré, saltá y agachate para esquivar cactus y pterodáctilos. La velocidad au
 
 ## Changelog
 
+- **1.8.0** (2026-08-27): Fix gravedad + stopMusic/stopAmbient + ambient drone único + achievements
 - **1.7.0** (2026-08-26): Paridad Chrome Dino — fast-fall (↓ en el aire acelera la caída), day/night cycling automático cada 100m, pterodáctilos con 3 alturas fijas (high/mid/low), parpadeo del dino cada 3.5s, nubes parallax multi-capa, easter egg (pastel en la cabeza del dino) y milestone chime cada 1000m
 - **1.6.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`
 - **1.5.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

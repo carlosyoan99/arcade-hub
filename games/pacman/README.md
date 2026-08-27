@@ -1,6 +1,6 @@
 # 🟡 Pac-Man
 
-**Versión:** 1.7.0 | **Género:** Laberinto | **Última actualización:** 2026-08-26
+**Versión:** 1.9.0 | **Género:** Laberinto | **Última actualización:** 2026-08-26
 
 Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets te dejan comer fantasmas. ¡4 IAs distintas!
 
@@ -36,7 +36,8 @@ Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets t
 ## Logros
 
 - 🏆 **Maestro del laberinto** — Alcanzá 2.000 puntos de récord
-
+- 🏆 **Frutero** — Comé una fruta
+- 🏆 **Cazafantasmas** — Comé 4 fantasmas con una power pellet
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -53,6 +54,7 @@ Comé todos los puntos del laberinto esquivando a los fantasmas. Power pellets t
 
 ## Changelog
 
+- **1.9.0** (2026-08-27): Maze tunnel fix + vertical bounds + stopMusic/stopAmbient + achievements
 - **1.8.0** (2026-08-26): Paridad arcade — fright duration 6s (antes 7s), duración original del cabinet; pausa de 1s al comer fantasma con freeze visual clásico
 - **1.7.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`
 - **1.6.0** (2026-08-26): Mecánicas arcade — ciclos scatter/chase con inversión (7s/20s/7s/20s/5s/5s/5s → chase ∞), frutas bonus al comer 70/170 puntos (100–1000 pts) y animación de muerte clásica

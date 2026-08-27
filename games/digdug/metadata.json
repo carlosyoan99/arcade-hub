@@ -1,15 +1,25 @@
 {
   "id": "digdug",
   "title": "Dig Dug",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "created": "2026-07-25",
-  "lastModified": "2026-08-26",
+  "lastModified": "2026-08-27",
   "description": "Excavá túneles, inflá enemigos hasta que exploten o derrumbá rocas sobre ellos.",
   "genre": "arcade",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "1.7.0",
+      "date": "2026-08-27",
+      "changes": [
+        "Pooka mushroom disguise (4-8s timer)",
+        "stopMusic/stopAmbient en endGame",
+        "Ambient drone único",
+        "Achievements: digdug_rock_kill, digdug_deep"
+      ]
+    },
     {
       "version": "1.7.0",
       "date": "2026-08-26",
@@ -73,7 +83,9 @@
     {
       "version": "1.0.0",
       "date": "2026-07-25",
-      "changes": ["Versión inicial del juego"]
+      "changes": [
+        "Versión inicial del juego"
+      ]
     }
   ]
 }

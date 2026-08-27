@@ -1,15 +1,25 @@
 {
   "id": "defender",
   "title": "Defender",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "created": "2026-07-28",
-  "lastModified": "2026-08-26",
+  "lastModified": "2026-08-27",
   "description": "Side-scrolling shooter. Defendé a los humanos con laser, bombas, hiperspacio y nuclear.",
   "genre": "shooter",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "1.6.0",
+      "date": "2026-08-27",
+      "changes": [
+        "Mutants 100% spawn al perder humano",
+        "stopMusic/stopAmbient en endGame",
+        "Ambient drone único",
+        "Achievements: defender_nuke, defender_hyperspace, defender_5waves"
+      ]
+    },
     {
       "version": "1.5.0",
       "date": "2026-08-26",

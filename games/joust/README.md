@@ -1,6 +1,6 @@
 # 🦅 Joust
 
-**Versión:** 1.5.0 | **Género:** Acción | **Última actualización:** 2026-08-26
+**Versión:** 1.6.0 | **Género:** Acción | **Última actualización:** 2026-08-26
 
 Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas clásicas. Golpeá desde arriba para vencer, recolectá huevos para puntos extra y sobreviví oleadas cada vez más difíciles.
 
@@ -57,6 +57,7 @@ Montá tu avestruz y derrotá a los jinetes enemigos en justas aéreas clásicas
 
 ## Changelog
 
+- **1.6.0** (2026-08-27): Vulture + Pterodactyl + stopMusic/stopAmbient + fix import
 - **1.5.0** (2026-08-26): Vultures + Pterodactyls + lava subiendo gradualmente
 - **1.4.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados); fix: ahora libera la trampa de Tab al terminar partida (antes quedaba activa)
 - **1.3.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

@@ -1,6 +1,6 @@
 # 👾 Space Invaders
 
-**Versión:** 1.7.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
+**Versión:** 1.8.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
 
 Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos, nave misteriosa y velocidad progresiva.
 
@@ -35,7 +35,8 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 ## Logros
 
 - 🏆 **Conquistador galáctico** — Alcanzá 2.000 puntos de récord
-
+- 🏆 **Misterioso** — Derribá la nave misteriosa
+- 🏆 **Veterano** — Alcanzá la oleada 5
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -53,6 +54,7 @@ Destruí oleadas de invasores espaciales antes de que lleguen a la base. Escudos
 
 ## Changelog
 
+- **1.8.0** (2026-08-27): Wave difficulty scaling + stopMusic/stopAmbient + achievements
 - **1.7.0** (2026-08-26): Fidelidad arcade: un solo disparo del jugador en pantalla a la vez | Nave misteriosa con puntos variables aleatorios (50–300) como el original | Refactor: shell compartido shared/shell.js — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía shared/scores.js | Fix: teardown de audio garantizado en cleanup
 - **1.6.0** (2026-08-26): Refactor — récords vía `shared/scores.js` + shell compartido
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

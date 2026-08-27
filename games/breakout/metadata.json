@@ -1,15 +1,26 @@
 {
   "id": "breakout",
   "title": "Breakout",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "created": "2026-06-03",
-  "lastModified": "2026-08-26",
+  "lastModified": "2026-08-27",
   "description": "Rompe todos los ladrillos con la pelota. 5 filas de colores, niveles progresivos.",
   "genre": "arcade",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "1.7.0",
+      "date": "2026-08-27",
+      "changes": [
+        "Layout 8×14 (antes 5×9)",
+        "Anti-stuck timer (5s)",
+        "8 colores/points por fila",
+        "stopMusic/stopAmbient en endGame",
+        "Screen shake reducido"
+      ]
+    },
     {
       "version": "1.5.1",
       "date": "2026-08-26",
@@ -20,7 +31,9 @@
     {
       "version": "1.0.0",
       "date": "2026-06-03",
-      "changes": ["Versión inicial del juego"]
+      "changes": [
+        "Versión inicial del juego"
+      ]
     },
     {
       "version": "1.1.0",

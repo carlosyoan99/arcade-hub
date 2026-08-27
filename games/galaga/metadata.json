@@ -1,15 +1,28 @@
 {
   "id": "galaga",
   "title": "Galaga",
-  "version": "1.7.0",
+  "version": "1.9.0",
   "created": "2026-07-15",
-  "lastModified": "2026-08-26",
+  "lastModified": "2026-08-27",
   "description": "Destruí oleadas de invasores en formación con picados en espiral.",
   "genre": "space-shooter",
   "author": "Arcade Hub",
   "license": "MIT",
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
+    {
+      "version": "1.9.0",
+      "date": "2026-08-27",
+      "changes": [
+        "8 formation patterns rotativos",
+        "Entry sequences (4 stages)",
+        "Bonus challenge stages (cada 5 waves)",
+        "3 tipos: Boss/Bee/Butterfly",
+        "Permanent double shot",
+        "stopMusic/stopAmbient en endGame",
+        "Fix e.typeName → e.type en achievement"
+      ]
+    },
     {
       "version": "1.6.0",
       "date": "2026-08-26",
@@ -29,7 +42,9 @@
     {
       "version": "1.0.0",
       "date": "2026-07-15",
-      "changes": ["Versión inicial del juego"]
+      "changes": [
+        "Versión inicial del juego"
+      ]
     },
     {
       "version": "1.1.0",

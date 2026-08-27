@@ -1,6 +1,6 @@
 # 🚀 Missile Command
 
-**Versión:** 1.6.0 | **Género:** Defensa | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Defensa | **Última actualización:** 2026-08-26
 
 Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dispará interceptores.
 
@@ -32,7 +32,8 @@ Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dis
 ## Logros
 
 - 🏆 **Defensor de la humanidad** — Alcanzá 1.000 puntos en una partida
-
+- 🏆 **Protector** — Sobreviví con todas las ciudades
+- 🏆 **Superviviente** — Alcanzá la oleada 5
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -49,6 +50,7 @@ Defendé tus ciudades de misiles enemigos. Apuntá con el mouse o el stick y dis
 
 ## Changelog
 
+- **1.7.0** (2026-08-27): stopMusic/stopAmbient + ambient drone único + achievements
 - **1.6.0** (2026-08-26): Auditoría — eliminados misiles teledirigidos (guided), misiles inteligentes (smart) y satélites, fiel al arcade original; HUD badge guiado removido del HTML
 - **1.5.0** (2026-08-26): Refactor — shell compartido `shared/shell.js` (game-bar, trampa de Tab y cleanup unificados) + récords vía `shared/scores.js`
 - **1.4.2** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)

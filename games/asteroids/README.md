@@ -1,6 +1,6 @@
 # 🚀 Asteroids
 
-**Versión:** 1.6.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
+**Versión:** 1.7.0 | **Género:** Space Shooter | **Última actualización:** 2026-08-26
 
 Navegá por el espacio destruyendo asteroides. Los grandes se parten en medianos, los medianos en chicos. ¡A sobrevivir!
 
@@ -35,7 +35,8 @@ Navegá por el espacio destruyendo asteroides. Los grandes se parten en medianos
 ## Logros
 
 - 🏆 **Pionero espacial** — Alcanzá 1.000 puntos de récord
-
+- 🏆 **Hiperspacio** — Usá el hiperspacio una vez
+- 🏆 **Superviviente** — Completá una oleada sin morir
 ## Detalles técnicos
 
 - Canvas 2D sin dependencias externas
@@ -54,6 +55,7 @@ Navegá por el espacio destruyendo asteroides. Los grandes se parten en medianos
 
 ## Changelog
 
+- **1.7.0** (2026-08-27): Hiperspacio + stopMusic/stopAmbient + ambient drone único + achievements
 - **1.6.0** (2026-08-26): Refactor: shell compartido `shared/shell.js` — game-bar, trampa de Tab y cleanup unificados | Refactor: récords vía `shared/scores.js` | Fix: teardown de audio garantizado y trampa de Tab liberada al terminar partida
 - **1.5.1** (2026-08-26): Música lofi procedural vía `shared/music.js` + toggle 🎵 en game-bar (preferencia global persistida)
 - **1.5.0** (2026-07-30): Game feel completo — `feedbackBundle()` integrado + squash & stretch + hit-stop; P0: `shadowBlur` eliminado de loops con `drawGlow()`; lint 0 errores/0 warnings
