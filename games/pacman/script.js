@@ -86,11 +86,11 @@ const D = {
 const MAZE_DATA = [
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWW",
   "W............WW............W",
-  "WoWWW.WWWW..WW..WWWW.WWWWoW",
-  "W.WWW.WWWW..WW..WWWW.WWW.WW",
+  "WoWWW.WWWW..WW..WWWW.WWWWoWW",
+  "W.WWW.WWWW..WW..WWWW.WWW.WWW",
   "W..........................W",
-  "W.WWW.WW.WWWWWWWW.WW.WWW.WW",
-  "W.WWW.WW.WWWWWWWW.WW.WWW.WW",
+  "W.WWW.WW.WWWWWWWW.WW.WWW.WWW",
+  "W.WWW.WW.WWWWWWWW.WW.WWW.WWW",
   "W....WW...WWWWWWWW...WW....W",
   "WWWW.WWWW.WWWWWWWW.WWWW.WWWW",
   "WWWW.WWWW.WWWWWWWW.WWWW.WWWW",
@@ -107,15 +107,12 @@ const MAZE_DATA = [
   "WWWW.WWWWWWW..WWWWWWW.WWWWWW",
   "WWWW.WWWWWWW..WWWWWWW.WWWWWW",
   "W............WW............W",
-  "WoWWW.WWWW..WW..WWWW.WWWWoW",
-  "W.WWW.WWWW..WW..WWWW.WWW.WW",
-  "W...WW....WWWWWW....WW...WW",
-  "WWW.WW.WW.WWWWWW.WW.WW.WWWW",
-  "WWW.WW.WW.WWWWWW.WW.WW.WWWW",
-  "W....WW...WWWWWW...WW....WW",
-  "W.WWWWWWWW..WW..WWWWWWWW.WW",
-  "W.WWWWWWWW..WW..WWWWWWWW.WW",
-  "W..........................W",
+  "WoWWW.WWWW..WW..WWWW.WWWWoWW",
+  "W.WWW.WWWW..WW..WWWW.WWW.WWW",
+  "W...WW....WWWWWW....WW...WWW",
+  "WWW.WW.WW.WWWWWW.WW.WW.WWWWW",
+  "WWW.WW.WW.WWWWWW.WW.WW.WWWWW",
+  "W....WW...WWWWWW...WW....WWW",
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWW",
 ];
 
@@ -591,9 +588,10 @@ function getGhostTarget(g) {
     case 'blinky': // Chase: targets Pac-Man
       return { x: pac.x, y: pac.y };
     case 'pinky': {
-      // Ambush: 4 tiles ahead of Pac-Man
-      const tx = pac.x + pac.dir.dx * CS * 4;
+      // Ambush: 4 tiles ahead of Pac-Man (with overflow bug: facing up → also 4 left)
+      let tx = pac.x + pac.dir.dx * CS * 4;
       const ty = pac.y + pac.dir.dy * CS * 4;
+      if (pac.dir.dy === -1) tx -= CS * 4; // original overflow bug
       return { x: tx, y: ty };
     }
     case 'inky': {

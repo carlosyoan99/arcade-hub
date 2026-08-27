@@ -263,7 +263,7 @@ let grid = [];
 
 // Current piece
 let piece = null; // { name, blocks:[[x,y],...], color, x, y, rot }
-let nextPiece = null;
+let nextQueue = []; // Guideline: show 3 next pieces
 let holdName = null; // nombre de la pieza guardada (null = vacía)
 let canHold = true; // un uso por pieza hasta bloquear la siguiente
 let dropTimer = 0;
@@ -489,11 +489,11 @@ function spawnFromName(name) {
 }
 
 function spawnPiece() {
-  piece = nextPiece || randomPiece();
+  piece = nextQueue.shift() || randomPiece();
   piece.x = Math.floor((COLS - 4) / 2);
   piece.y = 0;
   piece.rot = 0;
-  nextPiece = randomPiece();
+  nextQueue.push(randomPiece());
   dropTimer = 0;
   lockTimer = 0;
   lockResets = 0;
@@ -789,7 +789,7 @@ function resetGame() {
   state.paused = false;
   grid = [];
   for (let r = 0; r < TOTAL_ROWS; r++) grid.push(new Array(COLS).fill(0));
-  nextPiece = randomPiece();
+  nextQueue = [randomPiece(), randomPiece(), randomPiece()];
   piece = null;
   holdName = null;
   canHold = true;
@@ -978,13 +978,14 @@ function draw() {
     }
   }
 
-  // Next piece preview
+  // Next piece preview (Guideline: 3 pieces)
   const previewX = cx + gridW + CS * s;
   const previewY = cy + CS * s;
+  const previewH = CS * 12 * s;
   ctx.fillStyle = 'rgba(255,255,255,0.05)';
   ctx.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx.lineWidth = 1 * s;
-  roundRect(ctx, previewX, previewY, CS * 5 * s, CS * 5 * s, 4 * s);
+  roundRect(ctx, previewX, previewY, CS * 5 * s, previewH, 4 * s);
   ctx.fill();
   ctx.stroke();
 
@@ -994,18 +995,27 @@ function draw() {
   ctx.textBaseline = 'top';
   ctx.fillText('PRÓXIMO', previewX + CS * 2.5 * s, previewY + 4 * s);
 
-  if (nextPiece) {
+  for (let ni = 0; ni < Math.min(3, nextQueue.length); ni++) {
+    const np = nextQueue[ni];
+    const pieceScale = ni === 0 ? 1 : 0.7;
+    const baseY = previewY + CS * 2 * s + ni * CS * 3.5 * s;
     const offsetX =
       previewX +
       CS * 2.5 * s -
-      (nextPiece.name === 'I' ? CS * 2 * s : nextPiece.name === 'O' ? CS * s : CS * 1.5 * s);
-    const offsetY = previewY + CS * 2.5 * s - CS * s;
-    ctx.globalAlpha = 0.8;
-    for (const [bx, by] of nextPiece.blocks) {
-      drawBlock(offsetX + bx * CS * s, offsetY + by * CS * s, CS * s, nextPiece.color, s);
+      (np.name === 'I' ? CS * 2 * s : np.name === 'O' ? CS * s : CS * 1.5 * s) * pieceScale;
+    const offsetY = baseY;
+    ctx.globalAlpha = ni === 0 ? 0.8 : 0.4;
+    for (const [bx, by] of np.blocks) {
+      drawBlock(
+        offsetX + bx * CS * s * pieceScale,
+        offsetY + by * CS * s * pieceScale,
+        CS * s * pieceScale,
+        np.color,
+        s,
+      );
     }
-    ctx.globalAlpha = 1;
   }
+  ctx.globalAlpha = 1;
 
   // Hold piece preview
   const holdY = previewY + CS * 6 * s;
