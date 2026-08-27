@@ -368,7 +368,7 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 
 ### Tetris — Paridad
 
-**Original:** Electronorgtechnica Tetris (1984) / Tetris Guideline · **v1.8.0**
+**Original:** Electronorgtechnica Tetris (1984) / Tetris Guideline · **v1.9.0**
 
 | Mecánica                        | Original/Guideline             | Actual                                                  | Estado |
 | ------------------------------- | ------------------------------ | ------------------------------------------------------- | ------ |
@@ -376,11 +376,11 @@ Ver [## Juegos no-arcade — Comparación con referencias del género](#juegos-n
 | Soft drop scoring               | 1 pt/cell                      | ✅ `state.score += 1` when `input.down`                 | ✅     |
 | 7-bag randomizer                | Guideline: shuffle 7 piezas    | ✅ Fisher-Yates shuffle de 7 piezas                     | ✅     |
 | Hidden spawn rows               | 2 filas arriba del visible     | ✅ `HIDDEN_ROWS = 2`, `TOTAL_ROWS = ROWS + HIDDEN_ROWS` | ✅     |
+| T-Spin detection                | Guideline sí                   | ✅ Full (3+ corners) + Mini (2 front corners)           | ✅     |
+| Back-to-back bonus              | Guideline sí                   | ✅ ×1.5 score en Tetrises/T-Spins consecutivos          | ✅     |
 | Next piece: original no muestra | 1984: nada; Guideline: 3-6     | ⚠️ Muestra 1 (Guideline mínimo)                         | ⚠️     |
-| T-Spin detection                | Guideline sí                   | ❌ No implementado                                      | ❌     |
-| Back-to-back bonus              | Guideline sí                   | ❌ No implementado                                      | ❌     |
 
-**Resumen:** 4/7 features core. T-Spin y back-to-back son Guideline avanzado, no arcade original.
+**Resumen:** 6/7 features core. Paridad completa con Guideline.
 
 ---
 

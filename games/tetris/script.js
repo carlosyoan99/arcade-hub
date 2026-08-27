@@ -443,6 +443,15 @@ function clearLines() {
     }
     state.score += pts;
     playClear(cleared);
+    // T-Spin announcements
+    if (tspinType === 2 && cleared > 0) {
+      const names = ['', 'T-Spin Single', 'T-Spin Double', 'T-Spin Triple'];
+      say(names[cleared] || 'T-Spin');
+    } else if (tspinType === 1 && cleared > 0) {
+      say('T-Spin Mini');
+    } else if (cleared === 4) {
+      say('Tetris!');
+    }
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         if (grid[r][c] !== 0 && r < HIDDEN_ROWS + 3) {
@@ -577,6 +586,7 @@ function hardDrop() {
   while (!collides(piece.blocks, piece.x, piece.y + 1)) {
     piece.y++;
     dist++;
+    lastMoveWasRotation = false;
   }
   state.score += dist * 2;
   lockPiece();
@@ -1071,7 +1081,7 @@ const levelEl = document.getElementById('levelValue'),
 function updateHUD() {
   scoreEl.textContent = String(state.score);
   linesEl.textContent = String(state.lines);
-  levelEl.textContent = String(state.level);
+  levelEl.textContent = backToBack > 1 ? `${state.level} B2B` : String(state.level);
   bestEl.textContent = String(state.best);
 }
 
