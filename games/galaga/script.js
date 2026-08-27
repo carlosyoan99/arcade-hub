@@ -1,7 +1,7 @@
 import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic } from '../../shared/music.js';
+import { startMusic, stopMusic } from ../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -636,6 +636,8 @@ function loseLife() {
 }
 
 function endGame() {
+  stopMusic();
+  stopAmbient();
   state.running = false;
   state.gameOver = true;
   if (state.score > state.best) {
@@ -1049,7 +1051,7 @@ function updateBullets(dt) {
             e.hp--;
             if (e.hp <= 0) {
               e.alive = false;
-              if (e.typeName === 'boss') achievements.unlock('galaga_boss');
+              if (e.type === 'boss') achievements.unlock('galaga_boss');
             }
             state.score += e.points;
             pExplode();

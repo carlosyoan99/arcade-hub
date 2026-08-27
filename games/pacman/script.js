@@ -1,7 +1,7 @@
 import { ensureAudio, beep } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic } from '../../shared/music.js';
+import { startMusic, stopMusic } from ../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -113,6 +113,7 @@ const MAZE_DATA = [
   "WWW.WW.WW.WWWWWW.WW.WW.WWWWW",
   "WWW.WW.WW.WWWWWW.WW.WW.WWWWW",
   "W....WW...WWWWWW...WW....WWW",
+  "WWWWWWWWWWWWWWWWWWWWWWWWWWWW",
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWW",
 ];
 
@@ -711,6 +712,7 @@ function finishDeath() {
 }
 
 function endGame() {
+  stopMusic();
   state.running = false;
   state.gameOver = true;
   if (state.score > state.best) {
