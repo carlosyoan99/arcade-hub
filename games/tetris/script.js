@@ -451,7 +451,9 @@ function clearLines() {
       say('T-Spin Mini');
     } else if (cleared === 4) {
       say('Tetris!');
+      achievements.unlock('tetris_tetris');
     }
+    if (state.lines >= 100) achievements.unlock('tetris_century');
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         if (grid[r][c] !== 0 && r < HIDDEN_ROWS + 3) {

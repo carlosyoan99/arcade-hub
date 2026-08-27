@@ -264,6 +264,7 @@ function endGame(won) {
 
 function nextWave() {
   state.wave++;
+  if (state.wave >= 5) achievements.unlock('invaders_wave5');
   buildInvaders();
   buildShields();
   enBullets = [];
@@ -695,6 +696,7 @@ const loop = createGameLoop((dt) => {
         playMystery();
         spawnParticles(mysteryShip.x, mysteryShip.y, '#ffd700', 20, { spd: 100, life: 0.5 });
         say(`Nave misteriosa derribada: +${pts}`);
+        achievements.unlock('invaders_mystery');
         mysteryShip = null;
         mysteryTimer = 5 + Math.random() * 8;
         plyBullets.splice(i, 1);

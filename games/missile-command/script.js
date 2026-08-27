@@ -490,6 +490,8 @@ function updateBlasts(dt) {
       if (cityBonus > 0) {
         state.score += cityBonus * state.wave;
       }
+      if (cityBonus >= NUM_CITIES * CITY_PTS) achievements.unlock('missile_protected');
+      if (state.wave >= 5) achievements.unlock('missile_survivor');
       nextWave();
     }
   } else {

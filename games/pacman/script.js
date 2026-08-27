@@ -571,6 +571,7 @@ function updateFruit(dt) {
       playFruit();
       feedbackBundle('medium', FRUIT_POS.x, FRUIT_POS.y, { color: f.body });
       say(`Fruta ${f.name}: +${f.pts}`);
+      achievements.unlock('pacman_fruit');
       state.fruit = null;
       updateHUD();
       checkExtraLife();
@@ -621,6 +622,7 @@ function checkGhostCollisions() {
         g.mode = 'eyes';
         state.score += SCORE_GHOST[Math.min(state.ghostCombo, 3)];
         state.ghostCombo++;
+        if (state.ghostCombo >= 4) achievements.unlock('pacman_ghostbusters');
         state.ghostPause = 1; // freeze ~1s on ghost eat
         playGhost();
         spawnParticles(g.x, g.y, '#ffe066', 15, { spd: 100, life: 0.5, sm: 2, smx: 3.5 });

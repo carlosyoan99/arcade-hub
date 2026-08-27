@@ -299,6 +299,7 @@ function endGame() {
 
 function nextWave() {
   state.wave++;
+  if (state.wave >= 5) achievements.unlock('digdug_deep');
   pWaveClear();
   buildGrid();
   // Clear player area
@@ -709,6 +710,7 @@ function updateFallingRock(dt) {
       if (Math.abs(e.c - frc) <= 1 && Math.abs(e.r - frr) <= 1) {
         e.alive = false;
         state.score += e.type === 'pooka' ? PTS_POOKA : PTS_FYGAR;
+        achievements.unlock('digdug_rock_kill');
         spawnParticles(e.c * GS + GS / 2, e.r * GS + GS / 2, '#ff6b6b', 15, { spd: 80, life: 0.4 });
       }
     }

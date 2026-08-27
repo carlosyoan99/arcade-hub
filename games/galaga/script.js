@@ -584,6 +584,7 @@ function checkExtraLives() {
 
 function nextWave() {
   state.wave++;
+  if (state.wave >= 10) achievements.unlock('galaga_veteran');
   pWave();
   buildEnemies();
   updateHUD();
@@ -634,6 +635,7 @@ function updateBullets(dt) {
             e.hp--;
             if (e.hp <= 0) {
               e.alive = false;
+              if (e.typeName === 'boss') achievements.unlock('galaga_boss');
             }
             state.score += e.points;
             pExplode();

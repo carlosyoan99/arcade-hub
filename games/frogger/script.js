@@ -373,6 +373,7 @@ function checkFrogCollisions() {
       }
       const pts = item.type === 'fly' ? 200 * state.level : 100 * state.level;
       state.score += pts;
+      achievements.unlock('frogger_collector');
       pGoal();
       spawnParticles(item.x, item.y, '#ffd700', 10, { spd: 80, life: 0.4, sm: 2, smx: 3 });
       checkExtraLife();
@@ -386,6 +387,7 @@ function checkFrogCollisions() {
     for (const gx of GOAL_X) {
       if (Math.abs(col - gx) < 0.6 && !state.goals.includes(gx)) {
         state.goals.push(gx);
+        if (state.goals.length >= 3) achievements.unlock('frogger_hero');
         // Time bonus: 10pts per second remaining (arcade-style)
         const timeBonus = Math.floor(state.timeLeft) * 10;
         state.score += 100 * state.level + timeBonus;

@@ -199,6 +199,7 @@ function updatePipes(dt) {
     if (!p.passed && p.x + PIPE_W < BIRD_X) {
       p.passed = true;
       state.score++;
+      if (state.score >= 20) achievements.unlock('flappy_master');
       pScore();
       spawnParticles(BIRD_X + 20, bird.y - 10, '#ffcc44', 8, { spd: 80, life: 0.4, sm: 2, smx: 3 });
       updateHUD();

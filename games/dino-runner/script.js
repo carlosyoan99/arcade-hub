@@ -379,6 +379,8 @@ function endGame() {
     state.best = dist;
     saveBest('dinorunner2d', state.best);
   }
+  if (dist >= 1000) achievements.unlock('dino_marathon');
+  if (state.isNight) achievements.unlock('dino_night_owl');
 
   playCollisionSound();
   if (isNewRecord) playRecordSound();

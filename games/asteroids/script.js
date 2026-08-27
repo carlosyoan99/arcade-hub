@@ -471,6 +471,7 @@ function hyperspace() {
   ship.vy = 0;
   state.hyperspaceCooldown = 5;
   state.invincibleTimer = 1.5;
+  achievements.unlock('asteroids_hyper');
   spawnParticles(ship.x, ship.y, '#00ffff', 16, { spd: 80, life: 0.4 });
   beep({ freq: 400, freqEnd: 1200, duration: 0.15, type: 'sine', volume: 0.12 });
 }
@@ -539,6 +540,7 @@ function updateBullets(dt) {
             updateHUD();
             if (asteroids.length === 0) {
               playLevelClearSound();
+              if (state.lives >= 3) achievements.unlock('asteroids_clear');
               spawnAsteroidWave();
             }
             break;

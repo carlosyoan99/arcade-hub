@@ -462,6 +462,8 @@ function moveSnake() {
   if (newHead.x === food.x && newHead.y === food.y) {
     state.score += 1;
     state.speedLevel = getSpeedLevel();
+    if (state.score >= 25) achievements.unlock('snake_growing');
+    if (state.speedLevel >= 10) achievements.unlock('snake_speed_demon');
     playEatSound();
     spawnParticles(
       food.x * CELL_SIZE + CELL_SIZE / 2,

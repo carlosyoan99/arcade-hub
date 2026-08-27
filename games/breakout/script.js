@@ -380,8 +380,10 @@ function startGame() {
 
 function nextLevel() {
   state.level += 1;
+  if (state.level >= 5) achievements.unlock('breakout_veteran');
   state.ballSpeed = Math.min(BALL_MAX_SPEED, state.ballSpeed * LEVEL_SPEED_GROWTH);
   playLevelClearFanfare();
+  if (state.lives >= START_LIVES) achievements.unlock('breakout_perfect');
   buildBricks();
   parkBallOnPaddle();
 }

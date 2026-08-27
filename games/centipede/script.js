@@ -280,6 +280,7 @@ function endGame() {
     state.best = state.score;
     saveBest('centipede2d', state.best);
   }
+  if (state.score >= 5000) achievements.unlock('centipede_fivek');
   const ot = document.getElementById('ot'),
     fs = document.getElementById('fs'),
     he = document.getElementById('he');
@@ -295,6 +296,7 @@ function endGame() {
 
 function nextWave() {
   state.wave++;
+  if (state.wave >= 5) achievements.unlock('centipede_wave5');
   pWin();
   spawnMushrooms(15);
   spawnCentipede(Math.min(INITIAL_SEGMENTS + state.wave * SEGMENTS_PER_WAVE, MAX_SEGMENTS));
