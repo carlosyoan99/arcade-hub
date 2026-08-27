@@ -1,7 +1,7 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic } from '../../shared/music.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
@@ -945,6 +945,7 @@ function startGame() {
 }
 
 function endGame(killedBy) {
+  stopMusic();
   state.running = false;
   state.gameOver = true;
   stopAmbient();

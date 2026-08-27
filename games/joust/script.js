@@ -1,7 +1,7 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic } from '../../shared/music.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
@@ -314,24 +314,38 @@ function startWave() {
 function spawnEnemy() {
   let type = 'bounder';
   const r = Math.random();
-  if (state.wave >= 3 && r > 0.7) type = 'shadow-lord';
-  else if (state.wave >= 2 && r > 0.5) type = 'hunter';
+  if (state.wave >= 5 && r > 0.85) type = 'pterodactyl';
+  else if (state.wave >= 3 && r > 0.7) type = 'shadow-lord';
+  else if (state.wave >= 2 && r > 0.5) type = 'vulture';
+  else if (state.wave >= 2 && r > 0.35) type = 'hunter';
 
   const side = Math.random() > 0.5 ? 0 : GAME_W;
   const plat = PLATFORMS[Math.floor(Math.random() * PLATFORMS.length)];
+  // Pterodactyls fly higher and faster
+  const isPtero = type === 'pterodactyl';
+  const isVulture = type === 'vulture';
   const e = {
     x: side,
-    y: plat.y - 30,
-    vx: (side === 0 ? 1 : -1) * (60 + state.wave * 10 + Math.random() * 30),
-    vy: -100 - Math.random() * 100,
+    y: isPtero ? 40 + Math.random() * 60 : plat.y - 30,
+    vx:
+      (side === 0 ? 1 : -1) *
+      (isPtero
+        ? 180 + state.wave * 12
+        : isVulture
+          ? 100 + state.wave * 8
+          : 60 + state.wave * 10 + Math.random() * 30),
+    vy: isPtero ? 20 : -100 - Math.random() * 100,
     w: 30,
     h: 34,
     type,
     facing: side === 0 ? 1 : -1,
     flapTimer: 0,
-    flapInterval: 0.4 + Math.random() * 0.3 - state.wave * 0.01,
+    flapInterval: isPtero ? 0.2 : isVulture ? 0.3 : 0.4 + Math.random() * 0.3 - state.wave * 0.01,
     onGround: false,
     active: true,
+    diveTarget: null, // for pterodactyl dive-bombs
+    divePhase: null, // 'fly' | 'dive' | 'climb'
+    diveTimer: 0,
   };
   enemies.push(e);
   enemySpawned++;
@@ -351,6 +365,7 @@ function loseLife() {
 }
 
 function endGame() {
+  stopMusic();
   stopAmbient();
   state.running = false;
   state.gameOver = true;
@@ -481,8 +496,12 @@ function updateEnemies(dt) {
     // Flapping automático según tipo
     e.flapTimer -= dt;
     if (e.flapTimer <= 0) {
-      if (e.type === 'shadow-lord') {
+      if (e.type === 'pterodactyl') {
+        e.vy = e.divePhase === 'dive' ? 300 : -280 - Math.random() * 60;
+      } else if (e.type === 'shadow-lord') {
         e.vy = -320 - Math.random() * 80;
+      } else if (e.type === 'vulture') {
+        e.vy = -260 - Math.random() * 70;
       } else if (e.type === 'hunter') {
         e.vy = -250 - Math.random() * 60;
       } else {
@@ -498,7 +517,41 @@ function updateEnemies(dt) {
     // Movimiento horizontal según tipo
     const targetX = player.x;
 
-    if (e.type === 'shadow-lord') {
+    if (e.type === 'pterodactyl') {
+      // Pterodactyl: vuela recto, luego hace picada hacia el jugador
+      e.diveTimer -= dt;
+      if (!e.divePhase || e.divePhase === 'fly') {
+        // Vuelo horizontal, buscar oportunidad de picada
+        if (Math.abs(e.x - player.x) < 100 && e.y < player.y - 40 && Math.random() < 0.03) {
+          e.divePhase = 'dive';
+          e.diveTimer = 0.8;
+          e.diveTarget = { x: player.x, y: player.y };
+        }
+        // Mantener altitud
+        if (e.y > 100) e.vy = -200;
+        else if (e.y < 30) e.vy = 50;
+      } else if (e.divePhase === 'dive') {
+        // Picada directa hacia el jugador
+        const dx = (e.diveTarget?.x ?? player.x) - e.x;
+        const dy = (e.diveTarget?.y ?? player.y) - e.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 1) {
+          e.vx = (dx / dist) * 250;
+          e.vy = (dy / dist) * 250;
+        }
+        if (e.diveTimer <= 0) {
+          e.divePhase = 'climb';
+          e.diveTimer = 1.0;
+        }
+      } else if (e.divePhase === 'climb') {
+        // Subir de vuelta arriba
+        e.vy = -300;
+        if (e.diveTimer <= 0 || e.y < 50) {
+          e.divePhase = 'fly';
+          e.diveTimer = 2 + Math.random() * 2;
+        }
+      }
+    } else if (e.type === 'shadow-lord') {
       // Agresivo: persigue al jugador activamente
       const dx = targetX - e.x;
       const dy = player.y - e.y;
@@ -511,6 +564,12 @@ function updateEnemies(dt) {
       const dx = targetX - e.x;
       const speed = 70 + state.wave * 4;
       if (Math.abs(dx) > 30) e.vx += Math.sign(dx) * 150 * dt;
+      e.vx = Math.max(-speed, Math.min(speed, e.vx));
+    } else if (e.type === 'vulture') {
+      // Vulture: zigzag errático, más rápido que bounder, sin jinete
+      e.vx += Math.sin(Date.now() / 300 + e.x * 0.1) * 120 * dt;
+      if (Math.random() < 0.02) e.vx = -e.vx;
+      const speed = 80 + state.wave * 5;
       e.vx = Math.max(-speed, Math.min(speed, e.vx));
     } else {
       // Bounder: movimiento errático con cambios de dirección
@@ -557,7 +616,16 @@ function updateEnemies(dt) {
         if (playerCenter < enemyCenter - 6) {
           // Jugador gana
           e.active = false;
-          const points = e.type === 'shadow-lord' ? 1500 : e.type === 'hunter' ? 750 : 500;
+          const points =
+            e.type === 'shadow-lord'
+              ? 1500
+              : e.type === 'pterodactyl'
+                ? 1000
+                : e.type === 'vulture'
+                  ? 600
+                  : e.type === 'hunter'
+                    ? 750
+                    : 500;
           state.score += points;
           if (!state.firstJoustDone) {
             state.firstJoustDone = true;
@@ -645,7 +713,15 @@ function updateEggs(dt) {
     egg.timer -= dt;
     if (egg.timer <= 0) {
       // Eclosiona: spawn enemy
-      const type = state.wave >= 3 && Math.random() > 0.6 ? 'hunter' : 'bounder';
+      const r = Math.random();
+      const type =
+        state.wave >= 5 && r > 0.85
+          ? 'pterodactyl'
+          : state.wave >= 3 && r > 0.6
+            ? 'hunter'
+            : state.wave >= 2 && r > 0.4
+              ? 'vulture'
+              : 'bounder';
       const newEnemy = {
         x: egg.x - 15,
         y: egg.y - 30,
@@ -881,6 +957,16 @@ function draw() {
       bodyColor2 = '#5a5a6a';
       wingColor = '#8a8a9a';
       glowColor = 'rgba(122,122,138,0.3)';
+    } else if (e.type === 'pterodactyl') {
+      bodyColor = '#2a8a4a';
+      bodyColor2 = '#1a5a3a';
+      wingColor = '#3aaa5a';
+      glowColor = 'rgba(42,138,74,0.4)';
+    } else if (e.type === 'vulture') {
+      bodyColor = '#aa6622';
+      bodyColor2 = '#774411';
+      wingColor = '#cc8844';
+      glowColor = 'rgba(170,102,34,0.3)';
     } else {
       bodyColor = '#cc4444';
       bodyColor2 = '#992a2a';
@@ -919,30 +1005,69 @@ function draw() {
       3 * s,
     );
 
-    // Cabeza del jinete
-    ctx.fillStyle =
-      e.type === 'shadow-lord' ? '#6a8aba' : e.type === 'hunter' ? '#9a9aaa' : '#dd6666';
-    ctx.beginPath();
-    ctx.arc(ex + ew / 2 + e.facing * 4 * s, ey + 6 * s, 6 * s, 0, Math.PI * 2);
-    ctx.fill();
+    // Cabeza / bico según tipo
+    if (e.type === 'vulture') {
+      // Vulture: cabeza calva roja, sin jinete
+      ctx.fillStyle = '#ff4444';
+      ctx.beginPath();
+      ctx.arc(ex + ew / 2 + e.facing * 4 * s, ey + 6 * s, 5 * s, 0, Math.PI * 2);
+      ctx.fill();
+      // Pico amarillo
+      ctx.fillStyle = '#ffcc00';
+      ctx.beginPath();
+      ctx.moveTo(ex + ew / 2 + e.facing * 8 * s, ey + 6 * s);
+      ctx.lineTo(ex + ew / 2 + e.facing * 18 * s, ey + 8 * s);
+      ctx.lineTo(ex + ew / 2 + e.facing * 8 * s, ey + 10 * s);
+      ctx.closePath();
+      ctx.fill();
+    } else if (e.type === 'pterodactyl') {
+      // Pterodactyl: cabeza alargada con cresta, sin jinete
+      ctx.fillStyle = '#2a8a4a';
+      ctx.beginPath();
+      ctx.arc(ex + ew / 2 + e.facing * 4 * s, ey + 6 * s, 5 * s, 0, Math.PI * 2);
+      ctx.fill();
+      // Cresta
+      ctx.fillStyle = '#1a5a3a';
+      ctx.beginPath();
+      ctx.moveTo(ex + ew / 2, ey + 1 * s);
+      ctx.lineTo(ex + ew / 2 - e.facing * 8 * s, ey - 4 * s);
+      ctx.lineTo(ex + ew / 2, ey + 3 * s);
+      ctx.closePath();
+      ctx.fill();
+      // Pico largo
+      ctx.fillStyle = '#ffcc00';
+      ctx.beginPath();
+      ctx.moveTo(ex + ew / 2 + e.facing * 8 * s, ey + 5 * s);
+      ctx.lineTo(ex + ew / 2 + e.facing * 22 * s, ey + 7 * s);
+      ctx.lineTo(ex + ew / 2 + e.facing * 8 * s, ey + 9 * s);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      // Bounder/Hunter/Shadow-Lord: jinete con yelmo y lanza
+      ctx.fillStyle =
+        e.type === 'shadow-lord' ? '#6a8aba' : e.type === 'hunter' ? '#9a9aaa' : '#dd6666';
+      ctx.beginPath();
+      ctx.arc(ex + ew / 2 + e.facing * 4 * s, ey + 6 * s, 6 * s, 0, Math.PI * 2);
+      ctx.fill();
 
-    // Yelmo/casco
-    ctx.fillStyle =
-      e.type === 'shadow-lord' ? '#4a6a9a' : e.type === 'hunter' ? '#7a7a8a' : '#cc4444';
-    roundRect(ctx, ex + ew / 2 + e.facing * 4 * s - 5 * s, ey + 2 * s, 10 * s, 5 * s, 2 * s);
-    ctx.fill();
+      // Yelmo/casco
+      ctx.fillStyle =
+        e.type === 'shadow-lord' ? '#4a6a9a' : e.type === 'hunter' ? '#7a7a8a' : '#cc4444';
+      roundRect(ctx, ex + ew / 2 + e.facing * 4 * s - 5 * s, ey + 2 * s, 10 * s, 5 * s, 2 * s);
+      ctx.fill();
 
-    // Lanza (si está en la dirección que mira)
-    ctx.strokeStyle = '#888';
-    ctx.lineWidth = 2 * s;
-    ctx.beginPath();
-    ctx.moveTo(ex + ew / 2 + e.facing * 8 * s, ey + 10 * s);
-    ctx.lineTo(ex + ew / 2 + e.facing * 22 * s, ey + 2 * s);
-    ctx.stroke();
-    ctx.fillStyle = '#aaa';
-    ctx.beginPath();
-    ctx.arc(ex + ew / 2 + e.facing * 22 * s, ey + 2 * s, 2 * s, 0, Math.PI * 2);
-    ctx.fill();
+      // Lanza (si está en la dirección que mira)
+      ctx.strokeStyle = '#888';
+      ctx.lineWidth = 2 * s;
+      ctx.beginPath();
+      ctx.moveTo(ex + ew / 2 + e.facing * 8 * s, ey + 10 * s);
+      ctx.lineTo(ex + ew / 2 + e.facing * 22 * s, ey + 2 * s);
+      ctx.stroke();
+      ctx.fillStyle = '#aaa';
+      ctx.beginPath();
+      ctx.arc(ex + ew / 2 + e.facing * 22 * s, ey + 2 * s, 2 * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   // ── Jugador ──

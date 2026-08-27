@@ -1,7 +1,7 @@
-import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic } from '../../shared/music.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -833,6 +833,8 @@ function togglePause() {
 }
 
 function endGame() {
+  stopMusic();
+  stopAmbient();
   state.running = false;
   state.gameOver = true;
   playGameOver();
