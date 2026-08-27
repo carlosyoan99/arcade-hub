@@ -18,6 +18,32 @@
 
 /* ── Preferencia persistente ── */
 const PREF_KEY = 'arcadehub_music';
+const VOLUME_KEY = 'arcadehub_volume';
+
+/** Volumen global de la música (0..1), persistido en 'arcadehub_volume'. */
+export function getMusicVolume() {
+  try {
+    const v = parseFloat(localStorage.getItem(VOLUME_KEY));
+    if (!Number.isNaN(v) && v >= 0) return Math.min(1, v);
+  } catch {
+    /* almacenamiento no disponible */
+  }
+  return 0.55;
+}
+
+/** Fija el volumen de la música en vivo (si está sonando) y lo persiste. */
+export function setMusicVolume(v) {
+  const clamped = typeof v === 'number' ? Math.min(1, Math.max(0, v)) : 0.55;
+  try {
+    localStorage.setItem(VOLUME_KEY, String(clamped));
+  } catch {
+    /* almacenamiento no disponible */
+  }
+  if (bus && audioCtx) {
+    const scale = musicEnabled() ? clamped : 0;
+    bus.master.gain.setTargetAtTime(scale, audioCtx.currentTime, 0.1);
+  }
+}
 
 export function musicEnabled() {
   try {
@@ -109,7 +135,7 @@ function ensureCtx() {
 
 function buildBus(ctx) {
   const master = ctx.createGain();
-  master.gain.value = 0.55;
+  master.gain.value = getMusicVolume();
   const lofi = ctx.createBiquadFilter();
   lofi.type = 'lowpass';
   lofi.frequency.value = 1500;
@@ -221,7 +247,7 @@ export function startMusic(gameId) {
   if (!ctx) return;
   try {
     if (!bus) bus = buildBus(ctx);
-    bus.master.gain.setTargetAtTime(0.55, ctx.currentTime, 0.4);
+    bus.master.gain.setTargetAtTime(getMusicVolume(), ctx.currentTime, 0.4);
     song._bass = parseTrack(song.bass);
     song._lead = song.lead ? parseTrack(song.lead) : null;
     bus.crackle = bus.crackle || startCrackle(ctx);

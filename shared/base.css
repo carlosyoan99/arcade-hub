@@ -163,34 +163,41 @@ kbd {
   font-family: 'Courier New', monospace;
 }
 
-/* ── Game Bar ── */
+/* ── Game Bar ──
+   Barra superior única de cada juego: Arcade · Pantalla completa · Música
+   · Configuración · Ayuda. Ocupa el ancho completo y el HUD (score) se
+   sitúa por debajo para que nunca se solapen, ni siquiera en vertical móvil.
+   (El hub ya no inyecta otra barra superior: esta es la única.) */
 #gameBar {
   position: fixed;
-  top: 10px;
-  left: 10px;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 999;
   display: flex;
-  gap: 5px;
-  pointer-events: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-panel, rgba(0, 0, 0, 0.55));
+  border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 #gameBar button {
   pointer-events: auto;
   padding: 6px 12px;
   min-width: 44px;
-  min-height: 40px;
+  min-height: 38px;
   border-radius: 8px;
   border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-  background: var(--bg-panel, rgba(0, 0, 0, 0.55));
+  background: transparent;
   color: var(--text-primary, #f2f2f2);
   font-size: 11px;
   font-family: 'Courier New', monospace;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.05);
   transition:
     background 0.2s,
     transform 0.15s;
@@ -201,14 +208,20 @@ kbd {
 }
 
 #gameBar button:hover {
-  background: rgba(128, 128, 128, 0.15);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(128, 128, 128, 0.18);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 @media (max-width: 480px) {
+  #gameBar {
+    padding: 4px 6px;
+    gap: 4px;
+  }
   #gameBar button {
     font-size: 10px;
-    padding: 3px 8px;
+    padding: 4px 8px;
+    min-width: 38px;
+    min-height: 34px;
   }
 }
 
@@ -293,13 +306,13 @@ kbd {
    ════════════════════════════════════════════════════════════ */
 #hud {
   position: fixed;
-  top: 0;
+  top: 52px;
   left: 0;
   right: 0;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 18px 24px 0;
+  padding: 10px 24px 0;
   pointer-events: none;
   z-index: 10;
 }
@@ -564,6 +577,14 @@ kbd {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Reducción de movimiento manual (ajuste en el panel de configuración) */
+[data-reduce-motion='on'] *,
+[data-reduce-motion='on'] *::before,
+[data-reduce-motion='on'] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
 }
 
 /* ════════════════════════════════════════════════════════════

@@ -19,6 +19,7 @@
 import { showHelp } from './help.js';
 import { stopMusic } from './music.js';
 import { closeAudio } from './audio.js';
+import { setupSettings } from './settings.js';
 
 /**
  * Configura el shell compartido de un juego.
@@ -48,6 +49,9 @@ export function setupGameShell(gameId) {
     else document.exitFullscreen().catch(() => {});
   });
   document.getElementById('helpBtn')?.addEventListener('click', () => showHelp(gameId));
+
+  // ── Configuración (tema / volumen / reducción de movimiento) ──
+  setupSettings();
 
   // ── Accesibilidad: Tab no debe sacar el foco mientras se juega ──
   const trapTab = (e) => {

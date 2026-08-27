@@ -94,7 +94,7 @@
         --gold-neon: #ffb800;
         --green-neon: #39ff14;
         --text: #f0eeff;
-        --text-dim: #7a78a0;
+        --text-dim: #9a98c2;
         --card-border: rgba(255, 255, 255, 0.06);
         --card-hover-border: rgba(255, 255, 255, 0.18);
         --toggle-bg: rgba(255, 255, 255, 0.06);
@@ -1993,54 +1993,6 @@
         border: none;
         background: #000;
       }
-      #gameContainer .game-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        flex-shrink: 0;
-      }
-      #gameContainer .game-bar button {
-        font-family: 'Bungee', sans-serif;
-        font-size: 11px;
-        letter-spacing: 1.5px;
-        padding: 6px 16px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.04);
-        color: var(--text);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        -webkit-tap-highlight-color: transparent;
-      }
-      #gameContainer .game-bar button:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
-        transform: translateY(-1px);
-      }
-      #gameContainer .game-bar .game-title {
-        font-family: 'Bungee', sans-serif;
-        font-size: 12px;
-        letter-spacing: 2px;
-        color: var(--text-dim);
-      }
-
-      @media (max-width: 600px) {
-        #gameContainer .game-bar {
-          padding: 6px 10px;
-        }
-        #gameContainer .game-bar button {
-          font-size: 10px;
-          padding: 4px 10px;
-        }
-        #gameContainer .game-bar .game-title {
-          font-size: 10px;
-        }
-      }
     </style>
   </head>
   <body>
@@ -2154,13 +2106,12 @@
       <span>✦ Sin frameworks · Sin build step · Abrir y jugar ✦</span>
     </footer>
 
-    <!-- ═══ GAME CONTAINER (hash routing) ═══ -->
+    <!-- ═══ GAME CONTAINER (hash routing) ═══
+         Cada juego inyecta su propia barra superior única (shared/base.css
+         #gameBar) con Arcade / Fullscreen / Música / Configuración / Ayuda,
+         por lo que el contenedor NO añade otra barra (evita la doble barra y
+         el botón de fullscreen duplicado). -->
     <div id="gameContainer" class="hidden" aria-hidden="true">
-      <div class="game-bar">
-        <button id="backToHubBtn" aria-label="Volver al Arcade Hub">← Arcade</button>
-        <span class="game-title" id="gameTitle"></span>
-        <button id="fsGameBtn" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
-      </div>
       <iframe id="gameFrame" allowfullscreen title="Juego"></iframe>
     </div>
 
@@ -3081,9 +3032,6 @@
       /* ── Hash routing for games ── */
       const gameContainer = document.getElementById('gameContainer');
       const gameFrame = document.getElementById('gameFrame');
-      const gameTitle = document.getElementById('gameTitle');
-      const backToHubBtn = document.getElementById('backToHubBtn');
-      const fsGameBtn = document.getElementById('fsGameBtn');
 
       function showGame(game) {
         // H6: Staggered page transition
@@ -3097,7 +3045,6 @@
             gameContainer.classList.remove('game-entering');
           });
         });
-        gameTitle.textContent = game.icon + ' ' + game.title;
         document.title = 'Arcade Hub — ' + game.icon + ' ' + game.title;
         document.getElementById('og-title').content =
           'Arcade Hub — ' + game.icon + ' ' + game.title;
@@ -3162,18 +3109,13 @@
       }
 
       window.addEventListener('hashchange', handleHash);
-      backToHubBtn.addEventListener('click', () => {
-        window.location.hash = '';
-      });
+      // La barra superior (Arcade / Fullscreen / Música / Configuración / Ayuda)
+      // la inyecta cada juego (shared/dom.js + shell.js) dentro del iframe; el
+      // hub solo gestiona la navegación (Esc/añadir-hash) y el cambio de ruta.
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !gameContainer.classList.contains('hidden')) {
-          backToHubBtn.click();
+          window.location.hash = '';
         }
-      });
-      fsGameBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement)
-          document.documentElement.requestFullscreen().catch(() => {});
-        else document.exitFullscreen().catch(() => {});
       });
 
       /* ═══════════════════════════════════════════════════
