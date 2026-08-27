@@ -11,6 +11,15 @@
   "repository": "github.com/carlosyoan99/arcade-hub",
   "changelog": [
     {
+      "version": "1.7.0",
+      "date": "2026-08-26",
+      "changes": [
+        "Paridad arcade: Pooka se disfraza de hongo periodicamente (cada 4-8s)",
+        "Pooka disfrazado no se mueve, aparece como hongo rojo con manchas",
+        "Jugador cercano (≤2 tiles) o bomba de aire saca al Pooka del disfraz"
+      ]
+    },
+    {
       "version": "1.6.0",
       "date": "2026-08-26",
       "changes": [

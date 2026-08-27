@@ -197,6 +197,8 @@ function spawnEnemies() {
       prevC: sp.c,
       prevR: sp.r,
       stunned: 0,
+      disguised: false,
+      disguiseTimer: 3 + Math.random() * 5, // time until next disguise attempt
     });
   }
 }
@@ -495,6 +497,10 @@ function updatePlayer(dt) {
     for (const e of enemies) {
       if (!e.alive) continue;
       if (e.c === facingC && e.r === facingR && e.inflation < 1) {
+        if (e.disguised) {
+          e.disguised = false;
+          e.disguiseTimer = 4 + Math.random() * 4;
+        }
         if (pumpTarget !== e) {
           pumpTarget = e;
           pumpProgress = 0;
@@ -575,6 +581,25 @@ function updateEnemies(dt) {
     if (e.stunned > 0) {
       e.stunned -= dt;
       continue;
+    }
+
+    // Pooka disguise mechanic
+    if (e.type === 'pooka') {
+      if (e.disguised) {
+        // Pop out if player is close
+        const dist = Math.abs(player.c - e.c) + Math.abs(player.r - e.r);
+        if (dist <= 2) {
+          e.disguised = false;
+          e.disguiseTimer = 4 + Math.random() * 4;
+        }
+        continue; // don't move while disguised
+      }
+      e.disguiseTimer -= e.moveInterval;
+      if (e.disguiseTimer <= 0) {
+        e.disguised = true;
+        e.disguiseTimer = 0; // will be reset when undisguised
+        continue;
+      }
     }
 
     // AI: Chase player with some randomness
@@ -863,6 +888,28 @@ function draw() {
       hs = (GS / 2) * s;
 
     if (e.type === 'pooka') {
+      if (e.disguised) {
+        // Draw as mushroom
+        const mx = ex + hs,
+          my = ey + hs;
+        // Stem
+        ctx.fillStyle = '#d4a574';
+        ctx.fillRect(mx - 2 * s, my, 4 * s, 6 * s);
+        // Cap
+        ctx.fillStyle = '#ff6b6b';
+        ctx.beginPath();
+        ctx.ellipse(mx, my, 6 * s, 4 * s, 0, Math.PI, 0);
+        ctx.fill();
+        // Spots on cap
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(mx - 2 * s, my - 2 * s, 1.2 * s, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(mx + 2.5 * s, my - 1 * s, 0.9 * s, 0, Math.PI * 2);
+        ctx.fill();
+        continue;
+      }
       // Round red enemy
       const inflate = e.inflation;
       // Body (stretches as inflated)

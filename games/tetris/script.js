@@ -114,6 +114,9 @@ const PIECE_NAMES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
 
 const LEVEL_LINES = 10;
 const SCORE_TABLE = [0, 100, 300, 500, 800];
+const TSPIN_SCORE = [0, 400, 800, 1200, 1600]; // single, double, triple, tetris
+const TSPIN_MINI_SCORE = [0, 100, 200, 400];
+const B2B_BONUS = 1.5;
 const DAS_DELAY = 0.17; // Delayed Auto Shift
 const DAS_RATE = 0.05;
 
@@ -264,6 +267,9 @@ let nextPiece = null;
 let holdName = null; // nombre de la pieza guardada (null = vacía)
 let canHold = true; // un uso por pieza hasta bloquear la siguiente
 let dropTimer = 0;
+let lastMoveWasRotation = false; // T-Spin detection
+let backToBack = 0; // consecutive T-Spins/Tetrises (0 = no B2B)
+let tspinType = 0; // 0=none, 1=mini, 2=full
 let dasTimer = 0;
 let dasDir = 0; // -1 left, 1 right, 0 none
 let lockTimer = 0;
@@ -396,9 +402,11 @@ function lockPiece() {
       grid[gy][gx] = piece.color;
     }
   }
+  tspinType = detectTSpin();
   playDrop();
   clearLines();
-  canHold = true; // nueva pieza → se vuelve a habilitar el hold
+  lastMoveWasRotation = false;
+  canHold = true;
   spawnPiece();
 }
 
@@ -409,15 +417,32 @@ function clearLines() {
       grid.splice(r, 1);
       grid.unshift(new Array(COLS).fill(0));
       cleared++;
-      r++; // re-check this row
+      r++;
     }
   }
   if (cleared > 0) {
     state.lines += cleared;
     state.level = Math.floor(state.lines / LEVEL_LINES) + 1;
-    state.score += (SCORE_TABLE[cleared] || cleared * 200) * state.level;
+    const isSpecialClear = tspinType > 0 || cleared === 4;
+    if (isSpecialClear) {
+      backToBack++;
+    } else {
+      backToBack = 0;
+    }
+    let pts = 0;
+    if (tspinType === 2) {
+      pts = TSPIN_SCORE[cleared] || 0;
+    } else if (tspinType === 1) {
+      pts = TSPIN_MINI_SCORE[cleared] || 0;
+    } else {
+      pts = SCORE_TABLE[cleared] || cleared * 200;
+    }
+    pts *= state.level;
+    if (backToBack > 1) {
+      pts = Math.floor(pts * B2B_BONUS);
+    }
+    state.score += pts;
     playClear(cleared);
-    // Particles
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         if (grid[r][c] !== 0 && r < HIDDEN_ROWS + 3) {
@@ -431,6 +456,8 @@ function clearLines() {
       }
     }
     updateHUD();
+  } else {
+    tspinType = 0;
   }
 }
 
@@ -470,7 +497,7 @@ function movePiece(dx, dy) {
   if (!collides(piece.blocks, piece.x + dx, piece.y + dy)) {
     piece.x += dx;
     piece.y += dy;
-    // Lock reset: moving on ground counts as a reset
+    lastMoveWasRotation = false;
     if (dy === 0 && collides(piece.blocks, piece.x, piece.y + 1)) {
       lockTimer = 0;
       lockResets++;
@@ -482,7 +509,7 @@ function movePiece(dx, dy) {
 }
 
 function rotatePiece(dir = 1) {
-  if (!piece || state.gameOver || state.paused || piece.name === 'O') return;
+  if (!piece || state.gameOver || state.paused || piece.name === 'O') return false;
   const newRot = (piece.rot + dir + 4) % 4;
   const newBlocks = blocksForRot(piece.name, newRot);
   const kicks = SRS_KICKS[piece.name === 'I' ? 'I' : 'JLSTZ'][`${piece.rot}>${newRot}`];
@@ -492,6 +519,7 @@ function rotatePiece(dir = 1) {
       piece.rot = newRot;
       piece.x += kx;
       piece.y += ky;
+      lastMoveWasRotation = true;
       // Lock reset: rotation on ground counts as a reset
       if (collides(piece.blocks, piece.x, piece.y + 1)) {
         lockTimer = 0;
@@ -502,6 +530,33 @@ function rotatePiece(dir = 1) {
     }
   }
   return false;
+}
+
+function isCellFilled(gx, gy) {
+  if (gx < 0 || gx >= COLS || gy < 0 || gy >= TOTAL_ROWS) return true;
+  return gy >= 0 && grid[gy] && grid[gy][gx] !== 0;
+}
+
+function detectTSpin() {
+  if (!piece || piece.name !== 'T' || !lastMoveWasRotation) return 0;
+  // T-piece center is always at (1,1) in local coords
+  const cx = piece.x + 1;
+  const cy = piece.y + 1;
+  // Check4 corners of the T bounding box
+  const corners = [
+    isCellFilled(cx - 1, cy - 1), // top-left
+    isCellFilled(cx + 1, cy - 1), // top-right
+    isCellFilled(cx - 1, cy + 1), // bottom-left
+    isCellFilled(cx + 1, cy + 1), // bottom-right
+  ];
+  const filledCount = corners.filter(Boolean).length;
+  if (filledCount < 3) return 0;
+  // Mini T-Spin: only front2 corners filled (top for rot0/2, sides for rot1/3)
+  const frontCorners = [corners[(piece.rot * 2) % 4], corners[(piece.rot * 2 + 1) % 4]];
+  if (frontCorners.every(Boolean) && !corners[(piece.rot * 2 + 2) % 4]) {
+    return 1; // mini
+  }
+  return 2; // full
 }
 
 function holdSwap() {
@@ -729,6 +784,9 @@ function resetGame() {
   dropTimer = 0;
   dasTimer = 0;
   dasDir = 0;
+  lastMoveWasRotation = false;
+  backToBack = 0;
+  tspinType = 0;
   document.getElementById('fs').style.display = 'none';
   spawnPiece();
   updateHUD();
