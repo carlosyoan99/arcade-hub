@@ -93,6 +93,24 @@ const state = {
   bonusItems: [],
 };
 
+// Cached grass texture (seeded random per lane, avoids per-frame flicker)
+const grassCache = {};
+function getGrassBlades(row) {
+  if (!grassCache[row]) {
+    const seed = row * 31337;
+    const rng = (i) => {
+      const x = Math.sin(seed + i * 997) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    grassCache[row] = Array.from({ length: 8 }, (_, i) => ({
+      x0: rng(i * 3),
+      cx: rng(i * 3 + 1),
+      x1: rng(i * 3 + 2),
+    }));
+  }
+  return grassCache[row];
+}
+
 // ============================================================
 // CANVAS
 // ============================================================
@@ -117,11 +135,6 @@ function pGoal() {
     onBeep: () =>
       beep({ freq: 600, freqEnd: 1000, duration: 0.12, type: 'triangle', volume: 0.16 }),
   });
-}
-function pWin() {
-  [660, 880, 1100, 1320].forEach((ff, i) =>
-    setTimeout(() => beep({ freq: ff, duration: 0.1, type: 'triangle', volume: 0.16 }), i * 90),
-  );
 }
 
 // ============================================================
@@ -318,7 +331,7 @@ function loseLife() {
   resetFrog();
 }
 
-function endGame(won) {
+function endGame() {
   stopMusic();
   stopAmbient();
   state.running = false;
@@ -328,11 +341,10 @@ function endGame(won) {
     saveBest('frogger2d', state.best);
     if (state.best >= 1000) achievements.unlock('frogger_thousand');
   }
-  if (won) pWin();
   const ot = document.getElementById('ot'),
     fs = document.getElementById('fs'),
     he = document.getElementById('he');
-  ot.textContent = won ? '🎉 ¡Ganaste!' : '💀 ¡Game Over!';
+  ot.textContent = '💀 ¡Game Over!';
   fs.style.display = 'block';
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
   he.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
@@ -665,16 +677,17 @@ function draw() {
     } else if (lane.type === SAFE) {
       ctx.fillStyle = 'rgba(30,50,30,0.4)';
       ctx.fillRect(cx, ly, CW * s, CS * s);
-      // Grass texture
+      // Grass texture (cached seeded positions)
       ctx.strokeStyle = 'rgba(60,100,60,0.1)';
       ctx.lineWidth = 0.5 * s;
-      for (let i = 0; i < 8; i++) {
+      const blades = getGrassBlades(r);
+      for (const b of blades) {
         ctx.beginPath();
-        ctx.moveTo(cx + Math.random() * CW * s, ly);
+        ctx.moveTo(cx + b.x0 * CW * s, ly);
         ctx.quadraticCurveTo(
-          cx + Math.random() * CW * s,
+          cx + b.cx * CW * s,
           ly + CS * s * 0.3,
-          cx + Math.random() * CW * s,
+          cx + b.x1 * CW * s,
           ly + CS * s,
         );
         ctx.stroke();

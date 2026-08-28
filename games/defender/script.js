@@ -118,6 +118,25 @@ const {
   y: offY,
 } = setupCanvas(canvas, ctx, GAME_W, GAME_H, 8);
 
+// Cached background gradient (avoids per-frame createRadialGradient)
+let _bgGrad = null;
+function getBgGradient() {
+  if (!_bgGrad) {
+    _bgGrad = ctx.createRadialGradient(
+      canvasW / 2,
+      canvasH * 0.3,
+      0,
+      canvasW / 2,
+      canvasH / 2,
+      canvasW * 0.8,
+    );
+    _bgGrad.addColorStop(0, '#0a1628');
+    _bgGrad.addColorStop(0.6, '#060d1a');
+    _bgGrad.addColorStop(1, '#020408');
+  }
+  return _bgGrad;
+}
+
 // ── GENERAR TERRENO ──
 function generateTerrain() {
   terrainPoints = [];
@@ -708,7 +727,7 @@ function updateLasers(dt) {
               }
 
               enemies.splice(j, 1);
-              state.landerCount -= 1;
+              state.landerCount = Math.max(0, state.landerCount - 1);
               updateHUD();
             }
 
@@ -762,7 +781,7 @@ function updateLasers(dt) {
             }
 
             enemies.splice(j, 1);
-            state.landerCount -= 1;
+            state.landerCount = Math.max(0, state.landerCount - 1);
             updateHUD();
           }
 
@@ -892,7 +911,7 @@ function updateEnemies(dt) {
               spawnMutant(e.x, 50);
             }
             enemies.splice(i, 1);
-            state.landerCount -= 1;
+            state.landerCount = Math.max(0, state.landerCount - 1);
             updateHUD();
             // Check game over
             if (state.humans <= 0) endGame();
@@ -922,7 +941,7 @@ function updateEnemies(dt) {
         const bx = e.x - camera.x;
         if (bx < -100 || bx > GAME_W + 100) {
           enemies.splice(i, 1);
-          state.landerCount -= 1;
+          state.landerCount = Math.max(0, state.landerCount - 1);
         }
         break;
       }
@@ -943,7 +962,7 @@ function updateEnemies(dt) {
         // Remove if very far from player
         if (dist > 800) {
           enemies.splice(i, 1);
-          state.landerCount -= 1;
+          state.landerCount = Math.max(0, state.landerCount - 1);
         }
         break;
       }
@@ -985,6 +1004,7 @@ function updateHumans(dt) {
         h.falling = false;
         h.parachute = false;
         h.grabbed = false;
+        h.saved = true;
         h.vy = 0;
         playRescue();
         spawnParticles(h.x - camera.x, h.y, '#39ff14', 8);
@@ -1466,18 +1486,7 @@ function draw() {
   ctx.translate(so.x, so.y);
 
   // Background
-  const grad = ctx.createRadialGradient(
-    canvasW / 2,
-    canvasH * 0.3,
-    0,
-    canvasW / 2,
-    canvasH / 2,
-    canvasW * 0.8,
-  );
-  grad.addColorStop(0, '#0a1628');
-  grad.addColorStop(0.6, '#060d1a');
-  grad.addColorStop(1, '#020408');
-  ctx.fillStyle = grad;
+  ctx.fillStyle = getBgGradient();
   ctx.fillRect(0, 0, canvasW, canvasH);
 
   drawStarfield();

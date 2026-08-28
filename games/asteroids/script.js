@@ -344,6 +344,21 @@ btnFire?.addEventListener('mouseup', () => {
   input.fire = false;
 });
 
+// Hyperspace touch button
+const btnHyper = document.getElementById('btnHyper');
+btnHyper?.addEventListener(
+  'touchstart',
+  (e) => {
+    e.preventDefault();
+    if (state.running && !state.gameOver) hyperspace();
+  },
+  { passive: false },
+);
+btnHyper?.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  if (state.running && !state.gameOver) hyperspace();
+});
+
 // Tap en canvas
 canvas.addEventListener('pointerdown', () => {
   if (!state.running) startGame();
@@ -353,7 +368,7 @@ canvas.addEventListener('pointerdown', () => {
 // ENTRADA: GAMEPAD
 // ============================================================
 const gamepad = createGamepad();
-let gpPrev = { fire: false, start: false };
+let gpPrev = { fire: false, start: false, hyper: false };
 
 function pollGamepad() {
   const gp = gamepad.pad;
@@ -365,13 +380,15 @@ function pollGamepad() {
   input.thrust = !!gp.buttons[12]?.pressed || ay < -0.4;
   const fireHeld = !!(gp.buttons[0]?.pressed || gp.buttons[2]?.pressed);
   const startHeld = !!(gp.buttons[9]?.pressed || gp.buttons[8]?.pressed);
+  const hyperHeld = !!gp.buttons[3]?.pressed || gp.buttons[1]?.pressed;
   if (fireHeld && !gpPrev.fire && !state.gameOver) {
     if (!state.running) startGame();
     else input.fire = true;
   }
   if (!fireHeld && gpPrev.fire) input.fire = false;
   if (startHeld && !gpPrev.start && !state.running) startGame();
-  gpPrev = { fire: fireHeld, start: startHeld };
+  if (hyperHeld && !gpPrev.hyper && state.running && !state.gameOver) hyperspace();
+  gpPrev = { fire: fireHeld, start: startHeld, hyper: hyperHeld };
 }
 
 // ============================================================

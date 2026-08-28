@@ -198,6 +198,22 @@ const canvas = document.getElementById('gameCanvas'),
   ctx = canvas.getContext('2d', { alpha: false });
 const { w: cw, h: ch, s: sc, x: ox, y: oy } = setupCanvas(canvas, ctx, CW, CH, CPAD);
 
+// Cached formation-alive count (avoids per-frame filter allocations)
+let _formationAliveCount = 0;
+function recountAlive() {
+  let fc = 0;
+  for (const e of enemies) {
+    if (e.alive && !e.diving && !e.entering) fc++;
+  }
+  _formationAliveCount = fc;
+}
+// Count alive in bullets context (lightweight, only when enemy dies)
+function countAliveAll() {
+  let ac = 0;
+  for (const e of enemies) if (e.alive) ac++;
+  return ac;
+}
+
 // ============================================================
 // SONIDO (usando shared/audio.js)
 // ============================================================
@@ -784,15 +800,15 @@ function pG() {
 // ============================================================
 function updateFormation(dt) {
   if (bonusActive || bonusStage) return;
-  const alive = enemies.filter((e) => e.alive && !e.diving && !e.entering);
-  if (alive.length === 0 && (!entryState || !entryState.active)) {
+  recountAlive();
+  if (_formationAliveCount === 0 && (!entryState || !entryState.active)) {
     pBonus();
     nextWave();
     return;
   }
 
   // Side movement
-  const speedMult = 1 + (ENEMY_COLS * ENEMY_ROWS - alive.length) * 0.025;
+  const speedMult = 1 + (ENEMY_COLS * ENEMY_ROWS - _formationAliveCount) * 0.025;
   formationTimer += dt * speedMult;
   const interval = 0.6;
   while (formationTimer >= interval) {
@@ -814,7 +830,7 @@ function updateFormation(dt) {
 
   // Dive timer
   diveTimer -= dt;
-  if (diveTimer <= 0 && alive.length > 3) {
+  if (diveTimer <= 0 && _formationAliveCount > 3) {
     startDive();
     diveTimer = Math.max(MIN_DIVE_INTERVAL, diveInterval - state.wave * DIVE_WAVE_REDUCTION);
   }
@@ -1074,7 +1090,7 @@ function updateBullets(dt) {
             if (!e.alive) {
               const di = diving.indexOf(e);
               if (di >= 0) diving.splice(di, 1);
-              if (enemies.filter((en) => en.alive).length === 0) {
+              if (countAliveAll() === 0) {
                 if (!bonusActive) {
                   pBonus();
                   nextWave();
@@ -1557,8 +1573,8 @@ const loop = createGameLoop((dt) => {
       updateBullets(dt);
 
       // Check for bonus state (when very few enemies left)
-      const aliveCount = enemies.filter((e) => e.alive && !e.diving && !e.entering).length;
-      if (aliveCount <= 3 && aliveCount > 0 && !bonusActive) {
+      recountAlive();
+      if (_formationAliveCount <= 3 && _formationAliveCount > 0 && !bonusActive) {
         bonusActive = true;
         bonusTimer = 3;
       }

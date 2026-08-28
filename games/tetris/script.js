@@ -6,6 +6,7 @@ import { createGameLoop } from '../../shared/loop.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGamepad } from '../../shared/input.js';
+import { setupCanvas } from '../../shared/display.js';
 import {
   updateShake,
   getShakeOffset,
@@ -296,29 +297,12 @@ function randomPieceName() {
 // ============================================================
 const canvas = document.getElementById('gameCanvas'),
   ctx = canvas.getContext('2d', { alpha: false });
-let canvasW = 0,
-  canvasH = 0,
-  scale = 1,
-  offX = 0,
-  offY = 0;
-function resize() {
-  const dpr = window.devicePixelRatio || 1;
-  canvasW = window.innerWidth;
-  canvasH = window.innerHeight;
-  canvas.width = canvasW * dpr;
-  canvas.height = canvasH * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const previewW = CS * 6,
-    totalW = CW + previewW + CS * 2;
-  const sx = (canvasW - CPAD * 2) / totalW,
-    sy = (canvasH - CPAD * 2) / CH;
-  scale = Math.min(sx, sy);
-  const totalW_scaled = totalW * scale;
-  offX = (canvasW - totalW_scaled) / 2;
-  offY = (canvasH - CH * scale) / 2;
-}
-window.addEventListener('resize', resize);
-resize();
+// Tetris total width includes preview panel + spacing
+const _totalW = CW + CS * 6 + CS * 2;
+const _dim = setupCanvas(canvas, ctx, _totalW, CH, CPAD);
+const scale = _dim.s,
+  offX = _dim.x,
+  offY = _dim.y;
 
 // ============================================================
 // SONIDO (usando shared/audio.js)
@@ -909,7 +893,7 @@ function updateGame(dt) {
 // RENDER
 // ============================================================
 function draw() {
-  ctx.clearRect(0, 0, canvasW, canvasH);
+  ctx.clearRect(0, 0, _dim.w, _dim.h);
   const so = getShakeOffset();
   ctx.save();
   ctx.translate(so.x, so.y);
