@@ -705,10 +705,10 @@ function updateFallingRock(dt) {
     const frr = Math.floor(rock.r);
     const frc = rock.c;
 
-    // Kill enemies in path
+    // Kill enemies in path (rock spans columns frc..frc+1)
     for (const e of enemies) {
       if (!e.alive) continue;
-      if (Math.abs(e.c - frc) <= 1 && Math.abs(e.r - frr) <= 1) {
+      if (e.c >= frc && e.c <= frc + 1 && Math.abs(e.r - frr) <= 1) {
         e.alive = false;
         state.score += e.type === 'pooka' ? PTS_POOKA : PTS_FYGAR;
         achievements.unlock('digdug_rock_kill');
@@ -719,7 +719,8 @@ function updateFallingRock(dt) {
     // Kill player
     if (
       state.invincibleTimer <= 0 &&
-      Math.abs(player.c - frc) <= 1 &&
+      player.c >= frc &&
+      player.c <= frc + 1 &&
       Math.abs(player.r - frr) <= 1
     ) {
       loseLife();

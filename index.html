@@ -462,10 +462,6 @@
         position: relative;
       }
 
-      .hero-stat-value .counter-suffix {
-        font-size: 18px;
-      }
-
       .hero-stat-label {
         font-size: 9px;
         letter-spacing: 3px;
@@ -1985,19 +1981,6 @@
       /* ═══════════════════════════════════════════════════
          GAME CONTAINER (hash routing)
          ═══════════════════════════════════════════════════ */
-      #gameContainer {
-        position: fixed;
-        inset: 0;
-        z-index: 100;
-        background: var(--bg-deep);
-        display: flex;
-        flex-direction: column;
-        transition: opacity 0.3s ease;
-      }
-      #gameContainer.hidden {
-        pointer-events: none;
-        opacity: 0;
-      }
       #gameFrame {
         flex: 1;
         width: 100%;
@@ -2130,6 +2113,14 @@
     <script type="module">
       import { games } from './games.js';
       import { drawGameThumb } from './asset/hub-cards.js';
+
+      const esc = (s) =>
+        String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
 
       /* ── Animated canvas background (theme-aware) ── */
       const bgCanvas = (function initBg() {
@@ -2739,11 +2730,11 @@
           ${newBadgeHtml}
           ${
             game.thumbnail
-              ? `<canvas class="icon-thumb" role="img" aria-label="${game.title}"></canvas>`
-              : `<span class="icon">${game.icon ?? '🎮'}</span>`
+              ? `<canvas class="icon-thumb" role="img" aria-label="${esc(game.title)}"></canvas>`
+              : `<span class="icon">${esc(game.icon ?? '🎮')}</span>`
           }
-          <h2>${game.title}</h2>
-          <p>${game.description}</p>
+          <h2>${esc(game.title)}</h2>
+          <p>${esc(game.description)}</p>
           <div class="card-footer">
             <span class="status">${isReady ? 'Jugar' : 'En desarrollo'}</span>
             ${playsHtml}
@@ -3019,11 +3010,11 @@
           card.className = `ach-card ${achData[ach.id] ? 'unlocked' : 'locked'}`;
           card.style.animationDelay = `${allAchievements.indexOf(ach) * 0.04}s`;
           card.innerHTML = `
-            <div class="ach-icon">${ach.icon}</div>
+            <div class="ach-icon">${esc(ach.icon)}</div>
             <div class="ach-info">
-              <div class="name">${ach.name}</div>
-              <div class="desc">${ach.desc}</div>
-              <div class="game-label">${ach.game}</div>
+              <div class="name">${esc(ach.name)}</div>
+              <div class="desc">${esc(ach.desc)}</div>
+              <div class="game-label">${esc(ach.game)}</div>
             </div>
           `;
           achGrid.appendChild(card);
@@ -3082,8 +3073,8 @@
             top3Html += `
               <div class="top3-card pos${i + 1}" style="animation-delay:${i * 0.08}s">
                 <div class="top3-medal">${medals[i]}</div>
-                <div class="top3-info">
-                  <div class="name">${s.title}</div>
+                  <div class="top3-info">
+                  <div class="name">${esc(s.title)}</div>
                   <div class="count">${s.plays} ${s.plays === 1 ? 'partida' : 'partidas'}</div>
                 </div>
               </div>
@@ -3106,11 +3097,11 @@
 
           card.innerHTML = `
             <div class="stat-icon${isMost ? ' icon-most' : ''}">
-              ${s.icon ?? '🎮'}
+              ${esc(s.icon ?? '🎮')}
               ${isMost ? '<span class="crown-badge">👑</span>' : ''}
             </div>
             <div class="stat-info">
-              <div class="name">${s.title}${isMost ? ' <span class="most-label">MÁS JUGADO</span>' : ''}</div>
+              <div class="name">${esc(s.title)}${isMost ? ' <span class="most-label">MÁS JUGADO</span>' : ''}</div>
               <div class="score${s.plays === 0 ? ' none' : ''}">${s.plays > 0 ? `${s.plays} ${s.plays === 1 ? 'vez' : 'veces'}` : 'Sin jugar'}</div>
               <div class="stat-plays">${s.status === 'listo' ? '✅ Disponible' : '🔧 En desarrollo'}</div>
             </div>

@@ -92,14 +92,6 @@ export function hitStop(duration = 0.08) {
   if (end > _hitStopUntil) _hitStopUntil = end;
 }
 
-/**
- * Verifica si el juego está congelado por hit-stop.
- * Si lo está, el bucle principal debe SALTAR el update() pero seguir renderizando.
- */
-export function isHitStopped() {
-  return performance.now() < _hitStopUntil;
-}
-
 // ──────────────────────────────────────────────
 // FEEDBACK BUNDLE — jugosidad por tiers
 // ──────────────────────────────────────────────

@@ -35,19 +35,4 @@ export const achievements = {
       /* storage unavailable */
     }
   },
-  getPlays(gameId) {
-    try {
-      const plays = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
-      return plays[gameId] || 0;
-    } catch {
-      return 0;
-    }
-  },
-  getAllPlays() {
-    try {
-      return JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
-    } catch {
-      return {};
-    }
-  },
 };

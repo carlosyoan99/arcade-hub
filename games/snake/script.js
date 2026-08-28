@@ -118,11 +118,8 @@ function playPauseSound() {
 // ============================================================
 // ENTRADA: TECLADO
 // ============================================================
-const keys = {};
 
 window.addEventListener('keydown', (e) => {
-  keys[e.code] = true;
-
   let dir = null;
   if (['ArrowUp', 'KeyW'].includes(e.code)) {
     e.preventDefault();
@@ -154,10 +151,6 @@ window.addEventListener('keydown', (e) => {
       setDirection(dir);
     }
   }
-});
-
-window.addEventListener('keyup', (e) => {
-  keys[e.code] = false;
 });
 
 // ============================================================

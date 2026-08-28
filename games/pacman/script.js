@@ -762,24 +762,19 @@ function winGame() {
 // ============================================================
 // ENTRADA
 // ============================================================
-const input = { up: false, down: false, left: false, right: false };
 
 window.addEventListener('keydown', (e) => {
   if (e.code === 'ArrowUp' || e.code === 'KeyW') {
     e.preventDefault();
-    input.up = true;
     setPacDir(D.UP);
   } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
     e.preventDefault();
-    input.down = true;
     setPacDir(D.DOWN);
   } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
     e.preventDefault();
-    input.left = true;
     setPacDir(D.LEFT);
   } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
     e.preventDefault();
-    input.right = true;
     setPacDir(D.RIGHT);
   } else if (e.code === 'Space' || e.code === 'KeyP') {
     e.preventDefault();
@@ -868,7 +863,10 @@ function pollGamepad() {
   if (ax < -0.4 || gp.buttons[14]?.pressed) setPacDir(D.LEFT);
   if (ax > 0.4 || gp.buttons[15]?.pressed) setPacDir(D.RIGHT);
   const sH = !!gp.buttons[9]?.pressed;
-  if (sH && !prevGamepad.start && !state.running) startGame();
+  if (sH && !prevGamepad.start) {
+    if (!state.running) startGame();
+    else if (!state.gameOver) togglePause();
+  }
   prevGamepad.start = sH;
 }
 

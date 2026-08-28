@@ -712,7 +712,7 @@ document.getElementById('overlay').addEventListener('click', () => {
 
 // Gamepad
 const gamepad = createGamepad();
-const prevGamepad = { rot: false, hold: false, start: false };
+const prevGamepad = { rot: false, ccw: false, hold: false, start: false };
 
 function pollGamepad() {
   const gp = gamepad.pad;
@@ -749,6 +749,12 @@ function pollGamepad() {
     else rotatePiece();
   }
   prevGamepad.rot = rH;
+  const ccwH = !!gp.buttons[5]?.pressed; // RB — rotación antihoraria
+  if (ccwH && !prevGamepad.ccw && !state.gameOver) {
+    if (!state.running) startGame();
+    else rotatePiece(-1);
+  }
+  prevGamepad.ccw = ccwH;
   const sH = !!gp.buttons[9]?.pressed;
   if (sH && !prevGamepad.start && !state.running) startGame();
   prevGamepad.start = sH;

@@ -26,13 +26,3 @@ export function saveBest(prefix, score) {
     // storage bloqueado o no disponible: ignorar (mejor esfuerzo)
   }
 }
-
-/** Guarda solo si `score` supera el récord actual. Devuelve el récord vigente. */
-export function saveBestIfBetter(prefix, score) {
-  const best = loadBest(prefix);
-  if (score > best) {
-    saveBest(prefix, score);
-    return score;
-  }
-  return best;
-}

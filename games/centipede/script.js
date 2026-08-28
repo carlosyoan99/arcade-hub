@@ -240,6 +240,10 @@ function resetGame() {
   spiderTimer = spiderInterval;
   fleaTimer = fleaInterval;
   scorpionTimer = scorpionInterval;
+  moveInterval = BASE_MOVE_INTERVAL;
+  spiderInterval = BASE_SPIDER_INTERVAL;
+  fleaInterval = BASE_FLEA_INTERVAL;
+  scorpionInterval = BASE_SCORPION_INTERVAL;
   moveTimer = 0;
   spawnMushrooms(NUM_MUSHROOMS_INIT);
   spawnCentipede(INITIAL_SEGMENTS);

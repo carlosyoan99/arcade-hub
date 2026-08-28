@@ -654,18 +654,20 @@ function updateEnemies(dt) {
     }
 
     // También revisar jousting entre enemigos (chocan entre sí)
-    for (let j = i - 1; j >= 0; j--) {
-      const e2 = enemies[j];
-      if (!e2.active) continue;
-      if (rectCollide(getEnemyRect(e), getEnemyRect(e2))) {
-        const c1 = e.y + e.h / 2;
-        const c2 = e2.y + e2.h / 2;
-        if (c1 < c2 - 4) {
-          e.vy = -120;
-          e2.vy = 80;
-        } else if (c2 < c1 - 4) {
-          e2.vy = -120;
-          e.vy = 80;
+    if (e.active) {
+      for (let j = i - 1; j >= 0; j--) {
+        const e2 = enemies[j];
+        if (!e2.active) continue;
+        if (rectCollide(getEnemyRect(e), getEnemyRect(e2))) {
+          const c1 = e.y + e.h / 2;
+          const c2 = e2.y + e2.h / 2;
+          if (c1 < c2 - 4) {
+            e.vy = -120;
+            e2.vy = 80;
+          } else if (c2 < c1 - 4) {
+            e2.vy = -120;
+            e.vy = 80;
+          }
         }
       }
     }
