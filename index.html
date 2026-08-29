@@ -2129,6 +2129,7 @@
         let w,
           h,
           t = 0;
+        const stars = [];
 
         const C = (r, g, b, a = 1) => ({ r, g, b, a });
         const DARK = {
@@ -2243,7 +2244,6 @@
         });
         resize();
 
-        const stars = [];
         function scatterStars() {
           stars.length = 0;
           for (let i = 0; i < 120; i++) {
