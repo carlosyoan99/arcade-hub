@@ -2455,12 +2455,31 @@
       (function initEntrySequence() {
         const entryOverlay = document.getElementById('entryOverlay');
         const entryGlitch = document.getElementById('entryGlitch');
-        const removeDoors = () => {
-          document.querySelector('.split-door-left')?.remove();
-          document.querySelector('.split-door-right')?.remove();
+        const doors = {
+          left: document.querySelector('.split-door-left'),
+          right: document.querySelector('.split-door-right'),
         };
-        if (!entryOverlay || localStorage.getItem('arcadehub_coin_inserted')) {
-          if (entryOverlay) entryOverlay.remove();
+        const removeDoors = () => {
+          doors.left?.remove();
+          doors.right?.remove();
+        };
+        function seenBefore() {
+          try {
+            return !!localStorage.getItem('arcadehub_coin_inserted');
+          } catch {
+            return false;
+          }
+        }
+        function markSeen() {
+          try {
+            localStorage.setItem('arcadehub_coin_inserted', '1');
+          } catch {
+            /* almacenamiento no disponible: no bloquear la entrada */
+          }
+        }
+        if (!entryOverlay) return;
+        if (seenBefore()) {
+          entryOverlay.remove();
           removeDoors();
           return;
         }
@@ -2473,10 +2492,8 @@
         }
 
         // H1: Close the doors over the hub
-        const leftDoor = document.querySelector('.split-door-left');
-        const rightDoor = document.querySelector('.split-door-right');
-        if (leftDoor) leftDoor.classList.add('visible');
-        if (rightDoor) rightDoor.classList.add('visible');
+        if (doors.left) doors.left.classList.add('visible');
+        if (doors.right) doors.right.classList.add('visible');
 
         // Show the entry overlay
         entryOverlay.setAttribute('aria-hidden', 'false');
@@ -2522,41 +2539,60 @@
           events.forEach((ev) => document.removeEventListener(ev, handler, true));
         }
 
-        function dismissEntry() {
-          if (entryOverlay.classList.contains('dismissed')) return;
-          localStorage.setItem('arcadehub_coin_inserted', '1');
-          cleanListeners();
-          playInsertSound();
-          // H1: Glitch flash → doors slide open revealing the hub
-          entryGlitch.classList.add('active');
-          entryOverlay.setAttribute('aria-hidden', 'true');
-          entryOverlay.classList.add('dismissed');
-          setTimeout(() => {
-            entryGlitch.classList.remove('active');
-            if (leftDoor) leftDoor.classList.add('open');
-            if (rightDoor) rightDoor.classList.add('open');
-            setTimeout(() => {
-              document.body.style.overflow = '';
-              setTimeout(() => {
-                entryOverlay.remove();
-                removeDoors();
-              }, 850);
-            }, 800);
-          }, 100);
+        let dismissed = false;
+
+        // Desmontaje garantizado: bajo ningún escenario (almacenamiento
+        // no disponible, audio bloqueado, elementos faltantes) la pantalla
+        // de entrada puede quedar trabada sobre el hub.
+        function forceLeave() {
+          if (!entryOverlay.isConnected) return;
+          entryOverlay.remove();
+          removeDoors();
+          document.body.style.overflow = '';
         }
 
-        const events = ['click', 'keydown', 'touchstart'];
+        function dismissEntry() {
+          if (dismissed) return;
+          dismissed = true;
+          cleanListeners();
+          markSeen();
+          try {
+            playInsertSound();
+          } catch {}
+          // H1: Glitch flash → doors slide open revealing the hub.
+          // Cada paso es independiente: si uno falla, igual salimos.
+          try {
+            if (entryGlitch) entryGlitch.classList.add('active');
+            if (entryGlitch) {
+              setTimeout(() => {
+                entryGlitch.classList.remove('active');
+                if (doors.left) doors.left.classList.add('open');
+                if (doors.right) doors.right.classList.add('open');
+                setTimeout(forceLeave, 850);
+              }, 100);
+            }
+          } catch {
+            forceLeave();
+          }
+          // Safety net: pase lo que pase, el overlay desaparece.
+          setTimeout(forceLeave, 2500);
+        }
+
+        const events = ['click', 'keydown', 'touchstart', 'pointerdown'];
         const handler = (e) => {
-          if (entryOverlay.classList.contains('dismissed')) return;
-          if (e.type === 'keydown' && e.key !== ' ' && e.key !== 'Enter' && e.key !== 'Escape') {
-            return;
+          if (dismissed) return;
+          if (e.type === 'keydown') {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key === 'Tab') return;
           }
           e.preventDefault();
           dismissEntry();
         };
         events.forEach((ev) => document.addEventListener(ev, handler, true));
 
-        setTimeout(dismissEntry, 8000);
+        setTimeout(() => {
+          if (!dismissed) dismissEntry();
+        }, 7000);
       })();
 
       /* ── Service Worker registration ── */
