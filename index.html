@@ -2555,6 +2555,8 @@
           if (dismissed) return;
           dismissed = true;
           cleanListeners();
+          entryOverlay.classList.add('dismissed');
+          entryOverlay.setAttribute('aria-hidden', 'true');
           markSeen();
           try {
             playInsertSound();
