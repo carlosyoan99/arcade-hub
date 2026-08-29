@@ -292,6 +292,33 @@ const SONGS = {
     lead: 'A4 - C5 - E5 - A5  F4 - A4 - C5 - F5  E4 - G4 - C5 - E5  D4 - G4 - B4 - D5',
     leadWave: 'sawtooth',
   },
+
+  /* Pole Position — "Chicane": revving race, tight chromatic pull */
+  'pole-position': {
+    bpm: 148,
+    chord: ['Am', 'F', 'Am', 'E'],
+    bass: 'A1 A1 A1 A1 - A1 C2 -  F1 F1 F1 F1 - F1 A1 -  A1 A1 A1 A1 - A1 C2 -  E1 E1 E1 E1 - E1 B1 -',
+    lead: 'A4 - C5 A4 - - E4 -  F4 - A4 F4 - - C4 -  A4 - C5 A4 - - E4 -  E5 - B4 E5 - - G#4 -',
+    leadWave: 'square',
+  },
+
+  /* Moon Patrol — "Lunar Run": floaty low-gravity bounce */
+  'moon-patrol': {
+    bpm: 92,
+    chord: ['Gm', 'Eb', 'Cm', 'D'],
+    bass: 'G1 - - D2 - - - -  Eb2 - - Bb1 - - - -  C2 - - G1 - - - -  D2 - - A1 - - - -',
+    lead: 'G4 - Bb4 G4 - D4 - -  Eb4 - G4 Eb4 - Bb3 - -  C4 - Eb4 C4 - G3 - -  D4 - F4 D4 - A3 - -',
+    leadWave: 'triangle',
+  },
+
+  /* Tempest — "Voltage Tube": pulsing, hypnotic saw arps */
+  tempest: {
+    bpm: 126,
+    chord: ['Dm', 'Bb', 'Gm', 'A'],
+    bass: 'D2 - D2 - A1 - D2 -  Bb1 - Bb1 - F2 - Bb1 -  G1 - G1 - D2 - G1 -  A1 - A1 - E2 - A1 -',
+    lead: 'D5 - A4 - D5 - F5  Bb4 - F4 - Bb4 - D5  G4 - D4 - G4 - Bb4  A4 - E4 - A4 - C5',
+    leadWave: 'sawtooth',
+  },
 };
 
 /* ── Estado del transporte ── */

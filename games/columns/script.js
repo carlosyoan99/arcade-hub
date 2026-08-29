@@ -1,7 +1,7 @@
 import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -43,7 +43,17 @@ const DROP_SPEED_MIN = 80;
 const DROP_ACCEL = 15;
 const LOCK_DELAY = 80;
 const MATCH_MIN = 3;
-const FLASH_DURATION = 0.4;
+const FLASH_DURATION = 0.5;
+const LEVEL_GEMS = 25;
+
+// Special gems (power-ups)
+const SPECIAL = { FLASH: 6, LIGHTNING: 7, POISON: 8 };
+const SPECIAL_COLORS = {
+  [SPECIAL.FLASH]: '#e8e8ff',
+  [SPECIAL.LIGHTNING]: '#ffe066',
+  [SPECIAL.POISON]: '#c084fc',
+};
+const SPECIAL_GLYPH = { [SPECIAL.FLASH]: '✦', [SPECIAL.LIGHTNING]: '⚡', [SPECIAL.POISON]: '☠' };
 
 // ── ESTADO ──
 const state = {
@@ -54,6 +64,7 @@ const state = {
   best: loadBest('columns2d'),
   level: 1,
   gemsCleared: 0,
+  chainsThisMove: 0,
 };
 
 // Board: 2D array [row][col] = color index | -1 = empty
@@ -189,9 +200,11 @@ function clearMatches(matched) {
     const [r, c] = key.split(',').map(Number);
     if (board[r][c] !== -1) {
       // Particle effect
+      const color =
+        board[r][c] >= SPECIAL.FLASH ? SPECIAL_COLORS[board[r][c]] : GEM_COLORS[board[r][c]];
       const px = offX + (c + 0.5) * CELL * scale;
       const py = offY + (r + 0.5) * CELL * scale;
-      spawnParticles(px, py, 4, GEM_COLORS[board[r][c]], { speed: 80, life: 0.4 });
+      spawnParticles(px, py, 4, color, { speed: 80, life: 0.4 });
       board[r][c] = -1;
       cleared++;
     }
@@ -290,6 +303,7 @@ function lockPiece() {
   placePiece();
   piece = null;
   lockTimer = 0;
+  state.chainsThisMove = 0;
   checkAndClear();
 }
 
@@ -304,11 +318,93 @@ function checkAndClear() {
   }
 }
 
+function applyPowerEffects(matched) {
+  const neighborDeltas = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
+  const colorCounts = {};
+  let best = -1;
+  let bestN = 0;
+  for (const key of matched) {
+    const [r, c] = key.split(',').map(Number);
+    const v = board[r][c];
+    if (v >= 0 && v <= GEM_COLORS.length - 1) {
+      colorCounts[v] = (colorCounts[v] || 0) + 1;
+      if (colorCounts[v] > bestN) {
+        bestN = colorCounts[v];
+        best = v;
+      }
+    }
+  }
+  const matchColor = best >= 0 ? best : Math.floor(Math.random() * GEM_COLORS.length);
+  let poisoned = false;
+  for (const key of [...matched]) {
+    const [r, c] = key.split(',').map(Number);
+    const v = board[r][c];
+    if (v === SPECIAL.FLASH) {
+      for (const [dr, dc] of neighborDeltas) {
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        const nv = board[nr][nc];
+        if (nv >= 0 && nv <= GEM_COLORS.length - 1) {
+          board[nr][nc] = matchColor;
+          matched.add(`${nr},${nc}`);
+        }
+      }
+    } else if (v === SPECIAL.LIGHTNING) {
+      for (let cc = 0; cc < COLS; cc++) {
+        if (board[r][cc] !== -1) matched.add(`${r},${cc}`);
+      }
+    } else if (v === SPECIAL.POISON) {
+      poisoned = true;
+    }
+  }
+  if (poisoned) {
+    for (let pr = 0; pr < ROWS; pr++) {
+      for (let pc = 0; pc < COLS; pc++) {
+        if (board[pr][pc] >= 0 && board[pr][pc] <= GEM_COLORS.length - 1) {
+          board[pr][pc] = Math.floor(Math.random() * GEM_COLORS.length);
+        }
+      }
+    }
+  }
+}
+
+function maybeSpawnPowerGem() {
+  const p = Math.min(0.35, 0.12 + Math.max(0, state.chainsThisMove - 1) * 0.1);
+  if (Math.random() >= p) return;
+  const type = [SPECIAL.FLASH, SPECIAL.LIGHTNING, SPECIAL.POISON][Math.floor(Math.random() * 3)];
+  const col = Math.floor(Math.random() * COLS);
+  for (let r = ROWS - 1; r >= 0; r--) {
+    if (board[r][col] === -1) {
+      board[r][col] = type;
+      return;
+    }
+  }
+}
+
+function checkColorCollector() {
+  const present = new Set();
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const v = board[r][c];
+      if (v >= 0 && v <= GEM_COLORS.length - 1) present.add(v);
+    }
+  }
+  if (present.size >= GEM_COLORS.length) achievements.unlock('color_collector');
+}
+
 function processClear() {
   const matched = new Set(flashing);
+  applyPowerEffects(matched);
   const count = clearMatches(matched);
   if (count > 0) {
-    const chain = Math.floor(count / MATCH_MIN);
+    state.chainsThisMove++;
+    const chain = state.chainsThisMove;
     const points = scoreClear(count, chain);
     state.score += points;
     state.gemsCleared += count;
@@ -316,8 +412,10 @@ function processClear() {
     feedbackBundle('medium', TOTAL_W / 2, TOTAL_H / 2, {
       color: GEM_COLORS[0],
     });
-    // Level up every 30 gems
-    state.level = Math.floor(state.gemsCleared / 30) + 1;
+    // Level up every 25 gems cleared
+    state.level = Math.floor(state.gemsCleared / LEVEL_GEMS) + 1;
+    if (state.chainsThisMove >= 3) achievements.unlock('chain_master');
+    checkColorCollector();
   }
   flashing = [];
   flashTimer = 0;
@@ -330,6 +428,7 @@ function processClear() {
     flashing = [...nextMatched];
     flashTimer = FLASH_DURATION;
   } else {
+    maybeSpawnPowerGem();
     spawnPiece();
   }
 }
@@ -350,7 +449,6 @@ function startGame() {
   flashing = [];
   clearSquashes();
   startAmbient();
-  startMusic('columns');
   shell.enableTabTrap();
   spawnPiece();
   overlay.classList.add('hidden');
@@ -367,9 +465,7 @@ function endGame() {
     state.best = state.score;
     saveBest('columns2d', state.best);
   }
-  achievements.unlock('columns_first_game');
-  if (state.score >= 1000) achievements.unlock('columns_high_scorer');
-  if (state.gemsCleared >= 100) achievements.unlock('columns_gem_master');
+  if (state.level >= 50) achievements.unlock('marathon');
   finalScoreEl.textContent = `Puntos: ${state.score}`;
   finalScoreEl.style.display = '';
   overlayText.textContent = '¡Juego terminado!';
@@ -568,6 +664,41 @@ function updateGame(dt) {
 }
 
 // ── RENDER ──
+function drawGem(gx, gy, colorIdx, s, alpha = null) {
+  const pad = 2 * s;
+  const size = CELL * s - pad * 2;
+  if (alpha !== null) ctx.globalAlpha = alpha;
+  if (colorIdx >= SPECIAL.FLASH) {
+    ctx.fillStyle = SPECIAL_COLORS[colorIdx];
+    ctx.beginPath();
+    ctx.roundRect(gx + pad, gy + pad, size, size, 4 * s);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1.5 * s;
+    ctx.strokeRect(gx + pad, gy + pad, size, size);
+    ctx.fillStyle = '#0a0a1a';
+    ctx.font = `${size * 0.55}px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(SPECIAL_GLYPH[colorIdx], gx + size * 0.5 + pad, gy + size * 0.5 + pad);
+  } else {
+    ctx.fillStyle = GEM_COLORS[colorIdx];
+    ctx.beginPath();
+    ctx.roundRect(gx + pad, gy + pad, size, size, 4 * s);
+    ctx.fill();
+    drawGlow(
+      ctx,
+      gx + CELL * s * 0.5,
+      gy + CELL * s * 0.5,
+      size * 0.4,
+      GEM_COLORS[colorIdx],
+      0.12,
+      2,
+    );
+  }
+  if (alpha !== null) ctx.globalAlpha = 1;
+}
+
 function draw() {
   ctx.save();
   ctx.clearRect(0, 0, canvasW, canvasH);
@@ -615,25 +746,7 @@ function draw() {
       const flash = isFlashing(r, c);
       if (flash && Math.floor(flashTimer * 10) % 2 === 0) continue;
 
-      const gx = ox + c * CELL * s;
-      const gy = oy + r * CELL * s;
-      const pad = 2 * s;
-      const size = CELL * s - pad * 2;
-
-      ctx.fillStyle = GEM_COLORS[color];
-      ctx.beginPath();
-      ctx.roundRect(gx + pad, gy + pad, size, size, 4 * s);
-      ctx.fill();
-
-      drawGlow(
-        ctx,
-        gx + CELL * s * 0.5,
-        gy + CELL * s * 0.5,
-        size * 0.4,
-        GEM_COLORS[color],
-        0.12,
-        2,
-      );
+      drawGem(ox + c * CELL * s, oy + r * CELL * s, color, s);
     }
   }
 
@@ -644,25 +757,7 @@ function draw() {
       const c = piece.col;
       if (r < 0 || r >= ROWS) continue;
 
-      const gx = ox + c * CELL * s;
-      const gy = oy + r * CELL * s;
-      const pad = 2 * s;
-      const size = CELL * s - pad * 2;
-
-      ctx.fillStyle = GEM_COLORS[piece.gems[i]];
-      ctx.beginPath();
-      ctx.roundRect(gx + pad, gy + pad, size, size, 4 * s);
-      ctx.fill();
-
-      drawGlow(
-        ctx,
-        gx + CELL * s * 0.5,
-        gy + CELL * s * 0.5,
-        size * 0.4,
-        GEM_COLORS[piece.gems[i]],
-        0.15,
-        2.5,
-      );
+      drawGem(ox + c * CELL * s, oy + r * CELL * s, piece.gems[i], s, 1);
     }
 
     // Ghost piece (preview landing position)
@@ -677,15 +772,7 @@ function draw() {
         const c = piece.col;
         if (r < 0 || r >= ROWS) continue;
 
-        const gx = ox + c * CELL * s;
-        const gy = oy + r * CELL * s;
-        const pad = 2 * s;
-        const size = CELL * s - pad * 2;
-
-        ctx.fillStyle = GEM_COLORS[piece.gems[i]];
-        ctx.beginPath();
-        ctx.roundRect(gx + pad, gy + pad, size, size, 4 * s);
-        ctx.fill();
+        drawGem(ox + c * CELL * s, oy + r * CELL * s, piece.gems[i], s);
       }
       ctx.globalAlpha = 1;
     }
@@ -731,6 +818,7 @@ function updateHUD() {
   scoreValueEl.textContent = String(state.score);
   bestValueEl.textContent = String(state.best);
   levelValueEl.textContent = String(state.level);
+  checkColorCollector();
 }
 
 // ── BUCLE PRINCIPAL ──

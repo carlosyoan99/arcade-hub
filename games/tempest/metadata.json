@@ -1,10 +1,10 @@
 {
   "id": "tempest",
   "title": "Tempest",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "created": "2026-08-28",
   "lastModified": "2026-08-28",
-  "description": "Tube shooter. Dispará a los enemigos que suben por el tubo de 16 lados.",
+  "description": "Tube shooter. Dispará a los enemigos que suben por el tubo de 16 lados. Spin, jump y 10 oleadas para sobrevivir.",
   "genre": "shooter",
   "author": "Arcade Hub",
   "license": "MIT",
@@ -17,6 +17,14 @@
         "Initial release: 16-sided tube, 3 enemy types, jump, wave system",
         "Achievements: tempest_first_play, tempest_high_scorer, tempest_survivor",
         "Teclado + táctil + gamepad"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-08-28",
+      "changes": [
+        "Achievements alineados a la spec: spin_master, jump_pro, survivor (oleada 10)",
+        "Tema procedural 'Voltage Tube' añadido a shared/music.js"
       ]
     }
   ]

@@ -1,6 +1,6 @@
 # 🌀 Tempest
 
-**Versión:** 1.0.0 | **Género:** Shooter | **Última actualización:** 2026-08-28
+**Versión:** 1.1.0 | **Género:** Shooter | **Última actualización:** 2026-08-28
 
 Tube shooter clásico. Dispará a los enemigos que suben por el tubo de 16 lados mientras rotás alrededor del borde.
 
@@ -10,19 +10,19 @@ Tube shooter clásico. Dispará a los enemigos que suben por el tubo de 16 lados
 
 ## Controles
 
-| Dispositivo | Acción | Tecla / Control |
-| ----------- | ------ | --------------- |
-| ⌨️ Teclado | Rotar izquierda | `←` / `A` |
-| ⌨️ Teclado | Rotar derecha | `→` / `D` |
-| ⌨️ Teclado | Disparar | `Espacio` |
-| ⌨️ Teclado | Jump (esquivar) | `↑` / `W` |
-| ⌨️ Teclado | Pausar | `P` |
-| ⌨️ Teclado | Reiniciar | `R` |
-| 🎮 Gamepad | Rotar | D-pad izq/der |
-| 🎮 Gamepad | Disparar | Botón A |
-| 🎮 Gamepad | Jump | Botón B |
-| 🎮 Gamepad | Empezar / Pausar | Start |
-| 👆 Táctil | Botones en pantalla | |
+| Dispositivo | Acción              | Tecla / Control |
+| ----------- | ------------------- | --------------- |
+| ⌨️ Teclado  | Rotar izquierda     | `←` / `A`       |
+| ⌨️ Teclado  | Rotar derecha       | `→` / `D`       |
+| ⌨️ Teclado  | Disparar            | `Espacio`       |
+| ⌨️ Teclado  | Jump (esquivar)     | `↑` / `W`       |
+| ⌨️ Teclado  | Pausar              | `P`             |
+| ⌨️ Teclado  | Reiniciar           | `R`             |
+| 🎮 Gamepad  | Rotar               | D-pad izq/der   |
+| 🎮 Gamepad  | Disparar            | Botón A         |
+| 🎮 Gamepad  | Jump                | Botón B         |
+| 🎮 Gamepad  | Empezar / Pausar    | Start           |
+| 👆 Táctil   | Botones en pantalla |                 |
 
 ## Características
 
@@ -37,9 +37,9 @@ Tube shooter clásico. Dispará a los enemigos que suben por el tubo de 16 lados
 
 ## Logros
 
-- 🏆 **Primera partida** — Jugá tu primera partida
-- 🏆 **Alto puntaje** — Alcanzá 1000 puntos
-- 🏆 **Sobreviviente** — Alcanzá oleada 5
+- 🏆 **Maestro del giro** — Rotá 360° alrededor del tubo sin perder la vida
+- 🏆 **Experto en jump** — Usá jump 10 veces en una sola oleada
+- 🏆 **Sobreviviente** — Llegá a la oleada 10
 
 ## Detalles técnicos
 
@@ -56,3 +56,4 @@ Tube shooter clásico. Dispará a los enemigos que suben por el tubo de 16 lados
 ## Changelog
 
 - **1.0.0** (2026-08-28): Initial release
+- **1.1.0** (2026-08-28): Logros alineados a la spec, tema musical procedural

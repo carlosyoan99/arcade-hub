@@ -9,6 +9,7 @@ import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
   updateShake,
+  spawnParticles,
   updateParticles,
   drawParticles,
   drawGlow,
@@ -43,8 +44,10 @@ const TURN_SPEED = 150;
 const TURBO_SPEED = 320;
 const TURBO_DURATION = 2;
 const TURBO_COOLDOWN = 5;
+const INVINCIBILITY_DURATION = 10;
 const ROAD_SEGMENTS = 120;
 const SEGMENT_H = GAME_H / 6;
+const PICKUP_COUNT = 8;
 
 // Colors for rivals
 const RIVAL_COLORS = [
@@ -73,6 +76,9 @@ const state = {
   qualifyingTime: 0,
   turbo: 0,
   turboCooldown: 0,
+  circuit: 1,
+  invincTimer: 0,
+  crashThisLap: 0,
 };
 
 // Player car
@@ -83,6 +89,8 @@ let rivals = [];
 let road = [];
 let roadOffset = 0;
 let roadLength = 0;
+// On-track pickups
+let pickups = [];
 
 // ── CANVAS ──
 const canvas = document.getElementById('gameCanvas');
@@ -120,8 +128,9 @@ function playFinishSound() {
 // ── ROAD GENERATION ──
 function generateRoad() {
   road = [];
+  const k = 1 + state.circuit * 0.18;
   for (let i = 0; i < ROAD_SEGMENTS; i++) {
-    const curve = Math.sin(i * 0.08) * 0.6 + Math.sin(i * 0.03) * 0.4;
+    const curve = Math.sin(i * 0.08) * 0.6 * k + Math.sin(i * 0.03) * 0.4 * k;
     road.push({ curve: Math.max(-1, Math.min(1, curve)) });
   }
   roadLength = road.length * SEGMENT_H;
@@ -130,20 +139,38 @@ function generateRoad() {
 // ── RIVALS ──
 function spawnRivals() {
   rivals = [];
+  const k = 1 + state.circuit * 0.15;
   for (let i = 0; i < RIVAL_COUNT; i++) {
     rivals.push({
       x: GAME_W / 2 + (Math.random() - 0.5) * ROAD_W * 0.6,
       y: 100 + i * 60,
-      speed: 80 + Math.random() * 80,
+      speed: (80 + Math.random() * 80) * k,
       color: RIVAL_COLORS[i],
       passed: false,
     });
   }
 }
 
+// ── PICKUPS ──
+function spawnPickups() {
+  pickups = [];
+  for (let i = 0; i < PICKUP_COUNT; i++) {
+    pickups.push({
+      dist: (roadLength / PICKUP_COUNT) * i + (Math.random() - 0.5) * 200,
+      x: (Math.random() - 0.5) * ROAD_W * 0.5,
+      kind: i % 2 === 0 ? 'turbo' : 'invinc',
+      collected: false,
+    });
+  }
+}
+
+function wrapDist(d) {
+  return ((d % roadLength) + roadLength) % roadLength;
+}
+
 // ── GAME FLOW ──
-function startGame() {
-  ensureAudio();
+function startCircuit(num) {
+  state.circuit = num;
   state.score = 0;
   state.time = QUALIFY_TIME;
   state.phase = 'qualify';
@@ -152,9 +179,8 @@ function startGame() {
   state.qualifyingTime = 0;
   state.turbo = 0;
   state.turboCooldown = 0;
-  state.running = true;
-  state.gameOver = false;
-  state.paused = false;
+  state.invincTimer = 0;
+  state.crashThisLap = 0;
 
   player.x = GAME_W / 2;
   player.y = GAME_H - 80;
@@ -164,12 +190,25 @@ function startGame() {
 
   generateRoad();
   spawnRivals();
+  spawnPickups();
   clearSquashes();
-  startAmbient();
-  startMusic('pole-position');
   shell.enableTabTrap();
   overlay.classList.add('hidden');
-  say('¡Calificación! Completá la vuelta en menos de 35 segundos');
+  say(
+    state.circuit > 1
+      ? `¡Circuito ${state.circuit}! Calificación en menos de ${QUALIFY_TIME}s`
+      : '¡Calificación! Completá la vuelta en menos de 35 segundos',
+  );
+}
+
+function startGame() {
+  ensureAudio();
+  state.running = true;
+  state.gameOver = false;
+  state.paused = false;
+  startCircuit(1);
+  startAmbient();
+  startMusic('pole-position');
 }
 
 function endGame() {
@@ -184,10 +223,6 @@ function endGame() {
     saveBest('polePosition', state.best);
   }
 
-  achievements.unlock('pole_first_race');
-  if (state.position <= 3) achievements.unlock('podium');
-  if (state.position === 1) achievements.unlock('champion');
-
   const posText =
     state.position <= 3 ? ['1° 🥇', '2° 🥈', '3° 🥉'][state.position - 1] : `${state.position}°`;
   finalScoreEl.textContent = `Posición: ${posText}`;
@@ -197,6 +232,23 @@ function endGame() {
     '<kbd>R</kbd> reiniciar &nbsp;·&nbsp; <kbd>Espacio</kbd> / tap para jugar de nuevo';
   overlay.classList.remove('hidden');
   say(`Posición final: ${posText}. Mejor: ${state.best}`);
+}
+
+function finishRace() {
+  state.score = (RIVAL_COUNT + 1 - state.position) * 100 + Math.floor(state.time) * 10;
+  if (state.position === 1 && state.circuit < 3) {
+    playFinishSound();
+    feedbackBundle('medium', GAME_W / 2, GAME_H * 0.3, {
+      color: '#ff2d78',
+      noFlash: true,
+      onBeep: () => beep({ freq: 523, freqEnd: 784, duration: 0.3, type: 'triangle', volume: 0.2 }),
+    });
+    say(`¡Ganaste el circuito ${state.circuit}!`);
+    startCircuit(state.circuit + 1);
+    return;
+  }
+  if (state.position === 1) achievements.unlock('champion');
+  endGame();
 }
 
 function togglePause() {
@@ -350,12 +402,14 @@ function updateGame(dt) {
       endGame();
       return;
     }
-    state.time = 0;
+    endGame();
+    return;
   }
 
   // Turbo
   if (state.turboCooldown > 0) state.turboCooldown -= dt;
   if (state.turbo > 0) state.turbo -= dt;
+  if (state.invincTimer > 0) state.invincTimer -= dt;
 
   const accelInput = keys['ArrowUp'] || keys['KeyW'] || touchAccel;
   const brakeInput = keys['ArrowDown'] || keys['KeyS'] || touchBrake;
@@ -417,8 +471,10 @@ function updateGame(dt) {
     const dx = Math.abs(r.x - player.x);
     const dy = Math.abs(r.y - player.y);
     if (dx < CAR_W * 1.5 && dy < CAR_H * 1.5) {
+      if (state.invincTimer > 0) continue;
       player.speed *= 0.3;
       r.speed *= 0.8;
+      state.crashThisLap++;
       playCrashSound();
       triggerShake(8);
     }
@@ -428,6 +484,32 @@ function updateGame(dt) {
   }
   state.position = position;
 
+  // Pickup collection
+  for (const p of pickups) {
+    if (p.collected) continue;
+    const d = wrapDist(p.dist - (roadOffset + player.y));
+    if (d < SEGMENT_H * 2.5 && Math.abs(p.x - (player.x - GAME_W / 2)) < 46) {
+      p.collected = true;
+      if (p.kind === 'turbo') {
+        state.turbo = Math.max(state.turbo, TURBO_DURATION);
+        beep({ freq: 400, freqEnd: 900, duration: 0.15, type: 'square', volume: 0.15 });
+      } else {
+        state.invincTimer = INVINCIBILITY_DURATION;
+        beep({ freq: 600, freqEnd: 300, duration: 0.2, type: 'triangle', volume: 0.15 });
+      }
+      spawnParticles(
+        offX +
+          (player.x +
+            road[Math.floor((roadOffset + player.y) / SEGMENT_H) % road.length]?.curve * 40) *
+            scale,
+        offY + ((player.y % GAME_H) - 10) * scale,
+        6,
+        p.kind === 'turbo' ? '#ffb800' : '#39ff14',
+        { speed: 80, life: 0.35 },
+      );
+    }
+  }
+
   // Lap detection
   if (roadOffset >= roadLength) {
     roadOffset -= roadLength;
@@ -435,14 +517,23 @@ function updateGame(dt) {
     playLapSound();
 
     if (state.phase === 'qualify') {
-      state.phase = 'race';
+      const lapTime = QUALIFY_TIME - state.time;
+      state.qualifyingTime = lapTime;
       state.time = RACE_TIME;
-      state.qualifyingTime = QUALIFY_TIME - state.time;
-      say('¡Clasificado! ¡Arranca la carrera!');
-    } else if (state.laps >= state.totalLaps) {
-      state.score = (RIVAL_COUNT + 1 - state.position) * 100 + Math.floor(state.time) * 10;
-      endGame();
-      return;
+      state.phase = 'race';
+      state.position = Math.min(RIVAL_COUNT, Math.max(1, 1 + Math.floor((lapTime - 22) * 0.55)));
+      if (state.position === 1) achievements.unlock('pole_position');
+      const posText =
+        state.position <= 3 ? ['1°', '2°', '3°'][state.position - 1] : `${state.position}°`;
+      say(`¡Clasificado! Salís ${posText}. ¡Arranca la carrera!`);
+    } else {
+      if (state.crashThisLap === 0) achievements.unlock('clean_lap');
+      state.crashThisLap = 0;
+      state.time = RACE_TIME;
+      if (state.laps >= state.totalLaps) {
+        finishRace();
+        return;
+      }
     }
   }
 
@@ -508,6 +599,31 @@ function draw() {
     drawGlow(ctx, sx, sy, CAR_W * s, r.color, 0.1, 2);
   }
 
+  // Draw pickups
+  for (const p of pickups) {
+    if (p.collected) continue;
+    const y = wrapDist(p.dist - roadOffset);
+    if (y > GAME_H + 30) continue;
+    const segIdx = Math.floor((roadOffset + y) / SEGMENT_H) % road.length;
+    const curve = road[segIdx]?.curve ?? 0;
+    const sx = ox + (GAME_W / 2 + p.x + curve * 40) * s;
+    const sy = oy + y * s;
+    const col = p.kind === 'turbo' ? '#ffb800' : '#39ff14';
+    const blink = Math.floor(state.time * 8) % 2 === 0;
+    if (blink) {
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(sx, sy, 5 * s, 8 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0a0a0a';
+      ctx.font = `${9 * s}px 'Courier New', monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.kind === 'turbo' ? '⚡' : '🛡', sx, sy + 1 * s);
+      drawGlow(ctx, sx, sy, 6 * s, col, 0.2, 2);
+    }
+  }
+
   // Draw player
   const playerSegIdx = Math.floor((roadOffset + player.y) / SEGMENT_H) % road.length;
   const playerCurve = road[playerSegIdx]?.curve ?? 0;
@@ -517,6 +633,9 @@ function draw() {
   ctx.save();
   ctx.translate(playerScreenX, playerScreenY);
   ctx.rotate(player.angle * 0.3);
+  if (state.invincTimer > 0 && Math.floor(state.invincTimer * 6) % 2 === 1) {
+    ctx.globalAlpha = 0.35;
+  }
 
   // Car body
   ctx.fillStyle = '#ff2d78';

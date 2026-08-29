@@ -49,6 +49,8 @@ const state = {
   level: 1,
   wave: 0,
   enemiesRemaining: 0,
+  spinProgress: 0,
+  jumpsThisWave: 0,
 };
 
 // Player position on rim (angle index 0..SIDES-1)
@@ -111,8 +113,10 @@ function getSideScreenPos(angleIdx, depth) {
 
 // ── SPAWNING ──
 function spawnWave() {
+  if (state.wave === 10) achievements.unlock('survivor');
   state.wave++;
   state.level = Math.floor(state.wave / 3) + 1;
+  state.jumpsThisWave = 0;
   const count = 4 + state.wave * 2;
   state.enemiesRemaining = count;
   spawnTimer = 0;
@@ -145,6 +149,7 @@ function startGame() {
   playerJumping = false;
   enemies = [];
   bullets = [];
+  state.spinProgress = 0;
 
   clearSquashes();
   startAmbient();
@@ -167,10 +172,6 @@ function endGame() {
     saveBest('tempest2d', state.best);
   }
 
-  achievements.unlock('tempest_first_play');
-  if (state.score >= 1000) achievements.unlock('tempest_high_scorer');
-  if (state.wave >= 5) achievements.unlock('tempest_survivor');
-
   finalScoreEl.textContent = `Puntos: ${state.score}`;
   finalScoreEl.style.display = '';
   overlayText.textContent = '¡Juego terminado!';
@@ -186,6 +187,15 @@ function togglePause() {
 }
 
 // ── INPUT: KEYBOARD ──
+function rotatePlayer(dir) {
+  playerAngle = (playerAngle + dir + SIDES) % SIDES;
+  state.spinProgress++;
+  if (state.spinProgress >= SIDES) {
+    achievements.unlock('spin_master');
+    state.spinProgress = 0;
+  }
+}
+
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyR' && (state.gameOver || !state.running)) {
     e.preventDefault();
@@ -202,10 +212,10 @@ window.addEventListener('keydown', (e) => {
 
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
     e.preventDefault();
-    playerAngle = (playerAngle - 1 + SIDES) % SIDES;
+    rotatePlayer(-1);
   } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
     e.preventDefault();
-    playerAngle = (playerAngle + 1) % SIDES;
+    rotatePlayer(1);
   } else if (e.code === 'Space') {
     e.preventDefault();
     shoot();
@@ -246,10 +256,10 @@ function bindTouch(id, fn) {
 }
 
 bindTouch('btnLeft', () => {
-  playerAngle = (playerAngle - 1 + SIDES) % SIDES;
+  rotatePlayer(-1);
 });
 bindTouch('btnRight', () => {
-  playerAngle = (playerAngle + 1) % SIDES;
+  rotatePlayer(1);
 });
 bindTouch('btnFire', shoot);
 bindTouch('btnUp', jump);
@@ -266,8 +276,8 @@ function pollGamepad() {
   const aHeld = !!gp.buttons[0]?.pressed;
   const bHeld = !!gp.buttons[1]?.pressed;
 
-  if (dpadLeft) playerAngle = (playerAngle - 1 + SIDES) % SIDES;
-  if (dpadRight) playerAngle = (playerAngle + 1) % SIDES;
+  if (dpadLeft) rotatePlayer(-1);
+  if (dpadRight) rotatePlayer(1);
   if (aHeld) shoot();
   if (bHeld) jump();
 
@@ -310,6 +320,8 @@ function jump() {
   jumpTimer = JUMP_DURATION;
   jumpFromAngle = playerAngle;
   jumpToAngle = (playerAngle + 2) % SIDES;
+  state.jumpsThisWave++;
+  if (state.jumpsThisWave === 10) achievements.unlock('jump_pro');
   playJumpSound();
 }
 
