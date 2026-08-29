@@ -173,7 +173,6 @@ const ENTRY_SEQUENCES = [
 // ============================================================
 const BONUS_EVERY = 5; // bonus stage every N waves
 const BONUS_FLIGHT_SPEED = 160;
-const BONUS_FLIGHT_INTERVAL = 0.4;
 const BONUS_DURATION = 15; // seconds
 const BONUS_ENEMY_COUNT = 40;
 
@@ -282,7 +281,6 @@ let entryState = null; // { groups: [...], groupIdx, spawnIdx, spawnTimer, activ
 // Bonus stage state
 let bonusStage = false;
 let bonusFlighters = []; // enemies flying freely in bonus stage
-let bonusFlightTimer = 0;
 let bonusStageTimer = 0;
 let bonusKills = 0;
 
@@ -488,7 +486,6 @@ function updateEnemyEntry(e, dt) {
 function startBonusStage() {
   bonusStage = true;
   bonusFlighters = [];
-  bonusFlightTimer = 0;
   bonusStageTimer = BONUS_DURATION;
   bonusKills = 0;
 
@@ -523,21 +520,6 @@ function updateBonusStage(dt) {
   if (!bonusStage) return;
 
   bonusStageTimer -= dt;
-
-  // Spawn enemies over time
-  bonusFlightTimer += dt;
-  const activeFlighters = bonusFlighters.filter((f) => f.alive);
-  if (bonusFlightTimer > BONUS_FLIGHT_INTERVAL && activeFlighters.length < 12) {
-    bonusFlightTimer = 0;
-    // Activate next batch
-    for (const f of bonusFlighters) {
-      if (!f.alive) continue;
-      if (f.x < -30 || f.x > CW + 30) {
-        // Still off-screen, activate
-        break;
-      }
-    }
-  }
 
   // Update flighters
   for (const f of bonusFlighters) {
@@ -975,7 +957,7 @@ function updateDiving(dt) {
     e.y += speed * dt;
 
     // Enemy shoots — frequency scales with wave
-    if (Math.random() < 0.005 + state.wave * 0.001 && e.y > CH * 0.3) {
+    if (Math.random() < 0.005 + state.wave * 0.001 && e.y > CH * 0.3 && eBullets.length < 60) {
       eBullets.push({ x: e.x, y: e.y, vy: ENEMY_BULLET_SPEED });
     }
 

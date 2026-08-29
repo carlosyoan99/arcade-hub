@@ -606,6 +606,7 @@ function checkCollisions() {
         updateHUD();
         if (asteroids.length === 0) {
           playLevelClearSound();
+          if (state.lives >= 3) achievements.unlock('asteroids_clear');
           spawnAsteroidWave();
         }
         break;
