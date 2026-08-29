@@ -415,6 +415,89 @@ const SCENES = {
     ctx.lineTo(31, 21);
     ctx.stroke();
   },
+
+  bomberman(ctx) {
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        rect(ctx, r % 2 === c % 2 ? C.blue : C.purple, 5 + c * 12, 5 + r * 12, 11, 11);
+      }
+    }
+    rect(ctx, C.cyan, 40, 17, 5, 5);
+    rect(ctx, C.gold, 22, 36, 8, 3);
+    rect(ctx, C.pink, 28, 21, 3, 3);
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(4, 4, 48, 48);
+  },
+
+  raiden(ctx) {
+    ctx.fillStyle = 'rgba(122,120,160,0.4)';
+    for (let i = 0; i < 5; i++) ctx.fillRect(2, 6 + i * 10, 52, 1);
+    ctx.fillStyle = 'rgba(255,217,102,0.5)';
+    ctx.beginPath();
+    ctx.arc(44, 15, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(42, 13, 4, 4);
+    poly(
+      ctx,
+      C.green,
+      [
+        [28, 48],
+        [25, 37],
+        [28, 41],
+        [31, 37],
+      ],
+      true,
+    );
+    disc(ctx, C.gold, 28, 34, 4);
+    rect(ctx, C.red, 44, 40, 5, 5);
+    rect(ctx, C.orange, 20, 46, 6, 6);
+  },
+
+  gradius(ctx) {
+    ctx.fillStyle = 'rgba(122,120,160,0.4)';
+    for (let i = 0; i < 5; i++) ctx.fillRect(2, 7 + i * 10, 52, 1);
+    ctx.strokeStyle = 'rgba(0,240,255,0.5)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) ctx.strokeRect(6 + i * 9, 40, 8, 8);
+    ring(ctx, C.cyan, 18, 34, 2);
+    disc(ctx, C.cyan, 18, 34, 1.2);
+    ring(ctx, C.pink, 13, 30, 2);
+    disc(ctx, C.pink, 13, 30, 1.2);
+    ctx.strokeStyle = C.gold;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(20, 22);
+    ctx.lineTo(34, 22);
+    ctx.moveTo(20, 26);
+    ctx.lineTo(31, 26);
+    ctx.stroke();
+  },
+
+  qbert(ctx) {
+    const iso = (k, i) => [28 + (i - k / 2) * 9, 36 + k * 4.5];
+    for (let k = 6; k >= 0; k--) {
+      for (let i = 0; i <= k; i++) {
+        const [x, y] = iso(k, i);
+        const colored = (k * 7 + i) % 2 === 0;
+        poly(
+          ctx,
+          colored ? C.green : C.dim,
+          [
+            [x, y - 4],
+            [x + 4, y],
+            [x, y + 4],
+            [x - 4, y],
+          ],
+          true,
+        );
+      }
+    }
+    disc(ctx, C.cyan, 28, 17, 5);
+    disc(ctx, C.pink, 13, 15, 2.5);
+    disc(ctx, C.orange, 43, 34, 2.5);
+  },
 };
 
 export function drawGameThumb(canvas, gameId) {
