@@ -174,3 +174,51 @@ export function hasClass(document, id, className) {
   const el = document.getElementById(id);
   return el ? el.classList.contains(className) : false;
 }
+
+/**
+ * Stepper de requestAnimationFrame controlable.
+ *
+ * Permite avanzar el game loop frame a frame en jsdom: cada `step()` ejecuta
+ * todos los callbacks de rAF pendientes con un `performance.now()` simulado,
+ * tal como los correría el navegador. Las excepciones que un juego arroje
+ * dentro de su tick (por ejemplo en `update`/`draw`) quedan capturadas en
+ * `errors` en lugar de tumbar el proceso.
+ */
+export function createRafStepper() {
+  const queue = new Map();
+  const errors = [];
+  let nextId = 1;
+  let now = 0;
+  function raf(cb) {
+    const id = nextId++;
+    queue.set(id, cb);
+    return id;
+  }
+  function caf(id) {
+    queue.delete(id);
+  }
+  function step(stepMs = 16.67) {
+    now += stepMs;
+    const cbs = [...queue.values()];
+    queue.clear();
+    for (const cb of cbs) {
+      try {
+        cb(now);
+      } catch (err) {
+        errors.push(err);
+      }
+    }
+    return errors;
+  }
+  return {
+    raf,
+    caf,
+    step,
+    get errors() {
+      return errors;
+    },
+    get now() {
+      return now;
+    },
+  };
+}
