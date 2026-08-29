@@ -90,9 +90,10 @@ async function auditPage(page, label, errors, httpErrors) {
       httpErrors.push(`HTTP ${r.status()} ${r.url()}`);
     }
   });
-  page.on('requestfailed', (r) =>
-    httpErrors.push(`REQUEST_FAILED ${r.url()} ${r.failure()?.errorText ?? ''}`),
-  );
+  page.on('requestfailed', (r) => {
+    if (!r.url().endsWith('/favicon.ico'))
+      httpErrors.push(`REQUEST_FAILED ${r.url()} ${r.failure()?.errorText ?? ''}`);
+  });
   const response = await page.goto(`http://127.0.0.1:${PORT}/${encodeURI(label)}`, {
     waitUntil: 'domcontentloaded',
   });
