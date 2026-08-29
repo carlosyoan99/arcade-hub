@@ -6,10 +6,11 @@
 //   npm run test:e2e -- --game=pong
 //   npm run test:e2e -- --headful   (Chrome visible)
 //   npm run test:e2e -- --quiet     (solo el resumen)
-import { readFileSync, statSync } from 'node:fs';
+import { statSync } from 'node:fs';
 import { createReadStream } from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
+import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { games } from '../games.js';
@@ -143,28 +144,65 @@ async function main() {
       }
     }
 
-    const page = await context.newPage();
+const page = await context.newPage();
     const errors = [];
     const httpErrors = [];
     await auditPage(page, 'index.html', errors, httpErrors);
-    let hub = await page.evaluate(() => ({
+
+    // Silencio de audio del hover ANTES de cualquier gesto (gate de autoplay).
+    const autoplayNoise = [];
+    page.on('console', (m) => {
+      if (m.type() === 'warning' || m.type() === 'error') {
+        if (/AudioContext was not allowed/i.test(m.text())) autoplayNoise.push(m.text());
+      }
+    });
+    const firstCard = page.locator('[data-game-id]').first();
+    await firstCard.hover();
+    await page.waitForTimeout(250);
+
+    // Dismiss interactivo del entry overlay (pointerdown).
+    let hub = await page.evaluate(() => ({ entryOverlay: !!document.getElementById('entryOverlay') }));
+    assert(hub.entryOverlay, 'entry overlay visible antes del gesto');
+    await page.mouse.click(40, 40);
+    await page.waitForTimeout(150);
+    hub = await page.evaluate(() => ({
       cards: document.querySelectorAll('#grid .card').length,
       entryOverlay: !!document.getElementById('entryOverlay'),
     }));
-    if (hub.entryOverlay) {
-      await page.waitForTimeout(7300);
-      hub = await page.evaluate(() => ({
-        cards: document.querySelectorAll('#grid .card').length,
-        entryOverlay: !!document.getElementById('entryOverlay'),
-      }));
-    }
+    assert(hub.entryOverlay === false, 'entry overlay se oculta al hacer gesto');
+
+    // Auto-dismiss a los ~7s en una carga fresca.
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(7600);
+    hub = await page.evaluate(() => ({
+      cards: document.querySelectorAll('#grid .card').length,
+      entryOverlay: !!document.getElementById('entryOverlay'),
+    }));
+    assert(hub.entryOverlay === false, 'entry overlay se auto-oculta a los ~7s');
+
+    // Click real sobre una card lista → el iframe carga el juego.
+    await page.locator('[data-game-id="out-run"]').click();
+    await page.waitForTimeout(2500);
+    const orFrame = page.frames().find((f) => f.url().includes('/games/out-run/index.html'));
+    const orState = orFrame
+      ? await orFrame.evaluate(() => {
+          const loading = document.getElementById('loading');
+          return {
+            loadingGone: !loading || loading.classList.contains('hidden'),
+            hasCanvas: !!document.getElementById('gameCanvas'),
+            hasOverlay: !!document.getElementById('overlay'),
+          };
+        })
+      : null;
+    assert(orState && orState.loadingGone && orState.hasCanvas && orState.hasOverlay, 'click de card abre el juego en iframe');
+
     await page.close();
     const hubOk =
       errors.length === 0 &&
       httpErrors.length === 0 &&
-      hub.cards === games.length &&
-      !hub.entryOverlay;
-    results.push({ label: 'hub', ok: hubOk, errors, httpErrors, info: hub });
+      autoplayNoise.length === 0 &&
+      hub.cards === games.length;
+    results.push({ label: 'hub', ok: hubOk, errors, httpErrors, info: { cards: hub.cards, autoplayNoise, entryOverlay: false } });
 
     // ── Camino real de juego: hub + iframe por hash (#game/<id>) ──
     const iframePage = await context.newPage();
