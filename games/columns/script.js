@@ -1,7 +1,7 @@
 import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
-import { stopMusic } from '../../shared/music.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -449,6 +449,7 @@ function startGame() {
   flashing = [];
   clearSquashes();
   startAmbient();
+  startMusic('columns');
   shell.enableTabTrap();
   spawnPiece();
   overlay.classList.add('hidden');

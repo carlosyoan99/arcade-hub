@@ -4,5 +4,11 @@
   "controls": "Arrows/WASD to move, Space to place a bomb, P to pause.",
   "plays": ["arrow", "wasd", "touch", "gamepad"],
   "version": "1.0.0",
-  "id": "bomberman"
+  "id": "bomberman",
+  "changelog": [
+    {
+      "date": "2026-08-29",
+      "changes": ["Initial release"]
+    }
+  ]
 }

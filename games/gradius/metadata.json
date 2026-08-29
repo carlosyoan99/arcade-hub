@@ -4,5 +4,11 @@
   "controls": "Arrows/WASD to move, X to fire, Space to activate the power-up bar, P pause.",
   "plays": ["arrow", "wasd", "touch", "gamepad"],
   "version": "1.0.0",
-  "id": "gradius"
+  "id": "gradius",
+  "changelog": [
+    {
+      "date": "2026-08-29",
+      "changes": ["Initial release"]
+    }
+  ]
 }

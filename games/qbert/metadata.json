@@ -4,5 +4,11 @@
   "controls": "Q/E to hop up-left/up-right, A/D to hop down-left/down-right, P pause.",
   "plays": ["touch", "gamepad", "keyboard"],
   "version": "1.0.0",
-  "id": "qbert"
+  "id": "qbert",
+  "changelog": [
+    {
+      "date": "2026-08-29",
+      "changes": ["Initial release"]
+    }
+  ]
 }

@@ -1,22 +1,19 @@
 # Q*bert
 
-Isometric action-puzzle recreated in **canvas 2D**. Hop around a pyramid of cubes: every
-cube you land on changes color. Clear the level by coloring all 28 cubes, then dodge (or
-outsmart) the enemies.
+**Versión:** 1.0.0 | **Última actualización:** 2026-08-29
+
+Isometric action-puzzle recreated in **canvas 2D**. Hop around a pyramid of cubes: every cube you land on changes color. Clear the level by coloring all 28 cubes, then dodge (or outsmart) the enemies.
 
 ## How to play
 
 - **Hop:** Q (up-left), E (up-right), A (down-left), D (down-right).
-- **Pause:** P (gamepad: Start). Classic behavior — hopping to an edge that doesn't exist
-  makes Q*bert fall off the pyramid and lose a life.
+- **Pause:** P (gamepad: Start). Classic behavior — hopping to an edge that doesn't exist makes Q*bert fall off the pyramid and lose a life.
 - Touch: four diagonal buttons (↖ ↗ ↘ ↙). Gamepad: left stick / d-pad diagonals.
 
 ## Enemies
 
-- **Coily:** hatches from an egg after 10 jumps and hops relentlessly down the pyramid.
-  Avoid it — or lure it off the bottom edge, or use a fontana.
-- **Slick/Sam:** hop around and revert cubes back to their base color. Land on them to
-  squash them for points.
+- **Coily:** hatches from an egg after 10 jumps and hops relentlessly down the pyramid. Avoid it — or lure it off the bottom edge, or use a fontana.
+- **Slick/Sam:** hop around and revert cubes back to their base color. Land on them to squash them for points.
 
 ## Power-ups
 
@@ -25,8 +22,7 @@ outsmart) the enemies.
 
 ## Scores
 
-- +25 per cube colored, +500 per Slick/Sam squashed, +1500 for driving Coily off the
-  pyramid (or +1500 when it falls), +1000+500×level for clearing a level.
+- +25 per cube colored, +500 per Slick/Sam squashed, +1500 for driving Coily off the pyramid (or +1500 when it falls), +1000+500×level for clearing a level.
 
 ## Achievements
 

@@ -1,7 +1,8 @@
 # Raiden
 
-Vertical shooter ("shmup") recreated in **canvas 2D**. Fly through 7 sectors, destroy enemy
-waves and defeat the boss of each stage.
+**Versión:** 1.0.0 | **Última actualización:** 2026-08-29
+
+Vertical shooter ("shmup") recreated in **canvas 2D**. Fly through 7 sectors, destroy enemy waves and defeat the boss of each stage.
 
 ## How to play
 
@@ -18,14 +19,11 @@ waves and defeat the boss of each stage.
 - **Missile** — heavy homing-ish pair.
 - **Shield** — heavy single frontal shot.
 
-Taking a hit reverts your weapon to **Twin**. You can play the whole run with the starter
-weapon without ever picking upgrades.
+Taking a hit reverts your weapon to **Twin**. You can play the whole run with the starter weapon without ever picking upgrades.
 
 ## Stages
 
-Each of the 7 sectors has a distinct boss: spiral, aimed, ring, waves, double-spiral,
-aimed + ring, and a final pattern. Boss HP, enemy count and bullet speed scale with the
-sector.
+Each of the 7 sectors has a distinct boss: spiral, aimed, ring, waves, double-spiral, aimed + ring, and a final pattern. Boss HP, enemy count and bullet speed scale with the sector.
 
 ## Scores
 

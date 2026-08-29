@@ -4,5 +4,11 @@
   "controls": "Arrows/WASD to move (autofire). Space bomb. P pause.",
   "plays": ["arrow", "wasd", "touch", "gamepad"],
   "version": "1.0.0",
-  "id": "raiden"
+  "id": "raiden",
+  "changelog": [
+    {
+      "date": "2026-08-29",
+      "changes": ["Initial release"]
+    }
+  ]
 }

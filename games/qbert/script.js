@@ -1,5 +1,5 @@
 import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
-import { startMusic } from '../../shared/music.js';
+import { startMusic, stopMusic } from '../../shared/music.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
@@ -173,6 +173,7 @@ function gameOver() {
     gameoverDone = true;
     state.phase = 'menu';
     shell.disableTabTrap();
+    stopMusic();
     if (state.score > state.best) {
       state.best = state.score;
       saveBest('qbert2d', state.best);

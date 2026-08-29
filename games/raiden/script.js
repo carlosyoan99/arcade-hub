@@ -670,6 +670,11 @@ window.addEventListener('keydown', (e) => {
     startGame();
     return;
   }
+  if (state.phase === 'menu' && (e.code === 'Space' || e.code === 'Enter')) {
+    e.preventDefault();
+    startGame();
+    return;
+  }
   if (state.phase === 'select' && !state.paused) {
     if (e.code === 'ArrowUp' || e.code === 'KeyW') {
       e.preventDefault();

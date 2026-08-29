@@ -1,14 +1,14 @@
 # Gradius
 
-Side-scroll shooter recreated in **canvas 2D**. Fly through 7 sectors, collect capsules to
-advance the power gauge, activate upgrades with Space, and defeat the boss of each sector.
+**Versión:** 1.0.0 | **Última actualización:** 2026-08-29
+
+Side-scroll shooter recreated in **canvas 2D**. Fly through 7 sectors, collect capsules to advance the power gauge, activate upgrades with Space, and defeat the boss of each sector.
 
 ## How to play
 
 - **Move:** arrows / WASD / d-pad / left stick (8 directions).
 - **Fire:** X (hold; gamepad A). Autofire works even without firing.
-- **Power:** Space activates the currently highlighted slot of the power bar (gamepad B; tap
-  the bar on touch).
+- **Power:** Space activates the currently highlighted slot of the power bar (gamepad B; tap the bar on touch).
 - **Pause:** P (gamepad: Start).
 
 ## Power bar
@@ -25,8 +25,7 @@ Taking a hit resets your power to base. Speed, missiles, double, options and shi
 
 ## Stages
 
-7 sectors with increasing difficulty. Each stage ends with a boss: fans + aimed bursts scale
-with the sector.
+7 sectors with increasing difficulty. Each stage ends with a boss: fans + aimed bursts scale with the sector.
 
 ## Achievements
 

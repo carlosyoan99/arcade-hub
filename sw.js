@@ -5,7 +5,7 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v25';
+const STATIC_CACHE = 'arcadehub-static-v26';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
@@ -72,27 +72,24 @@ const FILES = [
   './games/neon-nexus/index.html',
   './games/neon-nexus/script.js',
   './games/neon-nexus/style.css',
+  './games/out-run/index.html',
+  './games/out-run/script.js',
+  './games/out-run/style.css',
   './games/pacman/index.html',
   './games/pacman/script.js',
   './games/pacman/style.css',
   './games/paperboy/index.html',
   './games/paperboy/script.js',
   './games/paperboy/style.css',
-  './games/paperboy/metadata.json',
-  './games/puyo-puyo/index.html',
-  './games/puyo-puyo/script.js',
-  './games/puyo-puyo/style.css',
-  './games/puyo-puyo/metadata.json',
-  './games/out-run/index.html',
-  './games/out-run/script.js',
-  './games/out-run/style.css',
-  './games/out-run/metadata.json',
   './games/pole-position/index.html',
   './games/pole-position/script.js',
   './games/pole-position/style.css',
   './games/pong/index.html',
   './games/pong/script.js',
   './games/pong/style.css',
+  './games/puyo-puyo/index.html',
+  './games/puyo-puyo/script.js',
+  './games/puyo-puyo/style.css',
   './games/qbert/index.html',
   './games/qbert/script.js',
   './games/qbert/style.css',
