@@ -278,6 +278,10 @@ function loseLife() {
   player.x = CW / 2;
   player.y = CH - 30;
   state.invincibleTimer = 2;
+  // Clear transient threats so the respawned player isn't instantly killed
+  bullets = [];
+  flea = null;
+  scorpion = null;
 }
 
 function endGame() {
