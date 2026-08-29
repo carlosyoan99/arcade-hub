@@ -440,17 +440,25 @@ export function clearSquashes() {
 }
 
 // ── AUTO-INIT: preferencias de accesibilidad (G6) ──
-// Respeta prefers-reduced-motion del sistema al cargar
+// Respeta prefers-reduced-motion del sistema Y el toggle "Reducir movimiento"
+// del hub (data.reduceMotion) al cargar, y reacciona en vivo a ambos.
 (function initAccessibility() {
-  const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (mql.matches) {
-    setShakeScale(0);
-    setParticlesScale(0);
+  const userReduce = () => document.documentElement.dataset.reduceMotion === 'on';
+  const apply = () => {
+    const reduce = userReduce() || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setShakeScale(reduce ? 0 : 1);
+    setParticlesScale(reduce ? 0 : 1);
+  };
+  apply();
+  matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', apply);
+  // El toggle del hub se aplica de inmediato (no requiere recargar el juego).
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(apply);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-reduce-motion'],
+    });
   }
-  mql.addEventListener('change', (e) => {
-    setShakeScale(e.matches ? 0 : 1);
-    setParticlesScale(e.matches ? 0 : 1);
-  });
 })();
 
 // ──────────────────────────────────────────────
