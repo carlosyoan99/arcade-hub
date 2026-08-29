@@ -14,6 +14,7 @@ import {
   clearParticles,
   drawGlow,
 } from '../../shared/effects.js';
+import { overlap } from '../../shared/collide.js';
 
 injectCommonElements();
 
@@ -151,11 +152,6 @@ function rnd(a, b) {
   return a + Math.random() * (b - a);
 }
 
-function overlap(a, ar, b, br) {
-  const dx = Math.abs(a.x - b.x);
-  const dy = Math.abs(a.y - b.y);
-  return dx < ar + br && dy < ar + br;
-}
 
 // ── Configuración de stage ──
 const MAX_STAGE = 7;

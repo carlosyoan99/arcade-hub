@@ -17,6 +17,7 @@ import {
   feedbackBundle,
   clearSquashes,
 } from '../../shared/effects.js';
+import { dist } from '../../shared/collide.js';
 
 injectCommonElements();
 
@@ -220,9 +221,6 @@ function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-function dist(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
 
 function randColor() {
   return NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];

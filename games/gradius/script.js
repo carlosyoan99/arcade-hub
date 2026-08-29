@@ -14,6 +14,7 @@ import {
   clearParticles,
   drawGlow,
 } from '../../shared/effects.js';
+import { overlap as overlapBullet } from '../../shared/collide.js';
 
 injectCommonElements();
 
@@ -79,9 +80,6 @@ function rnd(a, b) {
   return a + Math.random() * (b - a);
 }
 
-function overlapBullet(a, ar, b, br) {
-  return Math.abs(a.x - b.x) < ar + br && Math.abs(a.y - b.y) < ar + br;
-}
 
 /* ── Ayudas de sonido ── */
 function playShotSound() {

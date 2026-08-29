@@ -48,6 +48,9 @@ const INVINCIBILITY_DURATION = 10;
 const ROAD_SEGMENTS = 120;
 const SEGMENT_H = GAME_H / 6;
 const PICKUP_COUNT = 8;
+/** Fast segment index (bitwise floor for positive values) */
+const segIdx = (offset) => ((offset / SEGMENT_H) | 0) % road.length;
+const segAlt = (offset) => ((offset / SEGMENT_H) | 0) % 2 === 0;
 
 // Colors for rivals
 const RIVAL_COLORS = [
@@ -440,8 +443,8 @@ function updateGame(dt) {
   player.angle = Math.max(-1.2, Math.min(1.2, player.angle));
 
   // Road curve effect
-  const segIdx = Math.floor((roadOffset + player.y) / SEGMENT_H) % road.length;
-  const curve = road[segIdx]?.curve ?? 0;
+  const si = segIdx(roadOffset + player.y);
+  const curve = road[si]?.curve ?? 0;
   player.x += curve * player.speed * dt * 0.8;
 
   // Move forward
@@ -498,10 +501,7 @@ function updateGame(dt) {
         beep({ freq: 600, freqEnd: 300, duration: 0.2, type: 'triangle', volume: 0.15 });
       }
       spawnParticles(
-        offX +
-          (player.x +
-            road[Math.floor((roadOffset + player.y) / SEGMENT_H) % road.length]?.curve * 40) *
-            scale,
+        offX + (player.x + road[segIdx(roadOffset + player.y)]?.curve * 40) * scale,
         offY + ((player.y % GAME_H) - 10) * scale,
         6,
         p.kind === 'turbo' ? '#ffb800' : '#39ff14',
@@ -561,14 +561,14 @@ function draw() {
 
   for (let i = 0; i < segmentCount; i++) {
     const baseY = i * SEGMENT_H - (roadOffset % SEGMENT_H);
-    const segIdx = Math.floor((roadOffset + baseY) / SEGMENT_H) % road.length;
-    const curve = road[segIdx]?.curve ?? 0;
+    const si = segIdx(roadOffset + baseY);
+    const curve = road[si]?.curve ?? 0;
 
     const y1 = oy + baseY * s;
     const y2 = oy + (baseY + SEGMENT_H) * s;
 
     // Road surface
-    const alt = Math.floor((roadOffset + baseY) / SEGMENT_H) % 2 === 0;
+    const alt = segAlt(roadOffset + baseY);
     ctx.fillStyle = alt ? '#333340' : '#2a2a35';
     ctx.fillRect(roadLeft + curve * 40 * s, y1, ROAD_W * s, y2 - y1 + 1);
 
@@ -589,8 +589,8 @@ function draw() {
     const screenY = (r.y - roadOffset) % (GAME_H + 200);
     if (screenY < -30 || screenY > GAME_H + 30) continue;
 
-    const segIdx = Math.floor((roadOffset + r.y) / SEGMENT_H) % road.length;
-    const curve = road[segIdx]?.curve ?? 0;
+    const si = segIdx(roadOffset + r.y);
+    const curve = road[si]?.curve ?? 0;
     const sx = ox + (r.x + curve * 40) * s;
     const sy = oy + screenY * s;
 
@@ -604,8 +604,8 @@ function draw() {
     if (p.collected) continue;
     const y = wrapDist(p.dist - roadOffset);
     if (y > GAME_H + 30) continue;
-    const segIdx = Math.floor((roadOffset + y) / SEGMENT_H) % road.length;
-    const curve = road[segIdx]?.curve ?? 0;
+    const si = segIdx(roadOffset + y);
+    const curve = road[si]?.curve ?? 0;
     const sx = ox + (GAME_W / 2 + p.x + curve * 40) * s;
     const sy = oy + y * s;
     const col = p.kind === 'turbo' ? '#ffb800' : '#39ff14';
@@ -625,8 +625,8 @@ function draw() {
   }
 
   // Draw player
-  const playerSegIdx = Math.floor((roadOffset + player.y) / SEGMENT_H) % road.length;
-  const playerCurve = road[playerSegIdx]?.curve ?? 0;
+  const psi = segIdx(roadOffset + player.y);
+  const playerCurve = road[psi]?.curve ?? 0;
   const playerScreenX = ox + (player.x + playerCurve * 40) * s;
   const playerScreenY = oy + (player.y % GAME_H) * s;
 

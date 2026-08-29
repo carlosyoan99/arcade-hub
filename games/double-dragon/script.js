@@ -8,7 +8,9 @@ import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad } from '../../shared/input.js';
 import {
+  triggerShake,
   updateShake,
+  getShakeOffset,
   spawnParticles,
   updateParticles,
   drawParticles,
@@ -17,6 +19,7 @@ import {
   updateSquashes,
   clearSquashes,
 } from '../../shared/effects.js';
+import { dist } from '../../shared/collide.js';
 
 injectCommonElements();
 const shell = setupGameShell('double-dragon');
@@ -67,7 +70,6 @@ let enemies = [];
 let pickups = [];
 let attackFlash = 0;
 let damageFlash = 0;
-let shakeAmt = 0;
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -97,10 +99,6 @@ function deathSfx() {
 }
 function pickupSfx() {
   sfx(600, 900, 0.12, 'triangle', 0.15);
-}
-
-function dist(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
 function spawnEnemies() {
@@ -236,7 +234,7 @@ function attack(type) {
       e.hp -= dmg;
       e.hit = 0.2;
       state.score += 10;
-      shakeAmt = 3;
+      triggerShake(0.3);
       hitSfx();
       spawnParticles(ox + e.x * sc, oy + e.y * sc, 4, ENEMY_COLORS[e.type] || '#fff', {
         speed: 80,
@@ -276,7 +274,7 @@ function playerTakeDamage(_dmg) {
   if (damageFlash > 0) return;
   damageFlash = 0.5;
   state.lives--;
-  shakeAmt = 6;
+  triggerShake(0.6);
   sfx(150, 50, 0.3, 'sawtooth', 0.2);
   if (state.lives <= 0) endGame();
 }
@@ -404,7 +402,7 @@ function updateGame(dt) {
   if (state.attackTimer > 0) state.attackTimer -= dt;
   if (attackFlash > 0) attackFlash -= dt;
   if (damageFlash > 0) damageFlash -= dt;
-  if (shakeAmt > 0) shakeAmt *= 0.9;
+  updateShake(dt);
 
   let dx = 0,
     dy = 0;
@@ -472,7 +470,9 @@ function updateGame(dt) {
 
 function draw() {
   ctx.save();
-  ctx.clearRect(0, 0, cW, cH);
+  const so = getShakeOffset();
+  ctx.translate(so.x, so.y);
+  ctx.clearRect(-so.x, -so.y, cW, cH);
 
   // Stage background
   const grad = ctx.createLinearGradient(ox, oy, oy, oy + GH * sc);
