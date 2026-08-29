@@ -1,0 +1,23 @@
+{
+  "id": "pole-position",
+  "title": "Pole Position",
+  "version": "1.0.0",
+  "created": "2026-08-28",
+  "lastModified": "2026-08-28",
+  "description": "Racing top-down. Calificá y ganá la carrera contra 8 rivales.",
+  "genre": "racing",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlosyoan99/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-08-28",
+      "changes": [
+        "Initial release: qualifying + 3-lap race, 8 rivals, turbo, road curves",
+        "Achievements: pole_first_race, podium, champion",
+        "Teclado + táctil + gamepad"
+      ]
+    }
+  ]
+}

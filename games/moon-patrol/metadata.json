@@ -1,0 +1,23 @@
+{
+  "id": "moon-patrol",
+  "title": "Moon Patrol",
+  "version": "1.0.0",
+  "created": "2026-08-28",
+  "lastModified": "2026-08-28",
+  "description": "Side-scroll lunar shooter. Patrullá la luna esquivando cráteres y destruyendo enemigos.",
+  "genre": "shooter",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlosyoan99/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-08-28",
+      "changes": [
+        "Initial release: 3 lanes, forward + up shooting, jump, rovers + UFOs + mines",
+        "Achievements: moon_first_patrol, moon_high_scorer, moon_veteran",
+        "Teclado + táctil + gamepad"
+      ]
+    }
+  ]
+}

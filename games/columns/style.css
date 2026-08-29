@@ -1,0 +1,20 @@
+:root {
+  --bg-body: #0a0a1a;
+  --accent: var(--neon-pink);
+  --accent-glow: rgba(255, 45, 120, 0.25);
+  --overlay-grad-start: rgba(10, 10, 30, 0.88);
+  --overlay-grad-end: rgba(5, 5, 15, 0.95);
+}
+
+[data-theme='light'] {
+  --bg-body: #d8d8e8;
+}
+
+/* ── Gem colors for HUD ── */
+#hud .score-group {
+  border: 1px solid rgba(255, 45, 120, 0.12);
+}
+
+#hud .speed-indicator .value {
+  color: var(--neon-cyan);
+}

@@ -220,4 +220,48 @@ export const games = [
     status: 'listo',
     created: '2026-07-29',
   },
+  {
+    id: 'columns',
+    title: 'Columns',
+    description:
+      'Puzzle de gemas. Armá combinaciones de 3+ gemas del mismo color para eliminarlas. Nivel progresivo y ghost piece.',
+    file: 'games/columns/index.html',
+    icon: '💎',
+    thumbnail: './asset/icons/game-columns.svg',
+    status: 'listo',
+    created: '2026-08-28',
+  },
+  {
+    id: 'pole-position',
+    title: 'Pole Position',
+    description:
+      'Racing top-down. Calificá en menos de 35 segundos y ganá la carrera de 3 vueltas contra 8 rivales con turbo.',
+    file: 'games/pole-position/index.html',
+    icon: '🏎️',
+    thumbnail: './asset/icons/game-pole-position.svg',
+    status: 'listo',
+    created: '2026-08-28',
+  },
+  {
+    id: 'moon-patrol',
+    title: 'Moon Patrol',
+    description:
+      'Side-scroll lunar shooter. Patrullá la luna esquivando cráteres y destruyendo enemigos con disparos hacia adelante y hacia arriba.',
+    file: 'games/moon-patrol/index.html',
+    icon: '🌙',
+    thumbnail: './asset/icons/game-moon-patrol.svg',
+    status: 'listo',
+    created: '2026-08-28',
+  },
+  {
+    id: 'tempest',
+    title: 'Tempest',
+    description:
+      'Tube shooter de 16 lados. Dispará a los enemigos que suben por el tubo y usá jump para esquivar.',
+    file: 'games/tempest/index.html',
+    icon: '🌀',
+    thumbnail: './asset/icons/game-tempest.svg',
+    status: 'listo',
+    created: '2026-08-28',
+  },
 ];

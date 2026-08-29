@@ -5,7 +5,7 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v23';
+const STATIC_CACHE = 'arcadehub-static-v24';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
@@ -48,6 +48,22 @@ const FILES = [
   './games/joust/index.html',
   './games/joust/script.js',
   './games/joust/style.css',
+  './games/columns/index.html',
+  './games/columns/script.js',
+  './games/columns/style.css',
+  './games/columns/metadata.json',
+  './games/moon-patrol/index.html',
+  './games/moon-patrol/script.js',
+  './games/moon-patrol/style.css',
+  './games/moon-patrol/metadata.json',
+  './games/pole-position/index.html',
+  './games/pole-position/script.js',
+  './games/pole-position/style.css',
+  './games/pole-position/metadata.json',
+  './games/tempest/index.html',
+  './games/tempest/script.js',
+  './games/tempest/style.css',
+  './games/tempest/metadata.json',
   './games/missile-command/index.html',
   './games/missile-command/script.js',
   './games/missile-command/style.css',

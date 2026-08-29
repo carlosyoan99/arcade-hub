@@ -1,0 +1,23 @@
+{
+  "id": "columns",
+  "title": "Columns",
+  "version": "1.0.0",
+  "created": "2026-08-28",
+  "lastModified": "2026-08-28",
+  "description": "Puzzle de gemas. Armá combinaciones de 3+ gemas del mismo color.",
+  "genre": "puzzle",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlosyoan99/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-08-28",
+      "changes": [
+        "Initial release: grid 6×13, gem matching (4 directions), levels, ghost piece",
+        "Achievements: columns_first_game, columns_high_scorer, columns_gem_master",
+        "Teclado + táctil + gamepad"
+      ]
+    }
+  ]
+}
