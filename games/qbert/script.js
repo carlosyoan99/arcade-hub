@@ -1,4 +1,5 @@
 import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
+import { startMusic } from '../../shared/music.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { setupCanvas } from '../../shared/display.js';
@@ -126,6 +127,7 @@ function startGame() {
   state.phase = 'play';
   startLevel();
   startAmbient();
+  startMusic('qbert');
   shell.enableTabTrap();
   overlay.style.display = 'none';
   updateHUD();
