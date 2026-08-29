@@ -60,7 +60,13 @@ const state = {
   gameOver: false,
   playerScore: 0,
   aiScore: 0,
-  wins: Number(localStorage.getItem('pong2d_wins') || 0),
+  wins: (() => {
+    try {
+      return Number(localStorage.getItem('pong2d_wins') || 0);
+    } catch {
+      return 0;
+    }
+  })(),
   twoPlayer: false,
 };
 const playerPaddle = { x: 0, y: 0 };
@@ -331,7 +337,11 @@ function endGame(playerWon) {
     spawnParticles(ball.x, ball.y, playerWon ? '#6ee7b7' : '#00f0ff', 24);
   } else if (playerWon) {
     state.wins += 1;
-    localStorage.setItem('pong2d_wins', String(state.wins));
+    try {
+      localStorage.setItem('pong2d_wins', String(state.wins));
+    } catch {
+      /* localStorage unavailable */
+    }
     playWinFanfare();
     spawnParticles(ball.x, ball.y, '#6ee7b7', 24);
     if (state.wins >= 5) achievements.unlock('pong_win_streak');

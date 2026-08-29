@@ -1,4 +1,20 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
+
+/** Safe localStorage helpers — never throw in incognito */
+function lsGet(key, fallback) {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+function lsSet(key, val) {
+  try {
+    localStorage.setItem(key, val);
+  } catch {
+    /* localStorage unavailable */
+  }
+}
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
@@ -282,7 +298,7 @@ const state = {
   cleared: false,
   clearTimer: 0,
   stars: 0,
-  coins: Number(localStorage.getItem('neonNexus_coins') || 0),
+  coins: Number(lsGet('neonNexus_coins') || 0),
   best: loadBest('neonNexus'),
   kills: 0,
 
@@ -316,10 +332,10 @@ let resources = [];
 // ============================================================
 function loadPerm() {
   state.perm = {
-    maxHP: Number(localStorage.getItem(SHOP_KEY + 'perm_hp') || 0),
-    atkBonus: Number(localStorage.getItem(SHOP_KEY + 'perm_atk') || 0),
-    startShield: Number(localStorage.getItem(SHOP_KEY + 'perm_shield') || 0),
-    regenBonus: Number(localStorage.getItem(SHOP_KEY + 'perm_regen') || 0),
+    maxHP: Number(lsGet(SHOP_KEY + 'perm_hp') || 0),
+    atkBonus: Number(lsGet(SHOP_KEY + 'perm_atk') || 0),
+    startShield: Number(lsGet(SHOP_KEY + 'perm_shield') || 0),
+    regenBonus: Number(lsGet(SHOP_KEY + 'perm_regen') || 0),
   };
   state.cards = {
     chain: false,
@@ -343,7 +359,7 @@ function loadPerm() {
 }
 
 function savePerm(id, val) {
-  localStorage.setItem(SHOP_KEY + 'perm_' + id, String(val));
+  lsSet(SHOP_KEY + 'perm_' + id, String(val));
 }
 
 function calcTowerStats() {
@@ -675,7 +691,7 @@ function endGame() {
 
   const earned = Math.max(0, state.wave - 1);
   state.coins += earned;
-  localStorage.setItem('neonNexus_coins', String(state.coins));
+  lsSet('neonNexus_coins', String(state.coins));
 
   if (state.wave > state.best) {
     state.best = state.wave;
@@ -847,7 +863,7 @@ function buyShop(id) {
   state.coins -= cost;
   state.perm[id] = (state.perm[id] || 0) + 1;
   savePerm(id, state.perm[id]);
-  localStorage.setItem('neonNexus_coins', String(state.coins));
+  lsSet('neonNexus_coins', String(state.coins));
   calcTowerStats();
   sfxUpgrade();
   // Logro: primera compra en la tienda
