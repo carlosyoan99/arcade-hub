@@ -15,7 +15,7 @@ Este documento resume cómo trabajar en el proyecto. Se apoya en dos fuentes:
 | ------------------------------------- | --------------------------------------------------------------------------------- |
 | **Agregar un juego nuevo**            | Seguí [Cómo agregar un juego nuevo](#-cómo-agregar-un-juego-nuevo)                |
 | **Modificar un juego existente**      | Seguí el [workflow](#-workflow-de-desarrollo) y la [checklist](#-checklist-de-pr) |
-| **Tocar `shared/`** (módulos comunes) | Cargá las skills `refactor` + `context-map` y avisá en el PR (impacta 19 juegos)  |
+| **Tocar `shared/`** (módulos comunes) | Cargá las skills `refactor` + `context-map` y avisá en el PR (impacta 32 juegos)  |
 | **Rediseñar el hub o un juego**       | Cargá la skill `frontend-design` o `premium-frontend-ui`                          |
 | **Agregar game feel**                 | Cargá la skill `game-feel`                                                        |
 | **Reportar un bug**                   | Abrí un issue con: pasos para reproducir, navegador/OS y consola                  |
@@ -85,7 +85,7 @@ Cada juego tiene **5 archivos requeridos** (+ `screenshot.png` recomendado):
 | **Rendimiento**   | Sin `shadowBlur` dentro de loops — usar `drawGlow()` / `fillWithGlow()` de `shared/effects.js`                                                                 |
 | **Accesibilidad** | Canvas con `role="img"`, viewport sin `user-scalable=no`, `aria-live`, `prefers-reduced-motion`, `:focus-visible`                                              |
 
-**Estructura mínima del `script.js`** (mismo orden que los 19 juegos existentes):
+**Estructura mínima del `script.js`** (mismo orden que los 32 juegos existentes):
 
 ```js
 import { showHelp } from '../../shared/help.js';
@@ -169,7 +169,7 @@ Se persisten en `localStorage` (`ach_data`) y se anuncian con un beep. Documenta
 ### 8. Screenshot (recomendado)
 
 - Capturá el juego **en acción** (no la pantalla de menú) a **1024×768** PNG
-- Los 19 juegos actuales tienen `screenshot.png` — mantené la consistencia
+- Los 32 juegos actuales tienen `screenshot.png` — mantené la consistencia
 
 ### 9. Validar
 
@@ -197,9 +197,9 @@ npm run check    # lint + format + verify + test (todo en uno)
 
 **Reglas:**
 
-- Si modificás un export de `shared/`, buscá y actualizá **todas** sus referencias (los 19 juegos) — `npm run verify` + los smoke tests ayudan a detectar roturas
+- Si modificás un export de `shared/`, buscá y actualizá **todas** sus referencias (los 32 juegos) — `npm run verify` + los smoke tests ayudan a detectar roturas
 - No dupliques lógica que ya existe en `shared/` — reutilizala
-- Cambios en `shared/` impactan a los 19 juegos: probá más que el juego que estás tocando
+- Cambios en `shared/` impactan a los 32 juegos: probá más que el juego que estás tocando
 
 ### Rendimiento Canvas 2D
 
@@ -258,7 +258,7 @@ El repo incluye skills en `.agents/skills/` para trabajar con IA: `game-engine`,
 | `npm run lint`   | ESLint sobre todos los `.js` — **0 errores, 0 warnings**                 |
 | `npm run format` | Prettier check sobre `js/mjs/css/html/json/md`                           |
 | `npm run verify` | `scripts/verify.js` — consistencia manifiesto ↔ disco ↔ sw.js ↔ metadata |
-| `npm test`       | `node --test` — smoke tests con jsdom para los **19 juegos**             |
+| `npm test`       | `node --test` — smoke tests con jsdom para los **32 juegos**             |
 | `npm run check`  | Pipeline completa: lint + format + verify + test                         |
 
 > ⚠️ **`npm run check` debe pasar en 0 errores / 0 warnings antes de abrir un PR.** La CI (`deploy.yml`) corre la pipeline completa (`npm run lint` + `npm run format` + `npm run verify` + `npm test`) en cada push a `main` y en cada pull request, y despliega a GitHub Pages automáticamente solo tras un push a `main` validado.
@@ -297,7 +297,7 @@ a11y: mejora focus trap del modal de ayuda
 
 ### Antes de abrir el PR
 
-- [ ] `npm run check` pasa (lint 0/0, prettier OK, verify OK, 19/19 tests)
+- [ ] `npm run check` pasa (lint 0/0, prettier OK, verify OK, 32/32 tests)
 - [ ] Juego nuevo: 5 archivos requeridos + `screenshot.png` en `games/<id>/`
 - [ ] Juego nuevo: entrada registrada en `games.js` con `status: 'listo'`
 - [ ] `sw.js`: rutas del juego en `FILES` (y bump de `CACHE` si aplica)
@@ -326,7 +326,7 @@ a11y: mejora focus trap del modal de ayuda
 ## Validación
 
 - [ ] npm run check pasa
-- [ ] Tests: 19/19
+- [ ] Tests: 32/32
 ```
 
 ### CI

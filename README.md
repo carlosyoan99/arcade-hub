@@ -1,14 +1,14 @@
 # 🕹️ Arcade Hub
 
 ![GitHub Pages](https://img.shields.io/github/deployments/carlosyoan99/arcade-hub/github-pages?label=GitHub%20Pages&logo=github&logoColor=white)
-![Juegos](https://img.shields.io/badge/juegos-19-ff2d78)
+![Juegos](https://img.shields.io/badge/juegos-32-ff2d78)
 ![Dependencias](https://img.shields.io/badge/dependencias-0-00f0ff)
-![Tests](https://img.shields.io/badge/tests-19%2F19-39ff14)
+![Tests](https://img.shields.io/badge/tests-320%2F320-39ff14)
 ![Accesibilidad](https://img.shields.io/badge/accesibilidad-WCAG%20A%2B-c084fc)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
 [![Contribuir](https://img.shields.io/badge/contribuir-gu%C3%ADa-ffb800)](CONTRIBUTING.md)
 
-**19 juegos clásicos recreados** con estética 2D/2.5D neon.  
+**32 juegos clásicos recreados** con estética 2D/2.5D neon.  
 Cero dependencias, sin build step, un archivo HTML por juego.  
 Abrí y jugá.
 
@@ -70,7 +70,7 @@ arcade-hub/
 │   └── legacy-3d/          #   Versiones Three.js archivadas (solo referencia)
 │
 ├── test/
-│   └── smoke.test.js       # Smoke tests con jsdom para los 19 juegos
+│   └── smoke.test.js       # Smoke tests con jsdom para los 32 juegos
 ├── scripts/
 │   └── verify.js           # Verificación de consistencia (manifiesto ↔ disco ↔ sw.js)
 │
@@ -265,11 +265,11 @@ El proyecto incorpora accesibilidad por diseño (auditoría A11y documentada en 
 
 | Área                 | Implementación                                                                                         |
 | -------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Anuncios**         | `#announce` con `aria-live="polite"` + `aria-atomic` inyectado por `shared/dom.js` en los 19 juegos    |
-| **Focus trap**       | `trapTab()` en los 19 juegos + modal de ayuda con focus trap y restauración de foco (`shared/help.js`) |
+| **Anuncios**         | `#announce` con `aria-live="polite"` + `aria-atomic` inyectado por `shared/dom.js` en los 32 juegos    |
+| **Focus trap**       | `trapTab()` en los 32 juegos + modal de ayuda con focus trap y restauración de foco (`shared/help.js`) |
 | **Reduced motion**   | `@media (prefers-reduced-motion)` en `base.css` + `setShakeScale(0)`/`setParticlesScale(0)` en JS      |
 | **Zoom móvil**       | Viewport sin `user-scalable=no` (WCAG 1.4.4) + `touch-action: manipulation` en canvas                  |
-| **Canvas semántico** | `role="img"` + `aria-label` en los 19 juegos                                                           |
+| **Canvas semántico** | `role="img"` + `aria-label` en los 32 juegos                                                           |
 | **Foco visible**     | `:focus-visible` global con `--accent` + ring especial para gameBar y touch controls                   |
 | **Touch targets**    | Botones de game bar y touch controls ≥ 44×40px                                                         |
 | **Modal de ayuda**   | `role="dialog"`, `aria-modal`, `aria-labelledby`, botón cerrar con `aria-label`, sin listener leaks    |
@@ -316,7 +316,7 @@ function drawGlow(ctx, x, y, radius, color, alpha = 0.15) {
 
 Usar la función `drawGlow()` de `shared/effects.js` (si está disponible) o la técnica de doble `arc()`. Esto elimina el costo del blur nativo y escala linealmente sin degradación en DPR alto.
 
-> ✅ **Estado P0:** la migración `shadowBlur` → `drawGlow()`/`fillWithGlow()`/`strokeWithGlow()` está **completa en 19/19 juegos** (0 usos de `shadowBlur` restantes, verificado por grep).
+> ✅ **Estado P0:** la migración `shadowBlur` → `drawGlow()`/`fillWithGlow()`/`strokeWithGlow()` está **completa en 32/32 juegos** (0 usos de `shadowBlur` restantes, verificado por grep).
 
 **⚠️ Si usás `shadowBlur` (legado):**
 

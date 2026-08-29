@@ -1,9 +1,22 @@
 # Spec: Nuevos Juegos Retro — Arcade Hub
 
 > **Fecha:** 2026-08-28
-> **Estado:** Revisado v3
+> **Estado:** ✅ COMPLETADO (2026-08-29)
 > **Alcance:** 13 juegos nuevos (de 19 originales, eliminados 7 redundantes/complejos)
 > **Catálogo total tras implementación:** 32 juegos
+
+---
+
+## ✅ Estado de implementación
+
+| Fase | Juegos | Estado | Commit |
+|------|--------|--------|--------|
+| 1 | Columns, Pole Position, Moon Patrol, Tempest | ✅ Completado | `b3e78d4` |
+| 2 | Bomberman, Raiden, Gradius, Q*bert | ✅ Completado | `ac4674b`+ |
+| 3 | Double Dragon, BurgerTime, Paperboy | ✅ Completado | `6ff2751` |
+| 4 | Puyo Puyo, Out Run | ✅ Completado | `20c27be` |
+
+**Total:** 13/13 juegos implementados. 320/320 tests pasando.
 
 ---
 
