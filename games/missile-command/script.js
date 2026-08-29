@@ -282,11 +282,9 @@ canvas.addEventListener('click', (e) => {
     return;
   }
   const rect = canvas.getBoundingClientRect();
-  const tx = (e.clientX - rect.left - ox) / sc;
-  const ty = (e.clientY - rect.top - oy) / sc;
-  crosshair.x = tx;
-  crosshair.y = ty;
-  fireABM(tx, ty);
+  crosshair.x = Math.max(0, Math.min(CW, (e.clientX - rect.left - ox) / sc));
+  crosshair.y = Math.max(0, Math.min(CH, (e.clientY - rect.top - oy) / sc));
+  fireABM(crosshair.x, crosshair.y);
 });
 canvas.addEventListener(
   'touchstart',
