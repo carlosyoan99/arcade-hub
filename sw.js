@@ -5,7 +5,7 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v28';
+const STATIC_CACHE = 'arcadehub-static-v29';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
@@ -115,6 +115,7 @@ const FILES = [
   './shared/collide.js',
   './shared/display.js',
   './shared/dom.js',
+  './shared/icons.js',
   './shared/effects.js',
   './shared/help.js',
   './shared/input.js',

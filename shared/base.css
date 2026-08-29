@@ -608,3 +608,28 @@ body::after {
     opacity: 0.015;
   }
 }
+
+/* ── SVG Icons ── */
+.icon-svg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-svg[data-fill='true'] {
+  fill: currentColor;
+  stroke: none;
+}
+
+#gameBar .icon-svg {
+  width: 16px;
+  height: 16px;
+}
