@@ -276,6 +276,66 @@ const page = await context.newPage();
     }
     await iframePage.close();
 
+    // ── PWA offline: con el service worker activo, TODO debe arrancar desde caché ──
+    {
+      const swPage = await context.newPage();
+      const swErrors = [];
+      const swHttp = [];
+      await auditPage(swPage, 'index.html', swErrors, swHttp);
+      // Espera a que el SW esté listo y controlador de esta página.
+      const swReady = await swPage.evaluate(() => navigator.serviceWorker?.ready);
+      assert(swReady, 'service worker se registra');
+      await swPage.reload({ waitUntil: 'domcontentloaded' });
+      await swPage.waitForTimeout(800);
+      assert(
+        await swPage.evaluate(() => !!navigator.serviceWorker.controller),
+        'el service worker controla la página',
+      );
+
+      await context.setOffline(true);
+      const offlineResults = [];
+      // El hub offline (desde el caché de navegación del SW).
+      await swPage.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'domcontentloaded' });
+      await swPage.waitForTimeout(800);
+      const hubOff = await swPage.evaluate(() => document.querySelectorAll('#grid .card').length);
+      offlineResults.push({ label: 'hub', ok: hubOff === games.length });
+      // Cada juego offline (cache-first del SW: si falta en FILES, no arranca).
+      for (const game of targetGames) {
+        await swPage.goto(`http://127.0.0.1:${PORT}/games/${game.id}/index.html`, {
+          waitUntil: 'domcontentloaded',
+        });
+        await swPage.waitForTimeout(800);
+        const boot = await swPage.evaluate(() => {
+          const loading = document.getElementById('loading');
+          return {
+            loadingGone: !loading || loading.classList.contains('hidden'),
+            hasCanvas: !!document.getElementById('gameCanvas'),
+          };
+        });
+        const ok = boot.loadingGone && boot.hasCanvas;
+        offlineResults.push({ label: `offline:${game.id}`, ok });
+        if (ok) log(`✔ offline:${game.id}`);
+        else {
+          log(`✖ offline:${game.id}`);
+          if (!quiet) {
+            if (!boot.loadingGone) log(`    el juego no arranca offline: falta en el precache del SW`);
+            if (!boot.hasCanvas) log(`    sin #gameCanvas offline (no está en sw.js FILES)`);
+          }
+        }
+      }
+      await context.setOffline(false);
+      await swPage.close();
+      const anyOfflineFail = offlineResults.some((r) => !r.ok);
+      results.push({
+        label: 'offline-pwa',
+        ok: swErrors.length === 0 && swHttp.length === 0 && !anyOfflineFail,
+        errors: swErrors,
+        httpErrors: swHttp,
+        info: { checks: offlineResults.length },
+      });
+      if (!quiet) log(anyOfflineFail ? '⚠️ algunos juegos fallan offline' : '✔ offline-pwa: 100% jugable sin red');
+    }
+
     const passed = results.filter((r) => r.ok).length;
     const total = results.length;
     console.log(
