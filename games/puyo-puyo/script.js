@@ -555,6 +555,7 @@ function drawBoard(b, offsetX, label) {
   ctx.fillText(label, bx + BOARD_W * sc * 0.5, by - 6 * sc);
 
   for (let r = 0; r < ROWS; r++) {
+    if (!b[r]) continue;
     for (let c = 0; c < COLS; c++) {
       const color = b[r][c];
       if (color === -1) continue;

@@ -2703,15 +2703,27 @@
       }
 
       /* ── Hover sound effect ── */
+      // El audio solo se habilita tras el primer gesto del usuario (pointerdown,
+      // tecla o touch). Antes, el hover se silencia: crear/resumir un
+      // AudioContext sin gesto dispara warnings de autoplay en la consola.
       let hoverAudioCtx = null;
       let lastHoverSound = 0;
+      let hoverAudioUnlocked = false;
+      function unlockHoverAudio() {
+        hoverAudioUnlocked = true;
+        if (!hoverAudioCtx)
+          hoverAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (hoverAudioCtx.state === 'suspended') hoverAudioCtx.resume();
+      }
+      window.addEventListener('keydown', unlockHoverAudio, { once: true });
+      window.addEventListener('pointerdown', unlockHoverAudio, { once: true });
+      window.addEventListener('touchstart', unlockHoverAudio, { once: true });
       function playHoverSound() {
+        if (!hoverAudioUnlocked || !hoverAudioCtx) return;
         const now = Date.now();
         if (now - lastHoverSound < 100) return; // throttle
         lastHoverSound = now;
         try {
-          if (!hoverAudioCtx)
-            hoverAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
           if (hoverAudioCtx.state === 'suspended') hoverAudioCtx.resume();
           const osc = hoverAudioCtx.createOscillator();
           const gain = hoverAudioCtx.createGain();

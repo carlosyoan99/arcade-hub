@@ -337,8 +337,9 @@ function draw() {
   let curveAcc = 0;
 
   for (let n = 0; n < DRAW_DIST; n++) {
-    const idx = (baseSeg + n) % segments.length;
+    const idx = (((baseSeg + n) % segments.length) + segments.length) % segments.length;
     const seg = segments[idx];
+    if (!seg) continue;
     const z = (baseSeg + n) * SEG_LEN;
     const p = project(0, seg.hill, z);
     if (!p || p.y > GH * sc) continue;
