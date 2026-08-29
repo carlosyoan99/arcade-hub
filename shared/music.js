@@ -283,6 +283,15 @@ const SONGS = {
     lead: 'D5 - F5 - A5 - F5  A4 - D5 - F5 - D5  Bb4 - D5 - F5 - D5  A4 - C5 - E5 - C5',
     leadWave: 'square',
   },
+
+  /* Gradius — "Delta Wing": heroic, rising arpeggio charge */
+  gradius: {
+    bpm: 132,
+    chord: ['Am', 'F', 'C', 'G'],
+    bass: 'A1 - A1 - E2 - A1 -  F1 - F1 - C2 - F1 -  C2 - C2 - G1 - C2 -  G1 - G1 - D2 - G1 -',
+    lead: 'A4 - C5 - E5 - A5  F4 - A4 - C5 - F5  E4 - G4 - C5 - E5  D4 - G4 - B4 - D5',
+    leadWave: 'sawtooth',
+  },
 };
 
 /* ── Estado del transporte ── */
