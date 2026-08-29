@@ -5,12 +5,13 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v29';
+const STATIC_CACHE = 'arcadehub-static-v30';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
   './',
   './asset/hub-cards.js',
+  './asset/icons/favicon.svg',
   './games.js',
   './games/asteroids/index.html',
   './games/asteroids/script.js',
