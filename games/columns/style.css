@@ -10,11 +10,59 @@
   --bg-body: #d8d8e8;
 }
 
-/* ── Gem colors for HUD ── */
+/* ── Gem sparkle decoration ── */
 #hud .score-group {
+  position: relative;
   border: 1px solid rgba(255, 45, 120, 0.12);
 }
 
+#hud .score-group::before {
+  content: '◆ ◆ ◆';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  letter-spacing: 6px;
+  color: var(--accent);
+  opacity: 0.2;
+  animation: gemShimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes gemShimmer {
+  0%,
+  100% {
+    opacity: 0.1;
+    letter-spacing: 6px;
+  }
+  50% {
+    opacity: 0.35;
+    letter-spacing: 8px;
+  }
+}
+
+#hud .score .value {
+  color: var(--neon-pink);
+}
 #hud .speed-indicator .value {
   color: var(--neon-cyan);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 30px rgba(255, 45, 120, 0.5);
+}
+
+#tc .dp button:active,
+#tc .dp button.is-pressed {
+  background: rgba(255, 45, 120, 0.2);
+  border-color: rgba(255, 45, 120, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .score-group::before {
+    display: none;
+  }
 }

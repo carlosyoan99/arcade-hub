@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arcade Hub — 19 clásicos recreados</title>
+    <title>Arcade Hub — 32 juegos clásicos recreados</title>
     <script>
       document.documentElement.dataset.theme =
         localStorage.getItem('arcadehub_theme') ||
@@ -22,7 +22,7 @@
     <meta
       id="og-desc"
       property="og:description"
-      content="19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris, Neon Nexus y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
+      content="32 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris, Columns, Out Run y más) recreados con estética 2D. Un archivo HTML por juego, cero dependencias."
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Arcade Hub" />
@@ -37,7 +37,7 @@
     <meta
       id="tw-desc"
       name="twitter:description"
-      content="19 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias."
+      content="32 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D. Un archivo HTML por juego, cero dependencias."
     />
     <meta
       name="twitter:image"
@@ -51,7 +51,7 @@
         "@type": "WebSite",
         "name": "Arcade Hub",
         "url": "https://carlosyoan99.github.io/arcade-hub/",
-        "description": "19 juegos clásicos de arcade recreados con estética 2D/2.5D. Un archivo HTML por juego, cero dependencias.",
+        "description": "32 juegos clásicos de arcade recreados con estética 2D. Un archivo HTML por juego, cero dependencias.",
         "inLanguage": "es-ES",
         "applicationCategory": "Game"
       }
@@ -72,8 +72,8 @@
         "@context": "https://schema.org",
         "@type": "ItemList",
         "name": "Juegos de Arcade Hub",
-        "description": "19 juegos clásicos de arcade disponibles para jugar",
-        "numberOfItems": 19,
+        "description": "32 juegos clásicos de arcade disponibles para jugar",
+        "numberOfItems": 32,
         "itemListElement": []
       }
     </script>
@@ -2495,11 +2495,9 @@
         if (doors.left) doors.left.classList.add('visible');
         if (doors.right) doors.right.classList.add('visible');
 
-        // Show the entry overlay
+        // Mostrar el entry overlay
         entryOverlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-
-        playCoinSound();
 
         function playCoinSound() {
           try {
@@ -2588,6 +2586,11 @@
             if (e.key === 'Tab') return;
           }
           e.preventDefault();
+          // El primer gesto del usuario "inserta la moneda": el sonido se emite
+          // aquí (gracias al gesto, sin warnings de autoplay), no al cargar.
+          try {
+            playCoinSound();
+          } catch {}
           dismissEntry();
         };
         events.forEach((ev) => document.addEventListener(ev, handler, true));

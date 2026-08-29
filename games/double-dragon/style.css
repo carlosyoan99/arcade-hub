@@ -5,9 +5,62 @@
   --overlay-grad-start: rgba(10, 8, 20, 0.88);
   --overlay-grad-end: rgba(5, 4, 10, 0.95);
 }
+
 [data-theme='light'] {
   --bg-body: #d8d0d8;
 }
+
+/* ── Fight energy pulse ── */
+#hud .sg {
+  position: relative;
+}
+#hud .sg::after {
+  content: '⚡ ⚡ ⚡';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  letter-spacing: 6px;
+  color: var(--neon-red);
+  opacity: 0.2;
+  animation: fightPulse 1.5s ease-in-out infinite;
+}
+@keyframes fightPulse {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+#hud .sb.score .value {
+  color: var(--neon-red);
+}
+#hud .sb.lives .value {
+  color: var(--neon-orange);
+}
 #hud .speed-indicator .value {
   color: var(--neon-red);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 30px rgba(255, 94, 122, 0.5);
+}
+
+#tc .dp button:active,
+#tc .dp button.is-pressed {
+  background: rgba(255, 94, 122, 0.2);
+  border-color: rgba(255, 94, 122, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::after {
+    display: none;
+  }
 }

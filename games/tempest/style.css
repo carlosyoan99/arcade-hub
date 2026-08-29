@@ -10,6 +10,56 @@
   --bg-body: #d0d8e8;
 }
 
+/* ── Warp tunnel decoration ── */
+#hud .sg {
+  position: relative;
+  overflow: hidden;
+}
+#hud .sg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(0, 240, 255, 0.03) 0deg,
+    transparent 15deg,
+    transparent 30deg
+  );
+  animation: warpSpin 8s linear infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+@keyframes warpSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#hud .sb.score .value {
+  color: var(--neon-cyan);
+}
+#hud .sb.lives .value {
+  color: var(--neon-pink);
+}
 #hud .speed-indicator .value {
   color: var(--neon-cyan);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+}
+
+#tc .dp button:active,
+#tc .dp button.is-pressed {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: rgba(0, 240, 255, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before {
+    display: none;
+  }
 }

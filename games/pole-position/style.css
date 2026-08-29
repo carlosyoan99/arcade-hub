@@ -10,6 +10,63 @@
   --bg-body: #d8e0d8;
 }
 
+/* ── Road stripe decoration ── */
+#hud .sg {
+  position: relative;
+}
+
+#hud .sg::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--neon-gold) 0px,
+    var(--neon-gold) 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  opacity: 0.3;
+  animation: roadPulse 2s linear infinite;
+}
+
+@keyframes roadPulse {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 16px 0;
+  }
+}
+
+#hud .sb.score .value {
+  color: var(--neon-red);
+}
+#hud .sb.lives .value {
+  color: var(--neon-orange);
+}
 #hud .speed-indicator .value {
   color: var(--neon-gold);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 30px rgba(255, 94, 122, 0.5);
+}
+
+#tc .dp button:active,
+#tc .dp button.is-pressed {
+  background: rgba(255, 94, 122, 0.2);
+  border-color: rgba(255, 94, 122, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::after {
+    display: none;
+  }
 }

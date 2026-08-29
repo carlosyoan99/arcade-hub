@@ -5,9 +5,79 @@
   --overlay-grad-start: rgba(18, 10, 8, 0.88);
   --overlay-grad-end: rgba(8, 4, 2, 0.95);
 }
+
 [data-theme='light'] {
   --bg-body: #e0d8d0;
 }
-#hud .speed-indicator .value {
+
+/* ── Kitchen shelf decoration ── */
+#hud .sg {
+  position: relative;
+  overflow: hidden;
+}
+#hud .sg::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--neon-orange) 0px,
+    var(--neon-orange) 6px,
+    transparent 6px,
+    transparent 10px
+  );
+  opacity: 0.3;
+}
+#hud .sg::after {
+  content: '🍔 🍅 🥬';
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  letter-spacing: 4px;
+  opacity: 0.15;
+  animation: ingredientBounce 2s ease-in-out infinite;
+}
+@keyframes ingredientBounce {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+#hud .sb.score .value {
   color: var(--neon-orange);
+}
+#hud .sb.lives .value {
+  color: var(--neon-green);
+}
+#hud .speed-indicator .value {
+  color: var(--neon-gold);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 30px rgba(255, 138, 101, 0.5);
+}
+
+#tc .dp button:active,
+#tc .dp button.is-pressed {
+  background: rgba(255, 138, 101, 0.2);
+  border-color: rgba(255, 138, 101, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before,
+  #hud .sg::after {
+    display: none;
+  }
 }

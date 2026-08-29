@@ -5,9 +5,71 @@
   --overlay-grad-start: rgba(10, 10, 30, 0.88);
   --overlay-grad-end: rgba(5, 5, 15, 0.95);
 }
+
 [data-theme='light'] {
   --bg-body: #d8d8e8;
 }
-#hud .speed-indicator .value {
+
+/* ── Puyo blob decoration ── */
+#hud .sg {
+  position: relative;
+  overflow: hidden;
+}
+#hud .sg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 60%, rgba(192, 132, 252, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: inherit;
+  animation: puyoPulse 4s ease-in-out infinite;
+}
+@keyframes puyoPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+#hud .sg::after {
+  content: '🟢 🔴 🔵 🟡';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  letter-spacing: 4px;
+  opacity: 0.2;
+}
+
+#hud .sb.score .value {
   color: var(--neon-purple);
+}
+#hud .sb.lives .value {
+  color: var(--neon-pink);
+}
+#hud .speed-indicator .value {
+  color: var(--neon-cyan);
+}
+
+#overlay h1 {
+  letter-spacing: 6px;
+}
+#overlay h1 .accent {
+  text-shadow: 0 0 30px rgba(192, 132, 252, 0.5);
+}
+
+#tc .dp button:active,
+#tc .dp button.is-pressed {
+  background: rgba(192, 132, 252, 0.2);
+  border-color: rgba(192, 132, 252, 0.35);
+}
+
+@media (max-width: 520px) {
+  #hud .sg::before,
+  #hud .sg::after {
+    display: none;
+  }
 }
