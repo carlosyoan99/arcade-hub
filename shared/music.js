@@ -265,6 +265,24 @@ const SONGS = {
     lead: 'B3 - E4 - G4 - E4  C4 - E4 - A4 - E4  F4 - A4 - D5 - A4  D4 - G4 - B4 - G4',
     leadWave: 'sine',
   },
+
+  /* Bomberman — "Tick Timer": fuse march, mischievous staccato */
+  bomberman: {
+    bpm: 104,
+    chord: ['Cm', 'Gm', 'Cm', 'Gm'],
+    bass: 'C2 - C2 - - G1 - -  G1 - G1 - - D2 - -  C2 - C2 - - G1 - -  G1 - G1 - - D2 - -',
+    lead: 'C4 - Eb4 - C4 - - -  Bb3 - D4 - Bb3 - - -  G4 - Eb4 - C4 - - -  D4 - Bb3 - G3 - - -',
+    leadWave: 'square',
+  },
+
+  /* Raiden — "Star Fortress": driving, tense military synth */
+  raiden: {
+    bpm: 138,
+    chord: ['Dm', 'Dm', 'Bb', 'A'],
+    bass: 'D2 - D2 - A1 - D2 -  D2 - D2 - G1 - A1 -  Bb1 - Bb1 - F2 - Bb1 -  A1 - A1 - E2 - A1 -',
+    lead: 'D5 - F5 - A5 - F5  A4 - D5 - F5 - D5  Bb4 - D5 - F5 - D5  A4 - C5 - E5 - C5',
+    leadWave: 'square',
+  },
 };
 
 /* ── Estado del transporte ── */

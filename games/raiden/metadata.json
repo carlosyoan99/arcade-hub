@@ -1,0 +1,8 @@
+{
+  "name": "Raiden",
+  "description": "Vertical shooter: fly through seven sectors, clear enemy waves and defeat the boss of each stage.",
+  "controls": "Arrows/WASD to move (autofire). Space bomb. P pause.",
+  "plays": ["arrow", "wasd", "touch", "gamepad"],
+  "version": "1.0.0",
+  "id": "raiden"
+}

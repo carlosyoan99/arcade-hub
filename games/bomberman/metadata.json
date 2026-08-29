@@ -1,0 +1,8 @@
+{
+  "name": "Bomberman",
+  "description": "Maze action: place bombs, break bricks, clear enemies to open the exit.",
+  "controls": "Arrows/WASD to move, Space to place a bomb, P to pause.",
+  "plays": ["arrow", "wasd", "touch", "gamepad"],
+  "version": "1.0.0",
+  "id": "bomberman"
+}
