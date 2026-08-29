@@ -498,6 +498,242 @@ const SCENES = {
     disc(ctx, C.pink, 13, 15, 2.5);
     disc(ctx, C.orange, 43, 34, 2.5);
   },
+
+  columns(ctx) {
+    const cols = [C.pink, C.cyan, C.gold, C.green, C.purple];
+    for (let r = 0; r < 6; r++) {
+      for (let c = 0; c < 5; c++) {
+        const fill = (r * 3 + c) % 5;
+        rect(ctx, cols[fill], 10 + c * 9, 10 + r * 7, 7, 5);
+      }
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(10, 10, 45, 2);
+    rect(ctx, C.cyan, 12, 47, 7, 5);
+    rect(ctx, C.pink, 21, 47, 7, 5);
+    rect(ctx, C.gold, 30, 47, 7, 5);
+  },
+
+  'pole-position'(ctx) {
+    rect(ctx, '#14331a', 8, 0, 40, 56);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    for (let i = 0; i < 7; i++) ctx.fillRect(26, 3 + i * 8, 4, 4);
+    rect(ctx, C.gold, 8, 2, 40, 3);
+    rect(ctx, C.cyan, 18, 24, 6, 10);
+    rect(ctx, C.gold, 32, 30, 6, 10);
+    rect(ctx, C.pink, 25, 40, 11, 13);
+    rect(ctx, C.cyan, 28, 43, 5, 4);
+    ring(ctx, C.pink, 44, 50, 3);
+    disc(ctx, C.pink, 44, 50, 1.5);
+  },
+
+  'moon-patrol'(ctx) {
+    rect(ctx, '#0a0a1a', 0, 0, 56, 56);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let i = 0; i < 6; i++) ctx.fillRect((i * 29) % 56, (i * 17) % 28, 1, 1);
+    ring(ctx, C.gold, 46, 10, 4);
+    rect(ctx, '#3a3a40', 0, 44, 56, 12);
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    for (let i = 0; i < 3; i++) ctx.fillRect(4 + i * 18, 46, 8, 2);
+    rect(ctx, C.gold, 12, 38, 14, 8);
+    rect(ctx, C.cyan, 15, 40, 5, 3);
+    rect(ctx, '#222', 13, 46, 4, 2);
+    rect(ctx, '#222', 21, 46, 4, 2);
+    rect(ctx, C.red, 38, 41, 10, 6);
+    disc(ctx, C.purple, 40, 20, 4);
+    rect(ctx, C.purple, 40, 20, 1, 4);
+  },
+
+  tempest(ctx) {
+    ctx.strokeStyle = 'rgba(0,240,255,0.55)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 7; i++) {
+      const ang = (i / 7) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(28 + Math.cos(ang) * 24, 32 + Math.sin(ang) * 20);
+      ctx.lineTo(28, 46);
+      ctx.stroke();
+      if (i > 0) {
+        for (let k = 1; k < 3; k++) {
+          ctx.beginPath();
+          ctx.moveTo(
+            28 + Math.cos((i / 7) * Math.PI * 2 - 0.06) * (24 - k * 6),
+            32 + Math.sin((i / 7) * Math.PI * 2 - 0.06) * (20 - k * 4),
+          );
+          ctx.lineTo(
+            28 + Math.cos(((i - 1) / 7) * Math.PI * 2 + 0.06) * (24 - k * 6),
+            32 + Math.sin(((i - 1) / 7) * Math.PI * 2 + 0.06) * (20 - k * 4),
+          );
+          ctx.stroke();
+        }
+      }
+    }
+    poly(
+      ctx,
+      C.cyan,
+      [
+        [24, 50],
+        [32, 50],
+        [28, 44],
+      ],
+      true,
+    );
+    disc(ctx, C.red, 42, 12, 4);
+    disc(ctx, C.green, 10, 24, 4);
+    disc(ctx, C.gold, 20, 26, 2.5);
+  },
+
+  'double-dragon'(ctx) {
+    rect(ctx, '#15101f', 0, 0, 56, 56);
+    ctx.fillStyle = 'rgba(255,45,120,0.25)';
+    for (let r = 0; r < 3; r++)
+      for (let c = 0; c < 5; c++) ctx.fillRect(4 + c * 10, 4 + r * 5, 9, 4);
+    poly(
+      ctx,
+      C.pink,
+      [
+        [8, 40],
+        [4, 52],
+        [12, 52],
+        [16, 40],
+      ],
+      true,
+    );
+    poly(
+      ctx,
+      C.blue,
+      [
+        [48, 40],
+        [52, 52],
+        [44, 52],
+        [40, 40],
+      ],
+      true,
+    );
+    rect(ctx, C.cyan, 16, 34, 6, 4);
+    rect(ctx, C.gold, 34, 34, 6, 4);
+    ctx.strokeStyle = C.gold;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(6, 33);
+    ctx.lineTo(28, 28);
+    ctx.lineTo(50, 33);
+    ctx.stroke();
+  },
+
+  'burger-time'(ctx) {
+    rect(ctx, '#171233', 0, 30, 56, 26);
+    rect(ctx, C.purple, 0, 28, 56, 2);
+    rect(ctx, C.gold, 8, 6, 28, 7);
+    rect(ctx, C.green, 8, 13, 28, 4);
+    rect(ctx, C.red, 8, 17, 28, 5);
+    rect(ctx, C.gold, 10, 22, 24, 4);
+    rect(ctx, C.dim, 8, 35, 3, 8);
+    poly(
+      ctx,
+      C.gold,
+      [
+        [38, 26],
+        [34, 40],
+        [40, 40],
+        [44, 26],
+      ],
+      true,
+    );
+    poly(
+      ctx,
+      C.pink,
+      [
+        [44, 26],
+        [46, 38],
+        [52, 34],
+      ],
+      true,
+    );
+  },
+
+  paperboy(ctx) {
+    rect(ctx, '#0d2c48', 0, 0, 56, 56);
+    rect(ctx, '#163a26', 0, 40, 56, 16);
+    rect(ctx, C.dim, 8, 20, 18, 20);
+    poly(
+      ctx,
+      C.red,
+      [
+        [8, 20],
+        [17, 10],
+        [26, 20],
+      ],
+      true,
+    );
+    rect(ctx, C.dim, 36, 24, 14, 16);
+    poly(
+      ctx,
+      C.purple,
+      [
+        [36, 24],
+        [43, 15],
+        [50, 24],
+      ],
+      true,
+    );
+    rect(ctx, C.gold, 0, 52, 56, 4);
+    disc(ctx, C.cyan, 13, 47, 2);
+    disc(ctx, C.cyan, 21, 47, 2);
+    rect(ctx, C.pink, 24, 30, 10, 8);
+    rect(ctx, C.cyan, 26, 32, 3, 2);
+    ctx.strokeStyle = C.cyan;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(34, 30, 8, -Math.PI, 0);
+    ctx.stroke();
+  },
+
+  'puyo-puyo'(ctx) {
+    const blobs = [C.cyan, C.pink, C.gold, C.green];
+    for (let r = 0; r < 6; r++) {
+      for (let c = 0; c < 6; c++) {
+        rect(ctx, '#151230', 8 + c * 8, 6 + r * 7, 7, 6);
+        if ((r + c) % 4 < 3 && r + c > 2) {
+          disc(ctx, blobs[(r * 6 + c) % 4], 11 + c * 8, 9 + r * 7, 3);
+        }
+      }
+    }
+    disc(ctx, C.cyan, 13, 16, 3.5);
+    disc(ctx, C.pink, 19, 16, 3.5);
+    ctx.strokeStyle = 'rgba(255,224,102,0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(33, 6);
+    ctx.lineTo(38, 2);
+    ctx.stroke();
+  },
+
+  'out-run'(ctx) {
+    for (let i = 0; i < 22; i++) {
+      const t = i / 22;
+      ctx.fillStyle = `rgb(${Math.round(28 + t * 160)},${Math.round(20 + t * 60)},${Math.round(40 + t * 70)})`;
+      ctx.fillRect(0, 21 + i, 56, 1);
+    }
+    disc(ctx, C.gold, 40, 18, 6);
+    rect(ctx, '#26222f', 0, 22, 56, 34);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    for (let i = 0; i < 4; i++) ctx.fillRect(26, 26 + i * 8, 3, 4);
+    poly(
+      ctx,
+      C.pink,
+      [
+        [20, 44],
+        [18, 54],
+        [30, 54],
+        [34, 44],
+      ],
+      true,
+    );
+    rect(ctx, C.cyan, 22, 47, 6, 3);
+    disc(ctx, C.gold, 40, 30, 1.5);
+    disc(ctx, C.yellow, 44, 34, 1.5);
+  },
 };
 
 export function drawGameThumb(canvas, gameId) {

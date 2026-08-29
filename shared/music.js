@@ -89,6 +89,8 @@ const CHORDS = {
   E: ['E2', 'G#2', 'B2', 'E3'],
   Gm: ['G1', 'Bb1', 'D2', 'G2'],
   Cm: ['C2', 'Eb2', 'G2', 'C3'],
+  Bb: ['Bb1', 'D2', 'F2', 'Bb2'],
+  Eb: ['Eb2', 'G2', 'Bb2', 'Eb3'],
 };
 
 /* ── Temas por juego: datos puros ───────────────────────────────
@@ -318,6 +320,60 @@ const SONGS = {
     bass: 'D2 - D2 - A1 - D2 -  Bb1 - Bb1 - F2 - Bb1 -  G1 - G1 - D2 - G1 -  A1 - A1 - E2 - A1 -',
     lead: 'D5 - A4 - D5 - F5  Bb4 - F4 - Bb4 - D5  G4 - D4 - G4 - Bb4  A4 - E4 - A4 - C5',
     leadWave: 'sawtooth',
+  },
+
+  /* Double Dragon — "Street Rumble": brute force, driving brawler */
+  'double-dragon': {
+    bpm: 132,
+    chord: ['Dm', 'A', 'Dm', 'A'],
+    bass: 'D2 D2 D2 D2 - A1 C2 -  A1 A1 A1 A1 - E2 G#2 -  D2 D2 D2 D2 - A1 C2 -  A1 A1 A1 A1 - E2 A1 -',
+    lead: 'D5 - F5 D5 - A4 - -  A4 - C#5 E5 - A4 - -  D5 - F5 D5 - A4 - -  E5 - C#5 A4 - - - -',
+    leadWave: 'square',
+  },
+
+  /* BurgerTime — "Patty Patrol": jaunty kitchen comedy */
+  'burger-time': {
+    bpm: 118,
+    chord: ['C', 'G', 'Am', 'F'],
+    bass: 'C2 - G2 - C2 - G2 -  G1 - D2 - G1 - D2 -  A1 - E2 - A1 - E2 -  F1 - C2 - F1 - C2 -',
+    lead: 'E4 G4 C5 - G4 E4 - -  D4 G4 B4 - G4 D4 - -  C4 E4 A4 - E4 C4 - -  C4 F4 A4 - F4 C4 - -',
+    leadWave: 'triangle',
+  },
+
+  /* Paperboy — "Morning Route": bright, paper-delivery pep */
+  paperboy: {
+    bpm: 136,
+    chord: ['G', 'C', 'Em', 'D'],
+    bass: 'G1 - D2 - G1 - D2 -  C2 - G2 - C2 - G2 -  E1 - B1 - E1 - B1 -  D1 - A1 - D1 - A1 -',
+    lead: 'B4 D5 G5 - D5 B4 - -  C5 E5 G5 - E5 C5 - -  B4 E5 G5 - E5 B4 - -  A4 D5 F#5 - D5 A4 - -',
+    leadWave: 'square',
+  },
+
+  /* Out Run — "Sunset Turbo": late-80s synthwave cruise */
+  'out-run': {
+    bpm: 116,
+    chord: ['Am', 'F', 'C', 'G'],
+    bass: 'A1 A1 A1 A1 - A1 A1 -  F1 F1 F1 F1 - F1 F1 -  C2 C2 C2 C2 - C2 C2 -  G1 G1 G1 G1 - G1 G1 -',
+    lead: 'A4 - C5 E5 - A5 - E5  F4 - A4 C5 - F5 - C5  E4 - G4 C5 - E5 - C5  G4 - B4 D5 - G5 - D5',
+    leadWave: 'sawtooth',
+  },
+
+  /* Puyo Puyo — "Puyo Pop": silly bubble-plop frenzy */
+  'puyo-puyo': {
+    bpm: 132,
+    chord: ['F', 'C', 'G', 'Am'],
+    bass: 'F2 - C3 - F2 - C3 -  C2 - G2 - C2 - G2 -  G1 - D2 - G1 - D2 -  A1 - E2 - A1 - E2 -',
+    lead: 'A4 C5 E5 - A4 C5 - -  G4 C5 E5 - G4 C5 - -  G4 B4 D5 - G4 B4 - -  A4 C5 E5 - C5 A4 - -',
+    leadWave: 'triangle',
+  },
+
+  /* Q*bert — "Cubicle Hop": quirky, loopy pentagon prance */
+  qbert: {
+    bpm: 120,
+    chord: ['Cm', 'Gm', 'Cm', 'Gm'],
+    bass: 'C2 - C2 - G1 - C2 -  G1 - G1 - D2 - G1 -  C2 - C2 - G1 - C2 -  G1 - G1 - D2 - G1 -',
+    lead: 'C5 - Eb5 C5 - G4 - -  D5 - Bb4 G4 - D4 - -  E5 - C5 G4 - C4 - -  D5 - Bb4 G4 - D4 - -',
+    leadWave: 'square',
   },
 };
 

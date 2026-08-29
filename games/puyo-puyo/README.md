@@ -6,17 +6,17 @@ Puzzle competitivo. Encajá puyos de colores para hacer cadenas de 4+. Modo vs C
 
 ## Controles
 
-| Dispositivo | Acción | Tecla / Control |
-| ----------- | ------ | --------------- |
-| ⌨️ Teclado | Mover | `←` `→` / `A` `D` |
-| ⌨️ Teclado | Rotar | `↑` / `W` |
-| ⌨️ Teclado | Caída suave | `↓` / `S` |
-| ⌨️ Teclado | Hard drop | `Espacio` |
-| ⌨️ Teclado | Pausar | `P` |
-| ⌨️ Teclado | Reiniciar | `R` |
-| 🎮 Gamepad | Mover / Rotar | D-pad |
-| 🎮 Gamepad | Hard drop | Botón A |
-| 👆 Táctil | D-pad + botones en pantalla | |
+| Dispositivo | Acción                      | Tecla / Control   |
+| ----------- | --------------------------- | ----------------- |
+| ⌨️ Teclado  | Mover                       | `←` `→` / `A` `D` |
+| ⌨️ Teclado  | Rotar                       | `↑` / `W`         |
+| ⌨️ Teclado  | Caída suave                 | `↓` / `S`         |
+| ⌨️ Teclado  | Hard drop                   | `Espacio`         |
+| ⌨️ Teclado  | Pausar                      | `P`               |
+| ⌨️ Teclado  | Reiniciar                   | `R`               |
+| 🎮 Gamepad  | Mover / Rotar               | D-pad             |
+| 🎮 Gamepad  | Hard drop                   | Botón A           |
+| 👆 Táctil   | D-pad + botones en pantalla |                   |
 
 ## Características
 

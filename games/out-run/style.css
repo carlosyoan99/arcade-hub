@@ -5,5 +5,9 @@
   --overlay-grad-start: rgba(10, 10, 25, 0.88);
   --overlay-grad-end: rgba(5, 5, 12, 0.95);
 }
-[data-theme='light'] { --bg-body: #d8d8e0; }
-#hud .speed-indicator .value { color: var(--neon-pink); }
+[data-theme='light'] {
+  --bg-body: #d8d8e0;
+}
+#hud .speed-indicator .value {
+  color: var(--neon-pink);
+}

@@ -6,16 +6,16 @@ Plataformas y cooking. Caminá sobre los ingredientes para hacerlos caer y armar
 
 ## Controles
 
-| Dispositivo | Acción | Tecla / Control |
-| ----------- | ------ | --------------- |
-| ⌨️ Teclado | Mover | `←` `→` / `A` `D` |
-| ⌨️ Teclado | Escaleras | `↑` `↓` / `W` `S` |
-| ⌨️ Teclado | Pepper | `Z` |
-| ⌨️ Teclado | Pausar | `Espacio` / `P` |
-| ⌨️ Teclado | Reiniciar | `R` |
-| 🎮 Gamepad | Mover / Escaleras | D-pad |
-| 🎮 Gamepad | Pepper | Botón A |
-| 👆 Táctil | D-pad + pepper en pantalla | |
+| Dispositivo | Acción                     | Tecla / Control   |
+| ----------- | -------------------------- | ----------------- |
+| ⌨️ Teclado  | Mover                      | `←` `→` / `A` `D` |
+| ⌨️ Teclado  | Escaleras                  | `↑` `↓` / `W` `S` |
+| ⌨️ Teclado  | Pepper                     | `Z`               |
+| ⌨️ Teclado  | Pausar                     | `Espacio` / `P`   |
+| ⌨️ Teclado  | Reiniciar                  | `R`               |
+| 🎮 Gamepad  | Mover / Escaleras          | D-pad             |
+| 🎮 Gamepad  | Pepper                     | Botón A           |
+| 👆 Táctil   | D-pad + pepper en pantalla |                   |
 
 ## Características
 

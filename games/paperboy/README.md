@@ -6,16 +6,16 @@ Side-scroll delivery clásico. Entregá periódicos a las casas suscritas mientr
 
 ## Controles
 
-| Dispositivo | Acción | Tecla / Control |
-| ----------- | ------ | --------------- |
-| ⌨️ Teclado | Carril arriba | `↑` / `W` |
-| ⌨️ Teclado | Carril abajo | `↓` / `S` |
-| ⌨️ Teclado | Lanzar periódico | `→` / `D` |
-| ⌨️ Teclado | Pausar | `Espacio` / `P` |
-| ⌨️ Teclado | Reiniciar | `R` |
-| 🎮 Gamepad | Carriles | D-pad arriba/abajo |
-| 🎮 Gamepad | Lanzar | Botón A |
-| 👆 Táctil | D-pad + lanzar en pantalla | |
+| Dispositivo | Acción                     | Tecla / Control    |
+| ----------- | -------------------------- | ------------------ |
+| ⌨️ Teclado  | Carril arriba              | `↑` / `W`          |
+| ⌨️ Teclado  | Carril abajo               | `↓` / `S`          |
+| ⌨️ Teclado  | Lanzar periódico           | `→` / `D`          |
+| ⌨️ Teclado  | Pausar                     | `Espacio` / `P`    |
+| ⌨️ Teclado  | Reiniciar                  | `R`                |
+| 🎮 Gamepad  | Carriles                   | D-pad arriba/abajo |
+| 🎮 Gamepad  | Lanzar                     | Botón A            |
+| 👆 Táctil   | D-pad + lanzar en pantalla |                    |
 
 ## Características
 

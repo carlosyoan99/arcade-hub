@@ -9,7 +9,11 @@
         localStorage.getItem('arcadehub_theme') ||
         (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
     </script>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='35' cy='40' r='14' fill='%23ff2d78'/%3E%3Ccircle cx='65' cy='40' r='14' fill='%2300f0ff'/%3E%3Ccircle cx='35' cy='68' r='14' fill='%2339ff14'/%3E%3Ccircle cx='65' cy='68' r='14' fill='%23ffb800'/%3E%3C/svg%3E" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='35' cy='40' r='14' fill='%23ff2d78'/%3E%3Ccircle cx='65' cy='40' r='14' fill='%2300f0ff'/%3E%3Ccircle cx='35' cy='68' r='14' fill='%2339ff14'/%3E%3Ccircle cx='65' cy='68' r='14' fill='%23ffb800'/%3E%3C/svg%3E"
+    />
     <link rel="stylesheet" href="../../shared/base.css" />
     <link rel="stylesheet" href="./style.css" />
   </head>
@@ -34,7 +38,10 @@
     </div>
     <div id="overlay">
       <h1><span class="accent">◈</span> PUYO PUYO <span class="accent">◈</span></h1>
-      <p id="overlayText">Encajá puyos de colores para hacer cadenas de 4+. Ganá al CPU o sobreviví el mayor tiempo posible.</p>
+      <p id="overlayText">
+        Encajá puyos de colores para hacer cadenas de 4+. Ganá al CPU o sobreviví el mayor tiempo
+        posible.
+      </p>
       <p id="finalScore" style="display: none"></p>
       <p class="hint" id="hintEl">
         <kbd>←</kbd><kbd>→</kbd> mover &nbsp;·&nbsp; <kbd>↑</kbd> rotar &nbsp;·&nbsp;
@@ -46,7 +53,7 @@
       <div class="dpad">
         <button id="btnUp" aria-label="Rotar">↻</button>
         <button id="btnLeft" aria-label="Izquierda">◀</button>
-        <button id="btnDrop" aria-label="Caída libre" style="font-size:1.4em">⬇</button>
+        <button id="btnDrop" aria-label="Caída libre" style="font-size: 1.4em">⬇</button>
         <button id="btnRight" aria-label="Derecha">▶</button>
         <button id="btnDown" aria-label="Caída suave">▼</button>
       </div>

@@ -6,17 +6,17 @@ Racing pseudo-3D clásico. Cruzá la highway con perspective, esquivá autos, us
 
 ## Controles
 
-| Dispositivo | Acción | Tecla / Control |
-| ----------- | ------ | --------------- |
-| ⌨️ Teclado | Acelerar | `↑` / `W` |
-| ⌨️ Teclado | Frenar | `↓` / `S` |
-| ⌨️ Teclado | Girar | `←` `→` / `A` `D` |
-| ⌨️ Teclado | Turbo | `Espacio` |
-| ⌨️ Teclado | Pausar | `P` |
-| ⌨️ Teclado | Reiniciar | `R` |
-| 🎮 Gamepad | Acelerar / Frenar | D-pad |
-| 🎮 Gamepad | Turbo | Botón A |
-| 👆 Táctil | D-pad + turbo en pantalla | |
+| Dispositivo | Acción                    | Tecla / Control   |
+| ----------- | ------------------------- | ----------------- |
+| ⌨️ Teclado  | Acelerar                  | `↑` / `W`         |
+| ⌨️ Teclado  | Frenar                    | `↓` / `S`         |
+| ⌨️ Teclado  | Girar                     | `←` `→` / `A` `D` |
+| ⌨️ Teclado  | Turbo                     | `Espacio`         |
+| ⌨️ Teclado  | Pausar                    | `P`               |
+| ⌨️ Teclado  | Reiniciar                 | `R`               |
+| 🎮 Gamepad  | Acelerar / Frenar         | D-pad             |
+| 🎮 Gamepad  | Turbo                     | Botón A           |
+| 👆 Táctil   | D-pad + turbo en pantalla |                   |
 
 ## Características
 

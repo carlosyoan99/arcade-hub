@@ -6,17 +6,17 @@ Beat 'em up clásico. Derrotá enemigos en 4 actos con puñetazos, patadas, comb
 
 ## Controles
 
-| Dispositivo | Acción | Tecla / Control |
-| ----------- | ------ | --------------- |
-| ⌨️ Teclado | Mover | `←` `→` `↑` `↓` / `W` `A` `S` `D` |
-| ⌨️ Teclado | Puñetazo | `Z` |
-| ⌨️ Teclado | Patada | `X` |
-| � компьюso| Combo | `C` |
-| ⌨️ Teclado | Pausar | `Espacio` / `P` |
-| ⌨️ Teclado | Reiniciar | `R` |
-| 🎮 Gamepad | Mover | D-pad / Stick |
-| 🎮 Gamepad | Puñetazo / Patada / Combo | A / B / X |
-| 👆 Táctil | D-pad + botones en pantalla | |
+| Dispositivo | Acción                      | Tecla / Control                   |
+| ----------- | --------------------------- | --------------------------------- |
+| ⌨️ Teclado  | Mover                       | `←` `→` `↑` `↓` / `W` `A` `S` `D` |
+| ⌨️ Teclado  | Puñetazo                    | `Z`                               |
+| ⌨️ Teclado  | Patada                      | `X`                               |
+| � компьюso  | Combo                       | `C`                               |
+| ⌨️ Teclado  | Pausar                      | `Espacio` / `P`                   |
+| ⌨️ Teclado  | Reiniciar                   | `R`                               |
+| 🎮 Gamepad  | Mover                       | D-pad / Stick                     |
+| 🎮 Gamepad  | Puñetazo / Patada / Combo   | A / B / X                         |
+| 👆 Táctil   | D-pad + botones en pantalla |                                   |
 
 ## Características
 
