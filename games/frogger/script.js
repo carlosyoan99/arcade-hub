@@ -365,9 +365,7 @@ function moveFrog(dx, dy) {
 
   frog.x = nx;
   frog.y = ny;
-  frog.dir = dx || (dy < 0 ? -Math.PI / 2 : Math.PI / 2) || 0;
-  if (dx > 0) frog.dir = 0;
-  if (dx < 0) frog.dir = Math.PI;
+  frog.dir = dx > 0 ? 0 : dx < 0 ? Math.PI : dy < 0 ? -Math.PI / 2 : Math.PI / 2;
   moveTimer = 0.15; // movement cooldown
   pHop();
 

@@ -1496,7 +1496,7 @@ function draw() {
   drawEnemyLasers();
   drawEnemies();
   drawPlayer();
-  drawParticles(ctx, 0, 0, 1);
+  drawParticles(ctx, offX, offY, scale);
   drawUI();
 
   ctx.restore();
