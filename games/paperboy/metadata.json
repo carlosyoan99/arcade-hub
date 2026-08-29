@@ -1,0 +1,23 @@
+{
+  "id": "paperboy",
+  "title": "Paperboy",
+  "version": "1.0.0",
+  "created": "2026-08-28",
+  "lastModified": "2026-08-28",
+  "description": "Side-scroll delivery. Entregá periódicos y esquivá obstáculos.",
+  "genre": "action",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlosyoan99/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-08-28",
+      "changes": [
+        "Initial release: 3 lanes, throw papers, houses subscribed/unsubscribed, obstacles",
+        "Achievements: pb_first_delivery, pb_high_scorer, pb_perfect_delivery",
+        "Teclado + táctil + gamepad"
+      ]
+    }
+  ]
+}

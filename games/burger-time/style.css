@@ -1,0 +1,9 @@
+:root {
+  --bg-body: #120a08;
+  --accent: var(--neon-orange);
+  --accent-glow: rgba(255, 138, 101, 0.25);
+  --overlay-grad-start: rgba(18, 10, 8, 0.88);
+  --overlay-grad-end: rgba(8, 4, 2, 0.95);
+}
+[data-theme='light'] { --bg-body: #e0d8d0; }
+#hud .speed-indicator .value { color: var(--neon-orange); }

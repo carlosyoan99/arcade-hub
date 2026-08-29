@@ -1,0 +1,23 @@
+{
+  "id": "burger-time",
+  "title": "BurgerTime",
+  "version": "1.0.0",
+  "created": "2026-08-28",
+  "lastModified": "2026-08-28",
+  "description": "Plataformas y cooking. Caminá sobre ingredientes para armar burgers.",
+  "genre": "platformer",
+  "author": "Arcade Hub",
+  "license": "MIT",
+  "repository": "github.com/carlosyoan99/arcade-hub",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-08-28",
+      "changes": [
+        "Initial release: 5 platforms, ingredient stacking, 3 enemy types, pepper",
+        "Achievements: bt_first_cook, bt_high_scorer, bt_speed_cook",
+        "Teclado + táctil + gamepad"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Double Dragon — Arcade Hub</title>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('arcadehub_theme') ||
+        (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+    </script>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='30' y='15' width='15' height='35' rx='5' fill='%23ff2d78'/%3E%3Crect x='55' y='15' width='15' height='35' rx='5' fill='%2300f0ff'/%3E%3Crect x='25' y='50' width='50' height='35' rx='5' fill='%23333'/%3E%3Ccircle cx='37' cy='25' r='6' fill='%23ffb800'/%3E%3Ccircle cx='62' cy='25' r='6' fill='%23ffb800'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../../shared/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <canvas id="gameCanvas" role="img" aria-label="Double Dragon - Arcade Hub"></canvas>
+    <div id="hud">
+      <div class="score-group">
+        <div class="score-block score">
+          <div class="label">Puntos</div>
+          <div class="value" id="scoreValue">0</div>
+        </div>
+        <div class="score-sep">·</div>
+        <div class="score-block best">
+          <div class="label">Mejor</div>
+          <div class="value" id="bestValue">0</div>
+        </div>
+      </div>
+      <div class="speed-indicator">
+        <div class="label">Vidas</div>
+        <div class="value" id="livesValue">3</div>
+      </div>
+    </div>
+    <div id="overlay">
+      <h1><span class="accent">◈</span> DOUBLE DRAGON <span class="accent">◈</span></h1>
+      <p id="overlayText">Derrotá a todos los enemigos en 4 actos. Combos, armas y un boss final te esperan.</p>
+      <p id="finalScore" style="display: none"></p>
+      <p class="hint" id="hintEl">
+        <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> mover &nbsp;·&nbsp;
+        <kbd>Z</kbd> puñetazo &nbsp;·&nbsp; <kbd>X</kbd> patada &nbsp;·&nbsp;
+        <kbd>C</kbd> combo &nbsp;·&nbsp; <kbd>R</kbd> reiniciar
+      </p>
+      <div class="version-badge">2D · canvas · sin dependencias</div>
+    </div>
+    <div id="touchControls">
+      <div class="dpad">
+        <button id="btnUp" aria-label="Arriba">▲</button>
+        <button id="btnLeft" aria-label="Izquierda">◀</button>
+        <button id="btnPunch" aria-label="Puñetazo" style="font-size:1.2em">👊</button>
+        <button id="btnRight" aria-label="Derecha">▶</button>
+        <button id="btnDown" aria-label="Abajo">▼</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button id="btnKick" aria-label="Patada" style="flex:1;font-size:1.1em">🦵</button>
+        <button id="btnCombo" aria-label="Combo" style="flex:1;font-size:1.1em">💥</button>
+      </div>
+    </div>
+    <div id="loading">Cargando…</div>
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
