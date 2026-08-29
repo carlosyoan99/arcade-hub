@@ -640,6 +640,8 @@ const loop = createGameLoop((dt) => {
 });
 
 updateHUD();
+board = createEmptyBoard();
+cpuBoard = createEmptyBoard();
 shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();

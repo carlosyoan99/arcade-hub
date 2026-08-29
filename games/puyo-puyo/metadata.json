@@ -1,9 +1,9 @@
 {
   "id": "puyo-puyo",
   "title": "Puyo Puyo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "created": "2026-08-28",
-  "lastModified": "2026-08-28",
+  "lastModified": "2026-08-29",
   "description": "Puzzle competitivo. Cadenas de puyos + modo vs CPU.",
   "genre": "puzzle",
   "author": "Arcade Hub",
@@ -17,6 +17,13 @@
         "Initial release: grid 6x12, chain detection, garbage system, CPU AI",
         "Achievements: puyo_first_game, puyo_high_scorer, puyo_chain_master",
         "Teclado + táctil + gamepad"
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "date": "2026-08-29",
+      "changes": [
+        "Fix: boards iniciales creados al init evitan crash de draw() con board/cpuBoard vacíos"
       ]
     }
   ]

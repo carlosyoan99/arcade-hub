@@ -12,6 +12,7 @@
     "verify": "node scripts/verify.js",
     "verify:sw": "node scripts/verify.js --update-sw",
     "test": "node --test \"test/**/*.test.js\"",
+    "test:e2e": "node scripts/e2e.js",
     "check": "npm run lint && npm run format && npm run verify && npm test"
   },
   "devDependencies": {
@@ -21,6 +22,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "globals": "^16.0.0",
     "jsdom": "^30.0.1",
+    "playwright": "^1.62.1",
     "prettier": "^3.0.0",
     "ws": "^8.21.3"
   }

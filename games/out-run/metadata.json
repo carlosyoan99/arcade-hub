@@ -1,9 +1,9 @@
 {
   "id": "out-run",
   "title": "Out Run",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "created": "2026-08-28",
-  "lastModified": "2026-08-28",
+  "lastModified": "2026-08-29",
   "description": "Racing pseudo-3D. Highway con perspective, turbo, 5 stages.",
   "genre": "racing",
   "author": "Arcade Hub",
@@ -17,6 +17,13 @@
         "Initial release: pseudo-3D road rendering, 5 stages, turbo, rivals",
         "Achievements: ou_first_race, ou_high_scorer, ou_stage_clear",
         "Teclado + táctil + gamepad"
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "date": "2026-08-29",
+      "changes": [
+        "Fix: generateRoad() al init evita crash de draw() con segments=[] en la pantalla de inicio"
       ]
     }
   ]

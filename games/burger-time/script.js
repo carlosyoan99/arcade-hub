@@ -548,6 +548,7 @@ const loop = createGameLoop((dt) => {
 });
 
 updateHUD();
+buildLevel();
 shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();

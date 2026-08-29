@@ -9,12 +9,12 @@
 
 ## ✅ Estado de implementación
 
-| Fase | Juegos | Estado | Commit |
-|------|--------|--------|--------|
-| 1 | Columns, Pole Position, Moon Patrol, Tempest | ✅ Completado | `b3e78d4` |
-| 2 | Bomberman, Raiden, Gradius, Q*bert | ✅ Completado | `ac4674b`+ |
-| 3 | Double Dragon, BurgerTime, Paperboy | ✅ Completado | `6ff2751` |
-| 4 | Puyo Puyo, Out Run | ✅ Completado | `20c27be` |
+| Fase | Juegos                                       | Estado        | Commit     |
+| ---- | -------------------------------------------- | ------------- | ---------- |
+| 1    | Columns, Pole Position, Moon Patrol, Tempest | ✅ Completado | `b3e78d4`  |
+| 2    | Bomberman, Raiden, Gradius, Q*bert           | ✅ Completado | `ac4674b`+ |
+| 3    | Double Dragon, BurgerTime, Paperboy          | ✅ Completado | `6ff2751`  |
+| 4    | Puyo Puyo, Out Run                           | ✅ Completado | `20c27be`  |
 
 **Total:** 13/13 juegos implementados. 320/320 tests pasando.
 

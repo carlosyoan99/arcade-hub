@@ -484,6 +484,7 @@ const loop = createGameLoop((dt) => {
 });
 
 updateHUD();
+generateRoad();
 shell.onCleanup(() => loop.stop());
 document.getElementById('loading').classList.add('hidden');
 loop.start();

@@ -30,60 +30,60 @@ npm test            # 320/320 tests
 
 ### Fase 0: Juegos originales (19)
 
-| Juego | Género | Versión |
-|-------|--------|---------|
-| Pong | Deportes | 1.7.0 |
-| Breakout | Arcade | 1.5.0 |
-| Snake | Arcade | 1.5.1 |
-| Asteroids | Shooter | 1.5.0 |
-| Space Invaders | Shooter | 1.5.0 |
-| Flappy Bird | Arcade | 1.5.0 |
-| Pac-Man | Laberinto | 1.5.0 |
-| Tetris | Puzzle | 1.5.0 |
-| Frogger | Arcade | 1.5.0 |
-| Galaga | Shooter | 1.5.0 |
-| Centipede | Shooter | 1.5.0 |
-| Dig Dug | Arcade | 1.4.0 |
-| Missile Command | Shooter | 1.4.0 |
-| Cell Swarm | Arcade | 1.4.0 |
-| Neon Nexus | Arcade | 1.4.0 |
-| Defender | Shooter | 1.3.0 |
-| Donkey Kong | Plataformas | 1.3.0 |
-| Joust | Arcade | 1.3.0 |
-| Dino Runner | Arcade | 1.5.0 |
+| Juego           | Género      | Versión |
+| --------------- | ----------- | ------- |
+| Pong            | Deportes    | 1.7.0   |
+| Breakout        | Arcade      | 1.5.0   |
+| Snake           | Arcade      | 1.5.1   |
+| Asteroids       | Shooter     | 1.5.0   |
+| Space Invaders  | Shooter     | 1.5.0   |
+| Flappy Bird     | Arcade      | 1.5.0   |
+| Pac-Man         | Laberinto   | 1.5.0   |
+| Tetris          | Puzzle      | 1.5.0   |
+| Frogger         | Arcade      | 1.5.0   |
+| Galaga          | Shooter     | 1.5.0   |
+| Centipede       | Shooter     | 1.5.0   |
+| Dig Dug         | Arcade      | 1.4.0   |
+| Missile Command | Shooter     | 1.4.0   |
+| Cell Swarm      | Arcade      | 1.4.0   |
+| Neon Nexus      | Arcade      | 1.4.0   |
+| Defender        | Shooter     | 1.3.0   |
+| Donkey Kong     | Plataformas | 1.3.0   |
+| Joust           | Arcade      | 1.3.0   |
+| Dino Runner     | Arcade      | 1.5.0   |
 
 ### Fase 1: Nuevos juegos — Batch 1 (4)
 
-| Juego | Género | Commit |
-|-------|--------|--------|
-| Columns | Puzzle de gemas | `b3e78d4` |
-| Pole Position | Racing top-down | `b3e78d4` |
-| Moon Patrol | Side-scroll lunar | `b3e78d4` |
-| Tempest | Tube shooter | `b3e78d4` |
+| Juego         | Género            | Commit    |
+| ------------- | ----------------- | --------- |
+| Columns       | Puzzle de gemas   | `b3e78d4` |
+| Pole Position | Racing top-down   | `b3e78d4` |
+| Moon Patrol   | Side-scroll lunar | `b3e78d4` |
+| Tempest       | Tube shooter      | `b3e78d4` |
 
 ### Fase 2: Nuevos juegos — Batch 2 (4)
 
-| Juego | Género | Commit |
-|-------|--------|--------|
-| Bomberman | Laberinto/bombas | `ac4674b` |
-| Raiden | Vertical shooter | `ac4674b` |
-| Gradius | Side-scroll shooter | `ac4674b` |
-| Q*bert | Isométrico/puzzle | `e5a526d` |
+| Juego     | Género              | Commit    |
+| --------- | ------------------- | --------- |
+| Bomberman | Laberinto/bombas    | `ac4674b` |
+| Raiden    | Vertical shooter    | `ac4674b` |
+| Gradius   | Side-scroll shooter | `ac4674b` |
+| Q*bert    | Isométrico/puzzle   | `e5a526d` |
 
 ### Fase 3: Nuevos juegos — Batch 3 (3)
 
-| Juego | Género | Commit |
-|-------|--------|--------|
-| Double Dragon | Beat 'em up | `6ff2751` |
-| BurgerTime | Plataformas | `6ff2751` |
-| Paperboy | Delivery/side-scroll | `6ff2751` |
+| Juego         | Género               | Commit    |
+| ------------- | -------------------- | --------- |
+| Double Dragon | Beat 'em up          | `6ff2751` |
+| BurgerTime    | Plataformas          | `6ff2751` |
+| Paperboy      | Delivery/side-scroll | `6ff2751` |
 
 ### Fase 4: Nuevos juegos — Batch 4 (2)
 
-| Juego | Género | Commit |
-|-------|--------|--------|
+| Juego     | Género             | Commit    |
+| --------- | ------------------ | --------- |
 | Puyo Puyo | Puzzle competitivo | `20c27be` |
-| Out Run | Racing pseudo-3D | `20c27be` |
+| Out Run   | Racing pseudo-3D   | `20c27be` |
 
 ---
 
@@ -179,11 +179,11 @@ npm test            # 320/320 tests
 
 ## 📊 Resumen final
 
-| Métrica | Valor |
-|---------|-------|
-| **Juegos** | 32 (19 originales + 13 nuevos) |
-| **Tests** | 320 (32 smoke + 288 específicos) |
-| **Módulos shared** | 11 |
-| **Commits totales** | ~50+ |
-| **Última auditoría** | 2026-08-29 |
-| **Estado** | 🟢 Cerrado — mantenimiento |
+| Métrica              | Valor                            |
+| -------------------- | -------------------------------- |
+| **Juegos**           | 32 (19 originales + 13 nuevos)   |
+| **Tests**            | 320 (32 smoke + 288 específicos) |
+| **Módulos shared**   | 11                               |
+| **Commits totales**  | ~50+                             |
+| **Última auditoría** | 2026-08-29                       |
+| **Estado**           | 🟢 Cerrado — mantenimiento       |
