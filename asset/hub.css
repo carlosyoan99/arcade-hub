@@ -1789,12 +1789,7 @@ footer span {
   font-weight: 400;
   letter-spacing: 6px;
   text-transform: uppercase;
-  background: linear-gradient(
-    135deg,
-    var(--cyan-neon),
-    var(--pink-neon) 50%,
-    var(--gold-neon)
-  );
+  background: linear-gradient(135deg, var(--cyan-neon), var(--pink-neon) 50%, var(--gold-neon));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

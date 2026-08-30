@@ -1,5 +1,5 @@
-import { games } from './games.js';
-import { drawGameThumb } from './asset/hub-cards.js';
+import { games } from '../games.js';
+import { drawGameThumb } from './hub-cards.js';
 import { lsGet, lsSet, lsGetJSON } from '../shared/storage.js';
 
 const esc = (s) =>
@@ -41,7 +41,7 @@ const bgCanvas = (function initBg() {
 
   let colors = DARK;
   let curTheme = 'dark';
-  let trans = { active: false, from: null, to: null, startTime: 0, duration: 0.4 };
+  const trans = { active: false, from: null, to: null, startTime: 0, duration: 0.4 };
 
   function lerpColor(c1, c2, t) {
     return {
@@ -393,7 +393,9 @@ function hashId(id) {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.2);
-    } catch {}
+    } catch {
+      /* el audio es opcional: sin AudioContext seguimos igual */
+    }
   }
 
   function playInsertSound() {
@@ -410,7 +412,9 @@ function hashId(id) {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.35);
-    } catch {}
+    } catch {
+      /* el audio es opcional: sin AudioContext seguimos igual */
+    }
   }
 
   function cleanListeners() {
@@ -438,7 +442,9 @@ function hashId(id) {
     markSeen();
     try {
       playInsertSound();
-    } catch {}
+    } catch {
+      /* sin audio la inserción igual procede */
+    }
     // H1: Glitch flash → doors slide open revealing the hub.
     // Cada paso es independiente: si uno falla, igual salimos.
     try {
@@ -470,7 +476,9 @@ function hashId(id) {
     // aquí (gracias al gesto, sin warnings de autoplay), no al cargar.
     try {
       playCoinSound();
-    } catch {}
+    } catch {
+      /* sin audio el gesto igual cierra el overlay */
+    }
     dismissEntry();
   };
   events.forEach((ev) => document.addEventListener(ev, handler, true));
@@ -767,8 +775,6 @@ function renderGrid() {
 }
 
 function updateSchema(filtered, searchTerm) {
-  const sortMethod = sortSelect ? sortSelect.value : 'default';
-
   // Update ItemList schema with current filtered/all games
   document.getElementById('itemlist-schema').textContent = JSON.stringify({
     '@context': 'https://schema.org',
