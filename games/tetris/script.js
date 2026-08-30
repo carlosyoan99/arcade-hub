@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -817,7 +817,7 @@ function togglePause() {
   if (state.paused) {
     ot.textContent = '⏸ PAUSA';
     fs.style.display = 'none';
-    he.innerHTML = `<kbd>P</kbd> para continuar`;
+    setHint(he, '{P} para continuar');
     document.getElementById('overlay').classList.remove('hidden');
   } else document.getElementById('overlay').classList.add('hidden');
 }
@@ -839,7 +839,7 @@ function endGame() {
   ot.textContent = '💀 ¡Game Over!';
   fs.style.display = 'block';
   fs.textContent = `Puntaje: ${state.score} · Líneas: ${state.lines} · Récord: ${state.best}`;
-  he.innerHTML = `<kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
+  setHint(he, '{←}{→} / tocar para empezar · {R} reiniciar');
   document.getElementById('overlay').classList.remove('hidden');
   shell.disableTabTrap();
   say('Tetris: game over.');
@@ -1104,6 +1104,9 @@ const loop = createGameLoop((dt) => {
 resetGame();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -361,7 +361,7 @@ function endGame(playerWon) {
     ? `P1 ${state.playerScore} - ${state.aiScore} P2`
     : `${state.playerScore} - ${state.aiScore} · Victorias: ${state.wins}`;
   shell.disableTabTrap();
-  hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar  ·  <kbd>Tab</kbd> modo 1P/2P`;
+  setHint(hintEl, '{Espacio} / tocar para reintentar · {R} reiniciar · {Tab} modo 1P/2P');
   overlay.classList.remove('hidden');
   if (is2P) say(`Pong: gana el ${playerWon ? 'Jugador 1' : 'Jugador 2'}.`);
   else if (playerWon) say('Pong: ganaste la partida.');
@@ -667,6 +667,9 @@ ball.y = COURT_H / 2;
 updateModeDisplay();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

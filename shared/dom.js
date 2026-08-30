@@ -6,6 +6,30 @@
  */
 
 /**
+ * Safely set hint text with styled <kbd> elements.
+ * Replaces innerHTML for hint strings like:
+ *   "{Espacio} / tocar para reintentar · {R} reiniciar"
+ * Key names wrapped in {} become <kbd> elements; everything else is text.
+ *
+ * @param {HTMLElement} el
+ * @param {string} text
+ */
+export function setHint(el, text) {
+  if (!el) return;
+  el.textContent = '';
+  const parts = text.split(/(\{[^}]+\})/);
+  for (const part of parts) {
+    if (part.startsWith('{') && part.endsWith('}')) {
+      const kbd = document.createElement('kbd');
+      kbd.textContent = part.slice(1, -1);
+      el.appendChild(kbd);
+    } else if (part) {
+      el.appendChild(document.createTextNode(part));
+    }
+  }
+}
+
+/**
  * Inject the shared common elements (loading, announce, gameBar) into the
  * document body. Safe to call multiple times — subsequent calls are no-ops.
  *

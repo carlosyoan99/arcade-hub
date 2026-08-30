@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -378,7 +378,7 @@ function togglePause() {
   if (state.paused) {
     overlayText.textContent = '⏸ PAUSA';
     finalScoreEl.style.display = 'none';
-    hintEl.innerHTML = `<kbd>Espacio</kbd> / <kbd>P</kbd> / botón para continuar`;
+    setHint(hintEl, '{Espacio} / {P} / botón para continuar');
     overlay.classList.remove('hidden');
   } else {
     overlay.classList.add('hidden');
@@ -406,7 +406,7 @@ function endGame() {
   overlayText.textContent = '¡Game Over! 💀';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Puntos: ${state.score} · Más largo: ${state.score + START_LENGTH} · Mejor: ${state.best}`;
-  hintEl.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar  ·  <kbd>R</kbd> reiniciar`;
+  setHint(hintEl, '{↑}{↓}{←}{→} / tocar para empezar · {R} reiniciar');
   overlay.classList.remove('hidden');
   shell.disableTabTrap();
   say('Snake: juego terminado.');
@@ -685,6 +685,9 @@ initSnake();
 spawnFood();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

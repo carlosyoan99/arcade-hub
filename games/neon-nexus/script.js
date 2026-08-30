@@ -16,7 +16,7 @@ function lsSet(key, val) {
   }
 }
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -703,9 +703,7 @@ function endGame() {
   overlayText.textContent = '☠ CONEXIÓN PERDIDA ☠';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Oleada ${state.wave} · Mejor: ${state.best} · ✦${state.stars} estrellas · ◆${earned} monedas`;
-  hintEl.innerHTML =
-    `<kbd>Click</kbd> / <kbd>Espacio</kbd> reintentar · <kbd>R</kbd> reiniciar · ` +
-    `<kbd>T</kbd> tienda`;
+  setHint(hintEl, '{Click} / {Espacio} reintentar · {R} reiniciar ·') + `<kbd>T</kbd> tienda`;
   overlay.classList.remove('hidden');
   updateHUD();
 }
@@ -1805,6 +1803,9 @@ loadPerm();
 calcTowerStats();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

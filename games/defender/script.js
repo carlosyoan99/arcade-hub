@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
@@ -501,7 +501,7 @@ function endGame() {
   overlayText.textContent = '¡Game Over! 💀';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
-  hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
+  setHint(hintEl, '{Espacio} / tocar para reintentar · {R} reiniciar');
   overlay.classList.remove('hidden');
 }
 
@@ -1558,6 +1558,9 @@ generateTerrain();
 generateHumans();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

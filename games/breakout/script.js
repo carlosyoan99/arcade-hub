@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -429,7 +429,7 @@ function endGame() {
   overlayText.textContent = '¡Juego terminado!';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Puntos: ${state.score} · Nivel: ${state.level} · Mejor: ${state.best}`;
-  hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para reintentar  ·  <kbd>R</kbd> reiniciar`;
+  setHint(hintEl, '{Espacio} / tocar para reintentar · {R} reiniciar');
   overlay.classList.remove('hidden');
   shell.disableTabTrap();
   say('Breakout: juego terminado.');
@@ -791,6 +791,9 @@ buildBricks();
 parkBallOnPaddle();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

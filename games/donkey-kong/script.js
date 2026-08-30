@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
@@ -507,8 +507,7 @@ function startGame() {
   overlay.classList.add('hidden');
   shell.enableTabTrap();
   say('Donkey Kong: ayudá a Mario a escalar la obra.');
-  hintEl.innerHTML =
-    '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espacio</kbd> / <kbd>↑</kbd> saltar · <kbd>R</kbd> reiniciar';
+  setHint(hintEl, '{←}{→} mover · {Espacio} / {↑} saltar · {R} reiniciar');
   updateHUD();
 }
 
@@ -541,7 +540,7 @@ function endGame() {
   overlayText.textContent = '¡Game Over! 💀';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
-  hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
+  setHint(hintEl, '{Espacio} / tocar para reintentar · {R} reiniciar');
   overlay.classList.remove('hidden');
   shell.disableTabTrap();
   say('Donkey Kong: game over.');
@@ -1193,6 +1192,9 @@ initPlayer();
 setupPhaseEntities();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

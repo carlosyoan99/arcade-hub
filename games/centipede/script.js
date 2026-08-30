@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -300,7 +300,7 @@ function endGame() {
   ot.textContent = '💥 ¡Game Over!' + (state.score >= 5000 ? ' 🏆' : '');
   fs.style.display = 'block';
   fs.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
-  he.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
+  setHint(he, '{Espacio} / tocar para empezar · {R} reiniciar');
   document.getElementById('overlay').classList.remove('hidden');
   shell.disableTabTrap();
   say('Centipede: game over.');
@@ -1215,6 +1215,9 @@ const loop = createGameLoop((dt) => {
 resetGame();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

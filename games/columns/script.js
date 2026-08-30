@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -470,8 +470,7 @@ function endGame() {
   finalScoreEl.textContent = `Puntos: ${state.score}`;
   finalScoreEl.style.display = '';
   overlayText.textContent = '¡Juego terminado!';
-  hintEl.innerHTML =
-    '<kbd>R</kbd> reiniciar &nbsp;·&nbsp; <kbd>Espacio</kbd> / tap para jugar de nuevo';
+  setHint(hintEl, '{R} reiniciar &nbsp;·&nbsp; {Espacio} / tap para jugar de nuevo');
   overlay.classList.remove('hidden');
   say(`Juego terminado. Puntos: ${state.score}. Mejor: ${state.best}`);
 }
@@ -841,6 +840,9 @@ const loop = createGameLoop((dt) => {
 createBoard();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -468,7 +468,7 @@ function endGame() {
   overlayText.textContent = '💥 ¡Game Over!';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Puntos: ${state.score} · Récord: ${state.best}`;
-  hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar  ·  <kbd>R</kbd> reiniciar`;
+  setHint(hintEl, '{Espacio} / tocar para empezar · {R} reiniciar');
   overlay.classList.remove('hidden');
   shell.disableTabTrap();
   say('Asteroids: juego terminado.');

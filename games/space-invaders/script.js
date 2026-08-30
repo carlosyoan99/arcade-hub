@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -261,7 +261,7 @@ function endGame(won) {
   overlayText.textContent = won ? '🎉 ¡Ganaste!' : '💥 ¡Game Over!';
   finalScore.style.display = 'block';
   finalScore.textContent = `Puntos: ${state.score} · Récord: ${state.best}`;
-  hintEl.innerHTML = `<kbd>Espacio</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
+  setHint(hintEl, '{Espacio} / tocar para empezar · {R} reiniciar');
   document.getElementById('overlay').classList.remove('hidden');
   shell.disableTabTrap();
   say('Space Invaders: game over.');
@@ -792,6 +792,9 @@ const loop = createGameLoop((dt) => {
 
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

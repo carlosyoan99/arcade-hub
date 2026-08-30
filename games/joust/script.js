@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -291,8 +291,7 @@ function startGame() {
   initPlayer();
   overlay.classList.add('hidden');
   shell.enableTabTrap();
-  hintEl.innerHTML =
-    '<kbd>←</kbd><kbd>→</kbd> mover · <kbd>Espacio</kbd> / <kbd>↑</kbd> aletear · <kbd>R</kbd> reiniciar';
+  setHint(hintEl, '{←}{→} mover · {Espacio} / {↑} aletear · {R} reiniciar');
   say(`Joust: oleada ${state.wave}. Sobreviví y derrotá a los enemigos.`);
   startWave();
   updateHUD();
@@ -376,7 +375,7 @@ function endGame() {
   overlayText.textContent = '¡Game Over! 💀';
   finalScoreEl.style.display = 'block';
   finalScoreEl.textContent = `Puntaje: ${state.score} · Récord: ${Math.max(state.score, best)}`;
-  hintEl.innerHTML = '<kbd>Espacio</kbd> / tocar para reintentar · <kbd>R</kbd> reiniciar';
+  setHint(hintEl, '{Espacio} / tocar para reintentar · {R} reiniciar');
   say(`Joust: Game Over. Puntaje final: ${state.score}.`);
   shell.disableTabTrap();
   overlay.classList.remove('hidden');
@@ -1240,6 +1239,9 @@ const loop = createGameLoop((dt) => {
 initPlayer();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

@@ -1,6 +1,6 @@
 import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
-import { injectCommonElements } from '../../shared/dom.js';
+import { injectCommonElements, setHint } from '../../shared/dom.js';
 import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
@@ -682,8 +682,7 @@ function togglePause() {
   if (state.paused) {
     document.getElementById('overlayText').textContent = '⏸ PAUSA';
     document.getElementById('finalScore').style.display = 'none';
-    document.getElementById('hintEl').innerHTML =
-      `<kbd>Espacio</kbd> / <kbd>P</kbd> para continuar`;
+    setHint(document.getElementById('hintEl'), '{Espacio} / {P} para continuar');
     document.getElementById('overlay').classList.remove('hidden');
   } else {
     document.getElementById('overlay').classList.add('hidden');
@@ -730,7 +729,7 @@ function endGame() {
   overlayText.textContent = '💀 ¡Game Over!';
   finalScore.style.display = 'block';
   finalScore.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
-  hintEl.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
+  setHint(hintEl, '{↑}{↓}{←}{→} / tocar para empezar · {R} reiniciar');
   document.getElementById('overlay').classList.remove('hidden');
   shell.disableTabTrap();
   say('Pac-Man: game over.');
@@ -753,7 +752,7 @@ function winGame() {
   overlayText.textContent = '🎉 ¡Ganaste!';
   finalScore.style.display = 'block';
   finalScore.textContent = `Puntaje: ${state.score} · Récord: ${state.best}`;
-  hintEl.innerHTML = `<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / tocar para empezar · <kbd>R</kbd> reiniciar`;
+  setHint(hintEl, '{↑}{↓}{←}{→} / tocar para empezar · {R} reiniciar');
   document.getElementById('overlay').classList.remove('hidden');
   shell.disableTabTrap();
   updateHUD();
@@ -1214,6 +1213,9 @@ resetPac();
 resetGhosts();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();
