@@ -80,7 +80,6 @@ function rnd(a, b) {
   return a + Math.random() * (b - a);
 }
 
-
 /* ── Ayudas de sonido ── */
 function playShotSound() {
   beep({ freq: 880, freqEnd: 660, duration: 0.03, type: 'square', volume: 0.06 });

@@ -152,7 +152,6 @@ function rnd(a, b) {
   return a + Math.random() * (b - a);
 }
 
-
 // ── Configuración de stage ──
 const MAX_STAGE = 7;
 

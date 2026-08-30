@@ -221,7 +221,6 @@ function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-
 function randColor() {
   return NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
 }
