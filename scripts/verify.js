@@ -63,14 +63,44 @@ for (const g of games) {
   }
 }
 
-// ── 3. Imports de shared/*.js en cada script.js ──
+// ── 3. Imports de shared/*.js en cada script.js (y transitivity) ──
 const sharedImports = new Set();
+// Pass 1: direct imports from game scripts
 for (const g of games) {
   const scriptPath = path.join(ROOT, 'games', g.id, 'script.js');
   if (!fs.existsSync(scriptPath)) continue;
   const src = fs.readFileSync(scriptPath, 'utf8');
   const matches = src.matchAll(/from\s+['"]\.\.\/\.\.\/shared\/([\w.-]+\.js)['"]/g);
   for (const m of matches) sharedImports.add('./shared/' + m[1]);
+}
+// Pass 2: follow transitive imports through shared/ and asset/ modules
+// (e.g. shell.js → help.js, hub.js → storage.js)
+let prevSize = -1;
+const scanned = new Set();
+while (sharedImports.size !== prevSize) {
+  prevSize = sharedImports.size;
+  for (const imp of [...sharedImports]) {
+    if (scanned.has(imp)) continue;
+    scanned.add(imp);
+    const filePath = path.join(ROOT, imp);
+    if (!fs.existsSync(filePath)) continue;
+    const src = fs.readFileSync(filePath, 'utf8');
+    const matches = src.matchAll(/from\s+['"]\.\.?\/([\w.-]+\.js)['"]/g);
+    for (const m of matches) {
+      const resolved = './' + path.posix.join(path.posix.dirname(imp), m[1]);
+      if (resolved.startsWith('./shared/')) sharedImports.add(resolved);
+    }
+  }
+}
+// Pass 3: also scan asset/*.js for shared imports (hub.js → storage.js)
+const assetDir = path.join(ROOT, 'asset');
+if (fs.existsSync(assetDir)) {
+  for (const f of fs.readdirSync(assetDir)) {
+    if (!f.endsWith('.js')) continue;
+    const src = fs.readFileSync(path.join(assetDir, f), 'utf8');
+    const matches = src.matchAll(/from\s+['"]\.\.\/shared\/([\w.-]+\.js)['"]/g);
+    for (const m of matches) sharedImports.add('./shared/' + m[1]);
+  }
 }
 
 // ── 4. FILES de sw.js ──

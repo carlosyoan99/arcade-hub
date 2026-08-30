@@ -121,7 +121,6 @@ const FILES = [
   './shared/dom.js',
   './shared/effects.js',
   './shared/help.js',
-  './shared/icons.js',
   './shared/input.js',
   './shared/loop.js',
   './shared/music.js',
