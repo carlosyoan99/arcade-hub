@@ -1,7 +1,8 @@
-import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
+import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
+import { lsGet, lsSet } from '../../shared/storage.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements, setHint } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { createGameLoop } from '../../shared/loop.js';
@@ -60,13 +61,7 @@ const state = {
   gameOver: false,
   playerScore: 0,
   aiScore: 0,
-  wins: (() => {
-    try {
-      return Number(localStorage.getItem('pong2d_wins') || 0);
-    } catch {
-      return 0;
-    }
-  })(),
+  wins: Number(lsGet('pong2d_wins') || 0),
   twoPlayer: false,
 };
 const playerPaddle = { x: 0, y: 0 };
@@ -326,8 +321,6 @@ function startGame() {
   say('Pong: comenzó la partida. Primero en llegar a 7 puntos gana.');
 }
 function endGame(playerWon) {
-  stopAmbient();
-  stopMusic();
   state.running = false;
   state.gameOver = true;
   const is2P = state.twoPlayer;
@@ -337,11 +330,7 @@ function endGame(playerWon) {
     spawnParticles(ball.x, ball.y, playerWon ? '#6ee7b7' : '#00f0ff', 24);
   } else if (playerWon) {
     state.wins += 1;
-    try {
-      localStorage.setItem('pong2d_wins', String(state.wins));
-    } catch {
-      /* localStorage unavailable */
-    }
+    lsSet('pong2d_wins', String(state.wins));
     playWinFanfare();
     spawnParticles(ball.x, ball.y, '#6ee7b7', 24);
     if (state.wins >= 5) achievements.unlock('pong_win_streak');

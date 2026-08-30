@@ -1,7 +1,7 @@
 import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements, setHint } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
@@ -129,7 +129,6 @@ function gameOver(win) {
   if (!gameoverDone) {
     gameoverDone = true;
     shell.disableTabTrap();
-    stopMusic();
     if (state.score > state.best) {
       state.best = state.score;
       saveBest('raiden2d', state.best);

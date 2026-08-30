@@ -1,23 +1,8 @@
-import { ensureAudio, beep, startAmbient, stopAmbient } from '../../shared/audio.js';
-
-/** Safe localStorage helpers — never throw in incognito */
-function lsGet(key, fallback) {
-  try {
-    return localStorage.getItem(key) || fallback;
-  } catch {
-    return fallback;
-  }
-}
-function lsSet(key, val) {
-  try {
-    localStorage.setItem(key, val);
-  } catch {
-    /* localStorage unavailable */
-  }
-}
+import { ensureAudio, beep, startAmbient } from '../../shared/audio.js';
+import { lsGet, lsSet } from '../../shared/storage.js';
 import { achievements } from '../../shared/achievements.js';
 import { injectCommonElements, setHint } from '../../shared/dom.js';
-import { startMusic, stopMusic } from '../../shared/music.js';
+import { startMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
@@ -684,10 +669,8 @@ function startGame() {
 }
 
 function endGame() {
-  stopMusic();
   state.running = false;
   state.gameOver = true;
-  stopAmbient();
 
   const earned = Math.max(0, state.wave - 1);
   state.coins += earned;

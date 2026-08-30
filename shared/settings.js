@@ -11,6 +11,7 @@
  */
 
 import { getMusicVolume, setMusicVolume } from './music.js';
+import { icons } from './icons.js';
 
 const THEME_KEY = 'arcadehub_theme';
 const REDUCE_KEY = 'arcadehub_reduce_motion';
@@ -91,15 +92,29 @@ function openModal() {
     outline: 'none',
   });
 
-  const isDark = document.documentElement.dataset.theme !== 'light';
-  if (isDark) {
-    modal.style.background = 'rgba(10, 10, 26, 0.94)';
-    modal.style.borderColor = 'rgba(255,255,255,0.08)';
-  } else {
-    modal.style.background = 'rgba(245, 245, 250, 0.96)';
-    modal.style.borderColor = 'rgba(0,0,0,0.08)';
-    modal.style.color = '#1a1a2e';
+  let isDark = document.documentElement.dataset.theme !== 'light';
+
+  /** Actualiza los estilos del modal y sus hijos según el tema actual. */
+  function applyModalTheme() {
+    isDark = document.documentElement.dataset.theme !== 'light';
+    if (isDark) {
+      modal.style.background = 'rgba(10, 10, 26, 0.94)';
+      modal.style.borderColor = 'rgba(255,255,255,0.08)';
+      modal.style.color = '';
+    } else {
+      modal.style.background = 'rgba(245, 245, 250, 0.96)';
+      modal.style.borderColor = 'rgba(0,0,0,0.08)';
+      modal.style.color = '#1a1a2e';
+    }
+    if (closeBtn) closeBtn.style.color = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
+    // Actualizar bordes de las filas (row dividers)
+    modal.querySelectorAll('[data-row-wrap]').forEach((el) => {
+      el.style.borderBottom =
+        '1px solid ' + (isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)');
+    });
   }
+
+  applyModalTheme();
 
   const closeBtn = document.createElement('button');
   closeBtn.textContent = '✕';
@@ -122,8 +137,7 @@ function openModal() {
 
   const title = document.createElement('h2');
   title.id = 'ahSettingsTitle';
-  title.innerHTML =
-    '<span class="icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Configuración';
+  title.innerHTML = `<span class="icon-svg">${icons.settings}</span> Configuración`;
   Object.assign(title.style, {
     margin: '0 0 18px',
     fontSize: '18px',
@@ -133,6 +147,7 @@ function openModal() {
 
   const row = (label, control) => {
     const wrap = document.createElement('div');
+    wrap.dataset.rowWrap = '';
     Object.assign(wrap.style, {
       display: 'flex',
       alignItems: 'center',
@@ -166,6 +181,7 @@ function openModal() {
   themeBtn.addEventListener('click', () => {
     const next = readTheme() === 'dark' ? 'light' : 'dark';
     setTheme(next);
+    applyModalTheme();
     themeBtn.textContent = next === 'dark' ? '🌙 Oscuro' : '☀️ Claro';
     themeBtn.style.background = next === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
     themeBtn.style.borderColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';

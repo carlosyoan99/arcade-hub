@@ -9,20 +9,15 @@
  * 'joust', 'neonNexus') para no romper datos guardados.
  */
 
+import { lsGet, lsSet } from './storage.js';
+
 /** Lee el récord guardado para el prefijo dado (0 si no existe). */
 export function loadBest(prefix) {
-  try {
-    return Number(localStorage.getItem(prefix + '_best') || 0);
-  } catch {
-    return 0;
-  }
+  const v = lsGet(prefix + '_best');
+  return v !== null ? Number(v) : 0;
 }
 
 /** Guarda el récord para el prefijo dado. */
 export function saveBest(prefix, score) {
-  try {
-    localStorage.setItem(prefix + '_best', String(score));
-  } catch {
-    // storage bloqueado o no disponible: ignorar (mejor esfuerzo)
-  }
+  lsSet(prefix + '_best', String(score));
 }

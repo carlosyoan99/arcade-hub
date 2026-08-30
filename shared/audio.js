@@ -153,15 +153,21 @@ export function stopAmbient() {
 }
 
 export function closeAudio() {
+  // stopAmbient defers oscillator stop by ~350ms for a smooth fade-out.
+  // Close the context AFTER that delay so oscillators aren't cut short.
+  const wasPlaying = !!ambientNodes;
   stopAmbient();
-  if (audioCtx && audioCtx.state !== 'closed') {
-    try {
-      audioCtx.close();
-    } catch (err) {
-      /* eslint-disable no-console */
-      if (typeof console !== 'undefined' && console.warn) console.warn('closeAudio failed', err);
-      /* eslint-enable no-console */
+  const closeDelay = wasPlaying ? 400 : 0;
+  setTimeout(() => {
+    if (audioCtx && audioCtx.state !== 'closed') {
+      try {
+        audioCtx.close();
+      } catch (err) {
+        /* eslint-disable no-console */
+        if (typeof console !== 'undefined' && console.warn) console.warn('closeAudio failed', err);
+        /* eslint-enable no-console */
+      }
+      audioCtx = null;
     }
-    audioCtx = null;
-  }
+  }, closeDelay);
 }
