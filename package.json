@@ -12,11 +12,13 @@
     "verify": "node scripts/verify.js",
     "verify:sw": "node scripts/verify.js --update-sw",
     "test": "node --test \"test/**/*.test.js\"",
-    "test:e2e": "node scripts/e2e.js",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
     "check": "npm run lint && npm run format && npm run verify && npm test"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@playwright/test": "^1.62.1",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-prettier": "^5.0.0",

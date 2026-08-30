@@ -10,7 +10,7 @@ Estado del proyecto al documentarlo:
 | Hub             | 3,344 (inline CSS+JS)  |
 | Juegos          | 32                     |
 
-Criterio de aceptación de cada mejora: `npm run check` verde (lint 0 err/0 warn + format + verify + tests) y, si toca el hub o el arranque de un juego, `npm run test:e2e` verde (66 checks).
+Criterio de aceptación de cada mejora: `npm run check` verde (lint 0 err/0 warn + format + verify + tests) y, si toca el hub o el arranque de un juego, `npm run test:e2e` verde (suite Playwright: hub + carga directa e hub→iframe de cada juego + offline-PWA).
 
 ---
 

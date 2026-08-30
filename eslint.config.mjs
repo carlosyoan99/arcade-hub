@@ -34,7 +34,12 @@ export default defineConfig([
 
   // ── Scripts de Node (verificación/CLI) — globals de Node, no browser ──
   {
-    files: ['scripts/**/*.{js,mjs,cjs}', 'test/**/*.{js,mjs,cjs}'],
+    files: [
+      'scripts/**/*.{js,mjs,cjs}',
+      'test/**/*.{js,mjs,cjs}',
+      'playwright.config.js',
+      'e2e/**/*.{js,mjs,cjs}',
+    ],
     languageOptions: {
       globals: {
         ...globals.node,
