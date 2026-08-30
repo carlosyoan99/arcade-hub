@@ -11,7 +11,6 @@ const META_CACHE = 'arcadehub-meta-v1';
 const FILES = [
   './',
   './asset/hub-cards.js',
-  './asset/hub.css',
   './asset/hub.js',
   './asset/theme-init.js',
   './games.js',
@@ -127,6 +126,7 @@ const FILES = [
   './shared/scores.js',
   './shared/settings.js',
   './shared/shell.js',
+  './shared/storage.js',
 ];
 
 // ── Instalación: precachear assets estáticos ──

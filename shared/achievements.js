@@ -19,7 +19,11 @@ export const achievements = {
   unlock(id) {
     if (!this._data[id]) {
       this._data[id] = true;
-      localStorage.setItem(ACH_KEY, JSON.stringify(this._data));
+      try {
+        localStorage.setItem(ACH_KEY, JSON.stringify(this._data));
+      } catch {
+        /* storage unavailable — unlock persists in memory only */
+      }
       beep({ freq: 880, freqEnd: 1320, duration: 0.25, type: 'triangle', volume: 0.15 });
     }
   },

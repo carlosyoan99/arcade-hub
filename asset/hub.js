@@ -1,5 +1,6 @@
 import { games } from './games.js';
 import { drawGameThumb } from './asset/hub-cards.js';
+import { lsGet, lsSet, lsGetJSON } from '../shared/storage.js';
 
 const esc = (s) =>
   String(s)
@@ -317,7 +318,7 @@ function hashId(id) {
 
 /* ── Theme toggle ── */
 (function initTheme() {
-  const saved = localStorage.getItem('arcadehub_theme');
+  const saved = lsGet('arcadehub_theme');
   const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
   const theme = saved || (prefersLight ? 'light' : 'dark');
   document.documentElement.dataset.theme = theme;
@@ -328,7 +329,7 @@ function hashId(id) {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.classList.add('theme-transition');
       document.documentElement.dataset.theme = next;
-      localStorage.setItem('arcadehub_theme', next);
+      lsSet('arcadehub_theme', next);
       btn.textContent = next === 'dark' ? '🌙' : '☀️';
       bgCanvas.setTheme(next);
       setTimeout(() => {
@@ -351,18 +352,10 @@ function hashId(id) {
     doors.right?.remove();
   };
   function seenBefore() {
-    try {
-      return !!localStorage.getItem('arcadehub_coin_inserted');
-    } catch {
-      return false;
-    }
+    return !!lsGet('arcadehub_coin_inserted');
   }
   function markSeen() {
-    try {
-      localStorage.setItem('arcadehub_coin_inserted', '1');
-    } catch {
-      /* almacenamiento no disponible: no bloquear la entrada */
-    }
+    lsSet('arcadehub_coin_inserted', '1');
   }
   if (!entryOverlay) return;
   if (seenBefore()) {
@@ -536,9 +529,8 @@ setTimeout(() => {
 if (ready.length === 0 && pending.length === 0) {
   emptyMsg.style.display = 'block';
 }
-
-const savedSort = localStorage.getItem('arcadehub_sort') || 'default';
-const savedView = localStorage.getItem('arcadehub_view') || 'grid';
+const savedSort = lsGet('arcadehub_sort', 'default');
+const savedView = lsGet('arcadehub_view', 'grid');
 sortSelect.value = savedSort;
 if (savedView === 'list') {
   grid.classList.add('list-view');
@@ -549,7 +541,7 @@ if (savedView === 'list') {
 function sortGames() {
   const sort = sortSelect.value;
   const allGames = [...ready, ...pending];
-  const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+  const playsData = lsGetJSON('arcadehub_plays', {});
 
   const creationOrder = {
     'donkey-kong': 19,
@@ -601,8 +593,7 @@ let lastHoverSound = 0;
 let hoverAudioUnlocked = false;
 function unlockHoverAudio() {
   hoverAudioUnlocked = true;
-  if (!hoverAudioCtx)
-    hoverAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!hoverAudioCtx) hoverAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (hoverAudioCtx.state === 'suspended') hoverAudioCtx.resume();
 }
 window.addEventListener('keydown', unlockHoverAudio, { once: true });
@@ -700,7 +691,7 @@ function renderCard(game, index, playsData = {}) {
 }
 
 function renderGrid() {
-  const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+  const playsData = lsGetJSON('arcadehub_plays', {});
 
   const searchTerm = searchInput.value.trim().toLowerCase();
   const sorted = sortGames();
@@ -820,7 +811,7 @@ searchInput.addEventListener('keydown', (e) => {
 });
 
 sortSelect.addEventListener('change', () => {
-  localStorage.setItem('arcadehub_sort', sortSelect.value);
+  lsSet('arcadehub_sort', sortSelect.value);
   renderGrid();
 });
 
@@ -834,7 +825,7 @@ function setView(view) {
     viewGridBtn.classList.add('active');
     viewListBtn.classList.remove('active');
   }
-  localStorage.setItem('arcadehub_view', view);
+  lsSet('arcadehub_view', view);
 }
 viewGridBtn.addEventListener('click', () => setView('grid'));
 viewListBtn.addEventListener('click', () => setView('list'));
@@ -864,7 +855,7 @@ document.getElementById('surpriseBtn').addEventListener('click', () => {
 
 /* ── Achievements panel ── */
 function renderAchievements() {
-  const achData = JSON.parse(localStorage.getItem('ach_data') || '{}');
+  const achData = lsGetJSON('ach_data', {});
   const achGrid = document.getElementById('achGrid');
   const achCount = document.getElementById('achCount');
 
@@ -970,7 +961,7 @@ renderAchievements();
 
 /* ── Stats panel ── */
 function renderStats() {
-  const playsData = JSON.parse(localStorage.getItem('arcadehub_plays') || '{}');
+  const playsData = lsGetJSON('arcadehub_plays', {});
   const statsGrid = document.getElementById('statsGrid');
   const statSummary = document.getElementById('statSummary');
   const gamesPlayedCount = document.getElementById('gamesPlayedCount');
@@ -1077,11 +1068,9 @@ function showGame(game) {
     });
   });
   document.title = 'Arcade Hub — ' + game.icon + ' ' + game.title;
-  document.getElementById('og-title').content =
-    'Arcade Hub — ' + game.icon + ' ' + game.title;
+  document.getElementById('og-title').content = 'Arcade Hub — ' + game.icon + ' ' + game.title;
   document.getElementById('og-desc').content = game.description;
-  document.getElementById('tw-title').content =
-    'Arcade Hub — ' + game.icon + ' ' + game.title;
+  document.getElementById('tw-title').content = 'Arcade Hub — ' + game.icon + ' ' + game.title;
   document.getElementById('tw-desc').content = game.description;
   document.getElementById('game-schema').textContent = JSON.stringify({
     '@context': 'https://schema.org',
