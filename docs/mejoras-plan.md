@@ -2,13 +2,13 @@
 
 Estado del proyecto al documentarlo:
 
-| Métrica | Valor |
-| --- | --- |
-| Líneas de juego | 30,533 |
-| Módulos shared | 3,156 |
-| Tests | 2,604 (320 assertions) |
-| Hub | 3,344 (inline CSS+JS) |
-| Juegos | 32 |
+| Métrica         | Valor                  |
+| --------------- | ---------------------- |
+| Líneas de juego | 30,533                 |
+| Módulos shared  | 3,156                  |
+| Tests           | 2,604 (320 assertions) |
+| Hub             | 3,344 (inline CSS+JS)  |
+| Juegos          | 32                     |
 
 Criterio de aceptación de cada mejora: `npm run check` verde (lint 0 err/0 warn + format + verify + tests) y, si toca el hub o el arranque de un juego, `npm run test:e2e` verde (66 checks).
 
@@ -97,16 +97,16 @@ Los PNG pesan 300–575KB cada uno; 32 × ~400KB ≈ 12MB en total (regenerados 
 
 ## Resumen Priorizado
 
-| # | Mejora | Impacto | Esfuerzo | Prioridad |
-| --- | --- | --- | --- | --- |
-| 1 | CSP sin `unsafe-inline` | 🔴 Seguridad | Medio | P1 |
-| 2 | `shared/storage.js` (try/catch) | 🔴 Robustez | Bajo | P1 |
-| 3 | Cleanup de event listeners | 🔴 Buena práctica | Medio | P2 |
-| 4 | `rnd()`/`wrap()` a `shared/` | 🟡 DRY | Bajo | P2 |
-| 5 | Separar hub inline | 🟡 Mantenibilidad | Alto | P3 |
-| 6 | Tests de gameplay logic | 🟡 Cobertura | Alto | P3 |
-| 7 | `innerHTML` → `textContent` | 🟢 Seguridad | Bajo | P3 |
-| 8 | Documentar imports indirectos | 🟢 Claridad | Bajo | P4 |
-| 9 | Comprimir screenshots | 🟢 Performance | Bajo | P4 |
+| #   | Mejora                          | Impacto           | Esfuerzo | Prioridad |
+| --- | ------------------------------- | ----------------- | -------- | --------- |
+| 1   | CSP sin `unsafe-inline`         | 🔴 Seguridad      | Medio    | P1        |
+| 2   | `shared/storage.js` (try/catch) | 🔴 Robustez       | Bajo     | P1        |
+| 3   | Cleanup de event listeners      | 🔴 Buena práctica | Medio    | P2        |
+| 4   | `rnd()`/`wrap()` a `shared/`    | 🟡 DRY            | Bajo     | P2        |
+| 5   | Separar hub inline              | 🟡 Mantenibilidad | Alto     | P3        |
+| 6   | Tests de gameplay logic         | 🟡 Cobertura      | Alto     | P3        |
+| 7   | `innerHTML` → `textContent`     | 🟢 Seguridad      | Bajo     | P3        |
+| 8   | Documentar imports indirectos   | 🟢 Claridad       | Bajo     | P4        |
+| 9   | Comprimir screenshots           | 🟢 Performance    | Bajo     | P4        |
 
 Reglas de trabajo: commits por tarea (conventional commits, logs en español), tocar solo lo asignado a cada agente, y nunca commitear archivos mid-edit de otro agente. Cada cambio termina con `npm run check`.
