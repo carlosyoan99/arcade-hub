@@ -1,3 +1,5 @@
+import { icons } from './icons.js';
+
 /* ═══════════════════════════════════════════════════════════════
    shared/music.js — Motor de música lofi-retro procedural.
 
@@ -562,9 +564,8 @@ export function syncBtn() {
   const btn = document.getElementById('musicBtn');
   if (!btn) return;
   const on = musicEnabled();
-  btn.innerHTML = on
-    ? '<span class="icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3" fill="currentColor" stroke="none"/><circle cx="18" cy="16" r="3" fill="currentColor" stroke="none"/></svg></span>'
-    : '<span class="icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3" fill="currentColor" stroke="none"/><circle cx="18" cy="16" r="3" fill="currentColor" stroke="none"/><line x1="2" y1="2" x2="22" y2="22" stroke-width="2.5"/></svg></span>';
+  const ico = (svg) => `<span class="icon-svg">${svg}</span>`;
+  btn.innerHTML = on ? ico(icons.music) : ico(icons.muted);
   btn.setAttribute('aria-pressed', String(on));
   btn.setAttribute('aria-label', on ? 'Silenciar música' : 'Activar música');
 }
