@@ -1015,7 +1015,7 @@ function renderStats() {
     for (const [i, s] of top3.entries()) {
       if (s.plays === 0) break;
       top3Html += `
-        <div class="top3-card pos${i + 1}" style="animation-delay:${i * 0.08}s">
+        <div class="top3-card pos${i + 1}">
           <div class="top3-medal">${medals[i]}</div>
             <div class="top3-info">
             <div class="name">${esc(s.title)}</div>

@@ -1353,6 +1353,14 @@ main.list-view {
   animation: cardEnter 0.5s ease-out both;
 }
 
+.top3-card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.top3-card:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
 .top3-card:hover {
   border-color: var(--card-hover-border);
   transform: translateY(-2px);

@@ -5,15 +5,13 @@
    - network-first: metadata.json (cambia con cada actualización)
    ═══════════════════════════════════════════════ */
 
-const STATIC_CACHE = 'arcadehub-static-v32';
+const STATIC_CACHE = 'arcadehub-static-v33';
 const META_CACHE = 'arcadehub-meta-v1';
 
 const FILES = [
   './',
   './asset/hub-cards.js',
-  './asset/hub.css',
   './asset/hub.js',
-  './asset/icons/favicon.svg',
   './asset/theme-init.js',
   './games.js',
   './games/asteroids/index.html',
@@ -121,6 +119,7 @@ const FILES = [
   './shared/dom.js',
   './shared/effects.js',
   './shared/help.js',
+  './shared/icons.js',
   './shared/input.js',
   './shared/loop.js',
   './shared/music.js',
