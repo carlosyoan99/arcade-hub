@@ -14,7 +14,7 @@ import {
   clearParticles,
   drawGlow,
 } from '../../shared/effects.js';
-import { overlap as overlapBullet } from '../../shared/collide.js';
+import { overlap as overlapBullet, rnd } from '../../shared/collide.js';
 
 injectCommonElements();
 
@@ -75,10 +75,6 @@ const held = new Set();
 let fireHeld = false;
 let gamepadX = 0;
 let gamepadY = 0;
-
-function rnd(a, b) {
-  return a + Math.random() * (b - a);
-}
 
 /* ── Ayudas de sonido ── */
 function playShotSound() {
@@ -1068,6 +1064,9 @@ state.boss = false;
 removeBossBar();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

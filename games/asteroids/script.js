@@ -7,6 +7,7 @@ import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
 import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
+import { wrap } from '../../shared/collide.js';
 import {
   updateShake,
   getShakeOffset,
@@ -124,11 +125,6 @@ let fireTimer = 0;
 // ============================================================
 // WRAP-AROUND
 // ============================================================
-function wrap(val, min, max) {
-  while (val < min) val += max - min;
-  while (val >= max) val -= max - min;
-  return val;
-}
 function wrapEntity(e) {
   e.x = wrap(e.x, -WRAP_MARGIN, COURT_W + WRAP_MARGIN);
   e.y = wrap(e.y, -WRAP_MARGIN, COURT_H + WRAP_MARGIN);
@@ -807,6 +803,9 @@ const loop = createGameLoop((dt) => {
 
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

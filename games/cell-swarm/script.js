@@ -17,7 +17,7 @@ import {
   feedbackBundle,
   clearSquashes,
 } from '../../shared/effects.js';
-import { dist } from '../../shared/collide.js';
+import { dist, clamp } from '../../shared/collide.js';
 
 injectCommonElements();
 
@@ -215,10 +215,6 @@ function massToRadius(mass) {
 
 function rng(min, max) {
   return min + Math.random() * (max - min);
-}
-
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
 }
 
 function randColor() {
@@ -1605,6 +1601,9 @@ const loop = createGameLoop((dt) => {
 });
 
 // ── Init ──
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();

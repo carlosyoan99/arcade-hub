@@ -1,7 +1,7 @@
 /**
- * Shared collision helpers — Arcade Hub
+ * Shared math & collision helpers — Arcade Hub
  *
- * Extracted duplicated dist() and overlap() from individual games.
+ * Extracted duplicated helpers from individual games.
  * Used by: cell-swarm, double-dragon, gradius, raiden, galaga, etc.
  */
 
@@ -25,4 +25,37 @@ export function dist(a, b) {
  */
 export function overlap(a, ar, b, br) {
   return Math.abs(a.x - b.x) < ar + br && Math.abs(a.y - b.y) < ar + br;
+}
+
+/**
+ * Random float between a and b (inclusive).
+ * @param {number} a
+ * @param {number} b
+ * @returns {number}
+ */
+export function rnd(a, b) {
+  return a + Math.random() * (b - a);
+}
+
+/**
+ * Clamp a value between min and max.
+ * @param {number} v
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
+ */
+export function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+/**
+ * Wrap a value into the range [min, max) using toroidal wrapping.
+ * @param {number} val
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
+ */
+export function wrap(val, min, max) {
+  const range = max - min;
+  return ((((val - min) % range) + range) % range) + min;
 }

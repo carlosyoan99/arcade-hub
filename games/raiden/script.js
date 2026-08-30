@@ -14,7 +14,7 @@ import {
   clearParticles,
   drawGlow,
 } from '../../shared/effects.js';
-import { overlap } from '../../shared/collide.js';
+import { overlap, rnd } from '../../shared/collide.js';
 
 injectCommonElements();
 
@@ -148,9 +148,6 @@ function gameOver(win) {
 }
 
 // ── Utilidades ──
-function rnd(a, b) {
-  return a + Math.random() * (b - a);
-}
 
 // ── Configuración de stage ──
 const MAX_STAGE = 7;
@@ -1087,6 +1084,9 @@ updateWeaponBar();
 setupStage();
 updateHUD();
 
-shell.onCleanup(() => { cleanupAll(); loop.stop(); });
+shell.onCleanup(() => {
+  cleanupAll();
+  loop.stop();
+});
 document.getElementById('loading').classList.add('hidden');
 loop.start();
