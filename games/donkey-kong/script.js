@@ -6,7 +6,7 @@ import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -146,7 +146,7 @@ function playLevelUp() {
 
 // ── ENTRADA ──
 const keys = { left: false, right: false, jump: false, up: false };
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (['ArrowLeft', 'KeyA'].includes(e.code)) {
     e.preventDefault();
     keys.left = true;
@@ -170,7 +170,7 @@ window.addEventListener('keydown', (e) => {
     startGame();
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
   if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
   if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
@@ -1193,6 +1193,6 @@ initPlayer();
 setupPhaseEntities();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   spawnParticles,
@@ -196,7 +196,7 @@ function rotatePlayer(dir) {
   }
 }
 
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (e.code === 'KeyR' && (state.gameOver || !state.running)) {
     e.preventDefault();
     startGame();
@@ -552,6 +552,6 @@ const loop = createGameLoop((dt) => {
 // Init
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

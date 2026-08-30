@@ -22,7 +22,7 @@ import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -888,7 +888,7 @@ document.getElementById('shopClose').addEventListener('click', () => {
 // ============================================================
 // ENTRADA: TECLADO
 // ============================================================
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if ((e.code === 'Space' || e.code === 'Enter') && !state.running && !state.gameOver) {
     e.preventDefault();
     startGame();
@@ -1805,6 +1805,6 @@ loadPerm();
 calcTowerStats();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

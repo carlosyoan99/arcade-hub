@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   spawnParticles,
@@ -295,7 +295,7 @@ function togglePause() {
 }
 
 const keys = {};
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   keys[e.code] = true;
   if (e.code === 'KeyR' && (state.gameOver || !state.running)) {
     e.preventDefault();
@@ -331,7 +331,7 @@ window.addEventListener('keydown', (e) => {
     hardDrop();
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   if (e.code === 'ArrowDown' || e.code === 'KeyS') softDrop = false;
 });
 
@@ -643,6 +643,6 @@ const loop = createGameLoop((dt) => {
 updateHUD();
 board = createEmptyBoard();
 cpuBoard = createEmptyBoard();
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   spawnParticles,
   updateParticles,
@@ -667,7 +667,7 @@ const codeToDir = {
   KeyD: 'right',
 };
 
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (e.code === 'KeyR' && (state.phase === 'menu' || gameoverDone)) {
     e.preventDefault();
     startGame();
@@ -701,7 +701,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   const dir = codeToDir[e.code];
   if (dir) held.delete(dir);
   if (e.code === 'KeyX' || e.code === 'KeyZ') fireHeld = false;
@@ -1068,6 +1068,6 @@ state.boss = false;
 removeBossBar();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

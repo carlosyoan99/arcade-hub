@@ -146,3 +146,104 @@ export function bindHoldButton(target, onDown, onUp) {
     btn.classList.remove('is-pressed');
   };
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Auto-cleanup event listener helpers
+   ═══════════════════════════════════════════════════════════════
+   Register listeners through these helpers instead of raw
+   addEventListener(). All registered listeners are automatically
+   removed when cleanupAll() is called (typically via
+   shell.onCleanup()).
+   ═══════════════════════════════════════════════════════════════ */
+
+const _autoListeners = [];
+
+/**
+ * Register a keydown handler on window. Auto-removed on cleanupAll().
+ * @param {function} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
+export function onKey(handler, options) {
+  window.addEventListener('keydown', handler, options);
+  _autoListeners.push({ target: window, type: 'keydown', handler, options });
+}
+
+/**
+ * Register a keyup handler on window. Auto-removed on cleanupAll().
+ * @param {function} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
+export function onKeyup(handler, options) {
+  window.addEventListener('keyup', handler, options);
+  _autoListeners.push({ target: window, type: 'keyup', handler, options });
+}
+
+/**
+ * Register a touchstart handler on an element. Auto-removed on cleanupAll().
+ * @param {EventTarget} el
+ * @param {function} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
+export function onTouchStart(el, handler, options) {
+  el.addEventListener('touchstart', handler, options);
+  _autoListeners.push({ target: el, type: 'touchstart', handler, options });
+}
+
+/**
+ * Register a touchend handler on an element. Auto-removed on cleanupAll().
+ * @param {EventTarget} el
+ * @param {function} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
+export function onTouchEnd(el, handler, options) {
+  el.addEventListener('touchend', handler, options);
+  _autoListeners.push({ target: el, type: 'touchend', handler, options });
+}
+
+/**
+ * Register a touchcancel handler on an element. Auto-removed on cleanupAll().
+ * @param {EventTarget} el
+ * @param {function} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
+export function onTouchCancel(el, handler, options) {
+  el.addEventListener('touchcancel', handler, options);
+  _autoListeners.push({ target: el, type: 'touchcancel', handler, options });
+}
+
+/**
+ * Register a mousedown handler on an element. Auto-removed on cleanupAll().
+ * @param {EventTarget} el
+ * @param {function} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
+export function onMouseDown(el, handler, options) {
+  el.addEventListener('mousedown', handler, options);
+  _autoListeners.push({ target: el, type: 'mousedown', handler, options });
+}
+
+/**
+ * Register a click handler on an element. Auto-removed on cleanupAll().
+ * @param {EventTarget} el
+ * @param {function} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
+export function onClick(el, handler, options) {
+  el.addEventListener('click', handler, options);
+  _autoListeners.push({ target: el, type: 'click', handler, options });
+}
+
+/**
+ * Remove all listeners registered through onKey/onKeyup/etc.
+ * Safe to call multiple times — second call is a no-op.
+ */
+export function cleanupAll() {
+  for (const { target, type, handler, options } of _autoListeners) {
+    try {
+      target.removeEventListener(type, handler, options);
+    } catch {
+      /* target may have been removed from DOM */
+    }
+  }
+  _autoListeners.length = 0;
+}

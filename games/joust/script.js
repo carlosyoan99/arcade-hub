@@ -6,7 +6,7 @@ import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { setupCanvas } from '../../shared/display.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   triggerShake,
   updateShake,
@@ -146,7 +146,7 @@ function playWave() {
 
 // ── ENTRADA ──
 const keys = { left: false, right: false, flap: false, flapPressed: false };
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (['ArrowLeft', 'KeyA'].includes(e.code)) {
     e.preventDefault();
     keys.left = true;
@@ -165,7 +165,7 @@ window.addEventListener('keydown', (e) => {
     startGame();
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
   if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
 });
@@ -1240,6 +1240,6 @@ const loop = createGameLoop((dt) => {
 initPlayer();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

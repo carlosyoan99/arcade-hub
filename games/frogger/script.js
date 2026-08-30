@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -524,7 +524,7 @@ function updateObstacles(dt) {
 // ============================================================
 // INPUT
 // ============================================================
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (e.code === 'ArrowUp' || e.code === 'KeyW') {
     e.preventDefault();
     if (!state.running) startGame();
@@ -1093,6 +1093,6 @@ resetFrog();
 buildObstacles();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

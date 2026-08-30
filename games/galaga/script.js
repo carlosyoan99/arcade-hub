@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -660,7 +660,7 @@ function endGame() {
 // ============================================================
 const input = { left: false, right: false, fire: false };
 
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
     e.preventDefault();
     input.left = true;
@@ -676,7 +676,7 @@ window.addEventListener('keydown', (e) => {
     startGame();
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.left = false;
   else if (e.code === 'ArrowRight' || e.code === 'KeyD') input.right = false;
   else if (e.code === 'Space') input.fire = false;
@@ -1575,6 +1575,6 @@ const loop = createGameLoop((dt) => {
 resetGame();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

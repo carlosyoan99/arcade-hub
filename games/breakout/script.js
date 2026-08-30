@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad, bindHoldButton } from '../../shared/input.js';
+import { createGamepad, bindHoldButton, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   triggerShake,
   updateShake,
@@ -178,7 +178,7 @@ function playGameOverTone() {
 // ============================================================
 const keys = { left: false, right: false };
 
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (['ArrowLeft', 'KeyA'].includes(e.code)) {
     e.preventDefault();
     keys.left = true;
@@ -197,7 +197,7 @@ window.addEventListener('keydown', (e) => {
     if (!state.running) startGame();
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
   if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
 });
@@ -791,6 +791,6 @@ buildBricks();
 parkBallOnPaddle();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

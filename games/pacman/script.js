@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad, bindHoldButton } from '../../shared/input.js';
+import { createGamepad, bindHoldButton, onKey, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -763,7 +763,7 @@ function winGame() {
 // ENTRADA
 // ============================================================
 
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (e.code === 'ArrowUp' || e.code === 'KeyW') {
     e.preventDefault();
     setPacDir(D.UP);
@@ -1214,6 +1214,6 @@ resetPac();
 resetGhosts();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

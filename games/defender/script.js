@@ -6,7 +6,7 @@ import { setupGameShell } from '../../shared/shell.js';
 import { setupCanvas } from '../../shared/display.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -212,7 +212,7 @@ let bombPressed = false;
 let hyperspacePressed = false;
 let nuclearPressed = false;
 
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   switch (e.code) {
     case 'ArrowUp':
     case 'KeyW':
@@ -257,7 +257,7 @@ window.addEventListener('keydown', (e) => {
       break;
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   switch (e.code) {
     case 'ArrowUp':
     case 'KeyW':
@@ -1558,6 +1558,6 @@ generateTerrain();
 generateHumans();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

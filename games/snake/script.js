@@ -6,7 +6,7 @@ import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -119,7 +119,7 @@ function playPauseSound() {
 // ENTRADA: TECLADO
 // ============================================================
 
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   let dir = null;
   if (['ArrowUp', 'KeyW'].includes(e.code)) {
     e.preventDefault();
@@ -685,6 +685,6 @@ initSnake();
 spawnFood();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

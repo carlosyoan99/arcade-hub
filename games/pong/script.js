@@ -5,7 +5,7 @@ import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupCanvas } from '../../shared/display.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad, bindHoldButton } from '../../shared/input.js';
+import { createGamepad, bindHoldButton, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -140,7 +140,7 @@ function playLoseTone() {
 
 // ENTRADA
 const keys = { up: false, down: false, p2Up: false, p2Down: false };
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (state.twoPlayer) {
     // 2P: P1=W/S, P2=↑/↓
     if (e.code === 'KeyW') {
@@ -186,7 +186,7 @@ window.addEventListener('keydown', (e) => {
     updateTouchControls();
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   if (state.twoPlayer) {
     if (e.code === 'KeyW') keys.up = false;
     if (e.code === 'KeyS') keys.down = false;
@@ -667,6 +667,6 @@ ball.y = COURT_H / 2;
 updateModeDisplay();
 updateHUD();
 
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();

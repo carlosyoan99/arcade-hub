@@ -5,7 +5,7 @@ import { startMusic, stopMusic } from '../../shared/music.js';
 import { setupGameShell } from '../../shared/shell.js';
 import { loadBest, saveBest } from '../../shared/scores.js';
 import { createGameLoop } from '../../shared/loop.js';
-import { createGamepad } from '../../shared/input.js';
+import { createGamepad, onKey, onKeyup, cleanupAll } from '../../shared/input.js';
 import {
   updateShake,
   getShakeOffset,
@@ -1033,7 +1033,7 @@ canvas.addEventListener(
 );
 
 // Keyboard
-window.addEventListener('keydown', (e) => {
+onKey((e) => {
   if (e.code === 'KeyR' && state.gameOver) {
     e.preventDefault();
     resetGameState();
@@ -1052,7 +1052,7 @@ window.addEventListener('keydown', (e) => {
     sfxBoost();
   }
 });
-window.addEventListener('keyup', (e) => {
+onKeyup((e) => {
   if (e.code === 'ShiftLeft') {
     boosting = false;
   }
@@ -1605,6 +1605,6 @@ const loop = createGameLoop((dt) => {
 });
 
 // ── Init ──
-shell.onCleanup(() => loop.stop());
+shell.onCleanup(() => { cleanupAll(); loop.stop(); });
 document.getElementById('loading').classList.add('hidden');
 loop.start();
