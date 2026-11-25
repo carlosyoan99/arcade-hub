@@ -2,8 +2,11 @@
   "name": "arcade-hub",
   "version": "1.0.0",
   "private": true,
-  "description": "Arcade Hub — 19 juegos clásicos recreados con Canvas 2D",
+  "description": "Arcade Engine (TS + Vite) y Arcade Hub legacy — 32 juegos de referencia",
   "type": "module",
+  "workspaces": [
+    "engine"
+  ],
   "scripts": {
     "lint": "eslint '**/*.js' --no-warn-ignored",
     "lint:fix": "eslint '**/*.js' --fix --no-warn-ignored",
