@@ -1,60 +1,49 @@
-# AGENTS.md — Arcade Hub
+# AGENTS.md — Arcade Engine / Arcade Hub
 
-Quick orientation for AI agents. Read **`CLAUDE.md`** (full technical conventions:
-2D-only Canvas, neon design system, input parity, performance rules) and
-**`CONTRIBUTING.md`** (9-step process for adding a game) before creating or modifying a
-game. For a new game, also read **`docs/new-games-spec.md`** (current 13-game roadmap +
-per-game decisions). This file only adds facts they don't state or state wrong.
+Orientación rápida. Lee también `CLAUDE.md` (convenciones), `CONTRIBUTING.md` (cómo migrar un juego), `TODO.md` (roadmap) y `docs/DDT-F0-fundamentos.md` (arquitectura del motor).
 
-Requires Node ≥ 22 (tooling + smoke tests; CI pins 22). Run everything from repo root.
+## Dónde trabajar
 
-## Commands
+- **Activo:** `engine/` — TypeScript estricto, Vite, Vitest, plugins nativos.
+- **Congelado:** `games/`, `shared/`, `index.html`, `asset/` — Arcade Hub legacy (32 juegos). Sirve solo como referencia de mecánicas. **No añadas juegos nuevos ni cambios allí.**
 
-- `npm run check` — the gate: ESLint (0 err / 0 warn) + Prettier `--check` + `verify` + tests. Must pass before commit/PR.
-- `npm run verify` — consistency checker. Fails if: a game dir/file on disk is missing from `games.js` (or a manifest entry has no folder), a game/shared/hub file is missing from `sw.js` `FILES`, or a `metadata.json` lacks `"version"` / has an `id` that differs from `games.js`. Warns (non-fatal) on `shared/` entries no game imports directly — `help.js`/`settings.js` are imported transitively via `shell.js`, so that warning is a false positive.
-- `npm run verify:sw` — regenerates the `const FILES = [...]` block in `sw.js` automatically (`node scripts/verify.js --update-sw`). Prefer this over hand-editing `FILES`; still bump `STATIC_CACHE` (pattern `arcadehub-static-vN`) manually afterwards — verify does not check the cache version.
-- `npm test` — jsdom smoke tests. They iterate **`games.js`**, so a newly registered game is covered automatically (each imports `script.js` and asserts `#gameCanvas`, `#overlay`, `#helpBtn`). One game: `node --test --test-name-pattern='smoke: pong' test/smoke.test.js`.
-- `node scripts/profile.js [--game=<id>] [--duration=8000]` — perf profiling via Chrome DevTools Protocol. Prereqs: Chrome running with `--remote-debugging-port=9222` and the site served on `localhost:8000`. Without `--game` it profiles only the 5 heavy games.
-- `npm run lint:fix` / `npm run format:fix` — autofix, then re-run `npm run check`.
+## Comandos (desde la raíz)
 
-## Running the site
+```bash
+npm install
+npm test -w @arcade/engine                 # Vitest
+npm run build -w @arcade/engine            # tsc + Vite
+npm run dev -w @arcade/engine              # demo visual
+npm run headless -w @arcade/engine -- --ticks 600 --seed 12345
+npx tsc -p engine/tsconfig.json --noEmit   # typecheck completo
+```
 
-No build step: games are static HTML/CSS/JS served from the repo root (they use ES
-modules, so `file://` won't work): `python3 -m http.server 8000`. Hub entry: `index.html`
-renders the `games.js` manifest and loads each game in an iframe via hash routing
-(`#game/{id}`). `games.js` is the single source of game metadata — paths are always
-relative (`./games/...`). Hub card thumbnails render as canvas scenes via
-`asset/hub-cards.js` (`SCENES`), falling back to the SVG thumbnail when no scene exists.
+Dentro de `engine/`: `npm test`, `npm run build`, `npm run dev`, `npm run headless`.
 
-## Adding / modifying a game
+## Reglas del motor (no negociables)
 
-- Each game folder needs exactly 5 files: `index.html`, `style.css`, `script.js`, `metadata.json` (must include `"version"`), `README.md`; `screenshot.png` (1024×768) optional but every existing game has one. Copy an existing game as a starting point (`cp -r games/pong games/<id>`).
-- `script.js` may import only from `../../shared/*.js`. Never import from another game or from outside `shared/`.
-- **Modern scaffold (all games use it):** import `setupGameShell('<id>')` from `../../shared/shell.js` right after `injectCommonElements()`, and `loadBest`/`saveBest` from `../../shared/scores.js`. `shell` wires the game bar (`#hubBtn`/`#fsBtn`/`#helpBtn`), the settings panel, the Tab trap (`enableTabTrap()`/`disableTabTrap()` in start/game-over) and cleanup (`onCleanup(() => loop.stop())`). **Do not** call `stopMusic()`/`closeAudio()` yourself — `shell.cleanup()` does. `CLAUDE.md`'s import sample imports `showHelp` from `help.js` directly; that predates shell.js and no game does it anymore.
-- Music (`shared/music.js`): call `startMusic('<gameId>')` in `startGame()` after `startAmbient()`. **A game id with no entry in the `SONGS` map silently produces no music** — either add a theme for the id or omit the call. (Columns deliberately has no theme, ambient only — see spec.) The 🎵 toggle lives in the shared game bar; don't add per-game audio UI.
-- Hub thumbnail: add a scene for the id in `asset/hub-cards.js` `SCENES` (or ship `asset/icons/game-<id>.svg` as fallback), or the hub card renders without a thumbnail.
-- After any game change: add the game paths to `sw.js` `FILES` (easiest: `npm run verify:sw`) and bump `STATIC_CACHE`. `metadata.json` is served network-first, so it doesn't need a cache bump.
-- Bump `metadata.json` version and add a `changelog` entry with each change.
+1. `step()` es puro: nada de `Math.random`, `Date.now`, `setTimeout`, DOM, render ni audio. Azar = `ctx.rng`; timers = `ctx.schedule`; feedback = `ctx.emit`.
+2. Un juego solo declara datos y reglas en `defineGame`. Cualquier mecánica repetible sube al motor como plugin/servicio.
+3. La progresión es declarativa (`progression` en el juego) y se aplica con `ctx.progression`. Nunca escribas curvas de dificultad dentro de `step()`.
+4. Los juegos emiten eventos de "juice"; partículas/audio los consumen por plugins (`eventFanoutPlugin` drena la cola una sola vez).
+5. Todo estado debe sobrevivir a `snapshot()`/`restore()` y producir el mismo hash con la misma semilla y cinta de inputs.
+6. Sin dependencias de runtime nuevas. Solo las devDependencies ya presentes.
 
-## Project status & next steps
+## Migración de un juego
 
-Roadmap sources of truth: **`TODO.md`** (legacy phases R/P/G/H/D/M/P10 all complete) and
-**`docs/`** (current work). Before starting work, run `git status` — work is often in
-progress uncommitted.
+Copia `engine/src/games/pong/game.ts` como plantilla. Crea `engine/src/games/<id>/game.ts` y su test en `engine/test/`. Regístralo en `engine/src/games/index.ts` (lo hace el coordinador). Consulta `docs/investigacion-dificultad-variedad.md` para los valores de `progression`.
 
-- **Done:** `docs/game-mechanics-audit-spec.md` is **complete** — 14/14 arcade games brought to arcade parity (Space Invaders 11/11, Pac-Man 8/10, Tetris Guideline 4/7, Frogger 8/8, Galaga 9/9, etc.) plus 3 non-arcade verified. Music is integrated and **themed in all 19 games** (`SONGS` has all 19 ids).
-- **In progress:** `docs/new-games-spec.md` (Fase 1 of 13 planned games). `games/columns/`, `games/pole-position/`, `games/moon-patrol/` exist but are **untracked and unregistered** — not in `games.js`, `sw.js`, `hub-cards.js`, or `SONGS`, so **`npm run verify` currently exits 1** (expected mid-WIP; registering the games makes it green again). Moon Patrol is missing `README.md` (a required file). Remaining Fase 1: **Tempest**. Per spec: Columns = ambient only; Pole Position + Moon Patrol need `SONGS` themes. Registering a game in `games.js` auto-adds it to the smoke tests.
-- Every gameplay change must keep input parity (keyboard/touch/gamepad), neon style via `shared/effects.js` helpers, and end with `npm run check`.
+Si encuentras **código duplicado**, una funcionalidad del motor ya implementada que no puedes usar, o una función del motor que falta: **no la reimplementes en el juego; repórtalo** para decidir si sube al motor.
 
-## Traps
+## Tests
 
-- `CLAUDE.md`'s skill table lists 26 skills, but most were deleted from the working tree. Only the autoskills recorded in `skills-lock.json` are installed: `accessibility`, `frontend-design`, `nodejs-backend-patterns`, `nodejs-best-practices`, `seo`. Verify a skill exists under `.agents/skills/` before loading it.
-- `games/legacy-3d/` is archived 3D reference — excluded from ESLint, `verify`, and the hub. Never add those games to `games.js`.
-- Zero runtime dependencies; `package.json`/`package-lock.json`/`node_modules` are dev-only tooling (ESLint, Prettier, jsdom, `ws` for `scripts/profile.js`).
-- `localStorage` keys are namespaced `<gameId>_<key>`; achievements live under `ach_data` (`shared/achievements.js`); best scores use `<prefix>_best` via `shared/scores.js`. Keep a game's historical prefix when migrating (e.g. `snake2d`, `joust`, `neonNexus`) so saved data survives.
-- `shared/scores.js`, `shared/settings.js`, and `shared/shell.js` are not documented in `CLAUDE.md`/`README.md` — those docs only list the original 10 `shared/` JS modules.
-- CI (`.github/workflows/deploy.yml`) runs lint → format → verify → tests on every PR and deploys to GitHub Pages only on push to `main`. A green local `npm run check` is required for PRs.
+- `engine/test/determinism.test.ts` incluye el hash golden (`600:3336926330:e22d095e-20`). Cambiarlo sin explicación rompe la determinismo.
+- Todo juego nuevo debe tener test de determinismo, de subida de dificultad, de `observe()` finito y de evento de juice.
+- `npm test -w @arcade/engine` debe estar en verde antes de integrar.
 
-## Conventions
+## Legado (solo lectura)
 
-- Commit after each task using conventional-commit style (log uses `feat:`, `fix:`, `refactor:`, `perf:`, `docs:`, `chore:`, `ci:`; per-game fixes use `fix(games):`).
+- Hub sin build step: `python3 -m http.server 8000`.
+- `games.js` es el manifiesto; `sw.js` mantiene `FILES` (regenerar con `npm run verify:sw`).
+- Bugs conocidos B1-B8: ver `docs/Arcade Hub — investigación completa.md`. No se corrigen en el legado; las correcciones van en los juegos migrados.
+- `localStorage` legacy: `<gameId>_<key>`; el motor usa `store/` versionado con validación.
