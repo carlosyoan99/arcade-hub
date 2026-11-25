@@ -50,6 +50,7 @@ export {
 export { demoGame, type DemoState } from './game/example.js';
 export {
   GAMES,
+  GAME_IDS,
   findGame,
   pongGame,
   PONG,
