@@ -73,6 +73,14 @@ export * from './ai/brain-store.js';
 export * from './ai/trainer.js';
 export * from './ai/difficulty.js';
 
+// Servicios compartidos del motor (evitan duplicar lógica en los juegos).
+export * from './core/math.js';
+export * from './sim/grid.js';
+export * from './sim/collision.js';
+export * from './sim/pathfinding.js';
+export { handleLifecycle, type LifecycleOptions, type PausableState } from './game/lifecycle.js';
+export { singlePlayerRules, type SinglePlayerRulesState } from './game/rules.js';
+
 // Presentación (F1): sistemas reutilizables, nunca dentro de los juegos.
 export * from './render/canvas2d.js';
 export * from './render/camera.js';

@@ -1,5 +1,9 @@
 /** Curvas de dificultad declarativas. Sin reloj real ni azar. */
 
+import { clamp } from '../core/math.js';
+
+export { clamp } from '../core/math.js';
+
 export interface LevelSpec {
   /** Multiplicador de velocidad del juego en este nivel. */
   readonly speed: number;
@@ -38,10 +42,6 @@ export const DEFAULT_PROGRESSION: ProgressionConfig = {
   patterns: [],
   avoidRepeat: 1,
 };
-
-export function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value;
-}
 
 export function levelForProgress(progress: number, config: ProgressionConfig): number {
   if (!Number.isFinite(progress) || config.pointsPerLevel <= 0) return 0;

@@ -13,6 +13,9 @@ import { createStateOps } from './state.js';
 import type { TimerId } from './types.js';
 import { createActionState, type ActionSnapshot, type ActionState } from '../input/actions.js';
 import { applyInputFrame, type InputFrame } from '../input/virtual.js';
+import { COLLISION_SERVICE, createCollisionService } from '../sim/collision.js';
+import { createGridService, GRID_SERVICE } from '../sim/grid.js';
+import { createPathfindingService, PATHFINDING_SERVICE } from '../sim/pathfinding.js';
 import {
   defaultProgression,
   PROGRESSION_SERVICE,
@@ -20,8 +23,18 @@ import {
   type ProgressionState,
 } from '../progression/progression.js';
 
+function namespaceHash(text: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
 /** Todo lo que un juego puede usar. Nada de DOM, ni reloj real, ni Math.random. */
 export interface StepContext {
+  readonly seed: number;
   readonly clock: Clock;
   readonly rng: RNG;
   readonly events: EventBus;
@@ -30,6 +43,8 @@ export interface StepContext {
   readonly services: ServiceRegistry;
   /** Curva de dificultad y variedad, con estado incluido en el snapshot. */
   readonly progression: ProgressionService;
+  /** Stream de RNG derivado, aislado del RNG principal del juego. */
+  rngFor(namespace: string): RNG;
   emit(type: string, payload?: unknown): void;
   schedule(ticks: number, fn: () => void): TimerId;
 }
@@ -84,6 +99,12 @@ export function createSimulation<S extends object>(options: SimulationOptions<S>
     scheduler,
     actions,
     services,
+    get seed(): number {
+      return options.seed;
+    },
+    rngFor(namespace: string): RNG {
+      return rng.fork(namespaceHash(namespace));
+    },
     get progression(): ProgressionService {
       return services.get<ProgressionService>(PROGRESSION_SERVICE);
     },
@@ -102,6 +123,15 @@ export function createSimulation<S extends object>(options: SimulationOptions<S>
   );
   if (!services.has(PROGRESSION_SERVICE)) {
     services.provide(PROGRESSION_SERVICE, defaultProgression(rng.fork(0x44454641)));
+  }
+  if (!services.has(COLLISION_SERVICE)) {
+    services.provide(COLLISION_SERVICE, createCollisionService());
+  }
+  if (!services.has(PATHFINDING_SERVICE)) {
+    services.provide(PATHFINDING_SERVICE, createPathfindingService());
+  }
+  if (!services.has(GRID_SERVICE)) {
+    services.provide(GRID_SERVICE, createGridService());
   }
   const progression = services.get<ProgressionService>(PROGRESSION_SERVICE);
   const state = options.init(options.seed, ctx);

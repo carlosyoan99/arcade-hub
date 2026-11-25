@@ -19,6 +19,8 @@ export interface ProgressionState {
   readonly spawnInterval: number | null;
   readonly hazard: number;
   readonly adjustment: number;
+  /** Último patrón elegido; evita que cada juego guarde una copia. */
+  readonly currentPattern: string | null;
   readonly ticks: number;
   readonly patternBag: readonly string[];
   readonly patternRecent: readonly string[];
@@ -51,6 +53,7 @@ export function createProgression(config: ProgressionConfig, rng: RNG): Progress
     spawnInterval: first.spawnInterval ?? null,
     hazard: first.hazard ?? 0,
     adjustment: 0,
+    currentPattern: null,
     ticks: 0,
     patternBag: [],
     patternRecent: [],
@@ -91,7 +94,9 @@ export function createProgression(config: ProgressionConfig, rng: RNG): Progress
       recomputeSpeed();
     },
     nextPattern(): string | null {
-      return picker.next();
+      const pattern = picker.next();
+      state = { ...state, currentPattern: pattern };
+      return pattern;
     },
     snapshot(): ProgressionState {
       const pattern = picker.snapshot();
