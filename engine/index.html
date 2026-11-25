@@ -2,29 +2,57 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arcade Engine · demo</title>
-    <style>
-      :root { color-scheme: dark; font-family: ui-monospace, monospace; }
-      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #05060f; color: #9aa5c4; }
-      main { display: grid; gap: 12px; justify-items: center; padding: 16px; }
-      header { display: flex; gap: 16px; align-items: center; }
-      h1 { font-size: 14px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; margin: 0; }
-      select { background: transparent; border: 1px solid #2b3358; color: #9aa5c4; padding: 6px 12px; font: inherit; cursor: pointer; border-radius: 4px; }
-      select option { background: #05060f; }
-      canvas { border: 1px solid #2b3358; border-radius: 6px; max-width: 100%; height: auto; image-rendering: auto; }
-      p { margin: 0; font-size: 12px; opacity: .7; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Arcade Engine: vitrina de 32 clásicos migrados al motor determinista. Busca un título y juega en navegador sin iframes."
+    />
+    <meta name="theme-color" content="#080a12" />
+    <title>Arcade Engine · 32 juegos</title>
+    <link rel="stylesheet" href="./demo/hub.css" />
   </head>
   <body>
-    <main>
-      <header>
+    <a class="skip" href="#shelf">Saltar a la vitrina</a>
+
+    <header class="topbar">
+      <div class="brand">
         <h1>Arcade Engine</h1>
-        <select id="game" aria-label="Juego"></select>
-      </header>
-      <canvas id="screen" width="960" height="600"></canvas>
-      <p id="hint">Teclado, gamepad o táctil · P pausa · R reinicio</p>
+        <span class="brand__count" id="count">32 títulos</span>
+      </div>
+      <label class="search">
+        <span class="visually-hidden">Buscar juegos</span>
+        <input
+          id="search"
+          type="search"
+          placeholder="Buscar título…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </label>
+    </header>
+
+    <main class="shell">
+      <section id="shelf" aria-labelledby="shelf-title">
+        <h2 id="shelf-title" class="section-title">La vitrina</h2>
+        <ul id="grid" class="grid" aria-label="Juegos disponibles"></ul>
+        <p id="empty" class="empty" hidden>No hay juegos para esa búsqueda.</p>
+      </section>
+
+      <section id="stage" class="stage" aria-labelledby="stage-title" hidden>
+        <div class="stage__top">
+          <button id="back" class="back" type="button">← Volver a la vitrina</button>
+          <h2 id="stage-title" class="stage__title"></h2>
+        </div>
+        <canvas id="screen" width="960" height="600" aria-label="Pantalla del juego">
+          Tu navegador no admite canvas.
+        </canvas>
+        <p id="hint" class="hint"></p>
+      </section>
     </main>
-    <script type="module" src="/demo/main.ts"></script>
+
+    <p id="status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="results" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+
+    <script type="module" src="./demo/main.ts"></script>
   </body>
 </html>

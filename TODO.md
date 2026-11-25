@@ -17,9 +17,12 @@
 
 ## En curso
 
-1. Rediseño minimalista del HUB conservando el juice y la accesibilidad (subagente).
-2. Auditoría de bugs en los juegos migrados con evidencia `archivo:línea` (subagente).
-3. Aplicación de la revisión documental final (números actualizados, banner histórico en la investigación del Hub, DDT de fases pendientes).
+1. ✅ Rediseño minimalista del HUB legacy conservando el juice y la accesibilidad.
+2. ✅ Auditoría de bugs en los juegos migrados con evidencia `archivo:línea`; B1-B8 y los bugs nuevos corregidos.
+3. ✅ Aplicación de la revisión documental (números actualizados, banner histórico, `docs/arquitectura.md`, DDT F5).
+4. ✅ Render visual de los 32 juegos, verificado sin mutación de estado (`test/render-all.test.ts`).
+5. ⏳ HUB nuevo servido desde `engine/`, sin iframes legacy (subagente).
+6. ⏳ F5 online: `server/` + `engine/src/net/` según `docs/DDT-F5-online.md` (subagente).
 
 ## Pendiente
 

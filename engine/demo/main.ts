@@ -10,30 +10,43 @@ import { particlesPlugin, PARTICLES_SERVICE, type ParticleSystem } from '../src/
 import { findGame, GAMES } from '../src/games/index.js';
 import { FLAPPY } from '../src/games/flappy/game.js';
 import { PONG } from '../src/games/pong/game.js';
+import { filterGames, gameCard, parseRoute, routeFor } from '../src/ui/hub-model.js';
 
-const canvas = document.querySelector<HTMLCanvasElement>('#screen')!;
-const hint = document.querySelector<HTMLParagraphElement>('#hint')!;
-const selector = document.querySelector<HTMLSelectElement>('#game')!;
-const ctx = canvas.getContext('2d')!;
-
-for (const game of GAMES) {
-  const option = document.createElement('option');
-  option.value = game.id;
-  option.textContent = game.meta.title;
-  selector.append(option);
+function el<T extends Element>(selector: string): T {
+  const found = document.querySelector<T>(selector);
+  if (!found) throw new Error(`Falta el elemento ${selector}`);
+  return found;
 }
 
-const presentationPlugins = [eventFanoutPlugin(), particlesPlugin(), audioPlugin()];
+const shelf = el<HTMLElement>('#shelf');
+const grid = el<HTMLUListElement>('#grid');
+const count = el<HTMLElement>('#count');
+const empty = el<HTMLElement>('#empty');
+const search = el<HTMLInputElement>('#search');
+const stage = el<HTMLElement>('#stage');
+const stageTitle = el<HTMLHeadingElement>('#stage-title');
+const back = el<HTMLButtonElement>('#back');
+const hint = el<HTMLElement>('#hint');
+const status = el<HTMLElement>('#status');
+const results = el<HTMLElement>('#results');
+const canvas = el<HTMLCanvasElement>('#screen');
+const context = canvas.getContext('2d');
+if (!context) throw new Error('No se pudo obtener el contexto 2D del canvas');
+const ctx: CanvasRenderingContext2D = context;
 
+const SEED = 12345;
+const DEFAULT_SIZE = { width: 960, height: 600 } as const;
 const SIZES: Readonly<Record<string, { readonly width: number; readonly height: number }>> = {
   pong: { width: PONG.width, height: PONG.height },
   flappy: { width: FLAPPY.width, height: FLAPPY.height },
 };
 
+const presentationPlugins = [eventFanoutPlugin(), particlesPlugin(), audioPlugin()];
+
 /** Acciones genéricas del teclado → primeras acciones registradas por el juego. */
 const ALIASES: Readonly<Record<string, readonly ActionName[]>> = {
-  up: ['up', 'p1Up', 'thrust', 'accel', 'flap', 'jump'],
-  down: ['down', 'p1Down', 'brake', 'duck', 'softDrop'],
+  up: ['up', 'p1Up', 'thrust', 'accel', 'flap', 'jump', 'aimUp'],
+  down: ['down', 'p1Down', 'brake', 'duck', 'softDrop', 'aimDown'],
   left: ['left', 'aimLeft'],
   right: ['right', 'aimRight'],
   primary: [
@@ -52,6 +65,46 @@ const ALIASES: Readonly<Record<string, readonly ActionName[]>> = {
     'hardDrop',
   ],
   confirm: ['confirm', 'fire', 'primary'],
+};
+
+/** Etiquetas de ayuda derivadas de `game.actions` (más P/R comunes). */
+const ACTION_LABELS: Readonly<Record<string, string>> = {
+  left: '←/A izq.',
+  right: '→/D der.',
+  up: '↑/W arriba',
+  down: '↓/S abajo',
+  p1Up: '↑ jug. 1',
+  p1Down: '↓ jug. 1',
+  p2Up: '↑ jug. 2',
+  p2Down: '↓ jug. 2',
+  aimLeft: '← mirilla',
+  aimRight: '→ mirilla',
+  aimUp: '↑ mirilla',
+  aimDown: '↓ mirilla',
+  primary: 'Espacio acción',
+  serve: 'Espacio sacar',
+  fire: 'Espacio disparar',
+  flap: 'Espacio aletear',
+  jump: 'Espacio saltar',
+  launch: 'Espacio lanzar',
+  throw: 'Espacio lanzar',
+  pepper: 'Espacio drogar',
+  pump: 'Espacio bombar',
+  rotate: 'Espacio girar',
+  rotateCCW: 'Q girar',
+  hardDrop: 'Espacio caer',
+  softDrop: '↓ bajar',
+  accel: '↑ acelerar',
+  brake: '↓ frenar',
+  turbo: 'Espacio turbo',
+  boost: 'Espacio impulso',
+  hold: 'C retener',
+  duck: '↓ agachar',
+  bomb: 'Espacio bomba',
+  eject: 'Espacio expulsar',
+  split: 'Espacio dividir',
+  confirm: 'Enter confirmar',
+  cancel: 'Esc cancelar',
 };
 
 function bindingsFor(game: GameDefinition<object>): BindingMap {
@@ -85,51 +138,63 @@ function tapActionFor(game: GameDefinition<object>): ActionName {
   return preferred.find((name) => game.actions.includes(name)) ?? 'primary';
 }
 
-function hintFor(game: GameDefinition<object>): string {
-  if (game.id === 'pong') {
-    return 'W/S mover · ↑/↓ jugador 2 · Espacio sacar · P pausa · gamepad/táctil también';
-  }
-  if (game.id === 'flappy') {
-    return 'Espacio/↑ aletear · P pausa · gamepad/táctil también';
-  }
-  return `Teclado, gamepad o táctil · acciones: ${game.actions.join(', ')} · P pausa · R reinicio`;
+function controlsFor(game: GameDefinition<object>): string {
+  const parts = game.actions
+    .filter((action) => action !== 'pause' && action !== 'restart')
+    .map((action) => ACTION_LABELS[action] ?? action.replace(/([A-Z])/g, ' $1').toLowerCase());
+  const base = parts.length > 0 ? parts.join(' · ') : 'Teclado, gamepad o táctil';
+  return `${base} · P pausa · R reinicio`;
 }
 
-let current: GameDefinition<object> = findGame('pong')!;
-let simulation = createGameSimulation(current, { seed: 12345, plugins: presentationPlugins });
+function cardElement(game: GameDefinition<object>, index: number): HTMLLIElement {
+  const card = gameCard(game);
+  const item = document.createElement('li');
+  const link = document.createElement('a');
+  link.className = 'card';
+  link.href = routeFor(card.id);
+  link.setAttribute('aria-label', `${card.title}. ${card.label}`);
+  link.style.setProperty('--i', String(index));
+
+  const number = document.createElement('span');
+  number.className = 'card__n';
+  number.textContent = String(GAMES.indexOf(game) + 1).padStart(2, '0');
+
+  const title = document.createElement('span');
+  title.className = 'card__title';
+  title.textContent = card.title;
+
+  const meta = document.createElement('span');
+  meta.className = 'card__meta';
+  meta.textContent = card.label;
+
+  link.append(number, title, meta);
+  item.append(link);
+  return item;
+}
+
+function renderGrid(query: string): void {
+  const games = filterGames(GAMES, query);
+  const cards = games.map((game, index) => cardElement(game, index));
+  grid.replaceChildren(...cards);
+  count.textContent = `${games.length} títulos`;
+  empty.hidden = games.length > 0;
+  results.textContent = `${games.length} ${games.length === 1 ? 'juego' : 'juegos'} encontrados`;
+}
+
+let current: GameDefinition<object> | undefined;
+let simulation = createGameSimulation(findGame('pong')!, { seed: SEED, plugins: presentationPlugins });
 let host: InputHost | undefined;
 let paused = false;
 let lastTick = 0;
 
-function mount(game: GameDefinition<object>): void {
-  host?.detach();
-  current = game;
-  simulation = createGameSimulation(game, { seed: 12345, plugins: presentationPlugins });
-  lastTick = 0;
-  if (paused) {
-    paused = false;
-    loop.resume();
-  }
-
-  const size = SIZES[game.id];
-  canvas.width = size?.width ?? 960;
-  canvas.height = size?.height ?? 600;
-  selector.value = game.id;
-  hint.textContent = hintFor(game);
-
-  host = createInputHost({
-    actions: simulation.actions,
-    bindings: createBindings(bindingsFor(game)),
-    pointer: canvas,
-    tapAction: tapActionFor(game),
-    onAction: (action, down) => {
-      if (action !== 'pause' || !down) return;
-      paused = !paused;
-      if (paused) loop.pause();
-      else loop.resume();
-    },
-  });
-  host.attach();
+function drawWithoutRender(): void {
+  ctx.fillStyle = '#080a12';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#9aa3bd';
+  ctx.font = '15px ui-monospace, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('Este juego corre en modo lógica; render en preparación.', canvas.width / 2, canvas.height / 2);
+  ctx.textAlign = 'left';
 }
 
 const loop = createLoop({
@@ -142,23 +207,13 @@ const loop = createLoop({
   },
   render: () => {
     const steps = simulation.clock.tick - lastTick;
-    if (steps > 0) {
+    if (steps > 0 && simulation.services.has(PARTICLES_SERVICE)) {
       simulation.services.get<ParticleSystem>(PARTICLES_SERVICE).update(steps);
       lastTick = simulation.clock.tick;
     }
 
-    if (current.render) {
-      current.render(ctx, simulation.state, loop.alpha);
-    } else {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#05060f';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#9aa5c4';
-      ctx.font = '16px ui-monospace, monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('este juego corre en modo lógica (sin render)', canvas.width / 2, canvas.height / 2);
-      ctx.textAlign = 'left';
-    }
+    if (current?.render) current.render(ctx, simulation.state, loop.alpha);
+    else drawWithoutRender();
 
     if (simulation.services.has(PARTICLES_SERVICE)) {
       simulation.services.get<ParticleSystem>(PARTICLES_SERVICE).draw(ctx);
@@ -166,10 +221,89 @@ const loop = createLoop({
   },
 });
 
-selector.addEventListener('change', () => {
-  const game = findGame(selector.value);
-  if (game) mount(game as GameDefinition<object>);
-});
+function ensureLoop(): void {
+  if (loop.isRunning) {
+    if (loop.isPaused) loop.resume();
+  } else {
+    loop.start();
+  }
+}
 
-mount(current);
-loop.start();
+function showHub(message = 'Vitrina de juegos'): void {
+  host?.detach();
+  host = undefined;
+  current = undefined;
+  paused = false;
+  loop.stop();
+  stage.hidden = true;
+  shelf.hidden = false;
+  document.title = `Arcade Engine · ${GAMES.length} juegos`;
+  status.textContent = message;
+}
+
+function mount(game: GameDefinition<object>): void {
+  host?.detach();
+  current = game;
+  simulation = createGameSimulation(game, { seed: SEED, plugins: presentationPlugins });
+  lastTick = 0;
+  paused = false;
+
+  const size = SIZES[game.id] ?? DEFAULT_SIZE;
+  canvas.width = size.width;
+  canvas.height = size.height;
+  canvas.setAttribute('aria-label', `Pantalla de ${game.meta.title}`);
+  stageTitle.textContent = game.meta.title;
+  hint.textContent = controlsFor(game);
+  shelf.hidden = true;
+  stage.hidden = false;
+  document.title = `${game.meta.title} · Arcade Engine`;
+  status.textContent = `Juego activo: ${game.meta.title}`;
+
+  host = createInputHost({
+    actions: simulation.actions,
+    bindings: createBindings(bindingsFor(game)),
+    pointer: canvas,
+    tapAction: tapActionFor(game),
+    onAction: (action, down) => {
+      if (!down) return;
+      const title = current?.meta.title ?? 'Juego';
+      if (action === 'pause') {
+        paused = !paused;
+        if (paused) loop.pause();
+        else loop.resume();
+        status.textContent = paused ? `${title} en pausa` : `Juego activo: ${title}`;
+      } else if (action === 'restart') {
+        if (loop.isPaused) loop.resume();
+        paused = false;
+        status.textContent = `${title} reiniciado`;
+      }
+    },
+  });
+  host.attach();
+  ensureLoop();
+}
+
+function syncRoute(): void {
+  const route = parseRoute(location.hash);
+  if (route.view === 'hub') {
+    showHub();
+    return;
+  }
+  const game = findGame(route.id) as GameDefinition<object> | undefined;
+  if (!game) {
+    showHub(`Juego no encontrado: ${route.id}`);
+    history.replaceState(null, '', `${location.pathname}${location.search}`);
+    return;
+  }
+  if (current?.id === game.id && !stage.hidden) return;
+  mount(game);
+}
+
+search.addEventListener('input', () => renderGrid(search.value));
+back.addEventListener('click', () => {
+  location.hash = '';
+});
+window.addEventListener('hashchange', syncRoute);
+
+renderGrid('');
+syncRoute();
