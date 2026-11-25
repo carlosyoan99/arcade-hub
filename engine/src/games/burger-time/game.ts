@@ -211,7 +211,6 @@ function checkBurgers(state: BurgerState, ctx: StepContext): void {
     );
     if (state.ingredients.length === 0) {
       state.level++;
-      state.progress = state.level;
       ctx.emit('levelUp', { level: state.level });
       startLevel(state, ctx);
       return;

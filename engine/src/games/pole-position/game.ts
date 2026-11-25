@@ -6,7 +6,7 @@ import { COLLISION_SERVICE, type CollisionService } from '../../sim/collision.js
 import type { StepContext } from '../../core/simulation.js';
 
 /**
- * Pole Position completo: clasificación de 35 s, carrera de 2 vueltas,
+ * Pole Position completo: clasificación de 75 s, carrera de 2 vueltas,
  * 8 rivales, posición de salida según tiempo, turbo, invencibilidad,
  * pickups en pista y 3 circuitos crecientes. Sin reloj real (B7).
  */
@@ -245,18 +245,20 @@ export const polePositionGame = defineGame<PolePositionState>({
     if (ctx.actions.isDown('right')) state.player.angle += POLE_POSITION.turnSpeed * dt;
     state.player.angle = clamp(state.player.angle, -1.2, 1.2);
 
+    const previousX = state.player.x;
     state.player.x += (roadCurve(state) * state.player.speed * 0.8 + state.player.angle * 20) * dt;
     state.roadOffset += state.player.speed * dt;
 
     const minX = POLE_POSITION.width / 2 - POLE_POSITION.roadWidth / 2 + POLE_POSITION.carW;
     const maxX = POLE_POSITION.width / 2 + POLE_POSITION.roadWidth / 2 - POLE_POSITION.carW;
+    // Corrección de bug: penalizar solo al cruzar el borde, no cada tick pegado a él.
     if (state.player.x < minX) {
       state.player.x = minX;
-      state.player.speed *= 0.5;
+      if (previousX > minX) state.player.speed *= 0.5;
     }
     if (state.player.x > maxX) {
       state.player.x = maxX;
-      state.player.speed *= 0.5;
+      if (previousX < maxX) state.player.speed *= 0.5;
     }
 
     let position = 1;

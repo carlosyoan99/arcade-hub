@@ -298,7 +298,6 @@ function checkCollisions(state: FroggerState, ctx: StepContext): void {
         state.progress += 1;
         if (state.goals.length >= FROGGER.levels) {
           state.level++;
-          state.progress = state.level;
           ctx.emit('levelUp', { level: state.level });
           startLevel(state, ctx);
           return;

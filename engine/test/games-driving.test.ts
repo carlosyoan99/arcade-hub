@@ -196,6 +196,25 @@ describe('Regresiones documentadas y mecánicas completas', () => {
     expect(sim.state.enemies.some((enemy) => enemy.type === 'boss')).toBe(true);
   });
 
+  it('Pole Position: la clasificación es alcanzable con acelerador + turbo sostenidos', () => {
+    const sim = createGameSimulation(polePositionGame, { seed: 9 });
+    let qualified = false;
+    let qualifyingTime = -1;
+    for (let tick = 1; tick <= 4500 && !qualified; tick++) {
+      sim.tick(['accel', 'turbo']);
+      for (const event of sim.events.drain()) {
+        if (event.type === 'qualified') {
+          qualified = true;
+          qualifyingTime = sim.state.qualifyingTime;
+        }
+      }
+    }
+    expect(qualified).toBe(true);
+    expect(sim.state.phase).toBe('race');
+    expect(qualifyingTime).toBeGreaterThan(0);
+    expect(qualifyingTime).toBeLessThan(75);
+  });
+
   it('Neon Nexus conserva las 17 cartas, la tienda de 4 objetos y las oleadas', () => {
     expect(NEXUS_CARDS).toHaveLength(17);
     expect(NEXUS_SHOP).toHaveLength(4);
