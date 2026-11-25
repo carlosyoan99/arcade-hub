@@ -77,6 +77,8 @@ export default defineGame({
 });
 ```
 
+- **Progresión (añadido):** el juego declara `progression` con niveles, `pointsPerLevel`, DDA acotado y `patterns`; el motor resuelve `ctx.progression.update()`, `speed`, `spawnInterval`, `hazard` y `nextPattern()`. Ver `docs/investigacion-dificultad-variedad.md`.
+- **Plugins (añadido):** sistemas reutilizables se instalan como `EnginePlugin` con `requires`, servicios compartidos y hooks `preStep`/`postStep`. Un juego nunca trae mecánicas repetibles.
 - **Jugadores:** el motor mantiene una lista de *slots* `{ id, kind: 'human' | 'ai' | 'remote' }`. El juego no sabe quién hay detrás de cada slot.
 - **`ctx`** ofrece `rng`, `time`, `emit(event)` (para sonido/efectos) y `schedule(ticks, fn)` (timers de simulación, pausables y reiniciables).
 - **Efectos y audio** salen como eventos (`emit('hit', {x, y})`); el render los consume. Así `step()` sigue puro.
@@ -181,8 +183,8 @@ Cada fase tendrá su documento con tareas, cómo hacerlas, cómo validarlas, lim
 | D1 | Nombre del proyecto | "Arcade Engine" (provisional) | Nombre propio |
 | D2 | Modelo de entidades | **World + Systems** con objetos planos (simple, suficiente) | ECS completo (más complejo) |
 | D3 | Netcode | **Lockstep determinista + relay** | Servidor autoritativo con snapshots (más robusto, más tráfico) |
-| D4 | Lenguaje | **JS ES modules + JSDoc + `// @ts-check`** (tipos sin compilador, tu estilo vanilla) | TypeScript con Vite (como WebCraft) |
-| D5 | Repo | Monorepo `engine/` + `server/` + `games/` | Repos separados |
+| D4 | Lenguaje | **TypeScript estricto + Vite + Vitest** (decidido el 25-nov-2026) | ~~JS ES modules + JSDoc + `// @ts-check`~~ (descartado) |
+| D5 | Repo | **Monorepo** `engine/` + `server/` + `games/` con npm workspaces | Repos separados |
 | D6 | Estilo visual | Neon 2D del hub actual | Estilo nuevo por juego |
 | D7 | Catálogo v1 | Los 6 de la sección 7 | Otro conjunto |
 | D8 | Hosting online | Servidor Node propio (LAN o VPS) | Servicio gestionado |

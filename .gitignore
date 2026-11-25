@@ -1,6 +1,9 @@
 # NPM package
 node_modules
 
+# Arcade Engine build output
+engine/dist/
+
 # Playwright
 test-results/
 playwright-report/
