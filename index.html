@@ -77,149 +77,134 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./asset/hub.css" />
   </head>
   <body>
-    <!-- ═══ SPLIT DOORS (H1) — entry sequence ═══ -->
-    <div class="split-door-left" aria-hidden="true"></div>
-    <div class="split-door-right" aria-hidden="true"></div>
+    <a class="skip-link" href="#grid">Saltar a los juegos</a>
 
-    <!-- ═══ ANIMATED BACKGROUND (Canvas) ═══ -->
-    <canvas id="bg-canvas" aria-hidden="true"></canvas>
-
-    <!-- ═══ ENTRY SEQUENCE OVERLAY (H1 — first visit only) ═══ -->
+    <!-- Pantalla de entrada: una sola línea, sin puertas ni glitch. -->
     <div id="entryOverlay" class="entry-overlay" aria-hidden="true">
       <div class="entry-content">
-        <div class="entry-title">✦ ARCADE HUB ✦</div>
-        <div class="entry-subtitle">32 juegos clásicos recreados · estética 2D / 2.5D</div>
-        <div class="entry-divider">══════════════════════════</div>
-        <div class="entry-insert">INSERT COIN</div>
-        <div class="entry-hint">Presioná cualquier tecla o hacé clic para comenzar</div>
+        <p class="entry-mark">Arcade Hub</p>
+        <p class="entry-hint">Presioná cualquier tecla o hacé clic para entrar</p>
       </div>
-      <div class="entry-glitch" id="entryGlitch"></div>
     </div>
 
-    <!-- ═══ HERO — MARQUEE ═══ -->
-    <header class="hero">
-      <div class="hero-top">
-        <span class="badge">✦ 32 juegos clásicos</span>
-        <button id="themeToggle" aria-label="Cambiar tema">🌙</button>
+    <header class="site-header">
+      <div class="brand">
+        <h1>Arcade Hub</h1>
+        <p class="tagline">32 juegos clásicos, un archivo por juego</p>
       </div>
-      <div class="marquee">
-        <h1>Arca<span class="tube-flicker">d</span>e Hub</h1>
-      </div>
-      <p class="subtitle">
-        <strong>32 juegos clásicos</strong> recreados con estética 2D / 2.5D — un archivo HTML
-        autocontenido por juego
-      </p>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="hero-stat-value" id="ready-count" aria-live="polite">0</span>
-          <span class="hero-stat-label">Disponibles</span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-value" id="total-count" aria-live="polite">0</span>
-          <span class="hero-stat-label">Total juegos</span>
-        </div>
+      <div class="header-actions">
+        <p class="count-line">
+          <span id="ready-count">0</span> de <span id="total-count">0</span> disponibles
+        </p>
+        <button
+          id="themeToggle"
+          class="icon-btn"
+          type="button"
+          aria-label="Cambiar tema"
+          title="Cambiar tema"
+        >
+          🌙
+        </button>
       </div>
     </header>
 
-    <!-- ═══ TOOLBAR ═══ -->
-    <div class="toolbar">
-      <div class="toolbar-group">
-        <div class="search-wrap">
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Buscar juego…"
-            aria-label="Buscar por nombre"
-            autocomplete="off"
-          />
-          <span class="search-icon">🔍</span>
-        </div>
+    <nav class="toolbar" aria-label="Filtros de juegos">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2" />
+        </svg>
+        <label class="visually-hidden" for="searchInput">Buscar juegos</label>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Buscar juegos"
+          aria-label="Buscar por nombre"
+          autocomplete="off"
+        />
       </div>
-      <div class="toolbar-group">
-        <span class="toolbar-label">Orden</span>
-        <select id="sortSelect" aria-label="Ordenar juegos">
-          <option value="default">Por defecto</option>
-          <option value="name">Nombre A-Z</option>
-          <option value="newest">Más nuevos</option>
-          <option value="most-played">Más jugados</option>
-        </select>
-        <button class="view-btn active" id="viewGridBtn" aria-label="Vista grilla" title="Grilla">
+      <label class="visually-hidden" for="sortSelect">Ordenar juegos</label>
+      <select id="sortSelect" aria-label="Ordenar juegos">
+        <option value="default">Por defecto</option>
+        <option value="name">Nombre A-Z</option>
+        <option value="newest">Más nuevos</option>
+        <option value="most-played">Más jugados</option>
+      </select>
+      <div class="view-switch" role="group" aria-label="Vista de la grilla">
+        <button
+          class="view-btn active"
+          id="viewGridBtn"
+          type="button"
+          aria-label="Vista grilla"
+          aria-pressed="true"
+          title="Grilla"
+        >
           ▦
         </button>
-        <button class="view-btn" id="viewListBtn" aria-label="Vista lista" title="Lista">☰</button>
         <button
-          class="view-btn surprise"
-          id="surpriseBtn"
-          aria-label="Juego al azar"
-          title="¡Sorpresa!"
+          class="view-btn"
+          id="viewListBtn"
+          type="button"
+          aria-label="Vista lista"
+          aria-pressed="false"
+          title="Lista"
         >
-          <span class="icon-svg"
-            ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="2" width="20" height="20" rx="3" />
-              <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none" />
-              <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none" />
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-              <circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none" />
-              <circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none" /></svg
-          ></span>
+          ☰
         </button>
       </div>
-    </div>
+      <button
+        class="view-btn surprise"
+        id="surpriseBtn"
+        type="button"
+        aria-label="Juego al azar"
+        title="Juego al azar"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <rect x="2" y="2" width="20" height="20" rx="3" />
+          <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+      </button>
+    </nav>
 
-    <!-- ═══ GAME GRID ═══ -->
-    <main id="grid">
-      <p id="empty">Todavía no hay juegos listos. Revisá TODO.md para ver qué sigue.</p>
+    <main id="grid" tabindex="-1" aria-label="Juegos">
+      <p id="empty" role="status" aria-live="polite">
+        Todavía no hay juegos listos. Revisá TODO.md para ver qué sigue.
+      </p>
     </main>
+    <p id="hub-status" class="visually-hidden" role="status" aria-live="polite"></p>
 
-    <!-- ═══ ACHIEVEMENTS ═══ -->
-    <section class="achievements-section section-reveal" id="achSection">
-      <h2>
-        <span class="icon-svg"
-          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path
-              d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"
-              fill="currentColor"
-              stroke="none"
-            /></svg
-        ></span>
-        Logros
-        <span class="count" id="achCount">0 / 11</span>
-      </h2>
-      <div class="achievements-grid" id="achGrid"></div>
-    </section>
-
-    <!-- ═══ STATS ═══ -->
-    <section class="stats-section section-reveal" id="statsSection">
-      <h2>
-        <span class="icon-svg"
-          ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" /></svg
-        ></span>
-        Estadísticas
-        <span class="count" id="gamesPlayedCount">0 jugados</span>
-      </h2>
-      <div class="stat-summary" id="statSummary"></div>
-      <div class="stats-grid" id="statsGrid"></div>
-    </section>
-
-    <!-- ═══ FOOTER ═══ -->
-    <footer>
-      <span>✦ Sin frameworks · Sin build step · Abrir y jugar ✦</span>
+    <footer class="site-footer">
+      <details class="quiet-panel" id="achSection">
+        <summary>Logros <span class="count" id="achCount">0 / 11</span></summary>
+        <div class="achievements-grid" id="achGrid"></div>
+      </details>
+      <details class="quiet-panel" id="statsSection">
+        <summary>Estadísticas <span class="count" id="gamesPlayedCount">0 jugados</span></summary>
+        <div class="stat-summary" id="statSummary"></div>
+        <div class="stats-grid" id="statsGrid"></div>
+      </details>
+      <p class="footer-note">Sin frameworks, sin build step. Abrir y jugar.</p>
     </footer>
 
-    <!-- ═══ GAME CONTAINER (hash routing) ═══
-         Cada juego inyecta su propia barra superior única (shared/base.css
-         #gameBar) con Arcade / Fullscreen / Música / Configuración / Ayuda,
-         por lo que el contenedor NO añade otra barra (evita la doble barra y
-         el botón de fullscreen duplicado). -->
+    <!-- El iframe carga el juego por hash. Cada juego inyecta su propia barra
+         superior (shared/base.css #gameBar); el hub no añade otra. -->
     <div id="gameContainer" class="hidden" aria-hidden="true">
       <iframe id="gameFrame" allowfullscreen title="Juego"></iframe>
     </div>

@@ -11,311 +11,11 @@ const esc = (s) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-/* ── Animated canvas background (theme-aware) ── */
-const bgCanvas = (function initBg() {
-  const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
-  let w,
-    h,
-    t = 0;
-  const stars = [];
-
-  const C = (r, g, b, a = 1) => ({ r, g, b, a });
-  const DARK = {
-    bg: [C(8, 5, 28), C(12, 9, 34), C(6, 4, 22)],
-    neb1: C(0, 240, 255, 0.035),
-    neb2: C(255, 45, 120, 0.025),
-    neb3: C(255, 184, 0, 0.02),
-    grid: C(255, 255, 255, 0.02),
-    star: C(255, 255, 255, 0.2),
-    starOp: [0.2, 0.7],
-  };
-  const LIGHT = {
-    bg: [C(226, 224, 238), C(232, 230, 242), C(240, 238, 248)],
-    neb1: C(80, 180, 255, 0.02),
-    neb2: C(200, 80, 200, 0.015),
-    neb3: C(200, 160, 60, 0.01),
-    grid: C(0, 0, 0, 0.012),
-    star: C(0, 0, 0, 0.06),
-    starOp: [0.04, 0.12],
-  };
-
-  let colors = DARK;
-  let curTheme = 'dark';
-  const trans = { active: false, from: null, to: null, startTime: 0, duration: 0.4 };
-
-  function lerpColor(c1, c2, t) {
-    return {
-      r: c1.r + (c2.r - c1.r) * t,
-      g: c1.g + (c2.g - c1.g) * t,
-      b: c1.b + (c2.b - c1.b) * t,
-      a: c1.a + (c2.a - c1.a) * t,
-    };
-  }
-
-  function rgba(c) {
-    return `rgba(${Math.round(c.r)},${Math.round(c.g)},${Math.round(c.b)},${c.a})`;
-  }
-
-  function lerpPalette(from, to, t) {
-    return {
-      bg: from.bg.map((c, i) => lerpColor(c, to.bg[i], t)),
-      neb1: lerpColor(from.neb1, to.neb1, t),
-      neb2: lerpColor(from.neb2, to.neb2, t),
-      neb3: lerpColor(from.neb3, to.neb3, t),
-      grid: lerpColor(from.grid, to.grid, t),
-      star: lerpColor(from.star, to.star, t),
-      starOp: [
-        from.starOp[0] + (to.starOp[0] - from.starOp[0]) * t,
-        from.starOp[1] + (to.starOp[1] - from.starOp[1]) * t,
-      ],
-    };
-  }
-
-  function setTheme(theme, instant) {
-    const target = theme === 'dark' ? DARK : LIGHT;
-    if (instant || curTheme === theme) {
-      colors = target;
-      curTheme = theme;
-      trans.active = false;
-      return;
-    }
-    trans.active = true;
-    trans.from = colors;
-    trans.to = target;
-    trans.startTime = performance.now();
-    curTheme = theme;
-  }
-
-  setTheme(document.documentElement.dataset.theme || 'dark', true);
-
-  /* Caché de gradientes radiales: se recrean solo cuando cambian el
-     tamaño, la paleta o el centro (cuantizado), no en cada frame. */
-  const gradCache = new Map();
-  function clearGradientCache() {
-    gradCache.clear();
-  }
-  function cachedGrad(key, x0, y0, r0, x1, y1, r1, stops) {
-    let c = gradCache.get(key);
-    if (
-      !c ||
-      c.x0 !== x0 ||
-      c.y0 !== y0 ||
-      c.r0 !== r0 ||
-      c.x1 !== x1 ||
-      c.y1 !== y1 ||
-      c.r1 !== r1
-    ) {
-      const g = ctx.createRadialGradient(x0, y0, r0, x1, y1, r1);
-      for (const [off, col] of stops) g.addColorStop(off, col);
-      c = { x0, y0, r0, x1, y1, r1, grad: g };
-      gradCache.set(key, c);
-    }
-    return c.grad;
-  }
-
-  function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-    // Las estrellas se re-generan para cubrir la nueva ventana.
-    scatterStars();
-    // Los gradientes dependen del tamaño: invalidar la caché.
-    clearGradientCache();
-  }
-  // Debounce del resize: agrupa ráfagas de eventos en un solo frame.
-  let resizeRaf = null;
-  window.addEventListener('resize', () => {
-    if (resizeRaf) cancelAnimationFrame(resizeRaf);
-    resizeRaf = requestAnimationFrame(() => {
-      resizeRaf = null;
-      resize();
-    });
-  });
-  resize();
-
-  function scatterStars() {
-    stars.length = 0;
-    for (let i = 0; i < 120; i++) {
-      stars.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        size: Math.random() * 1.5 + 0.3,
-        speed: Math.random() * 0.15 + 0.02,
-        seed: Math.random(),
-      });
-    }
-  }
-  scatterStars();
-
-  function draw() {
-    if (paused) {
-      rafId = null;
-      return;
-    }
-    t += 0.003;
-
-    if (trans.active) {
-      const elapsed = (performance.now() - trans.startTime) / 1000;
-      const p = Math.min(1, elapsed / trans.duration);
-      const ease = 1 - Math.pow(1 - p, 3);
-      colors = lerpPalette(trans.from, trans.to, ease);
-      if (p >= 1) {
-        colors = trans.to;
-        trans.active = false;
-      }
-    }
-
-    ctx.clearRect(0, 0, w, h);
-
-    // Deep space gradient (centro animado, tamaño caché según tamaño/paleta)
-    ctx.fillStyle = cachedGrad(
-      rgba(colors.bg[0]) + '|' + rgba(colors.bg[1]) + '|' + rgba(colors.bg[2]),
-      Math.round(w * 0.5 + Math.sin(t * 0.4) * w * 0.2),
-      Math.round(h * 0.5 + Math.cos(t * 0.3) * h * 0.15),
-      0,
-      Math.round(w * 0.5),
-      Math.round(h * 0.5),
-      Math.round(w * 0.8),
-      [
-        [0, rgba(colors.bg[0])],
-        [0.4, rgba(colors.bg[1])],
-        [1, rgba(colors.bg[2])],
-      ],
-    );
-    ctx.fillRect(0, 0, w, h);
-
-    // Nebula glow 1 — cyan
-    ctx.fillStyle = cachedGrad(
-      rgba(colors.neb1) + '|' + rgba({ ...colors.neb1, a: 0 }),
-      Math.round(w * 0.35 + Math.sin(t * 0.2) * w * 0.12),
-      Math.round(h * 0.4 + Math.cos(t * 0.25) * h * 0.1),
-      0,
-      Math.round(w * 0.35),
-      Math.round(h * 0.4),
-      Math.round(w * 0.35),
-      [
-        [0, rgba(colors.neb1)],
-        [1, rgba({ ...colors.neb1, a: 0 })],
-      ],
-    );
-    ctx.fillRect(0, 0, w, h);
-
-    // Nebula glow 2 — pink neon
-    ctx.fillStyle = cachedGrad(
-      rgba(colors.neb2) + '|' + rgba({ ...colors.neb2, a: 0 }),
-      Math.round(w * 0.7 + Math.cos(t * 0.15) * w * 0.1),
-      Math.round(h * 0.65 + Math.sin(t * 0.2) * h * 0.08),
-      0,
-      Math.round(w * 0.7),
-      Math.round(h * 0.65),
-      Math.round(w * 0.3),
-      [
-        [0, rgba(colors.neb2)],
-        [1, rgba({ ...colors.neb2, a: 0 })],
-      ],
-    );
-    ctx.fillRect(0, 0, w, h);
-
-    // Nebula glow 3 — gold
-    ctx.fillStyle = cachedGrad(
-      rgba(colors.neb3) + '|' + rgba({ ...colors.neb3, a: 0 }),
-      Math.round(w * 0.2 + Math.sin(t * 0.18) * w * 0.08),
-      Math.round(h * 0.8 + Math.cos(t * 0.22) * h * 0.06),
-      0,
-      Math.round(w * 0.2),
-      Math.round(h * 0.8),
-      Math.round(w * 0.25),
-      [
-        [0, rgba(colors.neb3)],
-        [1, rgba({ ...colors.neb3, a: 0 })],
-      ],
-    );
-    ctx.fillRect(0, 0, w, h);
-
-    // Grid pattern
-    ctx.strokeStyle = rgba(colors.grid);
-    ctx.lineWidth = 1;
-    const gridSize = 48;
-    const offsetX = (t * 8) % gridSize;
-    const offsetY = (t * 5) % gridSize;
-    for (let x = -gridSize + offsetX; x < w + gridSize; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    for (let y = -gridSize + offsetY; y < h + gridSize; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
-
-    // Floating stars with theme-aware color
-    ctx.fillStyle = rgba(colors.star);
-    const [opMin, opMax] = colors.starOp;
-    for (const s of stars) {
-      const sx = (s.x + t * 4 * s.speed * (s.x / w - 0.5) + w) % w;
-      const sy = (s.y + t * 2 * s.speed * (s.y / h - 0.5) + h) % h;
-      const baseOp = opMin + s.seed * (opMax - opMin);
-      ctx.globalAlpha = baseOp * (0.6 + 0.4 * Math.sin(t * 2 + s.x));
-      ctx.beginPath();
-      ctx.arc(sx, sy, s.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-
-    rafId = requestAnimationFrame(draw);
-  }
-
-  let paused = false;
-  let rafId = null;
-  // Pausa/reanuda el bucle: detiene el draw (y cancela el rAF pendiente)
-  // para no gastar CPU/batería con un juego abierto encima o en pestaña oculta.
-  function setPaused(v) {
-    paused = v;
-    if (paused) {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
-    } else if (rafId == null) {
-      rafId = requestAnimationFrame(draw);
-    }
-  }
-
-  rafId = requestAnimationFrame(draw);
-  return { setTheme, setPaused };
-})();
-
-/* ── Per-game accent colors (matching new palette) ── */
-const palette = [
-  ['#00f0ff', '#ff2d78'], // Pong      — cyan → pink
-  ['#ffb800', '#ff6600'], // Breakout  — gold → orange
-  ['#39ff14', '#00cc66'], // Snake     — green
-  ['#ff6600', '#ff3300'], // Dino Run  — orange → red
-  ['#ff2d78', '#6600ff'], // Asteroids — pink → purple
-  ['#00ff44', '#00ccaa'], // S.Invad.  — lime → teal
-  ['#ffcc00', '#ff8800'], // Flappy    — gold
-  ['#ffdd00', '#ff6600'], // Pac-Man   — yellow
-  ['#00ccff', '#0066ff'], // Tetris    — sky blue
-  ['#39ff14', '#00cc44'], // Frogger   — green
-  ['#00f0ff', '#ff2d78'], // Galaga    — cyan → pink
-  ['#39ff14', '#ffb800'], // Centipede — green → gold
-  ['#ff6600', '#ffb800'], // Dig Dug   — orange → gold
-  ['#ff2d78', '#00f0ff'], // M.Command — pink → cyan
-  ['#00f0ff', '#ffb800'], // Neon Nexus— cyan → gold
-  ['#ff2d78', '#39ff14'], // Cell Swarm— pink → green
-];
-
-function hashId(id) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) {
-    h = (h << 5) - h + id.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h);
-}
+/* ── Fondo estático: sin canvas animado ni rAF ──
+   El color de fondo lo define hub.css; este objeto conserva la interfaz
+   que el resto del módulo usa (setTheme / setPaused) como operaciones
+   inocuas para no romper el cambio de tema ni la navegación al iframe. */
+const bgCanvas = { setTheme() {}, setPaused() {} };
 
 /* ── Theme toggle ── */
 (function initTheme() {
@@ -340,153 +40,69 @@ function hashId(id) {
   }
 })();
 
-/* ── H1: Split-door entry sequence (first visit) ── */
+/* ── Pantalla de entrada (solo la primera visita) ──
+   Una línea de texto, sin puertas ni glitch. Mantiene el contrato que
+   comprueban los tests: aria-hidden, clase 'dismissed', cierre por gesto
+   y auto-cierre. El sonido solo se emite tras un gesto real del usuario. */
 (function initEntrySequence() {
   const entryOverlay = document.getElementById('entryOverlay');
-  const entryGlitch = document.getElementById('entryGlitch');
-  const doors = {
-    left: document.querySelector('.split-door-left'),
-    right: document.querySelector('.split-door-right'),
-  };
-  const removeDoors = () => {
-    doors.left?.remove();
-    doors.right?.remove();
-  };
-  function seenBefore() {
-    return !!lsGet('arcadehub_coin_inserted');
-  }
-  function markSeen() {
-    lsSet('arcadehub_coin_inserted', '1');
-  }
   if (!entryOverlay) return;
-  if (seenBefore()) {
+
+  const seenBefore = () => !!lsGet('arcadehub_coin_inserted');
+  const markSeen = () => lsSet('arcadehub_coin_inserted', '1');
+
+  if (seenBefore() || window.location.hash.startsWith('#game/')) {
     entryOverlay.remove();
-    removeDoors();
     return;
   }
 
-  // Skip if arriving directly to a game via hash (e.g. #game/pong)
-  if (window.location.hash.startsWith('#game/')) {
-    entryOverlay.remove();
-    removeDoors();
-    return;
-  }
-
-  // H1: Close the doors over the hub
-  if (doors.left) doors.left.classList.add('visible');
-  if (doors.right) doors.right.classList.add('visible');
-
-  // Mostrar el entry overlay
   entryOverlay.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
 
-  function playCoinSound() {
+  function playSound(freq, endFreq, duration) {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1400, ctx.currentTime);
-      osc.frequency.setValueAtTime(1800, ctx.currentTime + 0.08);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.connect(gain).connect(ctx.destination);
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, ctx.currentTime + duration);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
       osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.2);
+      osc.stop(ctx.currentTime + duration);
     } catch {
-      /* el audio es opcional: sin AudioContext seguimos igual */
+      /* el audio es opcional */
     }
-  }
-
-  function playInsertSound() {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.35);
-    } catch {
-      /* el audio es opcional: sin AudioContext seguimos igual */
-    }
-  }
-
-  function cleanListeners() {
-    events.forEach((ev) => document.removeEventListener(ev, handler, true));
   }
 
   let dismissed = false;
-
-  // Desmontaje garantizado: bajo ningún escenario (almacenamiento
-  // no disponible, audio bloqueado, elementos faltantes) la pantalla
-  // de entrada puede quedar trabada sobre el hub.
   function forceLeave() {
-    if (!entryOverlay.isConnected) return;
-    entryOverlay.remove();
-    removeDoors();
+    if (entryOverlay.isConnected) entryOverlay.remove();
     document.body.style.overflow = '';
   }
-
-  function dismissEntry() {
+  function dismissEntry(byGesture) {
     if (dismissed) return;
     dismissed = true;
-    cleanListeners();
+    events.forEach((ev) => document.removeEventListener(ev, handler, true));
     entryOverlay.classList.add('dismissed');
     entryOverlay.setAttribute('aria-hidden', 'true');
     markSeen();
-    try {
-      playInsertSound();
-    } catch {
-      /* sin audio la inserción igual procede */
-    }
-    // H1: Glitch flash → doors slide open revealing the hub.
-    // Cada paso es independiente: si uno falla, igual salimos.
-    try {
-      if (entryGlitch) entryGlitch.classList.add('active');
-      if (entryGlitch) {
-        setTimeout(() => {
-          entryGlitch.classList.remove('active');
-          if (doors.left) doors.left.classList.add('open');
-          if (doors.right) doors.right.classList.add('open');
-          setTimeout(forceLeave, 850);
-        }, 100);
-      }
-    } catch {
-      forceLeave();
-    }
-    // Safety net: pase lo que pase, el overlay desaparece.
-    setTimeout(forceLeave, 2500);
+    if (byGesture) playSound(1400, 200, 0.2);
+    setTimeout(forceLeave, 220);
   }
 
   const events = ['click', 'keydown', 'touchstart', 'pointerdown'];
   const handler = (e) => {
     if (dismissed) return;
     if (e.type === 'keydown') {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.key === 'Tab') return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key === 'Tab') return;
     }
     e.preventDefault();
-    // El primer gesto del usuario "inserta la moneda": el sonido se emite
-    // aquí (gracias al gesto, sin warnings de autoplay), no al cargar.
-    try {
-      playCoinSound();
-    } catch {
-      /* sin audio el gesto igual cierra el overlay */
-    }
-    dismissEntry();
+    dismissEntry(true);
   };
   events.forEach((ev) => document.addEventListener(ev, handler, true));
-
-  setTimeout(() => {
-    if (!dismissed) dismissEntry();
-  }, 7000);
+  setTimeout(() => dismissEntry(false), 7000);
 })();
 
 /* ── Service Worker registration ── */
@@ -498,6 +114,10 @@ if ('serviceWorker' in navigator) {
 
 /* ── Animated counter ── */
 function animateCounter(el, target, duration = 800) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = target;
+    return;
+  }
   const start = 0;
   const startTime = performance.now();
 
@@ -545,6 +165,8 @@ if (savedView === 'list') {
   grid.classList.add('list-view');
   viewGridBtn.classList.remove('active');
   viewListBtn.classList.add('active');
+  viewGridBtn.setAttribute('aria-pressed', 'false');
+  viewListBtn.setAttribute('aria-pressed', 'true');
 }
 
 function sortGames() {
@@ -629,19 +251,11 @@ function playHoverSound() {
   }
 }
 
-function renderCard(game, index, playsData = {}) {
+function renderCard(game, playsData = {}) {
   const isReady = game.status === 'listo';
   const el = document.createElement(isReady ? 'a' : 'div');
   el.className = `card ${isReady ? 'ready' : 'pending'}`;
   el.dataset.gameId = game.id;
-
-  const delay = 0.08 * index;
-  el.style.animationDelay = `${delay}s`;
-
-  const idx = hashId(game.id) % palette.length;
-  const [glow1, glow2] = palette[idx];
-  el.style.setProperty('--card-glow', glow1);
-  el.style.setProperty('--card-glow2', glow2);
 
   if (isReady) {
     el.href = game.file;
@@ -753,9 +367,9 @@ function renderGrid() {
       });
       // Add new cards after removals
       const domIds = new Set(Array.from(grid.children).map((c) => c.dataset.gameId));
-      for (const [i, game] of filtered.entries()) {
+      for (const game of filtered) {
         if (!domIds.has(game.id)) {
-          grid.appendChild(renderCard(game, i, playsData));
+          grid.appendChild(renderCard(game, playsData));
           domIds.add(game.id);
         }
       }
@@ -766,9 +380,9 @@ function renderGrid() {
 
   // No removals needed — just add new cards
   const domIds = new Set(Array.from(grid.children).map((c) => c.dataset.gameId));
-  for (const [i, game] of filtered.entries()) {
+  for (const game of filtered) {
     if (!domIds.has(game.id)) {
-      grid.appendChild(renderCard(game, i, playsData));
+      grid.appendChild(renderCard(game, playsData));
       domIds.add(game.id);
     }
   }
@@ -801,6 +415,14 @@ function updateSchema(filtered, searchTerm) {
       },
     })),
   });
+
+  // Un único anuncio por cambio, sin bombardear al lector de pantalla.
+  const status = document.getElementById('hub-status');
+  if (status) {
+    status.textContent = searchTerm
+      ? `${filtered.length} ${filtered.length === 1 ? 'juego encontrado' : 'juegos encontrados'}`
+      : `${ready.length} de ${games.length} juegos disponibles`;
+  }
 }
 
 renderGrid();
@@ -828,10 +450,14 @@ function setView(view) {
     grid.classList.add('list-view');
     viewGridBtn.classList.remove('active');
     viewListBtn.classList.add('active');
+    viewGridBtn.setAttribute('aria-pressed', 'false');
+    viewListBtn.setAttribute('aria-pressed', 'true');
   } else {
     grid.classList.remove('list-view');
     viewGridBtn.classList.add('active');
     viewListBtn.classList.remove('active');
+    viewGridBtn.setAttribute('aria-pressed', 'true');
+    viewListBtn.setAttribute('aria-pressed', 'false');
   }
   lsSet('arcadehub_view', view);
 }
@@ -842,24 +468,6 @@ document.getElementById('surpriseBtn').addEventListener('click', () => {
   const pick = ready[Math.floor(Math.random() * ready.length)];
   window.location.hash = 'game/' + pick.id;
 });
-
-/* ── Scroll reveal for sections ── */
-(function initScrollReveal() {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      }
-    },
-    { threshold: 0.1, rootMargin: '50px' },
-  );
-  for (const el of document.querySelectorAll('.section-reveal')) {
-    observer.observe(el);
-  }
-})();
 
 /* ── Achievements panel ── */
 function renderAchievements() {
@@ -1061,13 +669,12 @@ const gameContainer = document.getElementById('gameContainer');
 const gameFrame = document.getElementById('gameFrame');
 
 function showGame(game) {
-  // Pausa el canvas de fondo: el iframe lo tapa y no tiene sentido dibujar.
-  if (bgCanvas.setPaused) bgCanvas.setPaused(true);
-  // H6: Staggered page transition
+  bgCanvas.setPaused(true);
   gameContainer.classList.remove('hidden');
   gameContainer.classList.add('game-entering');
   gameContainer.setAttribute('aria-hidden', 'false');
-  // Defer iframe load for smoother transition
+  gameFrame.title = game.title;
+  // Diferir la carga un frame para que la transición se vea primero.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       gameFrame.src = game.file;
@@ -1093,8 +700,8 @@ function showGame(game) {
 }
 
 function hideGame() {
-  // Reanuda el canvas de fondo al volver al hub.
-  if (bgCanvas.setPaused) bgCanvas.setPaused(false);
+  bgCanvas.setPaused(false);
+  gameFrame.title = 'Juego';
   // Refresh stats & achievements with fresh localStorage data
   const achGridEl = document.getElementById('achGrid');
   if (achGridEl) {
@@ -1166,66 +773,5 @@ document.addEventListener('keydown', (e) => {
     window.location.hash = '';
   }
 });
-
-/* ═══════════════════════════════════════════════════
-   H4 — SCROLL-AWARE HEADER
-   ═══════════════════════════════════════════════════ */
-(function initScrollAware() {
-  if (matchMedia('(max-width: 600px)').matches) return;
-  const hero = document.querySelector('.hero');
-  if (!hero) return;
-  let lastScroll = 0;
-  let ticking = false;
-
-  window.addEventListener(
-    'scroll',
-    () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          ticking = false;
-          const currentScroll = window.scrollY;
-          if (currentScroll > 120 && currentScroll > lastScroll + 10) {
-            hero.classList.add('hero-hidden');
-            hero.classList.remove('hero-visible');
-          } else if (currentScroll < lastScroll - 10 || currentScroll < 80) {
-            hero.classList.remove('hero-hidden');
-            hero.classList.add('hero-visible');
-          }
-          lastScroll = currentScroll;
-        });
-        ticking = true;
-      }
-    },
-    { passive: true },
-  );
-})();
-
-/* ═══════════════════════════════════════════════════
-   H5 — MAGNETIC MICRO-INTERACTIONS
-   ═══════════════════════════════════════════════════ */
-(function initMagnetic() {
-  if (matchMedia('(hover: none) and (pointer: coarse)').matches) return;
-  const els = document.querySelectorAll('.view-btn, #themeToggle');
-  for (const el of els) {
-    el.classList.add('magnetic-wrap');
-    el.addEventListener('mousemove', (e) => {
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = e.clientX - cx;
-      const dy = e.clientY - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 80) {
-        const pull = (1 - dist / 80) * 6;
-        el.style.transform = `translate(${(dx * pull) / 80}px, ${(dy * pull) / 80}px)`;
-      } else {
-        el.style.transform = '';
-      }
-    });
-    el.addEventListener('mouseleave', () => {
-      el.style.transform = '';
-    });
-  }
-})();
 
 if (window.location.hash) handleHash();
