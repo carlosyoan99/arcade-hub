@@ -1,12 +1,14 @@
 # Arcade Engine — definición del proyecto (v0)
 
+> **Documento histórico (24-nov-2026).** Describe el borrador inicial: algunas secciones ya no coinciden con el motor implementado. La fuente canónica del estado actual es `README.md`, `CLAUDE.md`, `TODO.md` y los DDT en `docs/`. Las decisiones cerradas están marcadas en la sección 14 y en `docs/DDT-F0-fundamentos.md`.
+
 Motor 2D propio + juegos construidos sobre su API, con IA neuronal sencilla, 1 jugador, multijugador y vs IA · borrador para decidir · 24-nov-2026
 
-> **Nombre de trabajo:** "Arcade Engine" (pendiente de decidir, ver D1). Este documento define el *qué* y el *por qué*; el DDT por fases viene después, cuando cerremos las decisiones abiertas de la sección 14.
+> **Nombre:** "Arcade Engine" (D1 cerrado: se conserva el nombre). Este documento define el *qué* y el *por qué*; el DDT por fases desarrolla el *cómo*.
 
 ## 1. Visión y principios
 
-Un **motor de juego 2D en JavaScript vanilla** (módulos ES, cero dependencias en el cliente) y un catálogo pequeño de juegos que **solo usan la API del motor**. El motor resuelve una vez lo que el Arcade Hub actual resolvió 32 veces: bucle, entrada, colisiones, audio, guardado, UI, IA y red.
+Un **motor de juego 2D en TypeScript estricto + Vite + Vitest** (ESM, sin dependencias de runtime nuevas) y un catálogo de juegos que **solo usan la API del motor**. El motor resuelve una vez lo que el Arcade Hub resolvió 32 veces: bucle, entrada, colisiones, audio, guardado, UI, IA y red. El catálogo final de la v1 son los **32 juegos migrados**, no los 6 del borrador original.
 
 **Principios (cada uno nace de un problema real del hub actual):**
 
@@ -41,19 +43,20 @@ Un **motor de juego 2D en JavaScript vanilla** (módulos ES, cero dependencias e
 ## 4. Arquitectura del motor
 
 ```
-engine/
-  core/     loop (paso fijo), clock, rng, scheduler, events, state (snapshot/restore)
-  input/    actions, bindings, virtual-input (IA/replay/red)
-  sim/      world, systems, collide (AABB, círculo, tilemap, spatial hash)
-  render/   canvas2d, camera, sprites, particles, ui-draw
-  audio/    synth, music, manager
-  ui/       shell, menus, hud, help, settings
-  store/    storage versionado, scores, achievements, migraciones
-  ai/       mlp, evolution, agents, sensors, brain-store, trainer
-  net/      protocol, lockstep, room-client
-  tools/    headless-runner, replay, test-harness
-server/     rooms + relay (Node + ws)
-games/<id>/ game.js, rules, assets, ai.js, README
+engine/src/
+  core/        loop, clock, rng, scheduler, events, state, simulation, plugins, math
+  input/       actions, bindings, virtual-input (IA/replay/red, puntero y axis)
+  sim/         grid, collision, pathfinding (servicios compartidos)
+  progression/ curvas de nivel, DDA acotado, selector de patrones
+  game/        contrato defineGame, adaptador, lifecycle, reglas, eventos
+  games/       los 32 juegos migrados (<id>/game.ts)
+  render/      canvas2d, camera, sprites, particles, event-fanout, ui-draw
+  audio/       synth, music, manager
+  ui/          shell, hud, help, settings
+  store/       storage versionado, scores, achievements
+  ai/          mlp, brain, evolution, agents, sensors, brain-store, trainer, difficulty
+  tools/       headless-runner, replay
+server/       previsto en F5 (aún no existe); rooms + relay (Node + ws)
 ```
 
 **Reglas de dependencia:** `sim` y `ai` no importan `render`, `audio` ni DOM (así corren en Node y en Workers). `games` solo importa de `engine`. `net` solo habla en inputs y hashes.
@@ -64,15 +67,15 @@ games/<id>/ game.js, rules, assets, ai.js, README
 
 ## 5. Contrato de juego (la API central)
 
-```js
-export default defineGame({
+```ts
+export const pongGame = defineGame<PongState>({
   id: 'pong',
   meta: { title: 'Pong', players: [1, 2], modes: ['solo', 'local', 'vsAI', 'online'] },
-  actions: ['up', 'down', 'serve'],
-  init(seed, opts) { /* devuelve el estado inicial */ },
-  step(state, inputs, ctx) { /* inputs[playerId] -> acciones; puro y determinista */ },
-  render(r, state, alpha) { /* solo dibuja */ },
-  observe(state, playerId) { /* Float32Array normalizado para IA */ },
+  actions: ['p1Up', 'p1Down', 'p2Up', 'p2Down', 'serve', 'pause', 'restart'],
+  init(seed, ctx) { /* devuelve el estado inicial */ },
+  step(state, ctx) { /* puro y determinista; ctx.actions ya trae las entradas */ },
+  render?(r, state, alpha) { /* opcional: solo dibuja */ },
+  observe?(state, playerId) { /* opcional: Float32Array normalizado para IA */ },
   rules: { isOver, winner, score, fitness },
 });
 ```
@@ -97,7 +100,7 @@ export default defineGame({
 
 ## 7. Catálogo de referencia para v1
 
-Solo 6 juegos, elegidos para ejercitar cada parte del motor (no los 32):
+El borrador proponía 6 juegos de validación; **D7 se cerró con los 32 juegos del hub migrados**, todos integrados en `engine/src/games/index.ts`. Los 6 de abajo fueron el piloto (F2-F3) y siguen siendo el conjunto mínimo que ejerce todas las partes del motor:
 
 | Juego | Qué valida | solo | local | vsAI | online | IA principal |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -148,7 +151,7 @@ Después de v1, los demás juegos del hub se migran uno a uno si encajan. Dino R
 
 ## 11. Calidad y herramientas
 
-- **Tests (`node:test`):** unitarios del motor; **determinismo** (misma semilla + mismos inputs ⇒ mismo hash tras N ticks); replays *golden*; fuzz de entradas; todas las acciones documentadas son alcanzables por teclado, gamepad y táctil.
+- **Tests (Vitest):** unitarios del motor; **determinismo** (misma semilla + mismos inputs ⇒ mismo hash tras N ticks); replays *golden* (hash `600:3336926330:e22d095e-20`); fuzz de entradas; todas las acciones documentadas son alcanzables por teclado, gamepad y táctil.
 - **Lint y formato:** ESLint + Prettier como devDependencies (ya usados en el hub).
 - **Rendimiento:** presupuesto de simulación < 4 ms/tick y 60 FPS en un móvil de gama media.
 - **Accesibilidad:** `aria-live`, `prefers-reduced-motion`, remapeo de teclas y soporte de flechas y WASD siempre.
@@ -156,16 +159,16 @@ Después de v1, los demás juegos del hub se migran uno a uno si encajan. Dino R
 
 ## 12. Roadmap por fases
 
-| Fase | Contenido | Criterio de salida |
-| --- | --- | --- |
-| F0 Fundamentos | Bucle de paso fijo, clock, RNG, scheduler, estado/snapshot, acciones, runner headless | Test de determinismo en verde |
-| F1 Presentación | Render Canvas 2D, cámara, partículas, audio, shell/UI, storage versionado | Pantalla de prueba a 60 FPS con menú y ajustes |
-| F2 Primer juego | Pong con `solo` (bot de reglas) y `local` | API de juego estable; replay reproduce una partida |
-| F3 IA neuronal | MLP, neuroevolución, trainer headless, brain-store, dificultad por checkpoints | Pong y Flappy con IA entrenada que supera al bot de reglas |
-| F4 Más juegos | Flappy, Snake, Breakout, Tetris | Cada juego con sus modos y bot |
-| F5 Online | Servidor ws, lockstep, salas, detección de desync | Pong, Snake y Tetris VS online sin desync en 10 min |
-| F6 Bomberman y pulido | 4 jugadores mixtos, demo mode, rendimiento, docs | Partida 2 humanos + 2 IAs remoto/local estable |
-| F7 Migración (opcional) | Portar juegos del hub que encajen | Decisión por juego |
+| Fase | Contenido | Criterio de salida | Estado |
+| --- | --- | --- | --- |
+| F0 Fundamentos | Bucle de paso fijo, clock, RNG, scheduler, estado/snapshot, acciones, runner headless, plugins | Test de determinismo en verde | ✅ |
+| F1 Presentación | Render Canvas 2D, cámara, partículas, audio, shell/UI, storage versionado | Pantalla de prueba con menú y ajustes | ✅ |
+| F2 Primer juego | Pong y Flappy sobre la API estable | Replay y tests de juego en verde | ✅ |
+| F3 IA neuronal | MLP, neuroevolución, trainer headless, brain-store, dificultad por checkpoints | Entrenamiento reproducible con semillas de validación | ✅ |
+| F4 Más juegos | Resto del catálogo | Cada juego con curva, patrones, eventos y tests | ✅ (32 juegos) |
+| F5 Online | Servidor ws, lockstep, salas, detección de desync | Pong, Snake y Tetris VS online sin desync en 10 min | ⏳ pendiente |
+| F6 Pulido | Accesibilidad, rendimiento, HUB minimalista, docs finales | HUB minimalista con juice; 0 dependencias nuevas | ⏳ en curso |
+| F7 Migración | Portar los 32 juegos del hub | Los 32 integrados y validados | ✅ |
 
 Cada fase tendrá su documento con tareas, cómo hacerlas, cómo validarlas, limitaciones y registro de commits (mismo método que el DDT de WebCraft).
 
@@ -173,19 +176,19 @@ Cada fase tendrá su documento con tareas, cómo hacerlas, cómo validarlas, lim
 
 - Un motor genérico para cualquier género: es para **arcade 2D de estado pequeño**.
 - ECS completo, motor de física general o editor visual.
-- Migrar los 32 juegos antes de que el motor esté probado con 6.
-- Añadir dependencias de cliente. La única dependencia de runtime justificada es `ws` en el servidor.
+- Reescribir mecánicas compartidas dentro de cada juego (suben al motor como plugin/servicio).
+- Añadir dependencias de runtime. `ws` solo se añadiría en `server/` durante F5 y sigue siendo la única justificada.
 
 ## 14. Decisiones abiertas
 
-| ID | Decisión | Propuesta | Alternativa |
+| ID | Decisión | Resolución | Estado |
 | --- | --- | --- | --- |
-| D1 | Nombre del proyecto | "Arcade Engine" (provisional) | Nombre propio |
-| D2 | Modelo de entidades | **World + Systems** con objetos planos (simple, suficiente) | ECS completo (más complejo) |
-| D3 | Netcode | **Lockstep determinista + relay** | Servidor autoritativo con snapshots (más robusto, más tráfico) |
-| D4 | Lenguaje | **TypeScript estricto + Vite + Vitest** (decidido el 25-nov-2026) | ~~JS ES modules + JSDoc + `// @ts-check`~~ (descartado) |
-| D5 | Repo | **Monorepo** `engine/` + `server/` + `games/` con npm workspaces | Repos separados |
-| D6 | Estilo visual | Neon 2D del hub actual | Estilo nuevo por juego |
-| D7 | Catálogo v1 | Los 6 de la sección 7 | Otro conjunto |
-| D8 | Hosting online | Servidor Node propio (LAN o VPS) | Servicio gestionado |
-| D9 | Ciclo de vida del hub actual | Se congela como referencia | Se mantiene en paralelo |
+| D1 | Nombre del proyecto | **Arcade Engine** | ✅ cerrada |
+| D2 | Modelo de entidades | **World + Systems** con objetos planos; descartado ECS | ✅ cerrada |
+| D3 | Netcode | Lockstep determinista + relay (plan B: servidor autoritativo) | ⏳ por confirmar en DDT F5 |
+| D4 | Lenguaje | **TypeScript estricto + Vite + Vitest** | ✅ cerrada 25-nov-2026 |
+| D5 | Repo | **Monorepo** con npm workspaces (`engine/`; `server/` en F5) | ✅ cerrada |
+| D6 | Estilo visual | Neon 2D del hub, moderado por `prefers-reduced-motion` | ✅ cerrada |
+| D7 | Catálogo v1 | **Los 32 juegos migrados** (los 6 del piloto + el resto) | ✅ cerrada |
+| D8 | Hosting online | Servidor Node propio (LAN o VPS) | ⏳ por decidir en F5 |
+| D9 | Ciclo de vida del hub | **Congelado como referencia** | ✅ cerrada |

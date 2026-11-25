@@ -47,7 +47,10 @@ export interface TempestState {
   paused: boolean;
   ticks: number;
   progress: number;
+  /** Deadline absoluto (en ticks) para la siguiente oleada; 0 = sin oleada pendiente. */
   spawnTimer: number;
+  /** Deadline absoluto (en ticks) para el próximo refuerzo. */
+  reinforcementAt: number;
   seed: number;
 }
 
@@ -73,6 +76,7 @@ function spawnWave(state: TempestState, ctx: StepContext): void {
     });
   }
   state.spawnTimer = 0;
+  state.reinforcementAt = state.ticks + (progress.spawnInterval ?? 120);
   ctx.emit('levelUp', { wave: state.wave, level: state.level, pattern });
 }
 
@@ -85,6 +89,8 @@ function reset(state: TempestState, ctx: StepContext): void {
   state.paused = false;
   state.ticks = 0;
   state.progress = 0;
+  state.spawnTimer = 0;
+  state.reinforcementAt = 0;
   state.playerAngle = 0;
   state.jumping = false;
   state.jumpTimer = 0;
@@ -130,6 +136,7 @@ export const tempestGame = defineGame<TempestState>({
       ticks: 0,
       progress: 0,
       spawnTimer: 0,
+      reinforcementAt: 0,
       seed,
     };
     reset(state, ctx);
@@ -214,20 +221,29 @@ export const tempestGame = defineGame<TempestState>({
       }
     }
 
-    if (progress.hazard > 0 && state.ticks >= state.spawnTimer && state.enemies.length < 60) {
+    // `spawnTimer` y `reinforcementAt` son deadlines absolutos en ticks: nunca
+    // se mezclan acumuladores de segundos con comparaciones de tick.
+    if (
+      progress.hazard > 0 &&
+      state.enemies.length > 0 &&
+      state.enemies.length < 60 &&
+      state.ticks >= state.reinforcementAt
+    ) {
       state.enemies.push({
         angle: ctx.rng.int(TEMPEST.sides),
         depth: 0,
         type: 'pulsar',
         speed: TEMPEST.enemySpeedBase + state.level * 5,
       });
-      state.spawnTimer = state.ticks + (progress.spawnInterval ?? 120);
+      state.reinforcementAt = state.ticks + (progress.spawnInterval ?? 120);
       ctx.emit('hit', { kind: 'reinforcement' });
     }
 
     if (state.enemies.length === 0) {
-      state.spawnTimer += dt;
-      if (state.spawnTimer >= TEMPEST.waveDelay) spawnWave(state, ctx);
+      if (state.spawnTimer === 0) {
+        state.spawnTimer = state.ticks + Math.round(TEMPEST.waveDelay / dt);
+      }
+      if (state.ticks >= state.spawnTimer) spawnWave(state, ctx);
     }
   },
 

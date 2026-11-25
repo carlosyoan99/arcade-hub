@@ -5,9 +5,9 @@ Este repo tiene dos mundos: **`engine/` (Arcade Engine, activo)** y el **Arcade 
 ## Convenciones del motor
 
 - TypeScript con `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`. ESM con imports terminados en `.js`. Comillas simples, 2 espacios, 100 columnas.
-- Estructura: `core` (simulación/plugins), `input`, `progression`, `game`, `games`, `ai`, `render`, `audio`, `ui`, `store`, `tools`.
-- `sim`, `ai`, `progression` y `game` no importan `render`, `audio`, `ui` ni DOM. `games` solo importa de `engine` (tipos y contrato).
-- `StepContext` es la única vía del juego al motor: `clock`, `rng`, `events`, `scheduler`, `actions`, `services`, `progression`, `emit()`, `schedule()`.
+- Estructura real: `core` (simulación/plugins/math), `input`, `sim` (grid/collision/pathfinding), `progression`, `game` (contrato/adaptador/lifecycle/reglas/eventos), `games` (32 juegos), `ai`, `render`, `audio`, `ui`, `store`, `tools`.
+- `sim`, `ai`, `progression` y `game` no importan `render`, `audio`, `ui` ni DOM **por convención** (todavía no hay test automático de grafo de imports; ver `docs/DDT-F0-fundamentos.md`). `games` solo importa del motor.
+- `StepContext` es la única vía del juego al motor: `clock`, `rng`, `seed`, `rngFor()`, `events`, `scheduler`, `actions` (con `pointer()` y `axis()`), `services`, `progression`, `emit()`, `schedule()`.
 - Bucle: 60 Hz fijos con acumulador; `alpha = accumulator / dt` solo para render; máximo 5 sub-pasos y 250 ms por frame.
 - RNG: xorshift32 de 32 bits, `fork(salt)` para subsistemas (partículas, IA) sin consumir el stream principal.
 - Estado: plano y serializable. `snapshot()` usa clon profundo; `hash()` es FNV-1a sobre serialización estable con claves ordenadas.

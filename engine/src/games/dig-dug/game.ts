@@ -84,8 +84,20 @@ function buildGrid(state: DigDugState, ctx: StepContext): void {
     state.grid.push(row);
   }
   const rocks = 4 + state.level + (state.pattern === 'rock' ? 3 : 0);
+  // Cota explícita: en niveles altos pueden agotarse las parejas de tierra.
+  let availablePairs = 0;
+  for (let r = 4; r < DIGDUG.rows - 4; r++) {
+    for (let c = 2; c < DIGDUG.cols - 4; c++) {
+      if (state.grid[r]?.[c] === DIGDUG.dirt && state.grid[r]?.[c + 1] === DIGDUG.dirt) {
+        availablePairs++;
+      }
+    }
+  }
+  const maxAttempts = Math.max(1, availablePairs * 4);
   let placed = 0;
-  while (placed < rocks) {
+  let attempts = 0;
+  while (placed < rocks && attempts < maxAttempts) {
+    attempts++;
     const c = 2 + ctx.rng.int(DIGDUG.cols - 4);
     const r = 4 + ctx.rng.int(DIGDUG.rows - 8);
     if (state.grid[r]?.[c] === DIGDUG.dirt && state.grid[r]?.[c + 1] === DIGDUG.dirt) {

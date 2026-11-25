@@ -13,7 +13,7 @@ El Hub antiguo no se modifica: sus 32 juegos son la referencia de mecánicas y d
 
 ```bash
 npm install                 # instala workspaces (engine)
-npm test -w @arcade/engine  # suite del motor (112 tests)
+npm test -w @arcade/engine  # suite del motor (290 tests)
 npm run build -w @arcade/engine
 npm run dev -w @arcade/engine          # demo visual Pong / Flappy en Vite
 npm run headless -w @arcade/engine -- --ticks 600 --seed 12345
@@ -28,7 +28,7 @@ Sus comprobaciones (`npm run check` en la raíz) siguen disponibles, pero **no s
 2. **`step()` puro:** no dibuja, no suena, no toca DOM. Emite eventos (`hit`, `score`, `levelUp`) que consumen los plugins de presentación.
 3. **Acciones nombradas:** los juegos piden `jump`/`fire`/`flap`; teclado, gamepad, táctil, IA y red inyectan la misma acción.
 4. **Plugins nativos:** orden topológico por `requires`, servicios compartidos vía `ctx.services`, hooks `preStep`/`postStep`.
-5. **Juegos solo juegan:** `GameDefinition` declara `id`, `meta`, `actions`, `progression`, `init`, `step`, `observe`, `render` y `rules`. Si una función aparece en dos juegos, sube al motor.
+5. **Juegos solo juegan:** `GameDefinition` declara `id`, `meta`, `actions`, `init`, `step` y `rules`; `progression`, `observe` y `render` son opcionales. Si una función aparece en dos juegos, sube al motor.
 6. **Dificultad progresiva y variedad:** curvas declarativas por nivel, DDA oculto y acotado, patrones elegidos con RNG y bolsa sin repetición (`docs/investigacion-dificultad-variedad.md`).
 7. **Integridad:** estado serializable, snapshot/restore, hash determinista, replays, cerebros de IA versionados con checksum.
 
@@ -37,11 +37,12 @@ Sus comprobaciones (`npm run check` en la raíz) siguen disponibles, pero **no s
 ```
 engine/
   src/
-    core/        loop, clock, rng, scheduler, events, state, simulation, plugins
-    input/       actions, bindings, entrada virtual (IA/replay/red)
+    core/        loop, clock, rng, scheduler, events, state, simulation, plugins, math
+    input/       actions (con puntero y axis), bindings, entrada virtual (IA/replay/red)
+    sim/         grid, collision, pathfinding (servicios compartidos)
     progression/ curvas de nivel, DDA acotado, selector de patrones
-    game/        contrato defineGame + adaptador a simulación
-    games/       juegos migrados (pong, flappy, ...)
+    game/        contrato defineGame, adaptador, lifecycle, reglas, eventos
+    games/       los 32 juegos migrados (`engine/src/games/<id>/game.ts`)
     ai/          MLP, neuroevolución, agentes, trainer headless, dificultad
     render/      canvas2d, cámara, sprites, partículas, fanout de eventos
     audio/       synth, music, manager
@@ -77,9 +78,9 @@ export const miJuego = defineGame<MiEstado>({
 
 ## Estado de migración
 
-- ✅ Motor F0-F3 validado: 112 tests en verde, build y headless OK.
-- ✅ Pong y Flappy migrados con progresión y patrones.
-- ⏳ Resto del catálogo en migración por batches; el estado exacto está en `TODO.md`.
+- ✅ Catálogo completo: los 32 juegos migrados e integrados en `engine/src/games/index.ts` (`GAME_IDS`).
+- ✅ 290 tests en verde, `tsc` limpio, build y headless OK. Golden hash `600:3336926330:e22d095e-20`.
+- ⏳ Pendientes: F5 online y F6 pulido/HUB minimalista (ver `TODO.md`).
 
 ## Documentación
 
@@ -91,9 +92,14 @@ export const miJuego = defineGame<MiEstado>({
 | `TODO.md` | roadmap activo del motor |
 | `docs/Arcade Engine — definición del proyecto (v0).md` | visión, arquitectura, roadmap F0-F7 |
 | `docs/Arcade Hub — investigación completa.md` | auditoría de los 32 juegos y bugs B1-B8 |
-| `docs/DDT-F0-fundamentos.md` | decisiones y diseño del núcleo/plugins |
+| `docs/arquitectura.md` | fuente canónica de la arquitectura actual |
+| `docs/DDT-F0-fundamentos.md` | decisiones, diseño del núcleo/plugins y política de versionado (`0.1.0-alpha.0`) |
+| `docs/DDT-F1-presentacion.md` | render, audio, UI y store como plugins |
 | `docs/DDT-F2-primeros-juegos.md` | Pong y Flappy como validación del contrato |
+| `docs/DDT-F3-IA.md` | MLP, neuroevolución, trainer y dificultad |
+| `docs/DDT-F5-online.md` | diseño pendiente de salas ws + lockstep |
 | `docs/investigacion-dificultad-variedad.md` | curvas y adaptación moderna por juego |
+| `docs/decisiones-skills.md` | inventario y decisiones sobre skills del repo |
 
 ## Licencia
 

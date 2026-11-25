@@ -9,7 +9,7 @@ import { galagaGame } from '../src/games/galaga/game.js';
 import { gradiusGame } from '../src/games/gradius/game.js';
 import { raidenGame } from '../src/games/raiden/game.js';
 import { spaceInvadersGame } from '../src/games/space-invaders/game.js';
-import { tempestGame } from '../src/games/tempest/game.js';
+import { TEMPEST, tempestGame } from '../src/games/tempest/game.js';
 import { missileCommandGame } from '../src/games/missile-command/game.js';
 
 /** Todos los juegos del batch exponen `progress` para alimentar la curva. */
@@ -117,6 +117,45 @@ describe.each(batch)('$file sobre la API del motor', ({ game }) => {
     sim.tick(['restart']);
     expect(sim.state.score).toBe(0);
     expect(sim.state.over).toBe(false);
+  });
+});
+
+describe('Tempest: temporizadores de oleada (B6)', () => {
+  it('con hazard > 0 no salta la oleada en un tick, solo tras el intervalo; respeta pausa y reinicio', () => {
+    const sim = createGameSimulation(tempestGame, { seed: 1234 });
+    sim.state.progress = tempestGame.progression!.pointsPerLevel * 2;
+    sim.tick([]);
+    expect(sim.ctx.progression.state.hazard).toBeGreaterThan(0);
+
+    const wave = sim.state.wave;
+    const delayTicks = Math.round(TEMPEST.waveDelay / sim.ctx.clock.dt);
+
+    sim.state.enemies = [];
+    sim.tick([]);
+    expect(sim.state.wave).toBe(wave);
+
+    for (let i = 1; i < delayTicks; i++) sim.tick([]);
+    expect(sim.state.wave).toBe(wave);
+
+    sim.tick([]);
+    expect(sim.state.wave).toBe(wave + 1);
+
+    // La pausa congela el deadline: avanzar ticks mientras está pausado no la dispara.
+    sim.state.enemies = [];
+    sim.tick(['pause']);
+    expect(sim.state.paused).toBe(true);
+    for (let i = 0; i < delayTicks; i++) sim.tick([]);
+    expect(sim.state.wave).toBe(wave + 1);
+    sim.tick([]);
+    sim.tick(['pause']);
+    expect(sim.state.paused).toBe(false);
+
+    // El reinicio restaura la oleada y deja `spawnTimer` sin deadline pendiente.
+    sim.state.progress = 999;
+    sim.tick(['restart']);
+    expect(sim.state.wave).toBe(1);
+    expect(sim.state.progress).toBe(0);
+    expect(sim.state.spawnTimer).toBe(0);
   });
 });
 

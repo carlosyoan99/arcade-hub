@@ -1,5 +1,7 @@
 # Arcade Hub — investigación completa
 
+> **Documento histórico (24-nov-2026).** Solo la sección 3 (bugs B1-B8) se conserva como referencia para las **versiones migradas** en `engine/src/games/`. Por D9 el Hub (`games/`, `shared/`) está congelado: **no ejecutar** las propuestas de las secciones 4-5 sobre el código legacy. Los 8 bugs están corregidos en el motor, con evidencia en los tests por juego.
+
 Instrucciones, análisis, bugs, mejoras y plan de modo IA para los 32 juegos de `carlosyoan99/arcade-hub` · 24-nov-2026
 
 ## 1. Resumen ejecutivo
@@ -8,7 +10,7 @@ Instrucciones, análisis, bugs, mejoras y plan de modo IA para los 32 juegos de 
 - **Bugs confirmados leyendo el código: 8.** Los más graves: **Tempest no se puede disparar con el teclado**, y en **Out Run, Columns y Puyo Puyo** la acción de la tecla Espacio (turbo / hard drop) es inalcanzable porque el handler de pausa la captura antes.
 - **Mobile:** en Burger Time y Double Dragon el D-pad táctil solo da un empujón de 80 ms por toque; mantener pulsado no mueve de forma continua.
 - **Modo IA para los 32 es viable**, pero necesita 3 piezas de infraestructura: RNG con semilla (hay \~290 llamadas a `Math.random`), reloj de simulación (hay lógica que usa `Date.now()`) y una API común de bots. La mayoría (≈24) se resuelve con **reglas/planificación sin entrenar**; la neuroevolución (como en Dino) conviene solo en 4-5.
-- **Documentación desfasada:** Breakout dice 5 filas y el código tiene 8; CLAUDE.md y package.json siguen diciendo "19 juegos"; 4 READMEs no tienen tabla de controles; el de Double Dragon tiene texto corrupto.
+- **Documentación desfasada (dato histórico del 24-nov):** Breakout decía 5 filas y el código tenía 8; CLAUDE.md/package.json decían "19 juegos"; 4 READMEs no tenían tabla de controles y el de Double Dragon tenía texto corrupto. **Estado actual:** esos archivos legacy están congelados y la documentación del repo ya fue reescrita; no aplicar estas correcciones sobre `games/`.
 
 ## 2. Método y alcance (qué sí y qué no)
 
@@ -57,7 +59,7 @@ Instrucciones, análisis, bugs, mejoras y plan de modo IA para los 32 juegos de 
 6. **Dificultad seleccionable** (Fácil/Normal/Difícil) como parámetro compartido; Pong ya tiene la base (delay y error de la IA).
 7. **Remapeo de teclas** en `shared/settings.js` y soporte de flechas en Q\*bert.
 8. **Modo demo (attract mode)** con la IA cuando el overlay lleva inactivo unos segundos: da vida al hub.
-9. **Cleanup de listeners** (ya identificado en `docs/mejoras-plan.md`, sigue pendiente).
+9. **Cleanup de listeners** (pendiente en el código legacy congelado; resuelto en los juegos migrados con `handleLifecycle` y plugins).
 10. **Verificar táctil real** en los 8 juegos sin botones y unificar con `bindHoldButton` (corrige B5).
 
 ## 5. Plan del modo IA para los 32 juegos

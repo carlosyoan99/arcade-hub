@@ -1,4 +1,5 @@
 import { defineGame } from '../../game/contract.js';
+import { handleLifecycle } from '../../game/lifecycle.js';
 
 export const FLAPPY = {
   width: 480,
@@ -26,9 +27,23 @@ export interface FlappyState {
   birdVy: number;
   pipes: FlappyPipe[];
   score: number;
+  paused: boolean;
   over: boolean;
   ticks: number;
   nextPipeAt: number;
+}
+
+function createInitialState(): FlappyState {
+  return {
+    birdY: FLAPPY.height / 2,
+    birdVy: 0,
+    pipes: [],
+    score: 0,
+    paused: false,
+    over: false,
+    ticks: 0,
+    nextPipeAt: 40,
+  };
 }
 
 export const flappyGame = defineGame<FlappyState>({
@@ -50,21 +65,15 @@ export const flappyGame = defineGame<FlappyState>({
   },
 
   init() {
-    return {
-      birdY: FLAPPY.height / 2,
-      birdVy: 0,
-      pipes: [],
-      score: 0,
-      over: false,
-      ticks: 0,
-      nextPipeAt: 40,
-    };
+    return createInitialState();
   },
 
   step(state, ctx) {
-    if (state.over) return;
+    const skip = handleLifecycle(state, ctx, state.score, () =>
+      Object.assign(state, createInitialState()),
+    );
+    if (skip) return;
     const dt = ctx.clock.dt;
-    ctx.progression.update(state.score);
     const progress = ctx.progression.state;
 
     if (ctx.actions.consume('flap')) {

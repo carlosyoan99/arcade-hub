@@ -29,7 +29,7 @@ Rollings y Adams (citados en Wikipedia): un juego que ajustaba la dificultad seg
 | --- | --- |
 | Dificultad fija por nivel | Niveles declarativos + DDA oculto y acotado |
 | Secuencias fijas de enemigos | Bolsa sembrada de patrones, veto de repetición |
-|Una sola tabla de controles | Acciones nombradas: teclado, gamepad, táctil, IA y red idénticos |
+| Una sola tabla de controles | Acciones nombradas: teclado, gamepad, táctil, IA y red idénticos |
 | Puntuación local | Récords por modo, la IA no escribe récords humanos |
 | Reinicio duro | Snapshot/restore, replay y semilla compartible ("daily seed") |
 | Sonido y partículas por juego | Eventos del motor: `emit('hit')` → audio y partículas centralizados |

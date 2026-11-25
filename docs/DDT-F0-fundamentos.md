@@ -1,12 +1,12 @@
 # DDT F0 — Fundamentos del Arcade Engine
 
 > Documento de diseño técnico de la Fase 0 · 25-nov-2026
-> Define el *cómo* de la fase 0 del plan en `Arcade Engine — definición del proyecto (v0).md`.
+> Define el *cómo* de la fase 0 del plan en `docs/Arcade Engine — definición del proyecto (v0).md`.
 > Criterio de salida de la fase: **test de determinismo en verde**.
 
 ## 1. Contexto
 
-El hub actual (`carlosyoan99/arcade-hub`, 32 juegos, ~30 000 líneas) resolvió 32 veces el mismo bucle, entrada, colisiones, audio, guardado e IA. El informe `Arcade Hub — investigación completa.md` confirma 8 bugs causados por reloj real, `setTimeout` de gameplay y teclas comparadas directamente (`Date.now()` en B7, timers en B6, `Space` duplicado en B1-B4).
+El hub actual (`carlosyoan99/arcade-hub`, 32 juegos, ~30 000 líneas) resolvió 32 veces el mismo bucle, entrada, colisiones, audio, guardado e IA. El informe `docs/Arcade Hub — investigación completa.md` confirma 8 bugs causados por reloj real, `setTimeout` de gameplay y teclas comparadas directamente (`Date.now()` en B7, timers en B6, `Space` duplicado en B1-B4).
 
 F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación determinista** con paso fijo, RNG con semilla, reloj de simulación, timers dentro del estado, acciones nombradas y estado serializable.
 
@@ -14,13 +14,13 @@ F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación
 
 | ID | Decisión | Resolución | Nota |
 | --- | --- | --- | --- |
-| D1 | Nombre | **Arcade Engine** (provisional) | Se mantiene hasta tener el primer juego jugable (F2). |
+| D1 | Nombre | **Arcade Engine** | Cerrado; F2 entregó los primeros juegos jugables. |
 | D2 | Modelo de entidades | **World + Systems**, objetos planos | Sin ECS. Suficiente para estado pequeño. |
 | D3 | Netcode | **Lockstep determinista + relay** | Plan B: servidor autoritativo con snapshots. F0 solo garantiza el determinismo que lockstep necesita. |
 | D4 | Lenguaje | **TypeScript + Vite** | **CAMBIO respecto al borrador**: se descarta JS + JSDoc + `// @ts-check`. Se adopta TS estricto y Vite como bundler/dev-server, como en WebCraft. |
 | D5 | Repo | **Monorepo** `engine/` + `server/` + `games/` | npm workspaces. F0 crea solo `engine/`. |
 | D6 | Estilo visual | Neon 2D del hub actual | Se aplica en F1. |
-| D7 | Catálogo v1 | Los 6 de la sección 7 | Pong, Flappy, Snake, Breakout, Tetris, Bomberman. |
+| D7 | Catálogo v1 | **Los 32 juegos del hub** | Los 6 del piloto más el resto; todos integrados en `engine/src/games/index.ts`. |
 | D8 | Hosting online | Servidor Node propio (LAN o VPS) | F5. |
 | D9 | Ciclo de vida del hub | **Congelado como referencia** | El código actual no se modifica; se usa solo como fuente de lógica a reescribir. |
 
@@ -30,15 +30,15 @@ F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación
 - **Tests con Vitest** (integradas con Vite) en lugar de `node:test` puro; se mantiene la suite de determinismo y se añade cobertura del core.
 - El headless runner corre en Node mediante `tsx` (o entrada ESM compilada), sin DOM.
 - `engine/` se publica como paquete ESM con `tsc --declaration` para tipos; Vite solo se usa para dev/build de la demo y de los juegos.
-- La regla de dependencia se refuerza con el compilador: `sim/` y `ai/` tienen prohibido importar `render/`, `audio/` o DOM. Se verifica con un test de grafo de imports (F0 lo deja preparado, F1 lo activa).
+- La regla de dependencia se mantiene **por convención**: `sim/`, `ai/`, `progression/` y `game/` no importan `render/`, `audio/`, `ui/` ni DOM. Todavía no hay test automático de grafo de imports (pendiente en `TODO.md`).
 
 ### Política de versionado
 
-El motor arranca en **pre-release**: `0.1.0-alpha.0` (F0). Las fases F0-F3 son `alpha.N`, F4-F6 `beta.N` y solo después de F7 se considera `1.0.0`. La versión del hub heredado (`1.0.0` en la raíz) queda congelada y no representa al motor.
+El motor está en **pre-release**: `0.1.0-alpha.0` (`engine/package.json`). Política prevista: F0-F3 `alpha.N`, F4-F6 `beta.N`, y solo al cerrar F7+ pulido `1.0.0`. Estado real: F4/F7 ya están completados pero la versión sigue en `alpha.0` porque faltan F5 (online) y F6 (pulido); se promocionará a `beta.0` al terminar F6. La versión del hub heredado (`1.0.0` en la raíz) queda congelada y no representa al motor.
 
 ## 3. Alcance de F0
 
-**Dentro:** bucle de paso fijo, `Clock`, `RNG` con semilla, `Scheduler`, bus de eventos, `State` (snapshot/restore/hash), capa de accionesnombradas con entrada virtual, headless runner, tests de determinismo y fixtures de replay golden.
+**Dentro:** bucle de paso fijo, `Clock`, `RNG` con semilla, `Scheduler`, bus de eventos, `State` (snapshot/restore/hash), capa de acciones nombradas con entrada virtual, headless runner, tests de determinismo y fixtures de replay golden.
 
 **Fuera (fases posteriores):** Canvas 2D, cámara, partículas, audio, shell/UI, storage, IA neuronal, red, juegos.
 

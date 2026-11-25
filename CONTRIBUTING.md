@@ -4,11 +4,11 @@ El proyecto activo es `engine/`. El Arcade Hub legacy está congelado: no se ace
 
 ## Flujo
 
-1. Lee `AGENTS.md`, `CLAUDE.md`, `docs/DDT-F0-fundamentos.md` y `docs/investigacion-dificultad-variedad.md`.
+1. Lee `AGENTS.md`, `CLAUDE.md`, `docs/DDT-F0-fundamentos.md`, `docs/DDT-F1-presentacion.md`, `docs/DDT-F3-IA.md` y `docs/investigacion-dificultad-variedad.md`.
 2. Crea una rama desde `main`.
 3. Para un juego nuevo, copia `engine/src/games/pong/game.ts` como plantilla y crea `engine/src/games/<id>/game.ts`.
 4. Añade tests en `engine/test/` (determinismo, dificultad creciente, `observe()` finito y evento de juice).
-5. Registra el juego en `engine/src/games/index.ts`.
+5. Para juego posteriores a la v1 (los 32 ya están registrados), añádelo a `engine/src/games/index.ts`.
 6. Verifica y commitea con mensaje conventional (`feat(games): ...`, `fix(engine): ...`, `docs: ...`).
 
 ```bash

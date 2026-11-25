@@ -1,10 +1,10 @@
 # AGENTS.md — Arcade Engine / Arcade Hub
 
-Orientación rápida. Lee también `CLAUDE.md` (convenciones), `CONTRIBUTING.md` (cómo migrar un juego), `TODO.md` (roadmap) y `docs/DDT-F0-fundamentos.md` (arquitectura del motor).
+Orientación rápida. Lee también `CLAUDE.md` (convenciones), `CONTRIBUTING.md` (cómo migrar un juego), `TODO.md` (roadmap) y los DDT en `docs/`: F0 (núcleo/plugins), F1 (presentación), F2 (primeros juegos), F3 (IA), F5 (online, pendiente).
 
 ## Dónde trabajar
 
-- **Activo:** `engine/` — TypeScript estricto, Vite, Vitest, plugins nativos.
+- **Activo:** `engine/` — TypeScript estricto, Vite, Vitest, plugins nativos; 32 juegos integrados y 290 tests en verde.
 - **Congelado:** `games/`, `shared/`, `index.html`, `asset/` — Arcade Hub legacy (32 juegos). Sirve solo como referencia de mecánicas. **No añadas juegos nuevos ni cambios allí.**
 
 ## Comandos (desde la raíz)
@@ -37,7 +37,7 @@ Si encuentras **código duplicado**, una funcionalidad del motor ya implementada
 
 ## Tests
 
-- `engine/test/determinism.test.ts` incluye el hash golden (`600:3336926330:e22d095e-20`). Cambiarlo sin explicación rompe la determinismo.
+- `engine/test/determinism.test.ts` incluye el hash golden (`600:3336926330:e22d095e-20`). Cambiarlo sin explicación rompe el determinismo.
 - Todo juego nuevo debe tener test de determinismo, de subida de dificultad, de `observe()` finito y de evento de juice.
 - `npm test -w @arcade/engine` debe estar en verde antes de integrar.
 

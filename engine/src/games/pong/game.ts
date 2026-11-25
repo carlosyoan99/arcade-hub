@@ -1,4 +1,7 @@
 import { defineGame } from '../../game/contract.js';
+import { handleLifecycle } from '../../game/lifecycle.js';
+import { clamp } from '../../core/math.js';
+import type { StepContext } from '../../core/simulation.js';
 
 export const PONG = {
   width: 960,
@@ -26,13 +29,10 @@ export interface PongState {
   right: number;
   score: [number, number];
   serving: boolean;
+  paused: boolean;
   over: boolean;
   winner: number | null;
   ticks: number;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value;
 }
 
 function resetBall(state: PongStateInternal, direction: number): void {
@@ -47,6 +47,22 @@ function resetBall(state: PongStateInternal, direction: number): void {
 /** Extensión interna del estado: dirección del saque siguiente. */
 interface PongStateInternal extends PongState {
   serveDirection: number;
+}
+
+function createInitialState(ctx: StepContext): PongStateInternal {
+  const direction = ctx.rng.int(2) === 0 ? -1 : 1;
+  return {
+    ball: { x: PONG.width / 2, y: PONG.height / 2, vx: 0, vy: 0 },
+    left: PONG.height / 2,
+    right: PONG.height / 2,
+    score: [0, 0],
+    serving: true,
+    paused: false,
+    serveDirection: direction,
+    over: false,
+    winner: null,
+    ticks: 0,
+  };
 }
 
 export const pongGame = defineGame<PongStateInternal>({
@@ -68,24 +84,18 @@ export const pongGame = defineGame<PongStateInternal>({
   },
 
   init(_seed, ctx) {
-    const direction = ctx.rng.int(2) === 0 ? -1 : 1;
-    return {
-      ball: { x: PONG.width / 2, y: PONG.height / 2, vx: 0, vy: 0 },
-      left: PONG.height / 2,
-      right: PONG.height / 2,
-      score: [0, 0],
-      serving: true,
-      serveDirection: direction,
-      over: false,
-      winner: null,
-      ticks: 0,
-    };
+    return createInitialState(ctx);
   },
 
   step(state, ctx) {
-    if (state.over) return;
+    const skip = handleLifecycle(
+      state,
+      ctx,
+      state.score[0] + state.score[1],
+      () => Object.assign(state, createInitialState(ctx)),
+    );
+    if (skip) return;
     const dt = ctx.clock.dt;
-    ctx.progression.update(state.score[0] + state.score[1]);
 
     if (ctx.actions.isDown('p1Up')) state.left -= PONG.paddleSpeed * dt;
     if (ctx.actions.isDown('p1Down')) state.left += PONG.paddleSpeed * dt;
