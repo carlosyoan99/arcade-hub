@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.build.json && vite build",
+    "build:hub": "vite build --config vite.hub.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/tools/headless-cli.ts"

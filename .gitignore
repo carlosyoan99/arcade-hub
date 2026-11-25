@@ -3,6 +3,7 @@ node_modules
 
 # Arcade Engine build output
 engine/dist/
+engine/dist-hub/
 
 # Playwright
 test-results/
