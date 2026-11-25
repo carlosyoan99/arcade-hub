@@ -16,7 +16,12 @@ export { createSimulation, type Simulation, type SimulationOptions, type Simulat
 export { createStateOps, type StateOps } from './core/state.js';
 export { createLoop, type EngineLoop, type LoopOptions } from './core/loop.js';
 export type { GameEvent, Tick, TimerId } from './core/types.js';
-export { createActionState, type ActionSnapshot, type ActionState } from './input/actions.js';
+export {
+  createActionState,
+  type ActionSnapshot,
+  type ActionState,
+  type PointerState,
+} from './input/actions.js';
 export {
   createBindings,
   DEFAULT_BINDINGS,
@@ -78,6 +83,13 @@ export * from './core/math.js';
 export * from './sim/grid.js';
 export * from './sim/collision.js';
 export * from './sim/pathfinding.js';
+export {
+  JUICE_EVENTS,
+  isJuiceEvent,
+  type JuiceEventType,
+  type JuiceEventPayloads,
+  type PositionPayload,
+} from './game/events.js';
 export { handleLifecycle, type LifecycleOptions, type PausableState } from './game/lifecycle.js';
 export { singlePlayerRules, type SinglePlayerRulesState } from './game/rules.js';
 

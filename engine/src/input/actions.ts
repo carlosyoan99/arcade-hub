@@ -2,6 +2,13 @@ import type { ActionName } from '../core/types.js';
 
 export interface ActionSnapshot {
   readonly down: readonly ActionName[];
+  readonly pointer: PointerState;
+}
+
+export interface PointerState {
+  readonly x: number;
+  readonly y: number;
+  readonly active: boolean;
 }
 
 /**
@@ -12,6 +19,11 @@ export interface ActionState {
   readonly registered: readonly ActionName[];
   register(name: ActionName): void;
   setDown(name: ActionName, down: boolean): void;
+  /** Puntero virtual (ratón, stick o táctil), con determinismo de replay. */
+  readonly pointer: PointerState;
+  setPointer(x: number, y: number, active?: boolean): void;
+  /** -1 | 0 | 1 a partir de dos acciones opuestas. */
+  axis(negative: ActionName, positive: ActionName): -1 | 0 | 1;
   isDown(name: ActionName): boolean;
   wasPressed(name: ActionName): boolean;
   wasReleased(name: ActionName): boolean;
@@ -28,6 +40,7 @@ export function createActionState(initial: readonly ActionName[] = []): ActionSt
   let down = new Set<ActionName>();
   let pressed = new Set<ActionName>();
   let released = new Set<ActionName>();
+  let pointer: PointerState = { x: 0.5, y: 0.5, active: false };
 
   function assertRegistered(name: ActionName): void {
     if (!registered.has(name)) {
@@ -54,6 +67,20 @@ export function createActionState(initial: readonly ActionName[] = []): ActionSt
         pressed.delete(name);
       }
     },
+    get pointer(): PointerState {
+      return pointer;
+    },
+    setPointer(x: number, y: number, active = true): void {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        throw new RangeError('ActionState.setPointer: coordenadas no finitas');
+      }
+      pointer = { x, y, active };
+    },
+    axis(negative: ActionName, positive: ActionName): -1 | 0 | 1 {
+      const left = this.isDown(negative);
+      const right = this.isDown(positive);
+      return left === right ? 0 : left ? -1 : 1;
+    },
     isDown(name: ActionName): boolean {
       assertRegistered(name);
       return down.has(name);
@@ -77,12 +104,13 @@ export function createActionState(initial: readonly ActionName[] = []): ActionSt
       released.clear();
     },
     snapshot(): ActionSnapshot {
-      return { down: [...down] };
+      return { down: [...down], pointer: { ...pointer } };
     },
     restore(snapshot: ActionSnapshot): void {
       const next = new Set(snapshot.down);
       for (const name of next) assertRegistered(name);
       down = next;
+      pointer = { ...snapshot.pointer };
       pressed = new Set();
       released = new Set();
     },
