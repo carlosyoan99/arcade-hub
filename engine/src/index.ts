@@ -30,11 +30,19 @@ export {
 } from './input/bindings.js';
 export {
   applyInputFrame,
+  applyInputFrameWithPointer,
   captureInputFrame,
   createReplay,
   type InputFrame,
+  type InputFrameWithPointer,
+  type PointerFrame,
   type Replay,
 } from './input/virtual.js';
+export {
+  createInputHost,
+  type InputHost,
+  type InputHostConfig,
+} from './input/host.js';
 export {
   defineGame,
   type GameDefinition,
