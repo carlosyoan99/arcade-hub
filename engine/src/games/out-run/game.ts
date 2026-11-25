@@ -230,6 +230,158 @@ export const outRunGame = defineGame<OutRunState>({
     }
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha: la carretera se dibuja con la posición exacta del tick.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = OUT_RUN.width;
+    const H = OUT_RUN.height;
+    const horizon = H * 0.42;
+    const bands = 44;
+    const drawDist = bands * OUT_RUN.segmentLength;
+
+    const centerAt = (z: number, p: number): number => {
+      let bend = 0;
+      for (let i = 0; i < 6; i++) bend += curveAt(state, z + i * OUT_RUN.segmentLength) * (i + 1) * 0.35;
+      return W / 2 + bend * p;
+    };
+    const project = (dz: number) => {
+      const t = clamp(1 - dz / drawDist, 0, 1);
+      return {
+        t,
+        y: horizon + (H - horizon) * t * t,
+        half: W * (0.05 + 0.5 * t),
+        center: centerAt(state.camZ + dz, t),
+      };
+    };
+
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a0620';
+    ctx.fillRect(0, 0, W, horizon + 2);
+    ctx.fillStyle = '#3a0f5c';
+    ctx.fillRect(0, horizon - 34, W, 34);
+    ctx.fillStyle = '#ff5f7a';
+    ctx.beginPath();
+    ctx.arc(W * 0.72, horizon - 18, 26, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(0, horizon - 6, W, 2);
+    ctx.fillStyle = '#07161c';
+    ctx.fillRect(0, horizon, W, H - horizon);
+
+    for (let b = 0; b < bands; b++) {
+      const tFar = b / bands;
+      const tNear = (b + 1) / bands;
+      const seg = state.segments[b];
+      const hill = seg?.hill ?? 0;
+      const yFar = horizon + (H - horizon) * tFar * tFar - hill * tFar * 0.35;
+      const yNear = horizon + (H - horizon) * tNear * tNear - hill * tNear * 0.35;
+      const cFar = centerAt(state.camZ + tFar * drawDist, tFar);
+      const cNear = centerAt(state.camZ + tNear * drawDist, tNear);
+      const hFar = W * (0.05 + 0.5 * tFar);
+      const hNear = W * (0.05 + 0.5 * tNear);
+      ctx.fillStyle = b % 2 === 0 ? '#071b1c' : '#0a2422';
+      ctx.fillRect(0, yFar, W, Math.max(1, yNear - yFar + 1));
+      ctx.fillStyle = b % 2 === 0 ? '#161a36' : '#12162e';
+      ctx.beginPath();
+      ctx.moveTo(cFar - hFar, yFar);
+      ctx.lineTo(cFar + hFar, yFar);
+      ctx.lineTo(cNear + hNear, yNear);
+      ctx.lineTo(cNear - hNear, yNear);
+      ctx.lineTo(cFar - hFar, yFar);
+      ctx.fill();
+      ctx.strokeStyle = b % 2 === 0 ? '#25f4e6' : '#ff2fa4';
+      ctx.lineWidth = 1 + tNear * 2;
+      ctx.beginPath();
+      ctx.moveTo(cFar - hFar, yFar);
+      ctx.lineTo(cNear - hNear, yNear);
+      ctx.moveTo(cFar + hFar, yFar);
+      ctx.lineTo(cNear + hNear, yNear);
+      ctx.stroke();
+      if (b % 3 === 0) {
+        ctx.strokeStyle = '#f8f3d0';
+        ctx.lineWidth = 1 + tNear;
+        ctx.beginPath();
+        ctx.moveTo(cFar, yFar);
+        ctx.lineTo(cNear, yNear);
+        ctx.stroke();
+      }
+      if (seg?.tree === true) {
+        const tx = cNear - hNear - 6 - (b % 3) * 5;
+        const size = 4 + 12 * tNear;
+        ctx.fillStyle = '#1bf0a0';
+        ctx.beginPath();
+        ctx.moveTo(tx, yNear - size);
+        ctx.lineTo(tx - size * 0.7, yNear);
+        ctx.lineTo(tx + size * 0.7, yNear);
+        ctx.lineTo(tx, yNear - size);
+        ctx.fill();
+      }
+    }
+
+    for (const rival of state.rivals) {
+      const dz = rival.z - state.camZ;
+      if (dz < 5 || dz > drawDist) continue;
+      const { y, half, center, t } = project(dz);
+      const cx = center + rival.x * half;
+      const cw = 4 + 22 * t;
+      const ch = 3 + 14 * t;
+      ctx.fillStyle = '#ff3f6e';
+      ctx.fillRect(cx - cw / 2, y - ch, cw, ch);
+      ctx.strokeStyle = '#ffd0dc';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx - cw / 2, y - ch, cw, ch);
+    }
+
+    const turboOn = state.turbo > 0;
+    if (turboOn) {
+      ctx.strokeStyle = 'rgba(255, 209, 102, 0.8)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        const sy = (state.ticks * 9 + i * 47) % H;
+        const sx = (i * 83) % W;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx, sy + 22);
+        ctx.stroke();
+      }
+    }
+    const px = W / 2 + state.player.x * 46;
+    const py = H - 26;
+    ctx.fillStyle = turboOn && state.ticks % 8 < 4 ? '#ffffff' : '#24e6ff';
+    ctx.beginPath();
+    ctx.moveTo(px - 22, py + 10);
+    ctx.lineTo(px - 15, py - 8);
+    ctx.lineTo(px + 15, py - 8);
+    ctx.lineTo(px + 22, py + 10);
+    ctx.lineTo(px - 22, py + 10);
+    ctx.fill();
+    ctx.fillStyle = '#ff2f5e';
+    ctx.fillRect(px - 16, py + 7, 8, 3);
+    ctx.fillRect(px + 8, py + 7, 8, 3);
+
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.78)';
+    ctx.fillRect(0, 0, W, 34);
+    ctx.font = '14px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(`PTS ${state.score}`, 10, 22);
+    ctx.textAlign = 'center';
+    ctx.fillText(`TRAMO ${state.stage + 1}/${OUT_RUN.stages}`, W / 2, 22);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = state.time < 10 ? '#ff4d6d' : '#7df9ff';
+    ctx.fillText(`T ${state.time.toFixed(1)}`, W - 10, 22);
+    ctx.fillStyle = '#1b2440';
+    ctx.fillRect(10, H - 10, 120, 5);
+    ctx.fillStyle = turboOn ? '#ffd166' : '#24e6ff';
+    const turboFill = turboOn
+      ? state.turbo / OUT_RUN.turboDuration
+      : 1 - state.turboCd / OUT_RUN.turboCooldown;
+    ctx.fillRect(10, H - 10, 120 * clamp(turboFill, 0, 1), 5);
+    ctx.restore();
+  },
+
   observe(state) {
     let nearest: OutRunRival | null = null;
     let nearestDz = Infinity;

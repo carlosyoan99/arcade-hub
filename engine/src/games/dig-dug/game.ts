@@ -544,6 +544,119 @@ export const digDugGame = defineGame<DigDugState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: c/r son celdas enteras, sin interpolación pendiente.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const gs = DIGDUG.gs;
+    const W = DIGDUG.cols * gs;
+    const H = DIGDUG.rows * gs;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let r = 0; r < DIGDUG.rows; r++) {
+      for (let c = 0; c < DIGDUG.cols; c++) {
+        const tile = state.grid[r]?.[c] ?? DIGDUG.dirt;
+        const x = c * gs;
+        const y = r * gs;
+        if (tile === DIGDUG.dirt) {
+          ctx.fillStyle = '#241437';
+          ctx.fillRect(x, y, gs, gs);
+          ctx.strokeStyle = '#3a2450';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, gs - 1, gs - 1);
+        } else if (tile === DIGDUG.rock) {
+          ctx.fillStyle = '#070a12';
+          ctx.fillRect(x, y, gs, gs);
+          ctx.fillStyle = '#ffc857';
+          ctx.beginPath();
+          ctx.arc(x + gs / 2, y + gs / 2, gs * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = '#080b14';
+          ctx.fillRect(x, y, gs, gs);
+        }
+      }
+    }
+
+    for (const fruit of state.fruits) {
+      ctx.fillStyle = '#ff5f9e';
+      ctx.beginPath();
+      ctx.arc((fruit.c + 0.5) * gs, (fruit.r + 0.5) * gs, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    for (const rock of state.fallingRocks) {
+      ctx.fillStyle = '#ffc857';
+      ctx.beginPath();
+      ctx.arc((rock.c + 0.5) * gs, (rock.r + 0.5) * gs, gs * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const enemy of state.enemies) {
+      if (!enemy.alive) continue;
+      const ex = (enemy.c + 0.5) * gs;
+      const ey = (enemy.r + 0.5) * gs;
+      const radius = gs * (0.32 + enemy.inflation * 0.16);
+      ctx.fillStyle = enemy.type === 'fygar' ? '#ff8a3d' : '#ff3fa4';
+      ctx.beginPath();
+      ctx.arc(ex, ey, radius, 0, Math.PI * 2);
+      ctx.fill();
+      if (enemy.type === 'fygar') {
+        ctx.beginPath();
+        ctx.moveTo(ex + radius * 0.6, ey - 4);
+        ctx.lineTo(ex + radius + 6, ey);
+        ctx.lineTo(ex + radius * 0.6, ey + 4);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(ex - 5, ey - radius, 3, 0, Math.PI * 2);
+        ctx.arc(ex + 5, ey - radius, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = enemy.stunned > 0 ? '#ffc857' : '#f5f8ff';
+      ctx.fillRect(ex - 5, ey - 3, 3, 3);
+      ctx.fillRect(ex + 2, ey - 3, 3, 3);
+    }
+
+    if (state.pumpTarget !== null) {
+      const target = state.enemies[state.pumpTarget];
+      if (target !== undefined && target.alive) {
+        ctx.strokeStyle = '#5ef2ff';
+        ctx.lineWidth = 2 + state.pumpProgress * 3;
+        ctx.beginPath();
+        ctx.moveTo((state.c + 0.5) * gs, (state.r + 0.5) * gs);
+        ctx.lineTo((target.c + 0.5) * gs, (target.r + 0.5) * gs);
+        ctx.stroke();
+      }
+    }
+
+    const px = (state.c + 0.5) * gs;
+    const py = (state.r + 0.5) * gs;
+    ctx.fillStyle = state.invincibleTimer > 0 ? '#b6f7ff' : '#5ef2ff';
+    ctx.beginPath();
+    ctx.arc(px, py, gs * 0.34, 0, Math.PI * 2);
+    ctx.fill();
+    const dc = DC[state.dir] ?? 0;
+    const dr = DR[state.dir] ?? 0;
+    ctx.fillStyle = '#ffc857';
+    ctx.beginPath();
+    ctx.moveTo(px + dc * gs * 0.75 - dr * 4, py + dr * gs * 0.75 - dc * 4);
+    ctx.lineTo(px + dc * gs * 0.75 + dr * 4, py + dr * gs * 0.75 + dc * 4);
+    ctx.lineTo(px + dc * gs * 0.3, py + dr * gs * 0.3);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(5,6,15,0.88)';
+    ctx.fillRect(0, 0, W, 20);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '13px monospace';
+    ctx.fillText(`DIG  L${state.level}  x${state.lives}  ${String(state.score).padStart(6, '0')}`, 6, 15);
+    ctx.restore();
+  },
+
   rules: singlePlayerRules<DigDugState>(
     (state) => state.score + state.level * 300 - (state.over ? 500 : 0),
   ),

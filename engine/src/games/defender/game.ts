@@ -557,6 +557,163 @@ export const defenderGame = defineGame<DefenderState>({
     }
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha: cámara y entidades usan las coordenadas exactas del tick.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = DEFENDER.viewW;
+    const H = DEFENDER.height;
+    const groundY = DEFENDER.groundY;
+
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#04060f';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#93a8d6';
+    for (let i = 0; i < 50; i++) {
+      const sx = (((i * 149 - state.cameraX * 0.2) % (W + 20)) + W + 20) % (W + 20) - 10;
+      const sy = (i * 67) % (groundY - 20);
+      ctx.globalAlpha = 0.3 + (i % 5) * 0.12;
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.save();
+    ctx.translate(-state.cameraX, 0);
+    ctx.fillStyle = '#0b1426';
+    ctx.fillRect(state.cameraX, groundY, W, H - groundY);
+    ctx.strokeStyle = '#25f4e6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(state.cameraX, groundY);
+    ctx.lineTo(state.cameraX + W, groundY);
+    ctx.stroke();
+
+    for (const human of state.humans) {
+      if (!human.alive || human.saved) continue;
+      ctx.fillStyle = '#7df9ff';
+      ctx.fillRect(human.x - 2, human.y - 10, 4, 10);
+      ctx.beginPath();
+      ctx.arc(human.x, human.y - 12, 3, 0, Math.PI * 2);
+      ctx.fill();
+      if (human.parachute && human.falling) {
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(human.x, human.y - 34, 12, Math.PI, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(human.x - 12, human.y - 34);
+        ctx.lineTo(human.x - 2, human.y - 12);
+        ctx.moveTo(human.x + 12, human.y - 34);
+        ctx.lineTo(human.x + 2, human.y - 12);
+        ctx.stroke();
+      }
+    }
+
+    for (const enemy of state.enemies) {
+      const color =
+        enemy.type === 'lander' ? '#ff5cf0' : enemy.type === 'bomber' ? '#ff9f43' : '#ff3f6e';
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      if (enemy.type === 'lander') {
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, enemy.size, Math.PI, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(enemy.x - enemy.size, enemy.y, enemy.size * 2, enemy.size * 0.8);
+      } else if (enemy.type === 'bomber') {
+        ctx.beginPath();
+        ctx.moveTo(enemy.x - enemy.size, enemy.y + enemy.size / 2);
+        ctx.lineTo(enemy.x, enemy.y - enemy.size);
+        ctx.lineTo(enemy.x + enemy.size, enemy.y + enemy.size / 2);
+        ctx.lineTo(enemy.x - enemy.size, enemy.y + enemy.size / 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        for (let k = 0; k <= 8; k++) {
+          const a = (k * Math.PI) / 4;
+          const vx = enemy.x + Math.cos(a) * enemy.size;
+          const vy = enemy.y + Math.sin(a) * enemy.size;
+          if (k === 0) ctx.moveTo(vx, vy);
+          else ctx.lineTo(vx, vy);
+        }
+        ctx.fill();
+      }
+      if (enemy.carrying !== null) {
+        ctx.fillStyle = '#7df9ff';
+        ctx.fillRect(enemy.x - 2, enemy.y + 12, 4, 8);
+      }
+      if (enemy.phase === 'escaping') {
+        ctx.strokeStyle = state.ticks % 8 < 4 ? '#ffffff' : color;
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, enemy.size + 5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.strokeStyle = '#fff3a0';
+    ctx.lineWidth = 2;
+    for (const laser of state.lasers) {
+      ctx.beginPath();
+      ctx.moveTo(laser.x - laser.vx * 0.012, laser.y);
+      ctx.lineTo(laser.x, laser.y);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#ff3f6e';
+    for (const bomb of state.bombs) {
+      ctx.beginPath();
+      ctx.arc(bomb.x, bomb.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const ship = state.ship;
+    ctx.save();
+    ctx.translate(ship.x, ship.y);
+    if (ship.vx !== 0 || ship.vy !== 0) {
+      ctx.rotate(Math.atan2(ship.vy, Math.abs(ship.vx) + 1) * 0.25);
+    }
+    ctx.fillStyle = ship.invuln > 0 && state.ticks % 10 < 5 ? '#ffffff' : '#25f4e6';
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.lineTo(-10, -8);
+    ctx.lineTo(-6, 0);
+    ctx.lineTo(-10, 8);
+    ctx.lineTo(14, 0);
+    ctx.fill();
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(-14, -2, 5, 4);
+    ctx.restore();
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.82)';
+    ctx.fillRect(0, 0, W, 40);
+    ctx.font = '14px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(`PTS ${state.score} · VIDAS ${state.lives}`, 10, 18);
+    ctx.textAlign = 'center';
+    ctx.fillText(`OLEADA ${state.waves + 1} · RESCATADOS ${state.humansSaved}`, W / 2, 18);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffd166';
+    ctx.fillText(`B ${state.bombsLeft} · N ${state.nuclearLeft}`, W - 10, 18);
+    const mapW = W - 20;
+    ctx.fillStyle = '#131a2f';
+    ctx.fillRect(10, 29, mapW, 6);
+    ctx.fillStyle = '#7df9ff';
+    for (const human of state.humans) {
+      if (!human.alive || human.saved) continue;
+      ctx.fillRect(10 + (human.x / DEFENDER.worldW) * mapW, 29, 2, 6);
+    }
+    ctx.fillStyle = '#ff5cf0';
+    for (const enemy of state.enemies) {
+      ctx.fillRect(10 + (enemy.x / DEFENDER.worldW) * mapW, 30, 2, 4);
+    }
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(10 + (ship.x / DEFENDER.worldW) * mapW - 1, 27, 3, 10);
+    ctx.restore();
+  },
+
   observe(state) {
     const carrier = state.enemies.find((enemy) => enemy.carrying !== null);
     return new Float32Array([

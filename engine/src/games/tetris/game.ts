@@ -464,6 +464,97 @@ export const tetrisGame = defineGame<TetrisState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // alpha se ignora: piece/ghost ya están resueltos en el estado.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const cell = 28;
+    const boardW = TETRIS.cols * cell;
+    const boardH = TETRIS.rows * cell;
+    const panelW = 120;
+    const gap = 16;
+    const boardX = panelW + gap;
+    const width = boardW + panelW * 2 + gap * 2;
+    const colors = [
+      '#64748b', '#22d3ee', '#facc15', '#c084fc', '#4ade80', '#fb7185', '#60a5fa', '#fb923c',
+    ];
+    ctx.clearRect(0, 0, width, boardH);
+    ctx.fillStyle = '#060918';
+    ctx.fillRect(0, 0, width, boardH);
+    ctx.fillStyle = 'rgba(15,23,42,0.85)';
+    ctx.fillRect(boardX, 0, boardW, boardH);
+
+    ctx.strokeStyle = 'rgba(148,163,184,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let c = 0; c <= TETRIS.cols; c++) {
+      ctx.moveTo(boardX + c * cell, 0);
+      ctx.lineTo(boardX + c * cell, boardH);
+    }
+    for (let r = 0; r <= TETRIS.rows; r++) {
+      ctx.moveTo(boardX, r * cell);
+      ctx.lineTo(boardX + boardW, r * cell);
+    }
+    ctx.stroke();
+
+    const block = (col: number, row: number, color: string, ghost = false): void => {
+      if (col < 0 || col >= TETRIS.cols || row < TETRIS.hiddenRows) return;
+      const x = boardX + col * cell;
+      const y = (row - TETRIS.hiddenRows) * cell;
+      ctx.save();
+      if (ghost) {
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 2, y + 2, cell - 4, cell - 4);
+      } else {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(x + 2, y + 2, cell - 4, 3);
+      }
+      ctx.restore();
+    };
+    for (let row = TETRIS.hiddenRows; row < state.grid.length; row++) {
+      for (let col = 0; col < TETRIS.cols; col++) {
+        const value = state.grid[row]![col]!;
+        if (value !== 0) block(col, row, colors[value] ?? colors[0]!);
+      }
+    }
+    const piece = state.piece;
+    if (piece && !state.over) {
+      const color = colors[piece.color] ?? colors[0]!;
+      for (const [bx, by] of piece.blocks) block(piece.x + bx, state.ghostY + by, color, true);
+      for (const [bx, by] of piece.blocks) block(piece.x + bx, piece.y + by, color);
+    }
+
+    const mini = (name: TetrisName | null, ox: number, oy: number, scale: number, dim = false): void => {
+      if (name === null) return;
+      ctx.save();
+      if (dim) ctx.globalAlpha = 0.45;
+      ctx.fillStyle = colors[NAME_INDEX[name]]!;
+      for (const [bx, by] of rotateBlocks(name, 0)) {
+        ctx.fillRect(ox + bx * scale, oy + by * scale, scale - 2, scale - 2);
+      }
+      ctx.restore();
+    };
+    ctx.font = 'bold 14px monospace';
+    ctx.fillStyle = '#94a3b8';
+    ctx.textAlign = 'center';
+    ctx.fillText('HOLD', panelW / 2, 22);
+    mini(state.hold, panelW / 2 - 20, 34, 10, !state.canHold);
+    ctx.fillText('NEXT', width - panelW / 2, 22);
+    for (let i = 0; i < Math.min(4, state.next.length); i++) {
+      mini(state.next[i] ?? null, width - panelW / 2 - 16, 40 + i * 34, 8, i > 0);
+    }
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(`PTS ${state.score}`, 8, boardH - 72);
+    ctx.fillText(`LIN ${state.lines}`, 8, boardH - 52);
+    ctx.fillText(`LV ${state.level}`, 8, boardH - 32);
+  },
+
   rules: singlePlayerRules<TetrisState>((state) =>
     state.score + state.lines * 100 + state.level * 50 - (state.over ? 500 : 0),
   ),

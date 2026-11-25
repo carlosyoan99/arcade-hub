@@ -536,6 +536,126 @@ export const qbertGame = defineGame<QbertState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: x/y del estado ya incluyen el arco del salto.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = 720;
+    const H = 470;
+    const hw = QBERT.stepX * 0.47;
+    const hh = QBERT.stepY * 0.34;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#060713';
+    ctx.fillRect(0, 0, W, H);
+
+    for (const cube of state.cubes) {
+      const pos = cubePos(cube.k, cube.i);
+      const x = pos.x;
+      const y = pos.y;
+      ctx.fillStyle = '#0d1a30';
+      ctx.beginPath();
+      ctx.moveTo(x - hw, y);
+      ctx.lineTo(x, y + hh);
+      ctx.lineTo(x, y + hh + 10);
+      ctx.lineTo(x - hw, y + 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#091322';
+      ctx.beginPath();
+      ctx.moveTo(x, y + hh);
+      ctx.lineTo(x + hw, y);
+      ctx.lineTo(x + hw, y + 10);
+      ctx.lineTo(x, y + hh + 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = cube.colored ? '#ff3fa4' : '#173a63';
+      ctx.beginPath();
+      ctx.moveTo(x, y - hh);
+      ctx.lineTo(x + hw, y);
+      ctx.lineTo(x, y + hh);
+      ctx.lineTo(x - hw, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = cube.colored ? '#ffb3dd' : '#3f8fc4';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    for (const powerup of [state.disc, state.boost]) {
+      if (powerup === null) continue;
+      const pos = cubePos(powerup.k, powerup.i);
+      ctx.fillStyle = powerup === state.disc ? '#ffc857' : '#5ef2ff';
+      ctx.fillRect(pos.x - 7, pos.y - 7, 14, 14);
+      ctx.fillStyle = '#060713';
+      ctx.fillRect(pos.x - 3, pos.y - 3, 6, 6);
+    }
+
+    for (const hopper of [state.coily, ...state.slick]) {
+      if (hopper === null || hopper.dead) continue;
+      const color = hopper.kind === 'coily' ? '#b06bff' : '#ff5f9e';
+      ctx.fillStyle = color;
+      if (hopper.kind === 'coily') {
+        for (let i = 2; i >= 0; i--) {
+          ctx.beginPath();
+          ctx.arc(hopper.x, hopper.y + i * 9, 11 - i * 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        ctx.beginPath();
+        ctx.arc(hopper.x, hopper.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(hopper.x - 15, hopper.y - 19, 30, 4);
+      }
+      ctx.fillStyle = '#f5f8ff';
+      ctx.fillRect(hopper.x - 6, hopper.y - 5, 4, 4);
+      ctx.fillRect(hopper.x + 2, hopper.y - 5, 4, 4);
+    }
+
+    if (state.alive) {
+      ctx.fillStyle = '#ffc857';
+      ctx.beginPath();
+      ctx.arc(state.x, state.y, 15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#5ef2ff';
+      ctx.beginPath();
+      ctx.moveTo(state.x - 7, state.y - 4);
+      ctx.lineTo(state.x + 12, state.y + 1);
+      ctx.lineTo(state.x - 7, state.y + 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#060713';
+      ctx.fillRect(state.x - 7, state.y - 11, 4, 4);
+      ctx.fillRect(state.x + 1, state.y - 11, 4, 4);
+      if (state.inv > 0) {
+        ctx.strokeStyle = '#5ef2ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(state.x, state.y, 21, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    } else {
+      ctx.strokeStyle = '#ff3fa4';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(state.x - 10, state.y - 10);
+      ctx.lineTo(state.x + 10, state.y + 10);
+      ctx.moveTo(state.x + 10, state.y - 10);
+      ctx.lineTo(state.x - 10, state.y + 10);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(6,7,19,0.88)';
+    ctx.fillRect(0, H - 24, W, 24);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '15px monospace';
+    ctx.fillText(`Q*BERT  L${state.level}  x${state.lives}  ${String(state.score).padStart(6, '0')}`, 10, H - 7);
+    ctx.fillStyle = '#ffc857';
+    const colored = state.cubes.reduce((sum, cube) => sum + (cube.colored ? 1 : 0), 0);
+    ctx.fillText(`${colored}/${state.cubes.length}`, W - 90, H - 7);
+    ctx.restore();
+  },
+
   rules: singlePlayerRules<QbertState>(
     (state) => state.score + state.level * 400 - (state.over ? 500 : 0),
   ),

@@ -243,6 +243,87 @@ export const dinoGame = defineGame<DinoState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // alpha se ignora: el ciclo día/noche viene de state.isNight.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const { width, height, groundY } = DINO;
+    ctx.clearRect(0, 0, width, height);
+    const night = state.isNight;
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    if (night) {
+      sky.addColorStop(0, '#060b25');
+      sky.addColorStop(1, '#1b2445');
+    } else {
+      sky.addColorStop(0, '#7dd3fc');
+      sky.addColorStop(1, '#fef3c7');
+    }
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = night ? '#e2e8f0' : '#fff7ae';
+    ctx.beginPath();
+    ctx.arc(width - 90, night ? 70 : 80, night ? 30 : 36, 0, Math.PI * 2);
+    ctx.fill();
+    if (night) {
+      ctx.fillStyle = '#cbd5e1';
+      for (let i = 0; i < 28; i++) {
+        const size = i % 4 === 0 ? 2 : 1;
+        ctx.fillRect((i * 137) % width, 18 + ((i * 59) % 130), size, size);
+      }
+    }
+
+    ctx.fillStyle = night ? '#263149' : '#d6d3a6';
+    ctx.fillRect(0, groundY, width, height - groundY);
+    ctx.fillStyle = night ? '#475569' : '#78716c';
+    const offset = Math.floor(state.distance) % 40;
+    for (let x = -offset; x < width; x += 40) ctx.fillRect(x, groundY + 24, 20, 3);
+
+    for (const obstacle of state.obstacles) {
+      if (obstacle.type === 'cactus') {
+        ctx.fillStyle = night ? '#15803d' : '#166534';
+        ctx.fillRect(obstacle.x - obstacle.w / 2, obstacle.y, obstacle.w, obstacle.h);
+        ctx.fillStyle = night ? '#22c55e' : '#16a34a';
+        ctx.fillRect(obstacle.x - obstacle.w / 2 - 6, obstacle.y + obstacle.h * 0.35, 6, obstacle.h * 0.25);
+        ctx.fillRect(obstacle.x + obstacle.w / 2, obstacle.y + obstacle.h * 0.45, 6, obstacle.h * 0.2);
+      } else {
+        const wing = Math.sin(obstacle.phase) * 6;
+        ctx.fillStyle = night ? '#f472b6' : '#be123c';
+        ctx.fillRect(obstacle.x - obstacle.w / 2, obstacle.y + 4, obstacle.w, obstacle.h - 8);
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x - 8, obstacle.y + 6);
+        ctx.lineTo(obstacle.x - 22, obstacle.y + 6 - wing);
+        ctx.lineTo(obstacle.x - 4, obstacle.y + 14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x + 8, obstacle.y + 6);
+        ctx.lineTo(obstacle.x + 22, obstacle.y + 6 + wing);
+        ctx.lineTo(obstacle.x + 4, obstacle.y + 14);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    const w = state.ducking && state.onGround ? DINO.duckW : DINO.standW;
+    const h = state.ducking && state.onGround ? DINO.duckH : DINO.standH;
+    const top = state.y - h;
+    ctx.fillStyle = night ? '#a3e635' : '#365314';
+    ctx.fillRect(DINO.x, top, w, h);
+    ctx.fillStyle = night ? '#0f172a' : '#f8fafc';
+    ctx.fillRect(DINO.x + w - 10, top + 8, 5, 5);
+    const stride = Math.floor(state.ticks / 5) % 2 === 0 ? 4 : -2;
+    ctx.fillStyle = night ? '#65a30d' : '#1a2e05';
+    ctx.fillRect(DINO.x + 5 + stride, state.y - 6, 8, 6);
+    ctx.fillRect(DINO.x + w - 13 - stride, state.y - 6, 8, 6);
+
+    ctx.fillStyle = night ? '#e2e8f0' : '#1c1917';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText(`${String(state.score).padStart(5, '0')} m`, width - 110, 32);
+    ctx.font = '12px monospace';
+    ctx.fillText(night ? 'NOCHE' : 'DÍA', 14, 26);
+  },
+
   rules: singlePlayerRules<DinoState>((state) =>
     state.distance / 10 + state.milestone * 50 - (state.over ? 200 : 0),
   ),

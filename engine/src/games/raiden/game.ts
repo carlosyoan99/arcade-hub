@@ -655,6 +655,131 @@ export const raidenGame = defineGame<RaidenState>({
     ]);
   },
 
+  render(renderer, state, alpha) {
+    void alpha; // Sin interpolación: el estado ya contiene las posiciones del frame.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    ctx.save();
+    ctx.clearRect(0, 0, RAIDEN.width, RAIDEN.height);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, RAIDEN.width, RAIDEN.height);
+
+    // Carriles laterales fuera del área de juego.
+    ctx.fillStyle = '#0b1220';
+    ctx.fillRect(0, 0, RAIDEN.playLeft, RAIDEN.height);
+    ctx.fillRect(RAIDEN.playRight, 0, RAIDEN.width - RAIDEN.playRight, RAIDEN.height);
+    ctx.strokeStyle = '#16233a';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(RAIDEN.playLeft, 0);
+    ctx.lineTo(RAIDEN.playLeft, RAIDEN.height);
+    ctx.moveTo(RAIDEN.playRight, 0);
+    ctx.lineTo(RAIDEN.playRight, RAIDEN.height);
+    ctx.stroke();
+    ctx.fillStyle = '#16233a';
+    for (let i = 0; i < 44; i++) {
+      const sx = RAIDEN.playLeft + ((i * 149) % RAIDEN.playWidth);
+      const sy = (i * 91 + state.ticks * 3) % RAIDEN.height;
+      ctx.fillRect(sx, sy, 2, 6);
+    }
+
+    ctx.lineWidth = 2;
+    for (const enemy of state.enemies) {
+      ctx.strokeStyle = enemy.type === 'ship' ? '#5ef2ff' : '#ff3fa4';
+      ctx.beginPath();
+      ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    for (const pickup of state.pickups) {
+      ctx.fillStyle = '#38f5a3';
+      ctx.fillRect(pickup.x - 6, pickup.y - 6, 12, 12);
+    }
+    for (const bullet of state.bullets) {
+      ctx.fillStyle = bullet.heavy ? '#ff3fa4' : '#ffd166';
+      ctx.fillRect(bullet.x - 2, bullet.y - 8, 4, 16);
+    }
+    for (const bullet of state.enemyBullets) {
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillRect(bullet.x - 2, bullet.y - 6, 4, 12);
+    }
+
+    // Bombas: anillo expansivo ligado al estado, sin sistema de partículas propio.
+    for (const bomb of state.bombs) {
+      ctx.strokeStyle = '#ffd166';
+      ctx.globalAlpha = Math.max(0, bomb.ttl / RAIDEN.bombTtl);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(bomb.x, bomb.y, bomb.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    if (state.boss) {
+      const boss = state.boss;
+      ctx.save();
+      ctx.translate(boss.x, boss.y);
+      ctx.rotate((state.ticks / 60) * (boss.phase % 2 === 0 ? 1 : -1));
+      ctx.strokeStyle = '#ff3fa4';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2;
+        const px = Math.cos(angle) * boss.r;
+        const py = Math.sin(angle) * boss.r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#16233a';
+      ctx.fillRect(RAIDEN.playLeft + 30, 10, RAIDEN.playWidth - 60, 6);
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillRect(
+        RAIDEN.playLeft + 30,
+        10,
+        (RAIDEN.playWidth - 60) * (boss.hp / boss.maxHp),
+        6,
+      );
+    }
+
+    // Destello breve de invulnerabilidad.
+    const player = state.player;
+    const blink = player.inv > 0 ? 0.4 + 0.45 * Math.sin(player.inv * 14) : 1;
+    ctx.save();
+    ctx.globalAlpha = blink;
+    ctx.translate(player.x, player.y);
+    ctx.strokeStyle = '#5ef2ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(12, 11);
+    ctx.lineTo(0, 5);
+    ctx.lineTo(-12, 11);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillText(`PTS ${state.score}`, 12, 24);
+    ctx.fillText(`VIDAS ${state.lives}  BOMBAS ${state.bombsLeft}`, 12, 44);
+    ctx.textAlign = 'right';
+    ctx.fillText(`SECTOR ${state.stage}`, RAIDEN.width - 12, 24);
+    if (state.selecting) {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffd166';
+      ctx.fillText(`ARMA: ${state.weapon}`, RAIDEN.width / 2, RAIDEN.height - 22);
+    }
+    if (state.paused || state.over || state.won) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 32px monospace';
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillText(state.won ? 'VICTORIA' : state.over ? 'FIN' : 'PAUSA', RAIDEN.width / 2, RAIDEN.height / 2);
+    }
+    ctx.restore();
+  },
   rules: singlePlayerRules<RaidenState>(
     (state) =>
       state.score + state.stage * 200 + state.lives * 25 + state.bombsLeft * 10 +

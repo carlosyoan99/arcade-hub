@@ -544,6 +544,134 @@ export const bombermanGame = defineGame<BombermanState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: la interpolación vive en state.t / enemy.t.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const cell = BOMBERMAN.cell;
+    const W = BOMBERMAN.cols * cell;
+    const H = BOMBERMAN.rows * cell;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let r = 0; r < BOMBERMAN.rows; r++) {
+      for (let c = 0; c < BOMBERMAN.cols; c++) {
+        const x = c * cell;
+        const y = r * cell;
+        const tile = state.grid[r]?.[c] ?? BOMBERMAN.wall;
+        if (tile === BOMBERMAN.wall) {
+          ctx.fillStyle = '#102244';
+          ctx.fillRect(x, y, cell, cell);
+          ctx.strokeStyle = '#2b78ad';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 2, y + 2, cell - 4, cell - 4);
+        } else if (tile === BOMBERMAN.brick) {
+          ctx.fillStyle = '#3d1734';
+          ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+          ctx.fillStyle = '#ff3fa4';
+          ctx.fillRect(x + 4, y + cell / 2 - 1, cell - 8, 2);
+          ctx.fillRect(x + cell / 2 - 1, y + 4, 2, cell - 8);
+        } else {
+          ctx.fillStyle = '#080e18';
+          ctx.fillRect(x, y, cell, cell);
+          ctx.strokeStyle = '#14283a';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
+        }
+      }
+    }
+
+    const door = BOMBERMAN.door;
+    ctx.fillStyle = state.doorActive ? '#ffc857' : '#2b2418';
+    ctx.fillRect(door.c * cell + 9, door.r * cell + 9, cell - 18, cell - 18);
+    ctx.strokeStyle = '#ffc857';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(door.c * cell + 9, door.r * cell + 9, cell - 18, cell - 18);
+
+    const pickupColors: Record<string, string> = {
+      bomb: '#5ef2ff',
+      fire: '#ff3fa4',
+      speed: '#ffc857',
+      full: '#7dff9b',
+      detonator: '#c08bff',
+    };
+    for (const pickup of state.pickups) {
+      const px = (pickup.col + 0.5) * cell;
+      const py = (pickup.row + 0.5) * cell;
+      ctx.fillStyle = pickupColors[pickup.type] ?? '#5ef2ff';
+      ctx.beginPath();
+      ctx.moveTo(px, py - 9);
+      ctx.lineTo(px + 8, py);
+      ctx.lineTo(px, py + 9);
+      ctx.lineTo(px - 8, py);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    for (const blast of state.blasts) {
+      ctx.globalAlpha = Math.max(0, Math.min(1, blast.ttl / BOMBERMAN.blastTtl));
+      ctx.fillStyle = '#ff8a3d';
+      ctx.fillRect(blast.col * cell + 2, blast.row * cell + 2, cell - 4, cell - 4);
+      ctx.fillStyle = '#ffe3a0';
+      ctx.fillRect(blast.col * cell + 9, blast.row * cell + 9, cell - 18, cell - 18);
+    }
+    ctx.globalAlpha = 1;
+
+    for (const bomb of state.bombs) {
+      const bx = (bomb.col + 0.5) * cell;
+      const by = (bomb.row + 0.5) * cell;
+      ctx.fillStyle = '#070a14';
+      ctx.beginPath();
+      ctx.arc(bx, by + 2, cell * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#5ef2ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#ffc857';
+      ctx.fillRect(bx + 5, by - cell * 0.34, 4, 8);
+    }
+
+    for (const enemy of state.enemies) {
+      if (enemy.dead) continue;
+      const ex = (enemy.col + (enemy.moving ? enemy.dirC * enemy.t : 0) + 0.5) * cell;
+      const ey = (enemy.row + (enemy.moving ? enemy.dirR * enemy.t : 0) + 0.5) * cell;
+      ctx.fillStyle = enemy.type === 'oneal' ? '#b06bff' : '#ff5f9e';
+      ctx.beginPath();
+      ctx.arc(ex, ey, cell * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f4f7ff';
+      ctx.fillRect(ex - 8, ey - 5, 5, 5);
+      ctx.fillRect(ex + 3, ey - 5, 5, 5);
+    }
+
+    if (state.alive) {
+      const px = (state.col + (state.moving ? state.dirC * state.t : 0) + 0.5) * cell;
+      const py = (state.row + (state.moving ? state.dirR * state.t : 0) + 0.5) * cell;
+      ctx.fillStyle = '#5ef2ff';
+      ctx.beginPath();
+      ctx.arc(px, py, cell * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#05060f';
+      ctx.fillRect(px + state.dirC * 8 - 3, py + state.dirR * 8 - 3, 6, 6);
+      if (state.inv > 0) {
+        ctx.strokeStyle = '#ffc857';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, py, cell * 0.42, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle = 'rgba(5,6,15,0.86)';
+    ctx.fillRect(0, 0, W, 24);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '15px monospace';
+    ctx.fillText(`BOMBER  L${state.level}  x${state.lives}  ${String(state.score).padStart(6, '0')}`, 8, 17);
+    ctx.restore();
+  },
+
   rules: singlePlayerRules<BombermanState>(
     (state) => state.score + state.level * 200 - (state.over ? 500 : 0),
   ),

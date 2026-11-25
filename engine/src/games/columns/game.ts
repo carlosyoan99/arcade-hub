@@ -402,6 +402,115 @@ export const columnsGame = defineGame<ColumnsState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // alpha se ignora: el parpadeo de flash se deriva de flashTimer.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const cell = 40;
+    const boardW = COLUMNS.cols * cell;
+    const boardH = COLUMNS.rows * cell;
+    const panelX = boardW + 16;
+    const panelW = 140;
+    const width = panelX + panelW;
+    const colors = ['#ff4d6d', '#fb923c', '#facc15', '#4ade80', '#22d3ee', '#c084fc', '#f8fafc', '#fde047', '#a855f7'];
+    ctx.clearRect(0, 0, width, boardH);
+    ctx.fillStyle = '#070b1c';
+    ctx.fillRect(0, 0, width, boardH);
+
+    ctx.strokeStyle = 'rgba(56,189,248,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let col = 0; col <= COLUMNS.cols; col++) {
+      ctx.moveTo(col * cell, 0);
+      ctx.lineTo(col * cell, boardH);
+    }
+    for (let row = 0; row <= COLUMNS.rows; row++) {
+      ctx.moveTo(0, row * cell);
+      ctx.lineTo(boardW, row * cell);
+    }
+    ctx.stroke();
+
+    const gem = (col: number, row: number, value: number, flash: boolean): void => {
+      if (row < 0 || row >= COLUMNS.rows || col < 0 || col >= COLUMNS.cols) return;
+      const cx = col * cell + cell / 2;
+      const cy = row * cell + cell / 2;
+      const r = cell * 0.36;
+      ctx.fillStyle = colors[value] ?? colors[0]!;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.beginPath();
+      ctx.moveTo(cx - r * 0.55, cy - r * 0.15);
+      ctx.lineTo(cx, cy - r * 0.8);
+      ctx.lineTo(cx + r * 0.55, cy - r * 0.15);
+      ctx.closePath();
+      ctx.fill();
+      if (flash) {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 1, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      if (value === COLUMNS.special.flash) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx - 2, cy - 6, 4, 12);
+        ctx.fillRect(cx - 6, cy - 2, 12, 4);
+      } else if (value === COLUMNS.special.lightning) {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - 3, cy - 7);
+        ctx.lineTo(cx + 3, cy - 1);
+        ctx.lineTo(cx - 2, cy + 7);
+        ctx.stroke();
+      } else if (value === COLUMNS.special.poison) {
+        ctx.save();
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+    const flashing = new Set(state.flashCells);
+    const flashOn = state.flashTimer > 0 && Math.floor(state.flashTimer / 4) % 2 === 0;
+    for (let row = 0; row < COLUMNS.rows; row++) {
+      for (let col = 0; col < COLUMNS.cols; col++) {
+        const value = state.board[row]![col]!;
+        if (value >= 0) gem(col, row, value, flashOn && flashing.has(`${row},${col}`));
+      }
+    }
+    for (let i = 0; i < 3; i++) {
+      gem(state.piece.col, state.piece.row + i, state.piece.gems[i]!, false);
+    }
+
+    ctx.font = 'bold 14px monospace';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('NEXT', panelX + 8, 24);
+    if (state.nextGem >= 0) {
+      const cx = panelX + panelW / 2;
+      const cy = 62;
+      const r = cell * 0.5;
+      ctx.fillStyle = colors[state.nextGem] ?? colors[0]!;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.beginPath();
+      ctx.arc(cx - r * 0.3, cy - r * 0.35, r * 0.24, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(`PTS ${state.score}`, panelX + 8, boardH - 72);
+    ctx.fillText(`LV ${state.level}`, panelX + 8, boardH - 52);
+    ctx.fillText(`CHAIN ${state.maxChain}`, panelX + 8, boardH - 32);
+  },
+
   rules: singlePlayerRules<ColumnsState>((state) =>
     state.score + state.maxChain * 100 + state.gemsCleared - (state.over ? 300 : 0),
   ),

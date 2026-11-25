@@ -500,6 +500,100 @@ export const joustGame = defineGame<JoustState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // alpha se ignora: parpadeos y oleadas se derivan de ticks y del estado.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const { width, height } = JOUST;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#0b0618';
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = 'rgba(226,232,240,0.35)';
+    for (let i = 0; i < 24; i++) {
+      const size = 1 + (i % 2);
+      ctx.fillRect((i * 181) % width, (i * 73) % (height - 120), size, size);
+    }
+    for (const platform of JOUST.platforms) {
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillRect(platform.x, platform.y, platform.w, 2);
+    }
+
+    const lava = ctx.createLinearGradient(0, state.lavaY, 0, height);
+    lava.addColorStop(0, '#fb923c');
+    lava.addColorStop(1, '#b91c1c');
+    ctx.fillStyle = lava;
+    ctx.fillRect(0, state.lavaY, width, height - state.lavaY);
+    ctx.fillStyle = 'rgba(255,237,213,0.7)';
+    for (let x = 0; x < width; x += 24) {
+      ctx.fillRect(x, state.lavaY + 2 + Math.sin(state.ticks * 0.1 + x * 0.05) * 3, 12, 2);
+    }
+
+    const riderColors: Record<JoustEnemyType, string> = {
+      bounder: '#f97316',
+      hunter: '#22d3ee',
+      vulture: '#a3e635',
+      'shadow-lord': '#c084fc',
+      pterodactyl: '#fb7185',
+    };
+    const rider = (x: number, y: number, color: string, facing: number): void => {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, JOUST.playerW, JOUST.playerH);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(x + 3, y + 3, JOUST.playerW - 6, 3);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x + 6, y + 10);
+      ctx.lineTo(x - 8, y + 2);
+      ctx.lineTo(x + 2, y + 20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + JOUST.playerW - 6, y + 10);
+      ctx.lineTo(x + JOUST.playerW + 8, y + 2);
+      ctx.lineTo(x + JOUST.playerW - 2, y + 20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + JOUST.playerW / 2, y + JOUST.playerH / 2);
+      ctx.lineTo(x + JOUST.playerW / 2 + facing * 22, y + JOUST.playerH / 2 - 6);
+      ctx.stroke();
+    };
+    for (const enemy of state.enemies) {
+      rider(enemy.x, enemy.y, riderColors[enemy.type], enemy.vx >= 0 ? 1 : -1);
+    }
+    if (state.player.invincible <= 0 || Math.floor(state.ticks / 4) % 2 === 0) {
+      rider(state.player.x, state.player.y, '#5ef2ff', state.player.facing);
+    }
+
+    // Huevos: closer al hatch = contorno más caliente y pulso más visible.
+    for (const egg of state.eggs) {
+      const progress = 1 - Math.max(0, egg.timer) / JOUST.eggHatchSeconds;
+      ctx.save();
+      ctx.globalAlpha = 0.75 + 0.25 * Math.sin(state.ticks * 0.2 + egg.x);
+      ctx.fillStyle = '#fef3c7';
+      ctx.beginPath();
+      ctx.ellipse(egg.x, egg.y, 9, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = progress > 0.7 ? '#f97316' : '#d6d3d1';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(0, 0, width, 28);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(`PTS ${state.score}`, 8, 19);
+    ctx.textAlign = 'right';
+    ctx.fillText(`OLA ${state.wave}  VID ${state.lives}`, width - 8, 19);
+    ctx.textAlign = 'left';
+  },
+
   rules: singlePlayerRules<JoustState>((state) =>
     state.score + state.wave * 500 + state.lives * 100 - (state.over ? 1000 : 0),
   ),

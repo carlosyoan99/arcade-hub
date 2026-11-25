@@ -277,6 +277,118 @@ export const tempestGame = defineGame<TempestState>({
     ]);
   },
 
+  render(renderer, state, alpha) {
+    void alpha; // Sin interpolación: el estado ya contiene las posiciones del frame.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    // Tempest no declara dimensiones: usamos un viewport local para proyectar el tubo.
+    const width = 800;
+    const height = 600;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = 240;
+    const project = (side: number, depth: number): { x: number; y: number } => {
+      const angle = -Math.PI / 2 + (side / TEMPEST.sides) * Math.PI * 2;
+      const r = radius * Math.max(0, Math.min(1, depth));
+      return { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r };
+    };
+    ctx.save();
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, width, height);
+
+    // Tubo: anillos concéntricos y 16 radios desde el centro.
+    ctx.lineWidth = 1;
+    for (const depth of [0.25, 0.5, 0.75, 1]) {
+      ctx.strokeStyle = depth === 1 ? '#5ef2ff' : '#16233a';
+      ctx.beginPath();
+      for (let side = 0; side <= TEMPEST.sides; side++) {
+        const point = project(side % TEMPEST.sides, depth);
+        if (side === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      }
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#101a2e';
+    for (let side = 0; side < TEMPEST.sides; side++) {
+      const inner = project(side, 0);
+      const outer = project(side, 1);
+      ctx.beginPath();
+      ctx.moveTo(inner.x, inner.y);
+      ctx.lineTo(outer.x, outer.y);
+      ctx.stroke();
+    }
+
+    for (const bullet of state.bullets) {
+      const point = project(bullet.angle, bullet.depth);
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(point.x - 3, point.y - 3, 6, 6);
+    }
+    ctx.lineWidth = 2;
+    for (const enemy of state.enemies) {
+      const point = project(enemy.angle, enemy.depth);
+      if (enemy.type === 'fuseball') {
+        ctx.fillStyle = '#ff3fa4';
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (enemy.type === 'pulsar') {
+        ctx.fillStyle = '#ffb347';
+        ctx.fillRect(point.x - 6, point.y - 6, 12, 12);
+      } else {
+        ctx.strokeStyle = '#5ef2ff';
+        ctx.beginPath();
+        ctx.moveTo(point.x, point.y - 7);
+        ctx.lineTo(point.x + 7, point.y + 5);
+        ctx.lineTo(point.x - 7, point.y + 5);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+
+    const playerPoint = project(state.playerAngle, 1);
+    ctx.strokeStyle = '#5ef2ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(playerPoint.x, playerPoint.y, 13, 0, Math.PI * 2);
+    ctx.stroke();
+    // Salto de esquiva y fin de partida: destellos breves desde el estado.
+    if (state.jumping) {
+      ctx.strokeStyle = '#ffd166';
+      ctx.globalAlpha = 0.5 + 0.4 * Math.sin(state.jumpTimer * 14);
+      ctx.beginPath();
+      ctx.arc(playerPoint.x, playerPoint.y, 20, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = state.jumping ? '#ffd166' : '#ff3fa4';
+    ctx.beginPath();
+    ctx.arc(playerPoint.x, playerPoint.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+    if (state.over) {
+      ctx.fillStyle = '#ff3fa4';
+      ctx.globalAlpha = 0.2 + 0.2 * Math.sin(state.ticks * 0.25);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillText(`PTS ${state.score}`, 12, 22);
+    ctx.fillText(`OLEADA ${state.wave}`, 12, 42);
+    ctx.textAlign = 'right';
+    ctx.fillText(`NIVEL ${state.level}`, width - 12, 22);
+    if (state.paused || state.over) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 32px monospace';
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillText(state.over ? 'FIN' : 'PAUSA', cx, cy);
+    }
+    ctx.restore();
+  },
   rules: singlePlayerRules<TempestState>(
     (state) =>
       state.score + state.wave * 80 + state.ticks / 600 - (state.over ? 150 : 0),

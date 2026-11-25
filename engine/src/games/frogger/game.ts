@@ -459,6 +459,108 @@ export const froggerGame = defineGame<FroggerState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: las posiciones del estado ya son píxeles.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const cs = FROGGER.cs;
+    const W = FROGGER.cols * cs;
+    const H = FROGGER.rows * cs;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, W, H);
+
+    const laneColors: Record<LaneType, string> = {
+      goal: '#0d2c1c',
+      safe: '#121a24',
+      river: '#062a44',
+      road: '#181823',
+      start: '#101b12',
+    };
+    for (let row = 0; row < FROGGER.rows; row++) {
+      const lane = LANES[row];
+      if (lane === undefined) continue;
+      ctx.fillStyle = laneColors[lane.type];
+      ctx.fillRect(0, row * cs, W, cs);
+      ctx.strokeStyle = 'rgba(94,242,255,0.14)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, row * cs + 0.5);
+      ctx.lineTo(W, row * cs + 0.5);
+      ctx.stroke();
+    }
+
+    for (const goal of FROGGER.goalX) {
+      const gx = goal * cs - cs * 0.45;
+      const filled = state.goals.includes(goal);
+      ctx.fillStyle = filled ? '#ffc857' : '#0a3d26';
+      ctx.fillRect(gx, 3, cs * 0.9, cs - 6);
+      ctx.strokeStyle = '#3fd07a';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(gx, 3, cs * 0.9, cs - 6);
+    }
+
+    for (const obstacle of state.obstacles) {
+      const x = obstacle.x - obstacle.w / 2;
+      const y = obstacle.y - obstacle.h / 2;
+      if (obstacle.type === 'turtle') {
+        const diving = ((state.simTime + obstacle.divePhase) % obstacle.divePeriod) < obstacle.diveDur;
+        ctx.fillStyle = diving ? 'rgba(94,242,255,0.15)' : '#3fd0d8';
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.arc(x + obstacle.w * (0.2 + i * 0.3), obstacle.y, obstacle.h * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        continue;
+      }
+      ctx.fillStyle = obstacle.type === 'log'
+        ? '#8a5a3c'
+        : obstacle.type === 'croc'
+          ? '#3fd07a'
+          : obstacle.type === 'truck'
+            ? '#ffc857'
+            : obstacle.type === 'racecar'
+              ? '#5ef2ff'
+              : '#ff3fa4';
+      ctx.fillRect(x, y, obstacle.w, obstacle.h);
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, obstacle.w - 1, obstacle.h - 1);
+    }
+
+    for (const item of state.bonusItems) {
+      if (item.collected) continue;
+      ctx.fillStyle = item.type === 'snake' ? '#3fd07a' : item.type === 'fly' ? '#b06bff' : '#ff3fa4';
+      ctx.beginPath();
+      ctx.arc(item.x, item.y, 7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#5ef2ff';
+    ctx.beginPath();
+    ctx.arc(state.x, state.y, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0b3b2c';
+    ctx.fillRect(state.x - 14, state.y - 16, 7, 10);
+    ctx.fillRect(state.x + 7, state.y - 16, 7, 10);
+    ctx.fillRect(state.x - 14, state.y + 7, 7, 9);
+    ctx.fillRect(state.x + 7, state.y + 7, 7, 9);
+    ctx.fillStyle = '#f5f8ff';
+    ctx.fillRect(state.x - 7, state.y - 7, 5, 5);
+    ctx.fillRect(state.x + 2, state.y - 7, 5, 5);
+
+    ctx.fillStyle = 'rgba(5,6,15,0.88)';
+    ctx.fillRect(0, H - 22, W, 22);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '14px monospace';
+    ctx.fillText(`FROG  L${state.level}  x${state.lives}  ${String(state.score).padStart(5, '0')}`, 8, H - 7);
+    const barW = (W - 150) * Math.max(0, Math.min(1, state.timeLeft / FROGGER.timeLimit));
+    ctx.fillStyle = '#ffc857';
+    ctx.fillRect(120, H - 17, barW, 9);
+    ctx.restore();
+  },
+
   rules: singlePlayerRules<FroggerState>(
     (state) => state.score + state.goals.length * 100 - (state.over ? 400 : 0),
   ),

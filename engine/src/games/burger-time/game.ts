@@ -395,6 +395,107 @@ export const burgerTimeGame = defineGame<BurgerState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: el estado guarda las posiciones ya resueltas.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = BURGER.width;
+    const H = BURGER.height;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 1; i < state.platforms.length; i++) {
+      const upper = state.platforms[i - 1];
+      const lower = state.platforms[i];
+      if (upper === undefined || lower === undefined) continue;
+      for (const gx of lower.gaps) {
+        ctx.strokeStyle = '#2a86a8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(gx - 9, upper.y);
+        ctx.lineTo(gx - 9, lower.y);
+        ctx.moveTo(gx + 9, upper.y);
+        ctx.lineTo(gx + 9, lower.y);
+        ctx.stroke();
+        ctx.beginPath();
+        for (let y = upper.y + 10; y < lower.y; y += 14) {
+          ctx.moveTo(gx - 9, y);
+          ctx.lineTo(gx + 9, y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    for (const platform of state.platforms) {
+      ctx.strokeStyle = '#5ef2ff';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(0, platform.y);
+      ctx.lineTo(W, platform.y);
+      ctx.stroke();
+      for (const gx of platform.gaps) {
+        ctx.fillStyle = '#05060f';
+        ctx.fillRect(gx - 12, platform.y - 6, 24, 12);
+      }
+    }
+
+    const ingredientColors: Record<number, string> = {
+      [BURGER.bunBot]: '#ffc857',
+      [BURGER.patty]: '#ff3fa4',
+      [BURGER.tomato]: '#ff5f5f',
+      [BURGER.lettuce]: '#3fd07a',
+      [BURGER.bunTop]: '#ffd98a',
+    };
+    for (const ingredient of state.ingredients) {
+      ctx.fillStyle = ingredientColors[ingredient.type] ?? '#5ef2ff';
+      ctx.fillRect(ingredient.x - BURGER.ingredientW / 2, ingredient.y - BURGER.ingredientH / 2,
+        BURGER.ingredientW, BURGER.ingredientH);
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(ingredient.x - BURGER.ingredientW / 2, ingredient.y - BURGER.ingredientH / 2,
+        BURGER.ingredientW, BURGER.ingredientH);
+    }
+
+    for (const enemy of state.enemies) {
+      const color = enemy.stunned > 0
+        ? '#5ef2ff'
+        : enemy.type === 'hotdog'
+          ? '#ff3fa4'
+          : enemy.type === 'pickle'
+            ? '#3fd07a'
+            : '#ffc857';
+      const ey = platY(enemy.plat) - BURGER.playerH;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(enemy.x, ey + BURGER.playerH / 2, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#05060f';
+      ctx.fillRect(enemy.x + enemy.facing * 3 - 2, ey + 7, 3, 3);
+    }
+
+    if (state.stunned <= 0) {
+      ctx.fillStyle = '#f5f8ff';
+      ctx.fillRect(state.x - BURGER.playerW / 2, state.y - BURGER.playerH,
+        BURGER.playerW, BURGER.playerH);
+      ctx.fillStyle = '#5ef2ff';
+      ctx.fillRect(state.x - BURGER.playerW / 2 - 2, state.y - BURGER.playerH - 6,
+        BURGER.playerW + 4, 7);
+      ctx.fillStyle = '#05060f';
+      ctx.fillRect(state.x + state.facing * 4 - 2, state.y - BURGER.playerH + 6, 3, 3);
+    }
+
+    ctx.fillStyle = 'rgba(5,6,15,0.88)';
+    ctx.fillRect(0, 0, W, 22);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '14px monospace';
+    ctx.fillText(`BURGER  L${state.level}  x${state.lives}  ${String(state.score).padStart(5, '0')}`, 8, 16);
+    ctx.fillStyle = '#ffc857';
+    ctx.fillText(`${state.burgersCompleted} burgers`, W - 120, 16);
+    ctx.restore();
+  },
+
   rules: singlePlayerRules<BurgerState>(
     (state) => state.score + state.burgersCompleted * 200 - (state.over ? 500 : 0),
   ),

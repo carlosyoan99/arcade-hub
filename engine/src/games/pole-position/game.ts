@@ -340,6 +340,155 @@ export const polePositionGame = defineGame<PolePositionState>({
     }
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha: la cámara top-down ya usa posiciones exactas del tick.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = POLE_POSITION.width;
+    const H = POLE_POSITION.height;
+    const roadW = POLE_POSITION.roadWidth;
+    const bend = (y: number): number =>
+      Math.sin((state.roadOffset + y) * 0.008) * 36 + Math.sin((state.roadOffset + y) * 0.0025) * 22;
+
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05121a';
+    ctx.fillRect(0, 0, W, H);
+
+    const bandH = 20;
+    for (let y = 0; y < H; y += bandH) {
+      const c0 = W / 2 + bend(y);
+      const c1 = W / 2 + bend(Math.min(H, y + bandH));
+      const idx = Math.floor((state.roadOffset + y) / bandH);
+      ctx.fillStyle = idx % 2 === 0 ? '#071e16' : '#0a2619';
+      ctx.fillRect(0, y, W, bandH + 1);
+      ctx.fillStyle = idx % 2 === 0 ? '#1a2038' : '#161b31';
+      ctx.beginPath();
+      ctx.moveTo(c0 - roadW / 2, y);
+      ctx.lineTo(c0 + roadW / 2, y);
+      ctx.lineTo(c1 + roadW / 2, Math.min(H, y + bandH));
+      ctx.lineTo(c1 - roadW / 2, Math.min(H, y + bandH));
+      ctx.lineTo(c0 - roadW / 2, y);
+      ctx.fill();
+      ctx.strokeStyle = '#25f4e6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(c0 - roadW / 2, y);
+      ctx.lineTo(c1 - roadW / 2, Math.min(H, y + bandH));
+      ctx.stroke();
+      ctx.strokeStyle = '#ff2fa4';
+      ctx.beginPath();
+      ctx.moveTo(c0 + roadW / 2, y);
+      ctx.lineTo(c1 + roadW / 2, Math.min(H, y + bandH));
+      ctx.stroke();
+      if (idx % 3 === 0) {
+        ctx.strokeStyle = '#f8f3d0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(c0, y);
+        ctx.lineTo(c1, Math.min(H, y + bandH));
+        ctx.stroke();
+      }
+    }
+
+    if (state.circuitPattern === 'rain') {
+      ctx.strokeStyle = 'rgba(140, 200, 255, 0.35)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 36; i++) {
+        const x = (i * 61 + state.ticks * 9) % (W + 40) - 20;
+        const y = (i * 97 + state.ticks * 17) % H;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - 6, y + 14);
+        ctx.stroke();
+      }
+    }
+
+    for (const pickup of state.pickups) {
+      if (pickup.collected) continue;
+      const d = wrapDistance(pickup.dist - (state.roadOffset + state.player.y));
+      if (d > H + 60) continue;
+      const py = state.player.y - d;
+      const px = W / 2 + bend(py) + pickup.x;
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(state.ticks * 0.05);
+      ctx.fillStyle = pickup.kind === 'turbo' ? '#ffd166' : '#b56bff';
+      ctx.fillRect(-6, -6, 12, 12);
+      ctx.restore();
+    }
+
+    for (const rival of state.rivals) {
+      if (rival.y < -30 || rival.y > H + 30) continue;
+      ctx.fillStyle = '#ff3f6e';
+      ctx.fillRect(rival.x - POLE_POSITION.carW / 2, rival.y - POLE_POSITION.carH / 2, POLE_POSITION.carW, POLE_POSITION.carH);
+      ctx.strokeStyle = '#ffd0dc';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(rival.x - POLE_POSITION.carW / 2, rival.y - POLE_POSITION.carH / 2, POLE_POSITION.carW, POLE_POSITION.carH);
+      ctx.fillStyle = '#7df9ff';
+      ctx.fillRect(rival.x - POLE_POSITION.carW / 2 + 2, rival.y - POLE_POSITION.carH / 2 + 2, POLE_POSITION.carW - 4, 3);
+    }
+
+    const turboOn = state.turbo > 0;
+    const invincOn = state.invinc > 0;
+    ctx.save();
+    ctx.translate(state.player.x, state.player.y);
+    ctx.rotate(state.player.angle * 0.35);
+    if (turboOn) {
+      ctx.strokeStyle = 'rgba(255, 209, 102, 0.75)';
+      ctx.lineWidth = 2;
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * 9, 14);
+        ctx.lineTo(i * 9, 14 + 18 + (state.ticks % 8));
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle = invincOn && state.ticks % 10 < 5 ? '#ffffff' : turboOn ? '#ffd166' : '#24e6ff';
+    ctx.beginPath();
+    ctx.moveTo(0, -POLE_POSITION.carH);
+    ctx.lineTo(POLE_POSITION.carW, 0);
+    ctx.lineTo(POLE_POSITION.carW * 0.7, POLE_POSITION.carH);
+    ctx.lineTo(-POLE_POSITION.carW * 0.7, POLE_POSITION.carH);
+    ctx.lineTo(-POLE_POSITION.carW, 0);
+    ctx.lineTo(0, -POLE_POSITION.carH);
+    ctx.fill();
+    ctx.fillStyle = '#ff2f5e';
+    ctx.fillRect(-POLE_POSITION.carW + 1, POLE_POSITION.carH - 4, 4, 3);
+    ctx.fillRect(POLE_POSITION.carW - 5, POLE_POSITION.carH - 4, 4, 3);
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.82)';
+    ctx.fillRect(0, 0, W, 46);
+    ctx.font = '14px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(`POS ${state.position}/${POLE_POSITION.rivalCount + 1}`, 10, 18);
+    ctx.textAlign = 'center';
+    ctx.fillText(
+      `VUELTA ${Math.min(state.laps + 1, POLE_POSITION.raceLaps)}/${POLE_POSITION.raceLaps}  CIRCUITO ${state.circuit + 1}/${POLE_POSITION.circuits}`,
+      W / 2,
+      18,
+    );
+    ctx.textAlign = 'right';
+    ctx.fillStyle = state.time < 10 ? '#ff4d6d' : '#7df9ff';
+    ctx.fillText(`T ${state.time.toFixed(1)}`, W - 10, 18);
+    ctx.textAlign = 'left';
+    ctx.font = '11px ui-monospace, monospace';
+    ctx.fillStyle = '#8ea3c8';
+    ctx.fillText(`PTS ${state.score} · ${state.phase === 'qualify' ? 'CLASIFICACIÓN' : 'CARRERA'}`, 10, 37);
+    ctx.fillStyle = '#1b2440';
+    ctx.fillRect(W - 122, 29, 112, 5);
+    ctx.fillStyle = turboOn ? '#ffd166' : invincOn ? '#b56bff' : '#24e6ff';
+    const boostFill = turboOn
+      ? state.turbo / POLE_POSITION.turboDuration
+      : invincOn
+        ? state.invinc / POLE_POSITION.invincDuration
+        : 1 - state.turboCd / POLE_POSITION.turboCooldown;
+    ctx.fillRect(W - 122, 29, 112 * clamp(boostFill, 0, 1), 5);
+    ctx.restore();
+  },
+
   observe(state) {
     let nearest: PoleRival | null = null;
     let nearestDy = Infinity;

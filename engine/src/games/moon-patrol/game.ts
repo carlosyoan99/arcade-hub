@@ -415,6 +415,148 @@ export const moonPatrolGame = defineGame<MoonPatrolState>({
     }
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha: la altura de salto se toma directamente del estado del tick.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = MOON_PATROL.width;
+    const H = MOON_PATROL.height;
+    const groundY = MOON_PATROL.groundY;
+
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#050814';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#93a8d6';
+    for (let i = 0; i < 46; i++) {
+      const sx = (((i * 137 - state.scrollX * 0.25) % (W + 20)) + W + 20) % (W + 20) - 10;
+      const sy = (i * 71) % (groundY - 30);
+      ctx.globalAlpha = 0.35 + (i % 4) * 0.15;
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#12182c';
+    ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.fillStyle = '#0b1022';
+    for (let i = 0; i < 10; i++) {
+      const cx = (((i * 88 - state.scrollX * 0.5) % (W + 80)) + W + 80) % (W + 80) - 40;
+      ctx.save();
+      ctx.translate(cx, groundY + 18);
+      ctx.scale(1, 0.32);
+      ctx.beginPath();
+      ctx.arc(0, 0, 12 + (i % 3) * 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.strokeStyle = '#25f4e6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(W, groundY);
+    ctx.stroke();
+
+    for (const obstacle of state.obstacles) {
+      if (obstacle.x + obstacle.w < -10 || obstacle.x > W + 10) continue;
+      if (obstacle.kind === 'crater') {
+        ctx.save();
+        ctx.translate(obstacle.x + obstacle.w / 2, obstacle.y + 2);
+        ctx.scale(1, 0.28);
+        ctx.fillStyle = '#02040c';
+        ctx.beginPath();
+        ctx.arc(0, 0, obstacle.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.strokeStyle = '#7b5cff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x, obstacle.y);
+        ctx.lineTo(obstacle.x + obstacle.w, obstacle.y);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = '#ff4d6d';
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x + obstacle.w / 2, obstacle.y - 8);
+        ctx.lineTo(obstacle.x + obstacle.w, obstacle.y + obstacle.h);
+        ctx.lineTo(obstacle.x, obstacle.y + obstacle.h);
+        ctx.lineTo(obstacle.x + obstacle.w / 2, obstacle.y - 8);
+        ctx.fill();
+      }
+    }
+
+    for (const power of state.powerups) {
+      ctx.save();
+      ctx.translate(power.x + 8, power.y + 8);
+      ctx.rotate(state.ticks * 0.06);
+      ctx.strokeStyle = power.kind === 'triple' ? '#ffd166' : '#ff5cf0';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-8, -8, 16, 16);
+      ctx.restore();
+    }
+
+    for (const enemy of state.enemies) {
+      if (enemy.x < -30 || enemy.x > W + 30) continue;
+      if (enemy.type === 'ufo') {
+        ctx.fillStyle = '#b56bff';
+        ctx.beginPath();
+        ctx.arc(enemy.x + enemy.w / 2, enemy.y + 3, enemy.w / 2, Math.PI, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(enemy.x, enemy.y + 3, enemy.w, enemy.h - 3);
+        ctx.strokeStyle = '#e6c8ff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(enemy.x, enemy.y + 3, enemy.w, enemy.h - 3);
+      } else {
+        ctx.fillStyle = '#ff8a3d';
+        ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+        ctx.fillStyle = '#050814';
+        ctx.fillRect(enemy.x + 2, enemy.y + enemy.h, enemy.w / 4, 3);
+        ctx.fillRect(enemy.x + enemy.w - 2 - enemy.w / 4, enemy.y + enemy.h, enemy.w / 4, 3);
+      }
+    }
+
+    for (const bullet of state.bullets) {
+      ctx.fillStyle = bullet.enemy ? '#ff3f6e' : '#fff3a0';
+      ctx.fillRect(bullet.x, bullet.y, bullet.w, bullet.h);
+    }
+
+    const py = state.player.y;
+    ctx.fillStyle = '#24e6ff';
+    ctx.fillRect(MOON_PATROL.playerX, py, MOON_PATROL.playerW, MOON_PATROL.playerH);
+    ctx.fillStyle = '#050814';
+    ctx.fillRect(MOON_PATROL.playerX + 3, py + MOON_PATROL.playerH, 6, 4);
+    ctx.fillRect(MOON_PATROL.playerX + MOON_PATROL.playerW - 9, py + MOON_PATROL.playerH, 6, 4);
+    ctx.strokeStyle = '#ffd166';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(MOON_PATROL.playerX + MOON_PATROL.playerW - 4, py + 4);
+    ctx.lineTo(MOON_PATROL.playerX + MOON_PATROL.playerW + 10, py + 4);
+    ctx.stroke();
+    if (!state.player.grounded) {
+      ctx.fillStyle = '#ff8a3d';
+      ctx.fillRect(MOON_PATROL.playerX + 4, py + MOON_PATROL.playerH + 3, 4, 6);
+      ctx.fillRect(MOON_PATROL.playerX + MOON_PATROL.playerW - 8, py + MOON_PATROL.playerH + 3, 4, 6);
+    }
+
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.8)';
+    ctx.fillRect(0, 0, W, 32);
+    ctx.font = '14px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(`PTS ${state.score}`, 10, 21);
+    ctx.textAlign = 'center';
+    ctx.fillText(`SECTOR ${state.level + 1} · ${state.kills} BAJAS`, W / 2, 21);
+    ctx.textAlign = 'right';
+    ctx.fillText(`${Math.floor(state.distance)}m`, W - 10, 21);
+    ctx.fillStyle = '#1b2440';
+    ctx.fillRect(10, H - 8, 90, 4);
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(10, H - 8, 90 * clamp(state.tripleTimer / MOON_PATROL.powerupDuration, 0, 1), 4);
+    ctx.fillStyle = '#1b2440';
+    ctx.fillRect(W - 100, H - 8, 90, 4);
+    ctx.fillStyle = '#ff5cf0';
+    ctx.fillRect(W - 100, H - 8, 90 * clamp(state.rapidTimer / MOON_PATROL.powerupDuration, 0, 1), 4);
+    ctx.restore();
+  },
+
   observe(state) {
     const nextThreat = state.enemies[0];
     const nextObstacle = state.obstacles[0];

@@ -294,6 +294,85 @@ export const breakoutGame = defineGame<BreakoutState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // alpha se ignora: todo lo visible ya está en el estado.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const { width } = BREAKOUT;
+    const height = BREAKOUT.height;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#070b1c';
+    ctx.fillRect(0, 0, width, height);
+
+    const palette = ['#22d3ee', '#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#fb7185', '#fb923c', '#facc15'];
+    for (const brick of state.bricks) {
+      if (!brick.alive) continue;
+      const row = clamp(
+        Math.floor((brick.y - BREAKOUT.brickTop - BREAKOUT.brickH / 2) / (BREAKOUT.brickH + BREAKOUT.brickGap)),
+        0,
+        palette.length - 1,
+      );
+      const bx = brick.x - BREAKOUT.brickW / 2;
+      const by = brick.y - BREAKOUT.brickH / 2;
+      ctx.fillStyle = palette[row]!;
+      ctx.fillRect(bx, by, BREAKOUT.brickW, BREAKOUT.brickH);
+      ctx.fillStyle = 'rgba(255,255,255,0.32)';
+      ctx.fillRect(bx + 2, by + 2, BREAKOUT.brickW - 4, 2);
+      if (brick.points > (BREAKOUT.rowPoints[row] ?? 10)) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(brick.x - 6, brick.y - 2, 12, 4);
+      }
+    }
+
+    // Línea de riesgo: se enciende si la bola baja o quedan pocas vidas.
+    const riskY = BREAKOUT.paddleY - 70;
+    ctx.save();
+    ctx.setLineDash([10, 10]);
+    ctx.lineWidth = state.lives <= 1 ? 2 : 1;
+    ctx.strokeStyle = state.lives <= 1 ? '#ff3b6b' : state.ball.vy > 0 ? '#fb923c' : '#334155';
+    ctx.beginPath();
+    ctx.moveTo(0, riskY);
+    ctx.lineTo(width, riskY);
+    ctx.stroke();
+    ctx.restore();
+
+    if (state.serving) {
+      ctx.save();
+      ctx.setLineDash([4, 8]);
+      ctx.strokeStyle = 'rgba(94,242,255,0.55)';
+      ctx.beginPath();
+      ctx.moveTo(state.ball.x, state.ball.y);
+      ctx.lineTo(state.ball.x, riskY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    const halfW = BREAKOUT.paddleHalfW;
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillRect(state.paddleX - halfW, BREAKOUT.paddleY - BREAKOUT.paddleThickness / 2, halfW * 2, BREAKOUT.paddleThickness);
+    ctx.fillStyle = '#e0f2fe';
+    ctx.fillRect(state.paddleX - halfW + 3, BREAKOUT.paddleY - BREAKOUT.paddleThickness / 2 + 2, halfW * 2 - 6, 2);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(state.ball.x, state.ball.y, BREAKOUT.ballRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = 'bold 18px monospace';
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillText(`PTS ${state.score}`, 12, 24);
+    ctx.textAlign = 'right';
+    ctx.fillText(`LV ${state.level}`, width - 12, 24);
+    ctx.textAlign = 'left';
+    for (let i = 0; i < BREAKOUT.lives; i++) {
+      ctx.fillStyle = i < state.lives ? '#ff4d6d' : '#1e293b';
+      ctx.fillRect(12 + i * 14, 32, 10, 6);
+    }
+  },
+
   rules: singlePlayerRules<BreakoutState>((state) =>
     state.score + state.bricksBroken * 10 + state.lives * 50 - (state.over ? 200 : 0),
   ),

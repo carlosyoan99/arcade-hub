@@ -702,6 +702,204 @@ export const neonNexusGame = defineGame<NexusState>({
     }
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha: el arena usa posiciones exactas del tick, sin interpolación.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const S = NEON_NEXUS.arenaR * 2;
+    const c = S / 2;
+    const tower = state.tower;
+
+    ctx.save();
+    ctx.clearRect(0, 0, S, S);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, S, S);
+    ctx.strokeStyle = '#141a33';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 8; i++) {
+      const p = (S / 8) * i;
+      ctx.beginPath();
+      ctx.moveTo(p, 0);
+      ctx.lineTo(p, S);
+      ctx.moveTo(0, p);
+      ctx.lineTo(S, p);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#1f2a55';
+    for (let r = 1; r <= 4; r++) {
+      ctx.beginPath();
+      ctx.arc(c, c, (NEON_NEXUS.arenaR * r) / 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = state.cleared ? '#ffd166' : '#25f4e6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(c, c, NEON_NEXUS.arenaR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    for (const resource of state.resources) {
+      ctx.save();
+      ctx.translate(c + resource.x, c + resource.y);
+      ctx.rotate(state.ticks * 0.05);
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(-3, -3, 6, 6);
+      ctx.restore();
+    }
+
+    for (const enemy of state.enemies) {
+      const ex = c + enemy.x;
+      const ey = c + enemy.y;
+      const color =
+        enemy.type === 'boss'
+          ? '#ff3f6e'
+          : enemy.type === 'camo'
+            ? enemy.detected ? '#b56bff' : '#4a4266'
+            : enemy.type === 'flying'
+              ? '#7df9ff'
+              : enemy.type === 'hexagon'
+                ? '#ff9f43'
+                : enemy.type === 'diamond'
+                  ? '#ffd166'
+                  : enemy.type === 'square'
+                    ? '#25f4e6'
+                    : '#9be36b';
+      const sides =
+        enemy.type === 'triangle' || enemy.type === 'camo'
+          ? 3
+          : enemy.type === 'square' || enemy.type === 'diamond' || enemy.type === 'flying'
+            ? 4
+            : 6;
+      const rot =
+        enemy.type === 'triangle' || enemy.type === 'camo'
+          ? -Math.PI / 2
+          : enemy.type === 'square' ? Math.PI / 4 : 0;
+      ctx.save();
+      ctx.translate(ex, ey);
+      ctx.fillStyle = enemy.frozen > 0 ? '#1e4a6b' : color;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let k = 0; k <= sides; k++) {
+        const a = rot + (k * Math.PI * 2) / sides;
+        const vx = Math.cos(a) * enemy.r;
+        const vy = Math.sin(a) * enemy.r;
+        if (k === 0) ctx.moveTo(vx, vy);
+        else ctx.lineTo(vx, vy);
+      }
+      ctx.fill();
+      ctx.stroke();
+      if (enemy.type === 'flying') {
+        ctx.beginPath();
+        ctx.moveTo(-enemy.r * 1.6, 0);
+        ctx.lineTo(enemy.r * 1.6, 0);
+        ctx.stroke();
+      }
+      ctx.restore();
+      if (enemy.type === 'boss' || enemy.hp < enemy.maxHp) {
+        ctx.fillStyle = '#1b2440';
+        ctx.fillRect(ex - enemy.r, ey - enemy.r - 10, enemy.r * 2, 4);
+        ctx.fillStyle = '#ff3f6e';
+        ctx.fillRect(ex - enemy.r, ey - enemy.r - 10, enemy.r * 2 * clamp(enemy.hp / Math.max(1, enemy.maxHp), 0, 1), 4);
+      }
+    }
+
+    ctx.strokeStyle = '#fff3a0';
+    ctx.lineWidth = 2;
+    for (const projectile of state.projectiles) {
+      ctx.beginPath();
+      ctx.moveTo(c + projectile.x, c + projectile.y);
+      ctx.lineTo(c + projectile.x - projectile.vx * 0.02, c + projectile.y - projectile.vy * 0.02);
+      ctx.stroke();
+    }
+
+    ctx.save();
+    ctx.translate(c + tower.x, c + tower.y);
+    ctx.strokeStyle = 'rgba(125, 249, 255, 0.45)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(state.aimX * NEON_NEXUS.arenaR * 0.7, state.aimY * NEON_NEXUS.arenaR * 0.7);
+    ctx.stroke();
+    ctx.rotate(state.ticks * 0.02);
+    ctx.strokeStyle = '#25f4e6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, NEON_NEXUS.towerR + 8, 0, Math.PI * 1.6);
+    ctx.stroke();
+    ctx.rotate(-state.ticks * 0.07);
+    ctx.fillStyle = tower.lastHit < 0.2 && state.ticks % 6 < 3 ? '#ffffff' : '#1a2f5c';
+    ctx.strokeStyle = '#7df9ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let k = 0; k <= 6; k++) {
+      const a = (k * Math.PI) / 3;
+      const vx = Math.cos(a) * NEON_NEXUS.towerR;
+      const vy = Math.sin(a) * NEON_NEXUS.towerR;
+      if (k === 0) ctx.moveTo(vx, vy);
+      else ctx.lineTo(vx, vy);
+    }
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#25f4e6';
+    ctx.beginPath();
+    ctx.arc(0, 0, NEON_NEXUS.towerR * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (tower.shield > 0) {
+      const pulse = 0.65 + 0.35 * Math.sin(state.ticks * 0.16);
+      ctx.strokeStyle = `rgba(125, 249, 255, ${pulse.toFixed(3)})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(c + tower.x, c + tower.y, NEON_NEXUS.towerR + 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = '#b56bff';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(c + tower.x, c + tower.y, NEON_NEXUS.towerR + 19, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    const bossFlash = state.enemies.some((enemy) => enemy.type === 'boss');
+    if (bossFlash) {
+      ctx.strokeStyle = state.ticks % 12 < 6 ? '#ff3f6e' : '#5c1230';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(2, 2, S - 4, S - 4);
+    }
+    if (state.cleared || state.offerPending || state.shopOpen) {
+      ctx.textAlign = 'center';
+      if (state.cleared) {
+        ctx.fillStyle = 'rgba(255, 209, 102, 0.85)';
+        ctx.font = 'bold 28px ui-monospace, monospace';
+        ctx.fillText(`OLEADA ${state.wave}`, c, c);
+      }
+      if (state.offerPending || state.shopOpen) {
+        ctx.fillStyle = '#7df9ff';
+        ctx.font = '18px ui-monospace, monospace';
+        ctx.fillText(state.shopOpen ? 'TIENDA' : 'ELIGE CARTA', c, c + 34);
+      }
+    }
+
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.82)';
+    ctx.fillRect(0, 0, S, 44);
+    ctx.font = '14px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(`OLEADA ${state.wave} · BAJAS ${state.kills}`, 12, 20);
+    ctx.fillStyle = '#1b2440';
+    ctx.fillRect(12, 28, 180, 6);
+    ctx.fillStyle = '#ff5b7a';
+    ctx.fillRect(12, 28, 180 * clamp(tower.hp / Math.max(1, tower.maxHp), 0, 1), 6);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffd166';
+    ctx.fillText(`PTS ${state.score}  ★${state.stars}  CR ${state.coins}`, S - 12, 20);
+    ctx.fillStyle = '#1b2440';
+    ctx.fillRect(S - 192, 28, 180, 6);
+    ctx.fillStyle = tower.maxShield > 0 ? '#7df9ff' : '#39415f';
+    ctx.fillRect(S - 192, 28, 180 * (tower.maxShield > 0 ? clamp(tower.shield / tower.maxShield, 0, 1) : 0), 6);
+    ctx.restore();
+  },
+
   observe(state) {
     const target = findTarget(state);
     return new Float32Array([

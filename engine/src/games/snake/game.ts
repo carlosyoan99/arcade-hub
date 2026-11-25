@@ -271,5 +271,75 @@ export const snakeGame = defineGame<SnakeState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // alpha se ignora: cada celda ya está resuelta en el estado.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const cell = 28;
+    const width = SNAKE.cols * cell;
+    const height = SNAKE.rows * cell;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#050b16';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = 'rgba(56,189,248,0.09)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= SNAKE.cols; x++) {
+      ctx.moveTo(x * cell, 0);
+      ctx.lineTo(x * cell, height);
+    }
+    for (let y = 0; y <= SNAKE.rows; y++) {
+      ctx.moveTo(0, y * cell);
+      ctx.lineTo(width, y * cell);
+    }
+    ctx.stroke();
+
+    const fx = (state.food.x + 0.5) * cell;
+    const fy = (state.food.y + 0.5) * cell;
+    const pulse = 0.85 + 0.15 * Math.sin(state.ticks * 0.2);
+    ctx.fillStyle = '#ff3b6b';
+    ctx.beginPath();
+    ctx.arc(fx, fy, cell * 0.38 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fecdd3';
+    ctx.beginPath();
+    ctx.arc(fx, fy, cell * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+
+    const body = state.body;
+    for (let i = body.length - 1; i >= 0; i--) {
+      const c = body[i]!;
+      const t = 1 - i / Math.max(1, body.length);
+      ctx.fillStyle = i === 0 ? '#a3e635' : `rgba(74,222,128,${(0.35 + 0.65 * t).toFixed(3)})`;
+      ctx.fillRect(c.x * cell + 2, c.y * cell + 2, cell - 4, cell - 4);
+    }
+    const head = body[0]!;
+    const [dx, dy] = SNAKE.dirs[state.dir]!;
+    const hx = (head.x + 0.5) * cell;
+    const hy = (head.y + 0.5) * cell;
+    ctx.fillStyle = '#052e16';
+    for (const side of [-1, 1] as const) {
+      ctx.beginPath();
+      ctx.arc(
+        hx + dx * cell * 0.18 - dy * side * cell * 0.16,
+        hy + dy * cell * 0.18 + dx * side * cell * 0.16,
+        cell * 0.07,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+
+    ctx.fillStyle = 'rgba(2,6,23,0.75)';
+    ctx.fillRect(0, 0, width, 26);
+    ctx.font = 'bold 15px monospace';
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillText(`PTS ${state.score}`, 8, 18);
+    ctx.textAlign = 'right';
+    ctx.fillText(`VEL ${state.speedLevel}`, width - 8, 18);
+    ctx.textAlign = 'left';
+  },
+
   rules: singlePlayerRules<SnakeState>((state) => state.score + state.body.length * 0.1 - (state.over ? 50 : 0)),
 });

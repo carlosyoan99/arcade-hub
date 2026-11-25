@@ -424,6 +424,83 @@ export const puyoGame = defineGame<PuyoState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // alpha se ignora: la animación se deriva de ticks y de los timers del estado.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const cell = 36;
+    const boardW = PUYO.cols * cell;
+    const boardH = PUYO.rows * cell;
+    const panelX = boardW + 20;
+    const panelW = 180;
+    const width = panelX + panelW;
+    const colors = ['#ff4d6d', '#ffd166', '#4ade80', '#4cc9f0'];
+    ctx.clearRect(0, 0, width, boardH);
+    ctx.fillStyle = '#070b1c';
+    ctx.fillRect(0, 0, width, boardH);
+
+    const puyo = (x: number, y: number, r: number, value: number): void => {
+      ctx.fillStyle = value === PUYO.garbage ? '#64748b' : colors[value] ?? colors[0]!;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.38)';
+      ctx.beginPath();
+      ctx.arc(x - r * 0.3, y - r * 0.35, r * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+    };
+    const drawBoard = (board: number[][], ox: number, oy: number, size: number): void => {
+      for (let row = 0; row < PUYO.rows; row++) {
+        for (let col = 0; col < PUYO.cols; col++) {
+          const value = board[row]![col]!;
+          if (value >= 0) puyo(ox + (col + 0.5) * size, oy + (row + 0.5) * size, size * 0.42, value);
+        }
+      }
+    };
+    ctx.fillStyle = 'rgba(15,23,42,0.85)';
+    ctx.fillRect(0, 0, boardW, boardH);
+    drawBoard(state.board, 0, 0, cell);
+    for (let i = 0; i < 2; i++) {
+      const row = state.piece.row + i;
+      if (row >= 0 && row < PUYO.rows) {
+        puyo((state.piece.col + 0.5) * cell, (row + 0.5) * cell, cell * 0.42, state.piece.gems[i]!);
+      }
+    }
+
+    // Panel del rival: tablero CPU en miniatura para hacer legible la presión de basura.
+    const mini = 14;
+    ctx.font = 'bold 13px monospace';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('CPU', panelX + 8, 20);
+    ctx.fillStyle = 'rgba(15,23,42,0.85)';
+    ctx.fillRect(panelX + 8, 30, PUYO.cols * mini, PUYO.rows * mini);
+    drawBoard(state.cpuBoard, panelX + 8, 30, mini);
+    if (state.cpuPiece) {
+      for (let i = 0; i < 2; i++) {
+        const row = state.cpuPiece.row + i;
+        if (row >= 0 && row < PUYO.rows) {
+          puyo(
+            panelX + 8 + (state.cpuPiece.col + 0.5) * mini,
+            30 + (row + 0.5) * mini,
+            mini * 0.42,
+            state.cpuPiece.gems[i]!,
+          );
+        }
+      }
+    }
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('PAR', panelX + 8, 254);
+    puyo(panelX + 34, 282, 13, state.pair[0]!);
+    puyo(panelX + 64, 282, 13, state.pair[1]!);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(`PTS ${state.score}`, panelX + 8, boardH - 72);
+    ctx.fillText(`LV ${state.level}  CH ${state.maxChain}`, panelX + 8, boardH - 52);
+    ctx.fillStyle = state.garbageQueue > 0 ? '#fb7185' : '#475569';
+    ctx.fillText(`BASURA ${state.garbageQueue}`, panelX + 8, boardH - 32);
+  },
+
   rules: singlePlayerRules<PuyoState>((state) =>
     state.score + state.maxChain * 200 + state.totalChains * 50 + state.level * 50 - (state.over ? 400 : 0),
   ),

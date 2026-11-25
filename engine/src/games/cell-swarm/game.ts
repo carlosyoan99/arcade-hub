@@ -597,6 +597,156 @@ export const cellSwarmGame = defineGame<SwarmState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: la cámara sigue a la célula principal del propio estado.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = 960;
+    const H = 600;
+    const scale = 0.8;
+    const main = state.cells[0];
+    const camX = main?.x ?? SWARM.world / 2;
+    const camY = main?.y ?? SWARM.world / 2;
+    const halfW = W / (2 * scale);
+    const halfH = H / (2 * scale);
+    const visible = (x: number, y: number, pad: number): boolean =>
+      x > camX - halfW - pad && x < camX + halfW + pad &&
+      y > camY - halfH - pad && y < camY + halfH + pad;
+
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, W, H);
+    ctx.translate(W / 2 - camX * scale, H / 2 - camY * scale);
+    ctx.scale(scale, scale);
+
+    ctx.strokeStyle = 'rgba(94,242,255,0.10)';
+    ctx.lineWidth = 1 / scale;
+    const startX = Math.max(0, Math.floor((camX - halfW) / 200) * 200);
+    const endX = Math.min(SWARM.world, camX + halfW + 200);
+    const startY = Math.max(0, Math.floor((camY - halfH) / 200) * 200);
+    const endY = Math.min(SWARM.world, camY + halfH + 200);
+    ctx.beginPath();
+    for (let x = startX; x <= endX; x += 200) {
+      ctx.moveTo(x, startY);
+      ctx.lineTo(x, endY);
+    }
+    for (let y = startY; y <= endY; y += 200) {
+      ctx.moveTo(startX, y);
+      ctx.lineTo(endX, y);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = '#ffc857';
+    ctx.lineWidth = 3 / scale;
+    ctx.strokeRect(0, 0, SWARM.world, SWARM.world);
+
+    ctx.fillStyle = '#ffc857';
+    for (const food of state.foods) {
+      if (!visible(food.x, food.y, 10)) continue;
+      ctx.beginPath();
+      ctx.arc(food.x, food.y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const virus of state.viruses) {
+      if (!visible(virus.x, virus.y, virus.radius + 20)) continue;
+      ctx.fillStyle = '#ff3fa4';
+      ctx.beginPath();
+      ctx.arc(virus.x, virus.y, virus.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffb3dd';
+      ctx.lineWidth = 3 / scale;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI) / 3;
+        ctx.moveTo(virus.x + Math.cos(angle) * virus.radius * 0.5, virus.y + Math.sin(angle) * virus.radius * 0.5);
+        ctx.lineTo(virus.x + Math.cos(angle) * virus.radius, virus.y + Math.sin(angle) * virus.radius);
+      }
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#ff8a3d';
+    for (const chaser of state.chasers) {
+      if (!visible(chaser.x, chaser.y, 20)) continue;
+      ctx.beginPath();
+      ctx.arc(chaser.x, chaser.y, radius(chaser.mass), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const bot of state.bots) {
+      if (!visible(bot.x, bot.y, 80)) continue;
+      const r = radius(bot.mass);
+      ctx.fillStyle = '#2a1138';
+      ctx.beginPath();
+      ctx.arc(bot.x, bot.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = bot.personality === 'aggressive' || bot.personality === 'hunter'
+        ? '#ff3fa4'
+        : '#b06bff';
+      ctx.lineWidth = 3 / scale;
+      ctx.stroke();
+      ctx.fillStyle = '#f5f8ff';
+      ctx.beginPath();
+      ctx.arc(bot.x + r * 0.35, bot.y - r * 0.2, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#5ef2ff';
+    for (const projectile of state.projectiles) {
+      if (!visible(projectile.x, projectile.y, 20)) continue;
+      ctx.beginPath();
+      ctx.arc(projectile.x, projectile.y, radius(projectile.mass) * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#b6f7ff';
+    for (const blob of state.blobs) {
+      if (!visible(blob.x, blob.y, 20)) continue;
+      ctx.beginPath();
+      ctx.arc(blob.x, blob.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const cell of state.cells) {
+      if (!visible(cell.x, cell.y, 100)) continue;
+      const r = radius(cell.mass);
+      ctx.fillStyle = '#5ef2ff';
+      ctx.beginPath();
+      ctx.arc(cell.x, cell.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e8fbff';
+      ctx.beginPath();
+      ctx.arc(cell.x, cell.y, Math.max(3, r * 0.28), 0, Math.PI * 2);
+      ctx.fill();
+      if (state.boosting) {
+        ctx.strokeStyle = '#ffc857';
+        ctx.lineWidth = 3 / scale;
+        ctx.beginPath();
+        ctx.arc(cell.x, cell.y, r + 9, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    if (visible(state.targetX, state.targetY, 20)) {
+      ctx.strokeStyle = 'rgba(255,200,87,0.8)';
+      ctx.lineWidth = 2 / scale;
+      ctx.beginPath();
+      ctx.moveTo(state.targetX - 16, state.targetY);
+      ctx.lineTo(state.targetX + 16, state.targetY);
+      ctx.moveTo(state.targetX, state.targetY - 16);
+      ctx.lineTo(state.targetX, state.targetY + 16);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+    ctx.fillStyle = 'rgba(5,6,15,0.88)';
+    ctx.fillRect(0, H - 24, W, 24);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '15px monospace';
+    ctx.fillText(`SWARM  L${state.level}  x${state.over ? 0 : 1}  ${String(state.score).padStart(6, '0')}`, 10, H - 7);
+    ctx.fillStyle = '#ffc857';
+    ctx.fillText(`mass ${Math.round(main?.mass ?? 0)}  cells ${state.cells.length}  kills ${state.kills}`, W - 330, H - 7);
+  },
+
   rules: singlePlayerRules<SwarmState>(
     (state) => state.score + state.kills * 50 - (state.over ? 500 : 0),
   ),

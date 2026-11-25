@@ -463,6 +463,86 @@ export const spaceInvadersGame = defineGame<SpaceInvadersState>({
     ]);
   },
 
+  render(renderer, state, alpha) {
+    void alpha; // Sin interpolación: el estado ya contiene las posiciones del frame.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    ctx.save();
+    ctx.clearRect(0, 0, SPACE_INVADERS.width, SPACE_INVADERS.height);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, SPACE_INVADERS.width, SPACE_INVADERS.height);
+
+    ctx.fillStyle = '#16233a';
+    for (let i = 0; i < 48; i++) {
+      ctx.fillRect((i * 163) % SPACE_INVADERS.width, (i * 71) % SPACE_INVADERS.height, 2, 2);
+    }
+
+    for (const invader of state.invaders) {
+      if (!invader.alive) continue;
+      ctx.fillStyle =
+        invader.row === 0 ? '#ffd166' : invader.row === 1 ? '#ff3fa4' : '#5ef2ff';
+      ctx.fillRect(
+        invader.x - SPACE_INVADERS.invaderW / 2 + 3,
+        invader.y - 6,
+        SPACE_INVADERS.invaderW - 6,
+        12,
+      );
+      ctx.fillRect(invader.x - SPACE_INVADERS.invaderW / 2, invader.y - 2, 4, 4);
+      ctx.fillRect(invader.x + SPACE_INVADERS.invaderW / 2 - 4, invader.y - 2, 4, 4);
+      ctx.fillRect(invader.x - 7, invader.y + 6, 5, 4);
+      ctx.fillRect(invader.x + 2, invader.y + 6, 5, 4);
+    }
+
+    ctx.fillStyle = '#38f5a3';
+    for (const shield of state.shields) {
+      for (const block of shield.blocks) ctx.fillRect(block.x, block.y, block.w, block.h);
+    }
+
+    if (state.bullet) {
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(state.bullet.x - 2, state.bullet.y - 9, 4, 18);
+    }
+    ctx.fillStyle = '#ff3fa4';
+    for (const bullet of state.enemyBullets) ctx.fillRect(bullet.x - 2, bullet.y - 7, 4, 14);
+    if (state.mystery) {
+      ctx.fillStyle = '#ffd166';
+      ctx.beginPath();
+      ctx.ellipse(state.mystery.x, 40, 22, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(state.mystery.x - 10, 36, 20, 6);
+    }
+
+    // Destello breve de invulnerabilidad de la nave.
+    const blink = state.invuln > 0 ? 0.4 + 0.45 * Math.sin(state.invuln * 13) : 1;
+    ctx.save();
+    ctx.globalAlpha = blink;
+    ctx.translate(state.shipX, SPACE_INVADERS.shipY);
+    ctx.strokeStyle = '#5ef2ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(13, 10);
+    ctx.lineTo(0, 4);
+    ctx.lineTo(-13, 10);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillText(`PTS ${state.score}`, 12, 22);
+    ctx.fillText(`VIDAS ${state.lives}`, 12, 42);
+    ctx.textAlign = 'right';
+    ctx.fillText(`OLEADA ${state.wave}`, SPACE_INVADERS.width - 12, 22);
+    if (state.paused || state.over) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 32px monospace';
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillText(state.over ? 'FIN' : 'PAUSA', SPACE_INVADERS.width / 2, SPACE_INVADERS.height / 2);
+    }
+    ctx.restore();
+  },
   rules: singlePlayerRules<SpaceInvadersState>(
     (state) =>
       state.score + state.wave * 100 + state.lives * 30 + state.ticks / 600 - (state.over ? 150 : 0),

@@ -608,6 +608,120 @@ export const donkeyKongGame = defineGame<DkState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: el estado ya trae la posición de cada entidad.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const tile = DK.tile;
+    const W = DK.width;
+    const H = DK.height;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, W, H);
+
+    for (const [px, py, w, h] of PLATFORM_DEFS) {
+      const x = px * tile;
+      const y = py * tile;
+      ctx.fillStyle = '#17325c';
+      ctx.fillRect(x, y, w * tile, h * tile);
+      ctx.fillStyle = '#5ef2ff';
+      ctx.fillRect(x, y, w * tile, 3);
+    }
+
+    for (const [lx, base, height] of LADDER_DEFS) {
+      const x = lx * tile + tile / 2;
+      const top = (base - height + 1) * tile;
+      const bottom = (base + 1) * tile;
+      ctx.strokeStyle = '#ff8a3d';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 10, top);
+      ctx.lineTo(x - 10, bottom);
+      ctx.moveTo(x + 10, top);
+      ctx.lineTo(x + 10, bottom);
+      for (let y = top + 10; y < bottom; y += 14) {
+        ctx.moveTo(x - 10, y);
+        ctx.lineTo(x + 10, y);
+      }
+      ctx.stroke();
+    }
+
+    for (const barrier of state.barriers) {
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillRect(barrier.x, barrier.y, barrier.w, barrier.h);
+      if (barrier.gapW > 0) {
+        ctx.fillStyle = '#05060f';
+        ctx.fillRect(barrier.gapX, barrier.y - 2, barrier.gapW, barrier.h + 4);
+      }
+    }
+    for (const elevator of state.elevators) {
+      ctx.fillStyle = '#5ef2ff';
+      ctx.fillRect(elevator.x, elevator.y, elevator.w, elevator.h);
+      ctx.fillStyle = '#17325c';
+      ctx.fillRect(elevator.x + 3, elevator.y + 3, elevator.w - 6, elevator.h - 6);
+    }
+
+    if (!state.hammerTaken) {
+      ctx.fillStyle = '#ffc857';
+      ctx.fillRect(5 * tile + 6, 6 * tile + 4, tile * 0.8 - 12, 7);
+      ctx.fillRect(5 * tile + tile * 0.4 - 3, 6 * tile - 18, 6, 24);
+    }
+
+    ctx.fillStyle = '#b06bff';
+    ctx.beginPath();
+    ctx.arc(6.5 * tile, tile * 1.35, tile * 0.72, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffc857';
+    ctx.fillRect(6.5 * tile - 18, tile * 1.35 - 4, 36, 8);
+
+    for (const barrel of state.barrels) {
+      ctx.fillStyle = '#ffc857';
+      ctx.beginPath();
+      ctx.arc(barrel.x, barrel.y, DK.barrelRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#7a4a1e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(barrel.x - 6, barrel.y - 6);
+      ctx.lineTo(barrel.x + 6, barrel.y + 6);
+      ctx.stroke();
+    }
+    for (const fire of state.fires) {
+      ctx.fillStyle = '#ff3fa4';
+      ctx.beginPath();
+      ctx.moveTo(fire.x + fire.w / 2, fire.y - 5);
+      ctx.lineTo(fire.x + fire.w, fire.y + fire.h);
+      ctx.lineTo(fire.x, fire.y + fire.h);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.fillStyle = '#ff4d5e';
+    ctx.fillRect(state.x, state.y + 8, state.w, state.h - 8);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillRect(state.x + 3, state.y, state.w - 6, 12);
+    ctx.fillStyle = '#f5f8ff';
+    ctx.fillRect(state.x + 4, state.y + 3, 4, 4);
+    ctx.fillRect(state.x + state.w - 8, state.y + 3, 4, 4);
+    if (state.hammerActive) {
+      ctx.strokeStyle = '#ffc857';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(state.x + state.w / 2, state.y + 4, 22, -0.9, 0.9);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(5,6,15,0.88)';
+    ctx.fillRect(0, H - 24, W, 24);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '14px monospace';
+    ctx.fillText(`DK  L${state.level}  x${state.lives}  ${String(state.score).padStart(6, '0')}`, 8, H - 8);
+    ctx.fillStyle = '#ffc857';
+    ctx.fillText(`T${Math.max(0, Math.ceil(state.timeLeft))}`, W - 48, H - 8);
+    ctx.restore();
+  },
+
   rules: singlePlayerRules<DkState>(
     (state) => state.score + state.level * 300 - (state.over ? 500 : 0),
   ),

@@ -381,6 +381,105 @@ export const asteroidsGame = defineGame<AsteroidsState>({
     ]);
   },
 
+  render(renderer, state, alpha) {
+    void alpha; // Sin interpolación: el estado ya contiene las posiciones del frame.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    ctx.save();
+    ctx.clearRect(0, 0, ASTEROIDS.width, ASTEROIDS.height);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, ASTEROIDS.width, ASTEROIDS.height);
+
+    // Estrellas fijas con patrón determinista (sin RNG ni reloj).
+    ctx.fillStyle = '#16233a';
+    for (let i = 0; i < 48; i++) {
+      ctx.fillRect((i * 137) % ASTEROIDS.width, (i * 79) % ASTEROIDS.height, 2, 2);
+    }
+
+    // Campo envolvente: repetimos el dibujo en las copias que tocan un borde.
+    const drawWrapped = (x: number, y: number, draw: (px: number, py: number) => void): void => {
+      for (const ox of [-ASTEROIDS.width, 0, ASTEROIDS.width]) {
+        for (const oy of [-ASTEROIDS.height, 0, ASTEROIDS.height]) {
+          const px = x + ox;
+          const py = y + oy;
+          if (px < -60 || px > ASTEROIDS.width + 60 || py < -60 || py > ASTEROIDS.height + 60) {
+            continue;
+          }
+          draw(px, py);
+        }
+      }
+    };
+    ctx.lineWidth = 2;
+    for (const rock of state.asteroids) {
+      const color = rock.size === 0 ? '#5ef2ff' : rock.size === 1 ? '#38f5a3' : '#ffb347';
+      drawWrapped(rock.x, rock.y, (px, py) => {
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.arc(px, py, rock.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(px, py, rock.radius * 0.55, 0.7, 4.1);
+        ctx.stroke();
+      });
+    }
+    ctx.fillStyle = '#ffd166';
+    for (const bullet of state.bullets) {
+      drawWrapped(bullet.x, bullet.y, (px, py) => ctx.fillRect(px - 2, py - 2, 4, 4));
+    }
+
+    const ship = state.ship;
+    const blink = state.invuln > 0 ? 0.45 + 0.35 * Math.sin(state.invuln * 14) : 1;
+    drawWrapped(ship.x, ship.y, (px, py) => {
+      ctx.save();
+      ctx.globalAlpha = blink;
+      ctx.translate(px, py);
+      ctx.rotate(ship.angle);
+      ctx.strokeStyle = '#ff3fa4';
+      ctx.beginPath();
+      ctx.moveTo(16, 0);
+      ctx.lineTo(-11, -9);
+      ctx.lineTo(-6, 0);
+      ctx.lineTo(-11, 9);
+      ctx.closePath();
+      ctx.stroke();
+      const speed = Math.hypot(ship.vx, ship.vy);
+      if (speed > 40) {
+        ctx.strokeStyle = '#5ef2ff';
+        ctx.beginPath();
+        ctx.moveTo(-7, -4);
+        ctx.lineTo(-16 - speed / 60, 0);
+        ctx.lineTo(-7, 4);
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+    // Destello breve de invulnerabilidad.
+    if (state.invuln > 0) {
+      ctx.strokeStyle = '#ffd166';
+      ctx.globalAlpha = 0.3 + 0.25 * Math.sin(state.invuln * 10);
+      drawWrapped(ship.x, ship.y, (px, py) => {
+        ctx.beginPath();
+        ctx.arc(px, py, ASTEROIDS.shipRadius + 9, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillText(`PTS ${state.score}`, 14, 24);
+    ctx.fillText(`VIDAS ${state.lives}`, 14, 44);
+    ctx.textAlign = 'right';
+    ctx.fillText(`OLEADA ${state.wave}`, ASTEROIDS.width - 14, 24);
+    if (state.paused || state.over) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 32px monospace';
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillText(state.over ? 'FIN' : 'PAUSA', ASTEROIDS.width / 2, ASTEROIDS.height / 2);
+    }
+    ctx.restore();
+  },
   rules: singlePlayerRules<AsteroidsState>(
     (state) =>
       state.score + state.wave * 50 + state.lives * 20 + state.ticks / 600 - (state.over ? 120 : 0),

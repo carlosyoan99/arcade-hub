@@ -422,6 +422,132 @@ export const doubleDragonGame = defineGame<DragonState>({
     }
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha: las poses se derivan del tick, no se interpolan.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = DOUBLE_DRAGON.width;
+    const H = DOUBLE_DRAGON.height;
+    const groundY = DOUBLE_DRAGON.groundY;
+
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#070a1a';
+    ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 8; i++) {
+      const bx = i * 64 + 6;
+      const bh = 34 + (i * 23) % 44;
+      ctx.fillStyle = i % 2 === 0 ? '#111a3a' : '#161040';
+      ctx.fillRect(bx, groundY - bh, 52, bh);
+      ctx.fillStyle = i % 3 === 0 ? '#ff5cf0' : '#25f4e6';
+      ctx.fillRect(bx + 8, groundY - bh + 10, 6, 8);
+      ctx.fillRect(bx + 30, groundY - bh + 10, 6, 8);
+    }
+    ctx.fillStyle = '#0b1024';
+    ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.strokeStyle = '#25f4e6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(W, groundY);
+    ctx.stroke();
+
+    for (const enemy of state.enemies) {
+      if (!enemy.alive) continue;
+      const boss = enemy.type === 'boss';
+      const color = boss
+        ? '#ff3f6e'
+        : enemy.type === 'soldier'
+          ? '#7df9ff'
+          : enemy.type === 'thug'
+            ? '#ff9f43'
+            : '#ff5cf0';
+      const ew = boss ? 26 : DOUBLE_DRAGON.playerW;
+      const eh = boss ? 38 : DOUBLE_DRAGON.playerH;
+      ctx.fillStyle = enemy.hit > 0 && state.ticks % 6 < 3 ? '#ffffff' : color;
+      ctx.fillRect(enemy.x - ew / 2, enemy.y - eh, ew, eh);
+      ctx.fillStyle = '#050814';
+      ctx.fillRect(enemy.x - ew / 2 + 2, enemy.y - eh + 4, 4, 4);
+      ctx.fillRect(enemy.x + ew / 2 - 6, enemy.y - eh + 4, 4, 4);
+      ctx.fillStyle = color;
+      ctx.fillRect(enemy.x - enemy.facing * 8, enemy.y - eh + 12, 12, 3);
+      if (boss || enemy.hp < enemy.maxHp) {
+        ctx.fillStyle = '#1b2440';
+        ctx.fillRect(enemy.x - ew, enemy.y - eh - 9, ew * 2, 4);
+        ctx.fillStyle = '#ff3f6e';
+        ctx.fillRect(enemy.x - ew, enemy.y - eh - 9, ew * 2 * clamp(enemy.hp / Math.max(1, enemy.maxHp), 0, 1), 4);
+      }
+    }
+
+    for (const pickup of state.pickups) {
+      const color =
+        pickup.type === 'life'
+          ? '#ff5cf0'
+          : pickup.type === 'sword'
+            ? '#7df9ff'
+            : pickup.type === 'bat'
+              ? '#ff9f43'
+              : '#ff3f6e';
+      ctx.save();
+      ctx.translate(pickup.x, pickup.y);
+      ctx.rotate(state.ticks * 0.05);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-7, -7, 14, 14);
+      ctx.restore();
+    }
+
+    const player = state.player;
+    const px = player.x;
+    const py = player.y;
+    ctx.fillStyle = state.hurtCd > 0 && state.ticks % 8 < 4 ? 'rgba(255, 255, 255, 0.5)' : '#24e6ff';
+    ctx.fillRect(px - DOUBLE_DRAGON.playerW / 2, py - DOUBLE_DRAGON.playerH, DOUBLE_DRAGON.playerW, DOUBLE_DRAGON.playerH);
+    ctx.fillStyle = '#050814';
+    ctx.fillRect(px - 6, py - DOUBLE_DRAGON.playerH + 4, 4, 4);
+    ctx.fillRect(px + 2, py - DOUBLE_DRAGON.playerH + 4, 4, 4);
+    if (player.weapon !== null) {
+      ctx.strokeStyle =
+        player.weapon === 'sword' ? '#7df9ff' : player.weapon === 'bat' ? '#ff9f43' : '#ff3f6e';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(px + player.facing * 8, py - DOUBLE_DRAGON.playerH + 12);
+      ctx.lineTo(px + player.facing * 24, py - DOUBLE_DRAGON.playerH + 4);
+      ctx.stroke();
+    }
+    if (state.attackTimer > DOUBLE_DRAGON.attackCooldown * 0.6) {
+      ctx.strokeStyle = '#ffd166';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(px + player.facing * 12, py - DOUBLE_DRAGON.playerH + 12, 18, -Math.PI / 3, Math.PI / 3);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.82)';
+    ctx.fillRect(0, 0, W, 36);
+    ctx.font = '14px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(
+      `ACTO ${state.act + 1}/${DOUBLE_DRAGON.acts} · ${state.phase === 'boss' ? 'JEFE' : state.phase === 'idle' ? 'ESPERA' : 'CALLE'}`,
+      10,
+      16,
+    );
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff5cf0';
+    ctx.fillText(`VIDAS ${state.lives}`, W / 2, 16);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(`PTS ${state.score}`, W - 10, 16);
+    if (state.phase === 'boss') {
+      const boss = state.enemies[0];
+      ctx.fillStyle = '#1b2440';
+      ctx.fillRect(W / 2 - 70, 24, 140, 4);
+      ctx.fillStyle = '#ff3f6e';
+      ctx.fillRect(W / 2 - 70, 24, 140 * (boss ? clamp(boss.hp / Math.max(1, boss.maxHp), 0, 1) : 0), 4);
+    }
+    ctx.restore();
+  },
+
   observe(state) {
     let nearest: DragonEnemy | null = null;
     let nearestD2 = Infinity;

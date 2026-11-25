@@ -632,6 +632,98 @@ export const centipedeGame = defineGame<CentipedeState>({
     ]);
   },
 
+  render(renderer, state, alpha) {
+    void alpha; // Sin interpolación: el estado ya contiene las posiciones del frame.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    ctx.save();
+    ctx.clearRect(0, 0, CENTIPEDE.width, CENTIPEDE.height);
+    ctx.fillStyle = '#080b1c';
+    ctx.fillRect(0, 0, CENTIPEDE.width, CENTIPEDE.height);
+
+    // Límite de la zona inferior del jugador.
+    const zoneY = CENTIPEDE.height * CENTIPEDE.playerTopRatio;
+    ctx.strokeStyle = '#16233a';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, zoneY);
+    ctx.lineTo(CENTIPEDE.width, zoneY);
+    ctx.stroke();
+
+    // Hongos: coordenadas de celda convertidas al centro de la celda.
+    ctx.lineWidth = 2;
+    for (const mushroom of state.mushrooms) {
+      const mx = mushroom.gx * CENTIPEDE.cell + CENTIPEDE.cell / 2;
+      const my = mushroom.gy * CENTIPEDE.cell + CENTIPEDE.cell / 2;
+      ctx.strokeStyle = mushroom.poisoned ? '#ff3fa4' : '#38f5a3';
+      ctx.beginPath();
+      ctx.arc(mx, my - 1, 5, Math.PI, 0);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(mx, my - 1);
+      ctx.lineTo(mx, my + 6);
+      ctx.stroke();
+    }
+
+    for (const chain of state.centipedes) {
+      for (const segment of chain.segments) {
+        ctx.fillStyle = segment.isHead ? '#ffd166' : '#5ef2ff';
+        ctx.beginPath();
+        ctx.arc(segment.x, segment.y, segment.isHead ? 8 : 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    if (state.spider) {
+      ctx.strokeStyle = '#ff3fa4';
+      ctx.beginPath();
+      ctx.moveTo(state.spider.x - 10, state.spider.y);
+      ctx.lineTo(state.spider.x + 10, state.spider.y);
+      ctx.moveTo(state.spider.x, state.spider.y - 8);
+      ctx.lineTo(state.spider.x, state.spider.y + 8);
+      ctx.stroke();
+    }
+    if (state.flea) {
+      ctx.fillStyle = '#ffb347';
+      ctx.fillRect(state.flea.x - 4, state.flea.y - 6, 8, 12);
+    }
+    if (state.scorpion) {
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillRect(state.scorpion.x - 8, state.scorpion.y - 4, 16, 8);
+    }
+    ctx.fillStyle = '#ffd166';
+    for (const bullet of state.bullets) ctx.fillRect(bullet.x - 2, bullet.y - 6, 4, 12);
+
+    // Destello breve de invulnerabilidad del jugador.
+    const blink = state.invuln > 0 ? 0.4 + 0.45 * Math.sin(state.invuln * 13) : 1;
+    ctx.save();
+    ctx.globalAlpha = blink;
+    ctx.translate(state.player.x, state.player.y);
+    ctx.strokeStyle = '#5ef2ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -11);
+    ctx.lineTo(9, 9);
+    ctx.lineTo(0, 4);
+    ctx.lineTo(-9, 9);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillText(`PTS ${state.score}`, 12, 22);
+    ctx.fillText(`VIDAS ${state.lives}`, 12, 42);
+    ctx.textAlign = 'right';
+    ctx.fillText(`OLEADA ${state.wave}`, CENTIPEDE.width - 12, 22);
+    if (state.paused || state.over) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 32px monospace';
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillText(state.over ? 'FIN' : 'PAUSA', CENTIPEDE.width / 2, CENTIPEDE.height / 2);
+    }
+    ctx.restore();
+  },
   rules: singlePlayerRules<CentipedeState>(
     (state) =>
       state.score + state.wave * 60 + state.lives * 25 + state.ticks / 600 - (state.over ? 120 : 0),

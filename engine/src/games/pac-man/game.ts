@@ -653,6 +653,107 @@ export const pacmanGame = defineGame<PacmanState>({
     ]);
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha ignorado: x/y ya son coordenadas de píxel del estado.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const cs = PACMAN.cs;
+    const W = PACMAN.cols * cs;
+    const H = PACMAN.rows * cs;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let row = 0; row < state.maze.length; row++) {
+      const line = state.maze[row];
+      if (line === undefined) continue;
+      for (let col = 0; col < line.length; col++) {
+        const ch = line[col] ?? ' ';
+        const x = col * cs;
+        const y = row * cs;
+        if (ch === 'W') {
+          ctx.fillStyle = '#102953';
+          ctx.fillRect(x, y, cs, cs);
+          ctx.strokeStyle = '#3a8fd4';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(x + 1.5, y + 1.5, cs - 3, cs - 3);
+        } else if (ch === 'G') {
+          ctx.fillStyle = '#180c28';
+          ctx.fillRect(x, y, cs, cs);
+        } else if (ch === '.') {
+          ctx.fillStyle = '#ffc857';
+          ctx.beginPath();
+          ctx.arc(x + cs / 2, y + cs / 2, 2.4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (ch === 'o') {
+          ctx.fillStyle = '#ff3fa4';
+          ctx.beginPath();
+          ctx.arc(x + cs / 2, y + cs / 2, 5.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    if (state.fruit !== null) {
+      const fx = PACMAN.fruitPos.col * cs;
+      const fy = PACMAN.fruitPos.row * cs;
+      ctx.fillStyle = '#ff3fa4';
+      ctx.beginPath();
+      ctx.arc(fx - 5, fy + 3, 6, 0, Math.PI * 2);
+      ctx.arc(fx + 5, fy + 3, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const ghostColors: Record<string, string> = {
+      blinky: '#ff4d5e',
+      pinky: '#ff8bd1',
+      inky: '#5ef2ff',
+      clyde: '#ffc857',
+    };
+    for (const ghost of state.ghosts) {
+      if (ghost.mode === 'eyes') continue;
+      const r = cs * 0.46;
+      ctx.fillStyle = ghost.mode === 'fright' ? '#3a6cff' : (ghostColors[ghost.name] ?? '#ff4d5e');
+      ctx.beginPath();
+      ctx.arc(ghost.x, ghost.y - r * 0.1, r, Math.PI, 0);
+      ctx.lineTo(ghost.x + r, ghost.y + r * 0.65);
+      ctx.lineTo(ghost.x + r * 0.55, ghost.y + r * 0.35);
+      ctx.lineTo(ghost.x, ghost.y + r * 0.65);
+      ctx.lineTo(ghost.x - r * 0.55, ghost.y + r * 0.35);
+      ctx.lineTo(ghost.x - r, ghost.y + r * 0.65);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#f5f8ff';
+      ctx.fillRect(ghost.x - r * 0.55, ghost.y - r * 0.3, r * 0.35, r * 0.4);
+      ctx.fillRect(ghost.x + r * 0.2, ghost.y - r * 0.3, r * 0.35, r * 0.4);
+      ctx.fillStyle = '#1737a8';
+      ctx.fillRect(ghost.x - r * 0.45, ghost.y - r * 0.2, r * 0.2, r * 0.2);
+      ctx.fillRect(ghost.x + r * 0.3, ghost.y - r * 0.2, r * 0.2, r * 0.2);
+    }
+
+    const scale = state.dying > 0 ? Math.max(0.25, state.dying / PACMAN.deathTime) : 1;
+    const pr = cs * 0.46 * scale;
+    const angle = state.dir.dx === 0 && state.dir.dy === 0
+      ? 0
+      : Math.atan2(state.dir.dy, state.dir.dx);
+    ctx.fillStyle = '#ffd54a';
+    ctx.beginPath();
+    ctx.moveTo(state.x, state.y);
+    ctx.arc(state.x, state.y, pr, angle + 0.32, angle + Math.PI * 2 - 0.32);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(5,6,15,0.88)';
+    ctx.fillRect(0, 0, W, 22);
+    ctx.fillStyle = '#5ef2ff';
+    ctx.font = '14px monospace';
+    ctx.fillText(`PAC  ${String(state.score).padStart(6, '0')}  L${state.level}  x${state.lives}`, 8, 16);
+    ctx.fillStyle = '#ff3fa4';
+    ctx.fillText(`${state.dotsLeft} dots`, W - 90, 16);
+    ctx.restore();
+  },
+
   rules: singlePlayerRules<PacmanState>(
     (state) => state.score + state.level * 300 - (state.over ? 400 : 0),
   ),

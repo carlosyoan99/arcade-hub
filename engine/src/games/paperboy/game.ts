@@ -328,6 +328,134 @@ export const paperboyGame = defineGame<PaperboyState>({
     }
   },
 
+  render(renderer, state, _alpha) {
+    // _alpha: el repartidor usa la y exacta del tick.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    const W = PAPERBOY.width;
+    const H = PAPERBOY.height;
+    const roadTop = PAPERBOY.roadTop;
+    const laneH = PAPERBOY.laneHeight;
+
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#06091a';
+    ctx.fillRect(0, 0, W, roadTop);
+    ctx.fillStyle = '#93a8d6';
+    for (let i = 0; i < 30; i++) {
+      const sx = (((i * 151 - state.scrollX * 0.2) % (W + 20)) + W + 20) % (W + 20) - 10;
+      ctx.globalAlpha = 0.3 + (i % 4) * 0.16;
+      ctx.fillRect(sx, (i * 43) % (roadTop - 20), 2, 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#101735';
+    for (let i = 0; i < 8; i++) {
+      const bx = i * 64 + 6;
+      const bh = 26 + (i * 29) % 38;
+      ctx.fillRect(bx, roadTop - bh, 52, bh);
+      ctx.fillStyle = i % 2 === 0 ? '#ffd166' : '#25f4e6';
+      ctx.fillRect(bx + 10, roadTop - bh + 10, 6, 7);
+      ctx.fillRect(bx + 30, roadTop - bh + 10, 6, 7);
+      ctx.fillStyle = '#101735';
+    }
+    ctx.fillStyle = '#0a1020';
+    ctx.fillRect(0, roadTop, W, laneH * 3);
+    for (let lane = 0; lane < 3; lane++) {
+      const y = roadTop + lane * laneH;
+      ctx.fillStyle = lane % 2 === 0 ? '#101932' : '#0d162c';
+      ctx.fillRect(0, y, W, laneH);
+      ctx.strokeStyle = '#1d3a5c';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#25f4e6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, roadTop);
+    ctx.lineTo(W, roadTop);
+    ctx.moveTo(0, roadTop + 3 * laneH);
+    ctx.lineTo(W, roadTop + 3 * laneH);
+    ctx.stroke();
+
+    for (const house of state.houses) {
+      if (house.x < -30 || house.x > W + 30) continue;
+      const my = laneY(house.lane);
+      ctx.fillStyle = '#39405f';
+      ctx.fillRect(house.x - 2, my + 6, 4, 12);
+      ctx.fillStyle = house.delivered ? '#3c4566' : house.subscribed ? '#7df9ff' : '#ff5cf0';
+      ctx.fillRect(house.x - 10, my - 4, 20, 12);
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(house.x + 8, my - 8, 3, 7);
+    }
+
+    for (const obstacle of state.obstacles) {
+      if (obstacle.x < -60 || obstacle.x > W + 60) continue;
+      const oy = laneY(obstacle.lane);
+      if (obstacle.type === 'car' || obstacle.type === 'truck') {
+        ctx.fillStyle = obstacle.type === 'truck' ? '#ff9f43' : '#ff3f6e';
+        ctx.fillRect(obstacle.x - obstacle.w / 2, oy - 8, obstacle.w, 16);
+        ctx.fillStyle = '#7df9ff';
+        ctx.fillRect(obstacle.x - obstacle.w / 2 + 4, oy - 5, 8, 4);
+        ctx.fillStyle = '#050814';
+        ctx.fillRect(obstacle.x - obstacle.w / 2 + 3, oy + 8, 6, 4);
+        ctx.fillRect(obstacle.x + obstacle.w / 2 - 9, oy + 8, 6, 4);
+      } else if (obstacle.type === 'fence') {
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x - obstacle.w / 2, oy + 8);
+        ctx.lineTo(obstacle.x - obstacle.w / 2, oy - 8);
+        ctx.lineTo(obstacle.x + obstacle.w / 2, oy - 8);
+        ctx.lineTo(obstacle.x + obstacle.w / 2, oy + 8);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = '#b56bff';
+        ctx.beginPath();
+        ctx.moveTo(obstacle.x, oy - 8);
+        ctx.lineTo(obstacle.x + 8, oy + 8);
+        ctx.lineTo(obstacle.x - 8, oy + 8);
+        ctx.lineTo(obstacle.x, oy - 8);
+        ctx.fill();
+      }
+    }
+
+    for (const paper of state.papers) {
+      ctx.fillStyle = '#fff3d0';
+      ctx.fillRect(paper.x - 4, paper.y - 4, 8, 8);
+    }
+
+    const py = state.playerY;
+    ctx.strokeStyle = state.throwTimer > 0 ? '#ffd166' : '#24e6ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(PAPERBOY.playerX - 8, py + 8, 7, 0, Math.PI * 2);
+    ctx.moveTo(PAPERBOY.playerX + 8, py + 8);
+    ctx.arc(PAPERBOY.playerX + 8, py + 8, 7, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#25f4e6';
+    ctx.fillRect(PAPERBOY.playerX - 6, py - 6, 12, 16);
+    ctx.fillStyle = '#ff5cf0';
+    ctx.fillRect(PAPERBOY.playerX - 2, py - 14, 8, 8);
+
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.82)';
+    ctx.fillRect(0, H - 26, W, 26);
+    ctx.font = '14px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillText(`PTS ${Math.floor(state.score)} · DÍA ${state.day + 1}`, 10, H - 8);
+    ctx.textAlign = 'center';
+    ctx.fillText(`ENTREGADOS ${state.delivered} · FALLIDOS ${state.missed}`, W / 2, H - 8);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = state.time < 10 ? '#ff4d6d' : '#7df9ff';
+    ctx.fillText(`T ${state.time.toFixed(1)}`, W - 10, H - 8);
+    ctx.fillStyle = 'rgba(255, 209, 102, 0.35)';
+    ctx.fillRect(PAPERBOY.playerX - 2, laneY(state.safeLane) - 2, 4, 4);
+    ctx.restore();
+  },
+
   observe(state) {
     const nextHouse = state.houses.reduce<PaperboyHouse | null>((best, house) => {
       if (best === null) return house;

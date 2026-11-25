@@ -809,6 +809,108 @@ export const galagaGame = defineGame<GalagaState>({
     ]);
   },
 
+  render(renderer, state, alpha) {
+    void alpha; // Sin interpolación: el estado ya contiene las posiciones del frame.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    ctx.save();
+    ctx.clearRect(0, 0, GALAGA.width, GALAGA.height);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, GALAGA.width, GALAGA.height);
+
+    // Campo de estrellas determinista.
+    ctx.fillStyle = '#16233a';
+    for (let i = 0; i < 56; i++) {
+      ctx.fillRect((i * 151) % GALAGA.width, (i * 67) % GALAGA.height, 2, 2);
+    }
+
+    // Rayo tractor: cono translúcido hacia la nave capturada.
+    if (state.beam?.phase === 'beam') {
+      ctx.fillStyle = 'rgba(255, 63, 164, 0.16)';
+      ctx.beginPath();
+      ctx.moveTo(state.beam.beamX - 8, 0);
+      ctx.lineTo(state.beam.beamX + 8, 0);
+      ctx.lineTo(state.beam.beamX + GALAGA.beamHalfWidth, GALAGA.beamDescentY);
+      ctx.lineTo(state.beam.beamX - GALAGA.beamHalfWidth, GALAGA.beamDescentY);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.lineWidth = 2;
+    for (const enemy of state.enemies) {
+      if (!enemy.alive) continue;
+      ctx.strokeStyle =
+        enemy.type === 'boss' ? '#ffd166' : enemy.type === 'bee' ? '#5ef2ff' : '#ff3fa4';
+      ctx.beginPath();
+      ctx.moveTo(enemy.x, enemy.y + GALAGA.enemyH / 2);
+      ctx.lineTo(enemy.x - GALAGA.enemyW / 2, enemy.y - GALAGA.enemyH / 2);
+      ctx.lineTo(enemy.x + GALAGA.enemyW / 2, enemy.y - GALAGA.enemyH / 2);
+      ctx.closePath();
+      ctx.stroke();
+      if (enemy.hasCaptive) {
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y + 4, 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      if (enemy.beam) {
+        ctx.strokeStyle = '#ff3fa4';
+        ctx.beginPath();
+        ctx.moveTo(enemy.x, enemy.y + 8);
+        ctx.lineTo(enemy.x, GALAGA.shipY - 12);
+        ctx.stroke();
+      }
+    }
+    for (const fighter of state.bonusFighters) {
+      if (!fighter.alive) continue;
+      ctx.strokeStyle = '#ffd166';
+      ctx.beginPath();
+      ctx.arc(fighter.x, fighter.y, 9, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    for (const bullet of state.bullets) {
+      ctx.fillStyle = bullet.friendly ? '#ffd166' : '#ff3fa4';
+      ctx.fillRect(bullet.x - 2, bullet.y - 7, 4, 14);
+    }
+
+    // Doble nave y parpadeo breve de invulnerabilidad.
+    const blink = state.invuln > 0 ? 0.4 + 0.45 * Math.sin(state.invuln * 13) : 1;
+    ctx.save();
+    ctx.globalAlpha = blink;
+    ctx.strokeStyle = '#5ef2ff';
+    ctx.lineWidth = 2;
+    for (const offset of state.doubleShot ? [-16, 16] : [0]) {
+      ctx.beginPath();
+      ctx.moveTo(state.shipX + offset, GALAGA.shipY - 14);
+      ctx.lineTo(state.shipX + offset + 11, GALAGA.shipY + 10);
+      ctx.lineTo(state.shipX + offset, GALAGA.shipY + 4);
+      ctx.lineTo(state.shipX + offset - 11, GALAGA.shipY + 10);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillText(`PTS ${state.score}`, 12, 22);
+    ctx.fillText(`VIDAS ${state.lives}`, 12, 42);
+    ctx.textAlign = 'right';
+    ctx.fillText(`OLEADA ${state.wave}`, GALAGA.width - 12, 22);
+    if (state.bonusTimer > 0) {
+      ctx.fillStyle = '#ffb347';
+      ctx.fillRect(GALAGA.width / 2 - 100, 12, 200 * (state.bonusTimer / GALAGA.bonusDuration), 5);
+      ctx.textAlign = 'center';
+      ctx.fillText('BONUS', GALAGA.width / 2, 34);
+    }
+    if (state.paused || state.over) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 32px monospace';
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillText(state.over ? 'FIN' : 'PAUSA', GALAGA.width / 2, GALAGA.height / 2);
+    }
+    ctx.restore();
+  },
   rules: singlePlayerRules<GalagaState>(
     (state) =>
       state.score + state.wave * 100 + state.lives * 30 + state.ticks / 600 - (state.over ? 150 : 0),

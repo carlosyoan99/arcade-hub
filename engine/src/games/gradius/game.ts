@@ -657,6 +657,141 @@ export const gradiusGame = defineGame<GradiusState>({
     ]);
   },
 
+  render(renderer, state, alpha) {
+    void alpha; // Sin interpolación: el estado ya contiene las posiciones del frame.
+    const ctx = renderer as CanvasRenderingContext2D | null;
+    if (!ctx || typeof ctx.clearRect !== 'function') return;
+    ctx.save();
+    ctx.clearRect(0, 0, GRADIUS.width, GRADIUS.height);
+    ctx.fillStyle = '#05060f';
+    ctx.fillRect(0, 0, GRADIUS.width, GRADIUS.height);
+
+    // Paralaje determinista a partir de los ticks del estado.
+    ctx.fillStyle = '#16233a';
+    for (let i = 0; i < 54; i++) {
+      ctx.fillRect(
+        (i * 149) % GRADIUS.width,
+        (i * 83 + state.ticks * 2) % GRADIUS.height,
+        2,
+        2,
+      );
+    }
+
+    ctx.lineWidth = 2;
+    for (const enemy of state.enemies) {
+      ctx.strokeStyle =
+        enemy.type === 'ship' ? '#5ef2ff' : enemy.type === 'diver' ? '#ff3fa4' : '#ffb347';
+      ctx.beginPath();
+      ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    for (const pickup of state.pickups) {
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(pickup.x - 5, pickup.y - 5, 10, 10);
+    }
+    for (const bullet of state.bullets) {
+      ctx.fillStyle = bullet.missile ? '#ffb347' : '#ffd166';
+      ctx.fillRect(bullet.x - 2, bullet.y - 7, bullet.missile ? 5 : 4, 14);
+    }
+    ctx.fillStyle = '#ff3fa4';
+    for (const bullet of state.enemyBullets) {
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, bullet.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (state.boss) {
+      const boss = state.boss;
+      ctx.save();
+      ctx.translate(boss.x, boss.y);
+      ctx.rotate(boss.a);
+      ctx.strokeStyle = '#ff3fa4';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const px = Math.cos(angle) * boss.r;
+        const py = Math.sin(angle) * boss.r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#16233a';
+      ctx.fillRect(GRADIUS.width / 2 - 150, 8, 300, 6);
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillRect(GRADIUS.width / 2 - 150, 8, 300 * (boss.hp / boss.maxHp), 6);
+    }
+
+    const player = state.player;
+    // Destello breve de invulnerabilidad / escudo.
+    const blink = player.inv > 0 ? 0.4 + 0.45 * Math.sin(player.inv * 12) : 1;
+    ctx.save();
+    ctx.globalAlpha = blink;
+    ctx.translate(player.x, player.y);
+    ctx.strokeStyle = player.shield ? '#ffd166' : '#5ef2ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -13);
+    ctx.lineTo(11, 11);
+    ctx.lineTo(0, 5);
+    ctx.lineTo(-11, 11);
+    ctx.closePath();
+    ctx.stroke();
+    if (player.shield) {
+      ctx.beginPath();
+      ctx.arc(0, 0, 19, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.fillStyle = '#5ef2ff';
+    for (let i = 0; i < player.options; i++) {
+      const ox = player.x - 24 - i * 16;
+      ctx.fillRect(ox - 5, player.y - 3, 10, 6);
+    }
+
+    // Medidor de mejoras: 5 ranuras SPD/MSL/DBL/OPT/SHD.
+    const labels = 'SPD MSL DBL OPT SHD'.split(' ');
+    const active = [player.speed > 0, player.missile, player.double, player.options > 0, player.shield];
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'left';
+    for (let i = 0; i < labels.length; i++) {
+      ctx.fillStyle = active[i] ? '#ffd166' : '#16233a';
+      ctx.fillRect(14 + i * 30, GRADIUS.height - 16, 24, 6);
+      ctx.fillText(labels[i] ?? '', 14 + i * 30, GRADIUS.height - 21);
+    }
+
+    // Destello de fin de sector/jefe, sin partículas ni audio (ya los aporta el motor).
+    if (state.bossOutro > 0 || state.clearTimer > 0) {
+      ctx.strokeStyle = '#ffd166';
+      ctx.globalAlpha = 0.2 + 0.25 * Math.sin(state.ticks * 0.3);
+      ctx.lineWidth = 4;
+      ctx.strokeRect(4, 4, GRADIUS.width - 8, GRADIUS.height - 8);
+      ctx.globalAlpha = 1;
+    }
+    if (state.introTimer > 0) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 26px monospace';
+      ctx.fillStyle = '#5ef2ff';
+      ctx.fillText(`SECTOR ${state.stage}`, GRADIUS.width / 2, GRADIUS.height / 2);
+    }
+
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#5ef2ff';
+    ctx.fillText(`PTS ${state.score}`, 14, 24);
+    ctx.fillText(`VIDAS ${state.lives}`, 14, 44);
+    ctx.textAlign = 'right';
+    ctx.fillText(`SECTOR ${state.stage}`, GRADIUS.width - 14, 24);
+    if (state.paused || state.over || state.won) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 32px monospace';
+      ctx.fillStyle = '#ff3fa4';
+      ctx.fillText(state.won ? 'VICTORIA' : state.over ? 'FIN' : 'PAUSA', GRADIUS.width / 2, GRADIUS.height / 2);
+    }
+    ctx.restore();
+  },
   rules: singlePlayerRules<GradiusState>(
     (state) =>
       state.score + state.stage * 150 + state.lives * 25 + state.ticks / 600 - (state.over ? 150 : 0),
