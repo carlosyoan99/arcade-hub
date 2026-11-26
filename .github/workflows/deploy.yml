@@ -28,17 +28,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint (ESLint — 0 errores, 0 warnings)
-        run: npm run lint
+      - name: Typecheck (motor + juegos)
+        run: npm run typecheck
 
-      - name: Format (Prettier — sin drift)
-        run: npm run format
-
-      - name: Verify project consistency (games.js ↔ disco ↔ sw.js)
-        run: npm run verify
-
-      - name: Run smoke tests
+      - name: Unit tests (engine)
         run: npm test
+
+      - name: Unit tests (servidor de salas)
+        run: npm test -w @arcade/server
+
+      - name: Build library and HUB
+        run: npm run build && npm run build:hub
 
   deploy:
     needs: validate

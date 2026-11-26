@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://carlosyoan99.github.io/arcade-hub/sitemap.xml

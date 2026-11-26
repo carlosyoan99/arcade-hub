@@ -5,6 +5,3 @@ node_modules
 engine/dist/
 engine/dist-hub/
 
-# Playwright
-test-results/
-playwright-report/
