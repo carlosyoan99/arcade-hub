@@ -5,7 +5,8 @@
   "description": "Arcade Engine (TS + Vite) y Arcade Hub legacy — 32 juegos de referencia",
   "type": "module",
   "workspaces": [
-    "engine"
+    "engine",
+    "server"
   ],
   "scripts": {
     "lint": "eslint '**/*.js' --no-warn-ignored",

@@ -72,6 +72,11 @@ export {
 export { runHeadless, type HeadlessOptions, type HeadlessResult } from './tools/headless.js';
 export { inputsFromReplay, recordReplay } from './tools/replay.js';
 
+// Online (F5): protocolo versionado, lockstep y cliente de sala.
+export * from './net/protocol.js';
+export * from './net/lockstep.js';
+export * from './net/room-client.js';
+
 // Progresión: dificultad por niveles, DDA acotada y variedad sembrada.
 export * from './progression/curve.js';
 export * from './progression/variety.js';

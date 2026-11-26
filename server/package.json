@@ -1,0 +1,15 @@
+{
+  "name": "@arcade/server",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "description": "Arcade Engine — relay de salas online (lockstep determinista)",
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
+  }
+}
