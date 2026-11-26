@@ -100,7 +100,7 @@ export const miJuego = defineGame<MiEstado>({
 | `docs/Arcade Engine — definición del proyecto (v0).md` | visión, arquitectura, roadmap F0-F7 |
 | `docs/Arcade Hub — investigación completa.md` | auditoría de los 32 juegos y bugs B1-B8 |
 | `docs/arquitectura.md` | fuente canónica de la arquitectura actual |
-| `docs/DDT-F0-fundamentos.md` | decisiones, diseño del núcleo/plugins y política de versionado (`0.1.0-alpha.0`) |
+| `docs/DDT-F0-fundamentos.md` | decisiones, diseño del núcleo/plugins y política de versionado (`0.2.0-beta.0`) |
 | `docs/DDT-F1-presentacion.md` | render, audio, UI y store como plugins |
 | `docs/DDT-F2-primeros-juegos.md` | Pong y Flappy como validación del contrato |
 | `docs/DDT-F3-IA.md` | MLP, neuroevolución, trainer y dificultad |

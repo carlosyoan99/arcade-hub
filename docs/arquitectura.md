@@ -25,7 +25,7 @@ tools/    headless runner, replay
 ```
 
 - `sim/`, `ai/`, `progression/` y `game/` **no importan** `render/`, `audio/`, `ui/` ni DOM (por convención; sin test automático de grafo aún).
-- `games/` solo importa del motor y no contiene bucle, colisiones genéricas, partículas, audio, guardado ni IA.
+- `engine/src/games/` solo importa del motor y no contiene bucle, colisiones genéricas, partículas, audio, guardado ni IA.
 - Regla de oro: si una función aparece en dos juegos, sube al motor.
 
 ## Bucle y determinismo

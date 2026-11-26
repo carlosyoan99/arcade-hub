@@ -18,7 +18,7 @@ F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación
 | D2 | Modelo de entidades | **World + Systems**, objetos planos | Sin ECS. Suficiente para estado pequeño. |
 | D3 | Netcode | **Lockstep determinista + relay** | Plan B: servidor autoritativo con snapshots. F0 solo garantiza el determinismo que lockstep necesita. |
 | D4 | Lenguaje | **TypeScript + Vite** | **CAMBIO respecto al borrador**: se descarta JS + JSDoc + `// @ts-check`. Se adopta TS estricto y Vite como bundler/dev-server, como en WebCraft. |
-| D5 | Repo | **Monorepo** `engine/` + `server/` + `games/` | npm workspaces. F0 crea solo `engine/`. |
+| D5 | Repo | **Monorepo** `engine/` + `server/` | npm workspaces; los juegos viven en `engine/src/games/`, no son un workspace propio. |
 | D6 | Estilo visual | Neon 2D del hub actual | Se aplica en F1. |
 | D7 | Catálogo v1 | **Los 32 juegos del hub** | Los 6 del piloto más el resto; todos integrados en `engine/src/games/index.ts`. |
 | D8 | Hosting online | Servidor Node propio (LAN o VPS) | F5. |
@@ -34,7 +34,7 @@ F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación
 
 ### Política de versionado
 
-El motor está en **pre-release**: `0.1.0-alpha.0` (`engine/package.json`). Política prevista: F0-F3 `alpha.N`, F4-F6 `beta.N`, y solo al cerrar F7+ pulido `1.0.0`. Estado real: F4/F7 ya están completados pero la versión sigue en `alpha.0` porque faltan F5 (online) y F6 (pulido); se promocionará a `beta.0` al terminar F6. El hub heredado ya no está en el repo: solo queda su registro histórico en `docs/` y el HUB generado desde `engine/`.
+El motor está en **pre-release**: `0.2.0-beta.0` (`engine/package.json`). Política: F0-F3 `alpha.N`, F4-F6 `beta.N`, y `1.0.0` solo tras validación final en producción (E2E en navegador y despliegue). Estado real: F0-F7 completados; la versión se promocionó a `beta.0` el 26-nov-2026. El hub heredado ya no está en el repo: solo queda su registro histórico en `docs/` y el HUB generado desde `engine/`.
 
 ## 3. Alcance de F0
 
