@@ -1,26 +1,32 @@
-# Arcade Engine (+ Arcade Hub legacy)
+# Arcade Engine
 
-Este repo tiene dos partes bien separadas:
+El repo contiene el motor determinista con los 32 juegos migrados, el servidor de salas online y el HUB estático generado desde `engine/`. El Arcade Hub legacy fue **retirado** el 26-nov-2026; su registro histórico queda en `docs/`.
 
 | Parte | Estado | Tecnología |
 | --- | --- | --- |
-| **`engine/` — Arcade Engine** | **En desarrollo activo** | TypeScript estricto + Vite + Vitest, plugins nativos |
-| `games/`, `shared/`, `index.html` — Arcade Hub | **Congelado como referencia** (32 juegos) | JS vanilla, ES modules, cero dependencias |
+| **`engine/` — Arcade Engine** | Activo: 32 juegos y HUB sin iframes | TypeScript estricto + Vite + Vitest |
+| `server/` — salas online | Activo (F5) | Node + `ws`, lockstep determinista |
+| `index.html` + `assets/` (raíz) | Generados por `npm run build:hub` | HTML estático, sin build step en producción |
 
-El Hub antiguo no se modifica: sus 32 juegos son la referencia de mecánicas y del bugs que el motor nuevo evita por diseño (`docs/Arcade Hub — investigación completa.md`).
+El HUB publicado conserva los meta/SEO del sitio anterior. No edites `index.html` ni `assets/` a mano: se regeneran desde `engine/index.html` y `engine/demo/`.
 
 ## Quick start
 
 ```bash
-npm install                 # instala workspaces (engine)
-npm test -w @arcade/engine  # suite del motor (290 tests)
-npm run build -w @arcade/engine
-npm run dev -w @arcade/engine          # demo visual Pong / Flappy en Vite
-npm run headless -w @arcade/engine -- --ticks 600 --seed 12345
+npm install
+npm test                    # Vitest del engine (334 tests)
+npm run test:server         # tests del servidor de salas
+npm run typecheck
+npm run build               # librería del engine
+npm run build:hub           # publica el HUB en la raíz (index.html + assets/)
+npm run dev                 # demo visual en Vite
+npm start                   # servidor de salas
+npm run check               # toda la verificación
 ```
 
-El Hub legacy se sirve igual que antes: `python3 -m http.server 8000` y abrir `index.html`.
-Sus comprobaciones (`npm run check` en la raíz) siguen disponibles, pero **no se aceptan cambios nuevos en juegos legacy**: las mejoras van al motor y a los juegos migrados en `engine/src/games/`.
+### Rollback
+
+Si la retirada del legacy se ha de deshacer, `git revert <hash-del-commit>` (o `git revert HEAD` si es el último commit) restaura el Hub anterior sin tocar `engine/` ni `server/`. El hash golden vigente es `600:3336926330:e22d095e-20`; no cambiarlo sin una razón de física/RNG documentada.
 
 ## Principios del motor
 
@@ -79,15 +85,16 @@ export const miJuego = defineGame<MiEstado>({
 ## Estado de migración
 
 - ✅ Catálogo completo: los 32 juegos migrados e integrados en `engine/src/games/index.ts` (`GAME_IDS`).
-- ✅ 290 tests en verde, `tsc` limpio, build y headless OK. Golden hash `600:3336926330:e22d095e-20`.
-- ⏳ Pendientes: F5 online y F6 pulido/HUB minimalista (ver `TODO.md`).
+- ✅ 334 tests en verde, `tsc` limpio, build de librería y del HUB OK. Golden hash `600:3336926330:e22d095e-20`.
+- ✅ HUB nuevo sin iframes publicado en la raíz; legacy retirado (ver `docs/plan-retirada-legacy.md`).
+- ⏳ Pendientes: F5 online y F6 pulido (ver `TODO.md`).
 
 ## Documentación
 
 | Documento | Contenido |
 | --- | --- |
 | `AGENTS.md` | Orientación rápida para agentes y colaboradores |
-| `CLAUDE.md` | Convenciones técnicas del motor y del legado |
+| `CLAUDE.md` | Convenciones técnicas del motor y del servidor |
 | `CONTRIBUTING.md` | Cómo migrar un juego y checklist |
 | `TODO.md` | roadmap activo del motor |
 | `docs/Arcade Engine — definición del proyecto (v0).md` | visión, arquitectura, roadmap F0-F7 |
@@ -100,7 +107,8 @@ export const miJuego = defineGame<MiEstado>({
 | `docs/DDT-F5-online.md` | diseño pendiente de salas ws + lockstep |
 | `docs/investigacion-dificultad-variedad.md` | curvas y adaptación moderna por juego |
 | `docs/decisiones-skills.md` | inventario y decisiones sobre skills del repo |
+| `docs/plan-retirada-legacy.md` | plan ejecutado de retirada del Hub legacy, con rollback |
 
 ## Licencia
 
-MIT. Los juegos legacy se conservan únicamente como referencia histórica; no se aceptan cambios nuevos en ellos.
+MIT. El código legacy ya no está en el repo; B1-B8 y el resto de la auditoría se conservan solo como referencia histórica en `docs/`.

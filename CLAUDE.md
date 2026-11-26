@@ -1,6 +1,6 @@
 # CLAUDE.md — Convenciones técnicas
 
-Este repo tiene dos mundos: **`engine/` (Arcade Engine, activo)** y el **Arcade Hub legacy congelado**. Las convenciones de abajo son para el motor; el legado se conserva solo como referencia.
+El repo tiene dos paquetes activos: **`engine/` (Arcade Engine)** y **`server/` (salas online)**. El HUB estático se genera desde `engine/` en la raíz del repo. El Arcade Hub legacy fue retirado; su documentación permanece como referencia histórica en `docs/`.
 
 ## Convenciones del motor
 
@@ -26,13 +26,15 @@ Neon 2D del Hub como referencia, pero los colores, partículas y sonidos son **s
 ## Verificación
 
 ```bash
-npm test -w @arcade/engine
-npx tsc -p engine/tsconfig.json --noEmit
-npm run build -w @arcade/engine
+npm run typecheck
+npm test
+npm run test:server
+npm run build
+npm run build:hub
 ```
 
-Si un cambio altera el hash golden, hay una razón (cambio de física o de RNG) y debe actualizarse el test a conciencia.
+Si un cambio altera el hash golden (`600:3336926330:e22d095e-20`), hay una razón (cambio de física o de RNG) y debe actualizarse el test a conciencia.
 
-## Legado
+## Retirada del legacy
 
-Los 32 juegos en `games/` usan `shared/*.js`, requieren 5 archivos por juego y se registran en `games.js` + `sw.js`. Están congelados: no se corrijan bugs allí; se migran al motor. Sus bugs están documentados en `docs/Arcade Hub — investigación completa.md`.
+El Hub anterior ya no está en el repo. No hay juegos en `games/` ni módulos en `shared/` donde corregir bugs: B1-B8 se documentan en `docs/Arcade Hub — investigación completa.md` como registro histórico y sus correcciones viven en `engine/src/games/`. Para deshacer la retirada, `git revert <hash-del-commit>`; el procedimiento está en `docs/plan-retirada-legacy.md`. `index.html` y `assets/` de la raíz son generados: no se editan a mano.

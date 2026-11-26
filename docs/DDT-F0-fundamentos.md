@@ -22,7 +22,7 @@ F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación
 | D6 | Estilo visual | Neon 2D del hub actual | Se aplica en F1. |
 | D7 | Catálogo v1 | **Los 32 juegos del hub** | Los 6 del piloto más el resto; todos integrados en `engine/src/games/index.ts`. |
 | D8 | Hosting online | Servidor Node propio (LAN o VPS) | F5. |
-| D9 | Ciclo de vida del hub | **Congelado como referencia** | El código actual no se modifica; se usa solo como fuente de lógica a reescribir. |
+| D9 | Ciclo de vida del hub | **Retirado; referencia histórica en `docs/`** | El legacy se eliminó el 26-nov-2026 tras la paridad; su lógica ya vive en `engine/src/games/`. |
 
 ### Consecuencias de D4
 
@@ -34,7 +34,7 @@ F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación
 
 ### Política de versionado
 
-El motor está en **pre-release**: `0.1.0-alpha.0` (`engine/package.json`). Política prevista: F0-F3 `alpha.N`, F4-F6 `beta.N`, y solo al cerrar F7+ pulido `1.0.0`. Estado real: F4/F7 ya están completados pero la versión sigue en `alpha.0` porque faltan F5 (online) y F6 (pulido); se promocionará a `beta.0` al terminar F6. La versión del hub heredado (`1.0.0` en la raíz) queda congelada y no representa al motor.
+El motor está en **pre-release**: `0.1.0-alpha.0` (`engine/package.json`). Política prevista: F0-F3 `alpha.N`, F4-F6 `beta.N`, y solo al cerrar F7+ pulido `1.0.0`. Estado real: F4/F7 ya están completados pero la versión sigue en `alpha.0` porque faltan F5 (online) y F6 (pulido); se promocionará a `beta.0` al terminar F6. El hub heredado ya no está en el repo: solo queda su registro histórico en `docs/` y el HUB generado desde `engine/`.
 
 ## 3. Alcance de F0
 

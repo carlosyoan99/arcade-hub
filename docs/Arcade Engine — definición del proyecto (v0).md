@@ -191,4 +191,4 @@ Cada fase tendrá su documento con tareas, cómo hacerlas, cómo validarlas, lim
 | D6 | Estilo visual | Neon 2D del hub, moderado por `prefers-reduced-motion` | ✅ cerrada |
 | D7 | Catálogo v1 | **Los 32 juegos migrados** (los 6 del piloto + el resto) | ✅ cerrada |
 | D8 | Hosting online | Servidor Node propio (LAN o VPS) | ⏳ por decidir en F5 |
-| D9 | Ciclo de vida del hub | **Congelado como referencia** | ✅ cerrada |
+| D9 | Ciclo de vida del hub | **Retirado; referencia histórica en `docs/`** | ✅ cerrada 26-nov-2026 |

@@ -53,8 +53,8 @@ defineGame<S>({
 
 ## Validación
 
-`npm test -w @arcade/engine` (290 tests), `npx tsc -p engine/tsconfig.json --noEmit`, `npm run build -w @arcade/engine`, `npm run headless -w @arcade/engine -- --ticks 600 --seed 12345`.
+`npm test` (334 tests del engine), `npm run test:server`, `npm run typecheck`, `npm run build`, `npm run build:hub` y `npm run headless -w @arcade/engine -- --ticks 600 --seed 12345` (hash golden `600:3336926330:e22d095e-20`).
 
-## Legado
+## HUB publicado y legado
 
-`games/`, `shared/`, `index.html` y `asset/` son el Hub legacy congelado (D9). El HUB ha sido rediseñado de forma minimalista conservando thumbnails canvas, foco visible, `aria-live`, `prefers-reduced-motion` y el juice sutil; no se aceptan juegos nuevos allí.
+El HUB se genera desde `engine/index.html` + `engine/demo/` con `npm run build:hub` y se publica en la raíz (`index.html` + `assets/`), sin iframes y con los meta/SEO del sitio anterior. El Hub legacy de D9 fue retirado el 26-nov-2026: ya no hay `games/`, `shared/`, `asset/` ni `index.html` antiguo; solo queda su registro histórico en `docs/`. El HUB conserva thumbnails canvas, foco visible, `aria-live`, `prefers-reduced-motion` y el juice sutil. Rollback: `git revert <hash-del-commit>` (ver `docs/plan-retirada-legacy.md`).

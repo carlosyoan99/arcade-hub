@@ -1,6 +1,6 @@
 # Contribuir — Arcade Engine
 
-El proyecto activo es `engine/`. El Arcade Hub legacy está congelado: no se aceptan cambios nuevos en `games/`, `shared/` ni `index.html`.
+El proyecto activo es `engine/` (junto con `server/`). El Arcade Hub legacy fue retirado; `index.html` y `assets/` en la raíz se generan con `npm run build:hub` y no se editan a mano.
 
 ## Flujo
 
@@ -12,9 +12,11 @@ El proyecto activo es `engine/`. El Arcade Hub legacy está congelado: no se ace
 6. Verifica y commitea con mensaje conventional (`feat(games): ...`, `fix(engine): ...`, `docs: ...`).
 
 ```bash
-npm test -w @arcade/engine
-npx tsc -p engine/tsconfig.json --noEmit
-npm run build -w @arcade/engine
+npm run typecheck
+npm test
+npm run test:server
+npm run build
+npm run build:hub
 ```
 
 ## Checklist de un juego migrado
@@ -33,6 +35,6 @@ npm run build -w @arcade/engine
 
 No lo copies en el juego. Reporta cuál es, dónde aparece y qué servicio del motor podría absorberlo. Lo mismo si encuentras una función del motor ya implementada que no puedes usar, o una que falta. El coordinador decide si sube a `core/`, `input/`, `progression/`, `ai/` o `render/`.
 
-## Legado
+## Histórico y rollback
 
-Los juegos originales de `games/` se leen como referencia de reglas y controles. No se modifican. Sus bugs conocidos (B1-B8) están en `docs/Arcade Hub — investigación completa.md` y se corrigen en la versión migrada.
+El Hub anterior ya no existe en el repo: B1-B8 y las reglas originales quedan como registro histórico en `docs/Arcade Hub — investigación completa.md`, y sus correcciones están en los juegos migrados de `engine/src/games/`. El hash golden vigente es `600:3336926330:e22d095e-20`. Si hace falta recuperar el legacy, `git revert <hash-del-commit>`; ver `docs/plan-retirada-legacy.md`.

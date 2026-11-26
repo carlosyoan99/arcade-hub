@@ -29,7 +29,7 @@ Durante el análisis aparecieron temporalmente tres carpetas más (`typescript-a
 ## Rechazadas o limitadas
 
 - **Vite 8 / Rolldown** (no hay skill registrada; solo referencia externa): el repo usa Vite 6 con Vitest 2; migrar rompería build y golden hash. No aplicar.
-- **seo**: no aplica al motor; solo regenerar `sitemap.xml`/`lastmod` en la fase final del HUB. Sin SSR ni JSON-LD en runtime.
+- **seo**: no aplica al motor. Los meta/SEO (JSON-LD estático, canonical, robots, sitemap, favicon) se conservan en `engine/index.html` y se publican con el HUB; el `sitemap.xml` legacy quedó retirado y habría que generarlo de nuevo si se quiere publicar. Sin SSR ni JSON-LD en runtime.
 - **game-engine / premium-frontend-ui / dialogue-systems / shader-programming**: genéricas, con frameworks o narrativa/WebGL fuera del alcance (arcade 2D, Canvas 2D, cero dependencias).
 - **create-agentsmd / create-readme**: regenerarlas borraría las reglas no negociables del motor. Edición manual.
 - **report (host)**: solo para bugs de OpenCode; requiere confirmación antes de publicar. Los bugs B1-B8 se documentan en `docs/`, no se publican con ese skill.

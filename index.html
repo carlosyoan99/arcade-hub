@@ -2,42 +2,40 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arcade Hub — 32 juegos clásicos recreados</title>
-    <script src="./asset/theme-init.js"></script>
-    <link rel="icon" type="image/svg+xml" href="./asset/icons/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="32 juegos arcade sobre Arcade Engine" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#080a12" />
+    <title>Arcade Engine · 32 juegos</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="sitemap" type="application/xml" href="./sitemap.xml" />
     <link rel="canonical" href="https://carlosyoan99.github.io/arcade-hub/" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src 'self'; base-uri 'self'; form-action 'self'"
-    />
 
     <!-- Open Graph / Social Sharing -->
-    <meta id="og-title" property="og:title" content="Arcade Hub — 32 juegos clásicos recreados" />
+    <meta id="og-title" property="og:title" content="Arcade Engine — 32 juegos arcade" />
     <meta
       id="og-desc"
       property="og:description"
-      content="32 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris, Columns, Out Run y más) recreados con estética 2D. Un archivo HTML por juego, cero dependencias."
+      content="32 juegos arcade sobre Arcade Engine"
     />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Arcade Hub" />
+    <meta property="og:site_name" content="Arcade Engine" />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:url" content="https://carlosyoan99.github.io/arcade-hub/" />
     <meta
       property="og:image"
-      content="https://carlosyoan99.github.io/arcade-hub/asset/icons/favicon.svg"
+      content="https://carlosyoan99.github.io/arcade-hub/favicon.svg"
     />
     <meta name="twitter:card" content="summary" />
-    <meta id="tw-title" name="twitter:title" content="Arcade Hub — 32 juegos clásicos recreados" />
+    <meta id="tw-title" name="twitter:title" content="Arcade Engine — 32 juegos arcade" />
     <meta
       id="tw-desc"
       name="twitter:description"
-      content="32 juegos clásicos de arcade (Pong, Breakout, Snake, Pac-Man, Tetris y más) recreados con estética 2D. Un archivo HTML por juego, cero dependencias."
+      content="32 juegos arcade sobre Arcade Engine"
     />
     <meta
       name="twitter:image"
-      content="https://carlosyoan99.github.io/arcade-hub/asset/icons/favicon.svg"
+      content="https://carlosyoan99.github.io/arcade-hub/favicon.svg"
     />
 
     <!-- Schema.org / JSON-LD -->
@@ -45,9 +43,9 @@
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "Arcade Hub",
+        "name": "Arcade Engine",
         "url": "https://carlosyoan99.github.io/arcade-hub/",
-        "description": "32 juegos clásicos de arcade recreados con estética 2D. Un archivo HTML por juego, cero dependencias.",
+        "description": "32 juegos arcade sobre Arcade Engine",
         "inLanguage": "es-ES",
         "applicationCategory": "Game"
       }
@@ -56,8 +54,8 @@
       {
         "@context": "https://schema.org",
         "@type": "VideoGame",
-        "name": "Arcade Hub",
-        "description": "Seleccioná un juego para empezar a jugar",
+        "name": "Arcade Engine",
+        "description": "32 juegos arcade sobre Arcade Engine",
         "applicationCategory": "Game",
         "operatingSystem": "Any",
         "browserRequirements": "HTML5 Canvas"
@@ -67,148 +65,57 @@
       {
         "@context": "https://schema.org",
         "@type": "ItemList",
-        "name": "Juegos de Arcade Hub",
-        "description": "32 juegos clásicos de arcade disponibles para jugar",
+        "name": "Juegos de Arcade Engine",
+        "description": "32 juegos arcade sobre Arcade Engine",
         "numberOfItems": 32,
         "itemListElement": []
       }
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./asset/hub.css" />
+    <script type="module" crossorigin src="./assets/index-DUyaPJ9D.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Cv8ZZXk_.css">
   </head>
   <body>
-    <a class="skip-link" href="#grid">Saltar a los juegos</a>
+    <a class="skip" href="#shelf">Saltar a la vitrina</a>
 
-    <!-- Pantalla de entrada: una sola línea, sin puertas ni glitch. -->
-    <div id="entryOverlay" class="entry-overlay" aria-hidden="true">
-      <div class="entry-content">
-        <p class="entry-mark">Arcade Hub</p>
-        <p class="entry-hint">Presioná cualquier tecla o hacé clic para entrar</p>
-      </div>
-    </div>
-
-    <header class="site-header">
+    <header class="topbar">
       <div class="brand">
-        <h1>Arcade Hub</h1>
-        <p class="tagline">32 juegos clásicos, un archivo por juego</p>
+        <h1>Arcade Engine</h1>
+        <span class="brand__count" id="count">32 títulos</span>
       </div>
-      <div class="header-actions">
-        <p class="count-line">
-          <span id="ready-count">0</span> de <span id="total-count">0</span> disponibles
-        </p>
-        <button
-          id="themeToggle"
-          class="icon-btn"
-          type="button"
-          aria-label="Cambiar tema"
-          title="Cambiar tema"
-        >
-          🌙
-        </button>
-      </div>
+      <label class="search">
+        <span class="visually-hidden">Buscar juegos</span>
+        <input
+          id="search"
+          type="search"
+          placeholder="Buscar título…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </label>
     </header>
 
-    <nav class="toolbar" aria-label="Filtros de juegos">
-      <div class="search-wrap">
-        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
-          <path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2" />
-        </svg>
-        <label class="visually-hidden" for="searchInput">Buscar juegos</label>
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Buscar juegos"
-          aria-label="Buscar por nombre"
-          autocomplete="off"
-        />
-      </div>
-      <label class="visually-hidden" for="sortSelect">Ordenar juegos</label>
-      <select id="sortSelect" aria-label="Ordenar juegos">
-        <option value="default">Por defecto</option>
-        <option value="name">Nombre A-Z</option>
-        <option value="newest">Más nuevos</option>
-        <option value="most-played">Más jugados</option>
-      </select>
-      <div class="view-switch" role="group" aria-label="Vista de la grilla">
-        <button
-          class="view-btn active"
-          id="viewGridBtn"
-          type="button"
-          aria-label="Vista grilla"
-          aria-pressed="true"
-          title="Grilla"
-        >
-          ▦
-        </button>
-        <button
-          class="view-btn"
-          id="viewListBtn"
-          type="button"
-          aria-label="Vista lista"
-          aria-pressed="false"
-          title="Lista"
-        >
-          ☰
-        </button>
-      </div>
-      <button
-        class="view-btn surprise"
-        id="surpriseBtn"
-        type="button"
-        aria-label="Juego al azar"
-        title="Juego al azar"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <rect x="2" y="2" width="20" height="20" rx="3" />
-          <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none" />
-          <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none" />
-          <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-          <circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none" />
-          <circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none" />
-        </svg>
-      </button>
-    </nav>
+    <main class="shell">
+      <section id="shelf" aria-labelledby="shelf-title">
+        <h2 id="shelf-title" class="section-title">La vitrina</h2>
+        <ul id="grid" class="grid" aria-label="Juegos disponibles"></ul>
+        <p id="empty" class="empty" hidden>No hay juegos para esa búsqueda.</p>
+      </section>
 
-    <main id="grid" tabindex="-1" aria-label="Juegos">
-      <p id="empty" role="status" aria-live="polite">
-        Todavía no hay juegos listos. Revisá TODO.md para ver qué sigue.
-      </p>
+      <section id="stage" class="stage" aria-labelledby="stage-title" hidden>
+        <div class="stage__top">
+          <button id="back" class="back" type="button">← Volver a la vitrina</button>
+          <h2 id="stage-title" class="stage__title"></h2>
+        </div>
+        <canvas id="screen" width="960" height="600" aria-label="Pantalla del juego">
+          Tu navegador no admite canvas.
+        </canvas>
+        <p id="hint" class="hint"></p>
+      </section>
     </main>
-    <p id="hub-status" class="visually-hidden" role="status" aria-live="polite"></p>
 
-    <footer class="site-footer">
-      <details class="quiet-panel" id="achSection">
-        <summary>Logros <span class="count" id="achCount">0 / 11</span></summary>
-        <div class="achievements-grid" id="achGrid"></div>
-      </details>
-      <details class="quiet-panel" id="statsSection">
-        <summary>Estadísticas <span class="count" id="gamesPlayedCount">0 jugados</span></summary>
-        <div class="stat-summary" id="statSummary"></div>
-        <div class="stats-grid" id="statsGrid"></div>
-      </details>
-      <p class="footer-note">Sin frameworks, sin build step. Abrir y jugar.</p>
-    </footer>
+    <p id="status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="results" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
 
-    <!-- El iframe carga el juego por hash. Cada juego inyecta su propia barra
-         superior (shared/base.css #gameBar); el hub no añade otra. -->
-    <div id="gameContainer" class="hidden" aria-hidden="true">
-      <iframe id="gameFrame" allowfullscreen title="Juego"></iframe>
-    </div>
-
-    <script type="module" src="./asset/hub.js"></script>
   </body>
 </html>

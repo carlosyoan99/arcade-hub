@@ -1,24 +1,30 @@
 # AGENTS.md — Arcade Engine / Arcade Hub
 
-Orientación rápida. Lee también `CLAUDE.md` (convenciones), `CONTRIBUTING.md` (cómo migrar un juego), `TODO.md` (roadmap) y los DDT en `docs/`: F0 (núcleo/plugins), F1 (presentación), F2 (primeros juegos), F3 (IA), F5 (online, pendiente).
+Orientación rápida. Lee también `CLAUDE.md` (convenciones), `CONTRIBUTING.md` (cómo migrar un juego), `TODO.md` (roadmap) y los DDT en `docs/`: F0 (núcleo/plugins), F1 (presentación), F2 (primeros juegos), F3 (IA), F5 (online).
 
 ## Dónde trabajar
 
-- **Activo:** `engine/` — TypeScript estricto, Vite, Vitest, plugins nativos; 32 juegos integrados y 290 tests en verde.
-- **Congelado:** `games/`, `shared/`, `index.html`, `asset/` — Arcade Hub legacy (32 juegos). Sirve solo como referencia de mecánicas. **No añadas juegos nuevos ni cambios allí.**
+- **Activo:** `engine/` — TypeScript estricto, Vite, Vitest, plugins nativos; 32 juegos integrados y 334 tests en verde.
+- **Activo:** `server/` — salas WebSocket con lockstep determinista.
+- **Generado:** `index.html` y `assets/` en la raíz — salida de `npm run build:hub`; no editar a mano.
+- **Retirado:** el Arcade Hub legacy (`games/`, `shared/`, `asset/`, etc.) ya no está en el repo. Su referencia histórica vive en `docs/`.
 
 ## Comandos (desde la raíz)
 
 ```bash
 npm install
-npm test -w @arcade/engine                 # Vitest
-npm run build -w @arcade/engine            # tsc + Vite
-npm run dev -w @arcade/engine              # demo visual
+npm test                                   # Vitest del engine
+npm run test:server                        # tests del servidor
+npm run typecheck                          # tsc completo
+npm run build                              # librería del engine
+npm run build:hub                          # HUB en la raíz (index.html + assets/)
+npm run dev                                # demo visual
+npm start                                  # servidor de salas
+npm run check                              # toda la verificación
 npm run headless -w @arcade/engine -- --ticks 600 --seed 12345
-npx tsc -p engine/tsconfig.json --noEmit   # typecheck completo
 ```
 
-Dentro de `engine/`: `npm test`, `npm run build`, `npm run dev`, `npm run headless`.
+Dentro de `engine/`: `npm test`, `npm run build`, `npm run build:hub`, `npm run dev`, `npm run headless`.
 
 ## Reglas del motor (no negociables)
 
@@ -41,9 +47,10 @@ Si encuentras **código duplicado**, una funcionalidad del motor ya implementada
 - Todo juego nuevo debe tener test de determinismo, de subida de dificultad, de `observe()` finito y de evento de juice.
 - `npm test -w @arcade/engine` debe estar en verde antes de integrar.
 
-## Legado (solo lectura)
+## Hub publicado, rollback e histórico
 
-- Hub sin build step: `python3 -m http.server 8000`.
-- `games.js` es el manifiesto; `sw.js` mantiene `FILES` (regenerar con `npm run verify:sw`).
-- Bugs conocidos B1-B8: ver `docs/Arcade Hub — investigación completa.md`. No se corrigen en el legado; las correcciones van en los juegos migrados.
-- `localStorage` legacy: `<gameId>_<key>`; el motor usa `store/` versionado con validación.
+- El HUB se publica con `npm run build:hub`: genera `index.html` y `assets/` en la raíz sin iframes, conservando canonical, robots, sitemap, favicon, Open Graph/Twitter y JSON-LD. Sirve la raíz con cualquier servidor estático.
+- Para deshacer la retirada del legacy: `git revert <hash-del-commit>` (o `git revert HEAD` si es el último). El procedimiento y los riesgos están en `docs/plan-retirada-legacy.md`.
+- Hash golden vigente: `600:3336926330:e22d095e-20`; se comprueba en `engine/test/determinism.test.ts`.
+- Bugs B1-B8 y decisiones del Hub anterior: `docs/Arcade Hub — investigación completa.md` (registro histórico; ya no hay código legacy que corregir).
+- El motor usa `store/` versionado con validación para la persistencia.
