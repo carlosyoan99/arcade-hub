@@ -218,10 +218,19 @@ export const missileCommandGame = defineGame<MissileCommandState>({
     const speed = progress.speed;
     state.ticks++;
 
-    if (ctx.actions.isDown('aimLeft')) state.cursor.x -= MISSILE_COMMAND.aimSpeed * dt;
-    if (ctx.actions.isDown('aimRight')) state.cursor.x += MISSILE_COMMAND.aimSpeed * dt;
-    if (ctx.actions.isDown('aimUp')) state.cursor.y -= MISSILE_COMMAND.aimSpeed * dt;
-    if (ctx.actions.isDown('aimDown')) state.cursor.y += MISSILE_COMMAND.aimSpeed * dt;
+    // El puntero virtual (ratón, stick derecho o táctil) manda cuando está
+    // activo; las acciones de mirilla siguen siendo el fallback de teclado y
+    // gamepad. Ambas fuentes llegan por la cinta de inputs, sin DOM en step().
+    const pointer = ctx.actions.pointer;
+    if (pointer.active) {
+      state.cursor.x = pointer.x * MISSILE_COMMAND.width;
+      state.cursor.y = pointer.y * MISSILE_COMMAND.height;
+    } else {
+      if (ctx.actions.isDown('aimLeft')) state.cursor.x -= MISSILE_COMMAND.aimSpeed * dt;
+      if (ctx.actions.isDown('aimRight')) state.cursor.x += MISSILE_COMMAND.aimSpeed * dt;
+      if (ctx.actions.isDown('aimUp')) state.cursor.y -= MISSILE_COMMAND.aimSpeed * dt;
+      if (ctx.actions.isDown('aimDown')) state.cursor.y += MISSILE_COMMAND.aimSpeed * dt;
+    }
     state.cursor.x = clamp(state.cursor.x, 0, MISSILE_COMMAND.width);
     state.cursor.y = clamp(state.cursor.y, 0, MISSILE_COMMAND.groundY - 10);
 

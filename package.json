@@ -6,11 +6,13 @@
   "type": "module",
   "workspaces": [
     "engine",
-    "server"
+    "server",
+    "protocol"
   ],
   "scripts": {
     "test": "npm test -w @arcade/engine",
     "test:server": "npm test -w @arcade/server",
+    "test:e2e": "playwright test",
     "build": "npm run build -w @arcade/engine",
     "build:hub": "npm run build:hub -w @arcade/engine",
     "dev": "npm run dev -w @arcade/engine",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@playwright/test": "^1.65.1",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-prettier": "^5.0.0",

@@ -48,7 +48,7 @@ body {
 }
 .skip:focus { left: 12px; }
 
-:where(a, button, input):focus-visible {
+:where(a, button, input, select):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -167,6 +167,29 @@ body {
   cursor: pointer;
 }
 .back:hover { border-color: var(--accent); }
+
+.difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.difficulty select {
+  padding: 7px 9px;
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.difficulty select:hover { border-color: var(--accent); }
+
 .stage__title {
   margin: 0;
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;

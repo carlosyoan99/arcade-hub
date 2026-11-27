@@ -104,6 +104,14 @@
       <section id="stage" class="stage" aria-labelledby="stage-title" hidden>
         <div class="stage__top">
           <button id="back" class="back" type="button">← Volver a la vitrina</button>
+          <label class="difficulty">
+            <span>Dificultad</span>
+            <select id="difficulty" aria-label="Dificultad del juego">
+              <option value="easy">Fácil</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Difícil</option>
+            </select>
+          </label>
           <h2 id="stage-title" class="stage__title"></h2>
         </div>
         <canvas id="screen" width="960" height="600" aria-label="Pantalla del juego">

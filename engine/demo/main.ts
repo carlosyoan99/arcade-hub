@@ -1,6 +1,6 @@
 import { createLoop } from '../src/core/loop.js';
 import type { ActionName } from '../src/core/types.js';
-import { createGameSimulation } from '../src/game/adapter.js';
+import { createDifficultySimulation, type Difficulty } from '../src/ai/difficulty.js';
 import type { GameDefinition } from '../src/game/contract.js';
 import { createBindings, DEFAULT_BINDINGS, type BindingMap } from '../src/input/bindings.js';
 import { createInputHost, type InputHost } from '../src/input/host.js';
@@ -29,6 +29,7 @@ const back = el<HTMLButtonElement>('#back');
 const hint = el<HTMLElement>('#hint');
 const status = el<HTMLElement>('#status');
 const results = el<HTMLElement>('#results');
+const difficultySelect = el<HTMLSelectElement>('#difficulty');
 const canvas = el<HTMLCanvasElement>('#screen');
 const context = canvas.getContext('2d');
 if (!context) throw new Error('No se pudo obtener el contexto 2D del canvas');
@@ -181,8 +182,23 @@ function renderGrid(query: string): void {
   results.textContent = `${games.length} ${games.length === 1 ? 'juego' : 'juegos'} encontrados`;
 }
 
+const DIFFICULTY_LABELS: Readonly<Record<Difficulty, string>> = {
+  easy: 'Fácil',
+  normal: 'Normal',
+  hard: 'Difícil',
+};
+
+function parseDifficulty(value: string): Difficulty {
+  return value === 'easy' || value === 'hard' ? value : 'normal';
+}
+
 let current: GameDefinition<object> | undefined;
-let simulation = createGameSimulation(findGame('pong')!, { seed: SEED, plugins: presentationPlugins });
+let difficulty: Difficulty = parseDifficulty(difficultySelect.value);
+let simulation = createDifficultySimulation(findGame('pong')!, {
+  seed: SEED,
+  difficulty,
+  plugins: presentationPlugins,
+});
 let host: InputHost | undefined;
 let paused = false;
 let lastTick = 0;
@@ -203,7 +219,15 @@ const loop = createLoop({
   },
   getInputs: () => {
     host?.poll(simulation.clock.tick);
-    return host?.frame().actions ?? [];
+    const frame = host?.frame();
+    if (!frame) return [];
+    // `InputFrameWithPointer` viaja por la cinta: el host ya normalizó el
+    // puntero y `ActionState` lo conserva en el snapshot del tick.
+    if (frame.pointer !== undefined) {
+      const { x, y, active } = frame.pointer;
+      simulation.actions.setPointer(x, y, active);
+    }
+    return frame.actions;
   },
   render: () => {
     const steps = simulation.clock.tick - lastTick;
@@ -244,7 +268,11 @@ function showHub(message = 'Vitrina de juegos'): void {
 function mount(game: GameDefinition<object>): void {
   host?.detach();
   current = game;
-  simulation = createGameSimulation(game, { seed: SEED, plugins: presentationPlugins });
+  simulation = createDifficultySimulation(game, {
+    seed: SEED,
+    difficulty,
+    plugins: presentationPlugins,
+  });
   lastTick = 0;
   paused = false;
 
@@ -257,7 +285,7 @@ function mount(game: GameDefinition<object>): void {
   shelf.hidden = true;
   stage.hidden = false;
   document.title = `${game.meta.title} · Arcade Engine`;
-  status.textContent = `Juego activo: ${game.meta.title}`;
+  status.textContent = `Juego activo: ${game.meta.title} · Dificultad ${DIFFICULTY_LABELS[difficulty]}`;
 
   host = createInputHost({
     actions: simulation.actions,
@@ -300,6 +328,10 @@ function syncRoute(): void {
 }
 
 search.addEventListener('input', () => renderGrid(search.value));
+difficultySelect.addEventListener('change', () => {
+  difficulty = parseDifficulty(difficultySelect.value);
+  if (current !== undefined && !stage.hidden) mount(current);
+});
 back.addEventListener('click', () => {
   location.hash = '';
 });

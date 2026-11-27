@@ -14,6 +14,7 @@
 - **F5 Online:** servidor de salas `ws` + lockstep determinista en `engine/src/net/` y `server/`.
 - **Retirada del legacy:** HUB nuevo sin iframes publicado en la raíz con los meta/SEO, código viejo eliminado; ver `docs/plan-retirada-legacy.md`.
 - **Documentación:** DDT F0/F1/F2/F3/F5, investigación de dificultad, decisiones de skills, README/AGENTS/CLAUDE/CONTRIBUTING actualizados; auditorías obsoletas eliminadas.
+- **Grafo de imports automatizado:** `engine/test/import-graph.test.ts` hace cumplir la frontera de dependencias de `sim/ai/progression/core/game/games/render/audio/net` (8 tests en verde).
 
 **Validado:** 334 tests del engine + tests del servidor en verde, `tsc` limpio, build de librería y del HUB OK. Golden hash `600:3336926330:e22d095e-20`. Rollback de la retirada: `git revert <hash-del-commit>`.
 
@@ -30,5 +31,4 @@
 
 1. F6 pulido: revisión de rendimiento y accesibilidad con las skills `accessibility`, `playwright-best-practices` y `game-feel`.
 2. Cerrar D1 (nombre), revisar D3/D8 con el DDT F5 y actualizar la matriz D1-D9.
-3. Añadir test de grafo de imports para hacer cumplir automáticamente la frontera `sim/ai/game` ↔ `render/audio/ui/DOM`.
-4. Extender `InputFrame` con puntero para que Missile Command use ratón/stick/táctil en replay/headless.
+3. Extender `InputFrame` con puntero para que Missile Command use ratón/stick/táctil en replay/headless.

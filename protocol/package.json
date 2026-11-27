@@ -1,0 +1,19 @@
+{
+  "name": "@arcade/protocol",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Contrato de mensajes v1 del relay online: validación manual compartida entre engine y servidor",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
