@@ -190,6 +190,44 @@ describe('Breakout: ladrillos, ángulo y anti-stuck', () => {
     expect(sim.state.ball.vy).toBeLessThan(0);
     expect(sim.events.drain().some((event) => event.type === 'antiStuck')).toBe(true);
   });
+
+  it('sube de nivel al vaciar el tablero, no cada 12 ladrillos', () => {
+    const sim = createGameSimulation(breakoutGame, { seed: 9 });
+    for (const brick of sim.state.bricks.slice(0, 12)) brick.alive = false;
+    sim.state.bricksBroken = 12;
+    sim.tick([]);
+    expect(sim.state.level).toBe(1);
+
+    for (const brick of sim.state.bricks) brick.alive = false;
+    sim.events.drain();
+    sim.tick([]);
+    expect(sim.state.level).toBe(2);
+    expect(sim.state.bricks.some((brick) => brick.alive)).toBe(true);
+    expect(sim.events.drain().some((event) => event.type === 'levelUp')).toBe(true);
+  });
+
+  it('el anti-stuck permanece en 5 s aunque la curva acelere', () => {
+    const sim = createGameSimulation(breakoutGame, { seed: 10 });
+    sim.tick(['launch']);
+    sim.state.boardsCleared = 3;
+    sim.state.level = 4;
+    sim.state.ball.x = 10;
+    sim.state.ball.y = 300;
+    sim.state.ball.vx = 0;
+    sim.state.ball.vy = 0.5;
+    sim.state.stuckTimer = 250;
+    sim.events.drain();
+    sim.tick([]);
+    expect(sim.state.stuckTimer).toBe(251);
+    expect(sim.state.ball.vy).toBeGreaterThan(0);
+
+    sim.state.stuckTimer = BREAKOUT.antiStuckTicks - 1;
+    sim.state.ball.vy = 0.5;
+    sim.events.drain();
+    sim.tick([]);
+    expect(sim.state.ball.vy).toBeLessThan(0);
+    expect(sim.events.drain().some((event) => event.type === 'antiStuck')).toBe(true);
+  });
 });
 
 describe('Snake: velocidad progresiva y BFS', () => {
@@ -209,6 +247,28 @@ describe('Snake: velocidad progresiva y BFS', () => {
     for (let i = 0; i < 12; i++) sim.tick([]);
     expect(sim.state.score).toBe(1);
     expect(sim.events.drain().some((event) => event.type === 'eat')).toBe(true);
+  });
+
+  it('pause congela el cuerpo y las direcciones se consumen al reanudar', () => {
+    const sim = createGameSimulation(snakeGame, { seed: 34 });
+    const head = { ...sim.state.body[0]! };
+    sim.tick(['pause']);
+    for (let i = 0; i < 10; i++) sim.tick([]);
+    expect(sim.state.body[0]!.x).toBe(head.x);
+    expect(sim.state.body[0]!.y).toBe(head.y);
+    sim.tick([]);
+    sim.tick(['pause']);
+    sim.tick(['up']);
+    expect(sim.state.pendingDir).toBe(3);
+    expect(sim.events.drain().some((event) => event.type === 'turn')).toBe(true);
+  });
+
+  it('primary está registrada y gira en horario para el tap del hub', () => {
+    const sim = createGameSimulation(snakeGame, { seed: 35 });
+    expect(snakeGame.actions).toContain('primary');
+    expect(sim.ctx.actions.registered).toContain('primary');
+    sim.tick(['primary']);
+    expect(sim.state.pendingDir).toBe(1);
   });
 });
 
@@ -261,6 +321,37 @@ describe('Tetris: 7-bag, SRS, T-Spin, lock delay, ghost y hold', () => {
     expect(sim.state.score).toBeGreaterThan(beforeScore);
     expect(sim.state.ghostY).toBeGreaterThanOrEqual(0);
   });
+
+  it('registra hardDrop, hold, rotateCCW y pause', () => {
+    const sim = createGameSimulation(tetrisGame, { seed: 15 });
+    for (const action of ['hardDrop', 'hold', 'rotateCCW', 'pause']) {
+      expect(tetrisGame.actions).toContain(action);
+      expect(sim.ctx.actions.registered).toContain(action);
+    }
+  });
+
+  it('rotateCCW gira en sentido inverso sin ser capturado por rotate', () => {
+    const sim = createGameSimulation(tetrisGame, { seed: 16 });
+    const piece = sim.state.piece!;
+    piece.name = 'T';
+    piece.rot = 0;
+    piece.blocks = rotateBlocks('T', 0);
+    sim.tick(['rotateCCW']);
+    expect(piece.rot).toBe(3);
+    sim.tick([]);
+    sim.tick(['rotate']);
+    expect(piece.rot).toBe(0);
+  });
+
+  it('no inyecta basura al subir de nivel aunque la curva declare hazard', () => {
+    const sim = createGameSimulation(tetrisGame, { seed: 17 });
+    sim.state.lines = 24; // 8 líneas/nivel → nivel 4, hazard 0.3
+    sim.events.drain();
+    sim.tick([]);
+    expect(sim.state.level).toBe(4);
+    expect(sim.events.drain().some((event) => event.type === 'garbage')).toBe(false);
+    expect(sim.state.grid.every((row) => row.every((cell) => cell === 0))).toBe(true);
+  });
 });
 
 describe('Columns: gemas, power-ups y timers de estado (B3/B6)', () => {
@@ -297,6 +388,44 @@ describe('Columns: gemas, power-ups y timers de estado (B3/B6)', () => {
     expect(sim.state.board).toHaveLength(COLUMNS.rows);
     expect(Object.values(COLUMNS.special)).toContain(COLUMNS.special.poison);
   });
+
+  it('sube de nivel cada 25 gemas, no cada 20', () => {
+    const sim = createGameSimulation(columnsGame, { seed: 26 });
+    sim.state.gemsCleared = 19;
+    sim.state.board[COLUMNS.rows - 1]![0] = 0;
+    sim.state.flashCells = [`${COLUMNS.rows - 1},0`];
+    sim.state.pendingClear = true;
+    sim.state.flashTimer = 1;
+    sim.tick([]);
+    sim.tick([]);
+    expect(sim.state.gemsCleared).toBe(20);
+    expect(sim.state.level).toBe(1);
+
+    sim.state.gemsCleared = 24;
+    sim.state.board[COLUMNS.rows - 1]![1] = 0;
+    sim.state.flashCells = [`${COLUMNS.rows - 1},1`];
+    sim.state.pendingClear = true;
+    sim.state.flashTimer = 1;
+    sim.tick([]);
+    sim.tick([]);
+    expect(sim.state.gemsCleared).toBe(25);
+    expect(sim.state.level).toBe(2);
+  });
+
+  it('registra hardDrop/pause/rotateCCW y rotateCCW invierte las gemas', () => {
+    const sim = createGameSimulation(columnsGame, { seed: 27 });
+    for (const action of ['hardDrop', 'pause', 'rotateCCW']) {
+      expect(columnsGame.actions).toContain(action);
+      expect(sim.ctx.actions.registered).toContain(action);
+    }
+    const piece = sim.state.piece;
+    piece.gems = [0, 1, 2];
+    sim.tick(['rotateCCW']);
+    expect(piece.gems).toEqual([2, 0, 1]);
+    sim.tick([]);
+    sim.tick(['rotate']);
+    expect(piece.gems).toEqual([0, 1, 2]);
+  });
 });
 
 describe('Puyo Puyo: cadenas, basura, CPU y timers (B4/B6)', () => {
@@ -328,19 +457,35 @@ describe('Puyo Puyo: cadenas, basura, CPU y timers (B4/B6)', () => {
     expect(sim.state.garbageTimer).toBe(0);
   });
 
-  it('4 puyos del mismo color limpian y puntúan', () => {
+  it('4 puyos del mismo color en línea recta limpian y puntúan', () => {
+    const sim = createGameSimulation(puyoGame, { seed: 33 });
+    sim.tick([]);
+    for (let col = 0; col < 3; col++) sim.state.board[PUYO.rows - 1]![col] = 0;
+    sim.state.piece.gems = [0, 0];
+    sim.state.piece.col = 3;
+    sim.state.piece.row = -1;
+    sim.events.drain();
+    sim.tick(['hardDrop']);
+    expect(sim.state.score).toBeGreaterThan(0);
+    expect(sim.events.drain().some((event) => event.type === 'clear' || event.type === 'chain')).toBe(true);
+  });
+
+  it('un bloque de 2x2 no cuenta como match (la regla exige línea recta)', () => {
     const sim = createGameSimulation(puyoGame, { seed: 33 });
     sim.tick([]);
     sim.state.piece.gems = [0, 0];
     sim.state.piece.col = 0;
+    sim.state.piece.row = -1;
     sim.events.drain();
     sim.tick(['hardDrop']);
     sim.tick([]);
     sim.state.piece.gems = [0, 0];
     sim.state.piece.col = 1;
+    sim.state.piece.row = -1;
+    sim.events.drain();
     sim.tick(['hardDrop']);
-    expect(sim.state.score).toBeGreaterThan(0);
-    expect(sim.events.drain().some((event) => event.type === 'clear' || event.type === 'chain')).toBe(true);
+    expect(sim.state.score).toBe(0);
+    expect(sim.events.drain().some((event) => event.type === 'clear' || event.type === 'chain')).toBe(false);
   });
 
   it('el tablero CPU existe y piensa con el mismo tablero lógico', () => {
@@ -348,6 +493,20 @@ describe('Puyo Puyo: cadenas, basura, CPU y timers (B4/B6)', () => {
     expect(sim.state.cpuBoard).toHaveLength(PUYO.rows);
     for (let i = 0; i < PUYO.garbageDelayTicks + 5; i++) sim.tick([]);
     expect(sim.state.cpuPiece).not.toBeNull();
+  });
+
+  it('registra hardDrop/pause/rotateCCW y rotateCCW rota el par', () => {
+    const sim = createGameSimulation(puyoGame, { seed: 35 });
+    for (const action of ['hardDrop', 'pause', 'rotateCCW']) {
+      expect(puyoGame.actions).toContain(action);
+      expect(sim.ctx.actions.registered).toContain(action);
+    }
+    const gemsBefore = [...sim.state.piece.gems] as [number, number];
+    sim.tick(['rotateCCW']);
+    expect(sim.state.piece.gems).toEqual([gemsBefore[1], gemsBefore[0]]);
+    sim.tick([]);
+    sim.tick(['rotate']);
+    expect(sim.state.piece.gems).toEqual(gemsBefore);
   });
 });
 
@@ -381,6 +540,29 @@ describe('Dino Runner: cactus, pterodáctilos y ciclo día/noche (B8)', () => {
     expect(sim.events.drain().some((event) => event.type === 'jump')).toBe(true);
     for (let i = 0; i < 400 && !sim.state.over; i++) sim.tick([]);
     expect(sim.state.over).toBe(true);
+  });
+
+  it('aplica el margen de tolerancia de 6 px en ambos hitboxes', () => {
+    const cactus = (x: number) => ({
+      type: 'cactus' as const,
+      x,
+      y: DINO.groundY - 40,
+      w: 36,
+      h: 40,
+      phase: 0,
+    });
+    // Tras avanzar un tick queda 3 px de solape: sin margen chocaría, con 6 px no.
+    const shallow = createGameSimulation(dinoGame, { seed: 44 });
+    shallow.state.obstacles = [
+      cactus(DINO.x + DINO.standW + 18 - 3 + DINO.baseSpeed / 60),
+    ];
+    shallow.tick([]);
+    expect(shallow.state.over).toBe(false);
+
+    const deep = createGameSimulation(dinoGame, { seed: 44 });
+    deep.state.obstacles = [cactus(DINO.x + DINO.standW / 2)];
+    deep.tick([]);
+    expect(deep.state.over).toBe(true);
   });
 });
 
@@ -425,6 +607,28 @@ describe('Joust: altitud, huevos y oleadas sin reloj real (B7)', () => {
     sim.tick([]);
     expect(sim.state.wave).toBe(2);
     expect(sim.events.drain().some((event) => event.type === 'levelUp' || event.type === 'waveStart')).toBe(true);
+  });
+
+  it('despliega la oleada inicial completa de golpe', () => {
+    const sim = createGameSimulation(joustGame, { seed: 54 });
+    expect(sim.state.enemies).toHaveLength(Math.min(3 + sim.state.wave, JOUST.maxEnemies));
+    expect(sim.state.spawned).toBe(sim.state.remaining);
+  });
+
+  it('jugador, enemigos y huevos envuelven horizontalmente', () => {
+    const sim = createGameSimulation(joustGame, { seed: 55 });
+    sim.state.player.x = JOUST.width + 1;
+    sim.state.player.vx = 0;
+    const enemy = sim.state.enemies[0]!;
+    enemy.x = JOUST.width + 1;
+    enemy.vx = 10;
+    enemy.flapTimer = 100;
+    const egg = { x: JOUST.width + 1, y: 120, vx: 0, vy: -100, timer: 100 };
+    sim.state.eggs.push(egg);
+    sim.tick([]);
+    expect(sim.state.player.x).toBeLessThan(0);
+    expect(enemy.x).toBeLessThan(0);
+    expect(egg.x).toBeLessThanOrEqual(0);
   });
 });
 

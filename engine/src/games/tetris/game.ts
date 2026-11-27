@@ -150,18 +150,6 @@ function ghostYFor(grid: number[][], piece: TetrisPiece): number {
   return y;
 }
 
-function addGarbage(state: TetrisState, ctx: StepContext, rows: number): void {
-  for (let i = 0; i < rows; i++) {
-    state.grid.shift();
-    const hole = ctx.rng.int(TETRIS.cols);
-    state.grid.push(Array.from({ length: TETRIS.cols }, (_cell, col) => (col === hole ? 0 : 8)));
-    if (state.grid[TETRIS.hiddenRows]!.some((cell) => cell !== 0)) {
-      state.over = true;
-      ctx.emit('gameOver', { score: state.score, reason: 'garbage' });
-    }
-  }
-}
-
 function spawn(state: TetrisState, ctx: StepContext, forced?: TetrisName): void {
   while (state.next.length < TETRIS.queueLength) state.next.push(takeFromBag(state, ctx));
   const name = forced ?? state.next.shift()!;
@@ -325,10 +313,7 @@ export const tetrisGame = defineGame<TetrisState>({
     if (state.level > state.lastLevel) {
       state.lastLevel = progress.level + 1;
       state.pattern = ctx.progression.nextPattern() ?? state.pattern;
-      if (state.pattern === 'holes' || progress.hazard > 0) {
-        addGarbage(state, ctx, Math.max(0, Math.round(progress.hazard * 2)));
-        ctx.emit('garbage', { rows: Math.round(progress.hazard * 2) });
-      }
+      // El Tetris original no inyecta basura: la subida de nivel solo cambia velocidad y patrones.
       if (state.pattern === 'tspin') state.score += 50 * state.level;
       while (state.next.length < TETRIS.queueLength) state.next.push(takeFromBag(state, ctx));
       ctx.emit('levelUp', { level: state.level, pattern: state.pattern });
@@ -356,7 +341,10 @@ export const tetrisGame = defineGame<TetrisState>({
       state.moveCooldown--;
     }
 
-    const rotate = ctx.actions.consume('rotate') ? 1 : ctx.actions.consume('rotateCCW') ? -1 : 0;
+    // Consumir ambas pulsaciones evita que una rotación quede colgada si llegan juntas.
+    const cw = ctx.actions.consume('rotate');
+    const ccw = ctx.actions.consume('rotateCCW');
+    const rotate = ccw && !cw ? -1 : cw ? 1 : 0;
     if (rotate !== 0 && piece.name !== 'O') {
       const rot = (piece.rot + rotate + 4) % 4;
       const blocks = rotateBlocks(piece.name, rot);

@@ -21,6 +21,8 @@ export const DINO = {
   maxSpeed: 680,
   speedRamp: 2.8,
   milestone: 100,
+  /** Tolerancia original: 6 px recortados a cada hitbox antes de colisionar. */
+  collisionMargin: 6,
   pterodactylHeights: [270, 230, 190] as const,
 } as const;
 
@@ -103,6 +105,17 @@ function dinoRect(state: DinoState) {
   const w = state.ducking && state.onGround ? DINO.duckW : DINO.standW;
   const h = state.ducking && state.onGround ? DINO.duckH : DINO.standH;
   return { x: DINO.x, y: state.y - h, w, h };
+}
+
+/** Recorta un rectángulo por todos sus lados; hitboxes pequeñas dejan de colisionar. */
+function inset(rect: { x: number; y: number; w: number; h: number }) {
+  const margin = DINO.collisionMargin;
+  return {
+    x: rect.x + margin,
+    y: rect.y + margin,
+    w: Math.max(0, rect.w - margin * 2),
+    h: Math.max(0, rect.h - margin * 2),
+  };
 }
 
 export const dinoGame = defineGame<DinoState>({
@@ -208,7 +221,7 @@ export const dinoGame = defineGame<DinoState>({
         state.obstacles.splice(i, 1);
         continue;
       }
-      if (collision.aabbOverlap(player, obstacleRect(obstacle))) {
+      if (collision.aabbOverlap(inset(player), inset(obstacleRect(obstacle)))) {
         state.over = true;
         ctx.emit('crash', { type: obstacle.type, x: obstacle.x, y: obstacle.y });
         ctx.emit('gameOver', { distance: Math.floor(state.distance) });

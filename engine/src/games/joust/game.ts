@@ -84,6 +84,8 @@ export interface JoustState {
   score: number;
   remaining: number;
   spawned: number;
+  /** Enemigos generados en total (iniciales + reposiciones) para el tope del original. */
+  totalSpawned: number;
   over: boolean;
   paused: boolean;
   generation: number;
@@ -131,12 +133,26 @@ function makeRider(state: JoustState, ctx: StepContext, type?: JoustEnemyType): 
   };
 }
 
+/** Wrapping horizontal del original: sale por un lado y entra por el opuesto. */
+function wrapX(x: number, w: number): number {
+  if (x + w < 0) return JOUST.width;
+  if (x > JOUST.width) return -w;
+  return x;
+}
+
 function startWave(state: JoustState, ctx: StepContext): void {
   state.waveActive = true;
   state.combo = 0;
   state.remaining = Math.min(3 + state.wave, JOUST.maxEnemies);
   state.spawned = 0;
   state.spawnTimer = 0;
+  // El original despliega la oleada completa de golpe, no de uno en uno.
+  for (let i = 0; i < state.remaining; i++) {
+    state.enemies.push(makeRider(state, ctx));
+    state.spawned++;
+  }
+  state.totalSpawned = state.spawned;
+  ctx.emit('enemySpawn', { count: state.spawned, wave: state.wave, initial: true });
   state.pattern = ctx.progression.nextPattern() ?? 'swarm';
   if (state.pattern === 'egg') {
     state.eggs.push({
@@ -170,6 +186,7 @@ function initialState(ctx: StepContext): JoustState {
     score: 0,
     remaining: 0,
     spawned: 0,
+    totalSpawned: 0,
     over: false,
     paused: false,
     generation: 0,
@@ -281,7 +298,7 @@ function updateEnemy(state: JoustState, ctx: StepContext, enemy: JoustRider, dt:
   enemy.vx = approach(enemy.vx, clamp(enemy.vx, -220 * speed, 220 * speed), 10 * speed);
   enemy.vy = Math.min(500, enemy.vy + JOUST.gravity * dt + (enemy.divePhase === 'dive' ? 0 : hazard * 20 * dt));
   const prevBottom = enemy.y + JOUST.playerH;
-  enemy.x = clamp(enemy.x + enemy.vx * dt, 0, JOUST.width - JOUST.playerW);
+  enemy.x = wrapX(enemy.x + enemy.vx * dt, JOUST.playerW);
   enemy.y += enemy.vy * dt;
   const landing = landOnPlatform(enemy.x, prevBottom, enemy.y + JOUST.playerH, JOUST.playerW);
   if (landing !== null && enemy.vy >= 0) {
@@ -327,19 +344,18 @@ export const joustGame = defineGame<JoustState>({
     const progress = ctx.progression.state;
 
     if (state.waveActive) {
-      if (state.spawned < state.remaining) {
+      // Reposición posterior (el original permite hasta wave*2+3); la oleada inicial ya salió en startWave.
+      const cap = state.wave * 2 + 3;
+      if (
+        state.totalSpawned < cap &&
+        state.enemies.length < Math.min(3 + state.wave, JOUST.maxEnemies)
+      ) {
         state.spawnTimer++;
         if (state.spawnTimer >= (progress.spawnInterval ?? 90)) {
           state.spawnTimer = 0;
-          const count =
-            state.pattern === 'swarm' && state.spawned < state.remaining - 1
-              ? Math.min(2, state.remaining - state.spawned)
-              : 1;
-          for (let i = 0; i < count; i++) {
-            state.enemies.push(makeRider(state, ctx));
-            state.spawned++;
-          }
-          ctx.emit('enemySpawn', { count, wave: state.wave });
+          state.enemies.push(makeRider(state, ctx));
+          state.totalSpawned++;
+          ctx.emit('enemySpawn', { count: 1, wave: state.wave });
         }
       }
     } else {
@@ -383,7 +399,7 @@ export const joustGame = defineGame<JoustState>({
     if (player.invincible > 0) player.invincible -= dt;
     player.vy = Math.min(600, player.vy + JOUST.gravity * dt);
     const prevBottom = player.y + JOUST.playerH;
-    player.x = clamp(player.x + player.vx * dt, 0, JOUST.width - JOUST.playerW);
+    player.x = wrapX(player.x + player.vx * dt, JOUST.playerW);
     player.y += player.vy * dt;
     const landing = landOnPlatform(player.x, prevBottom, player.y + JOUST.playerH, JOUST.playerW);
     if (landing !== null && player.vy >= 0) {
@@ -435,9 +451,8 @@ export const joustGame = defineGame<JoustState>({
       const egg = state.eggs[i]!;
       egg.vy = Math.min(500, egg.vy + JOUST.gravity * dt);
       const prevEggBottom = egg.y + 10;
-      egg.x = clamp(egg.x + egg.vx * dt, 0, JOUST.width);
+      egg.x = wrapX(egg.x + egg.vx * dt, 0);
       egg.y += egg.vy * dt;
-      if (egg.x <= 0 || egg.x >= JOUST.width) egg.vx = -egg.vx;
       const platformY = landOnPlatform(egg.x - 8, prevEggBottom, egg.y + 10, 16);
       if (platformY !== null && egg.vy > 0) {
         egg.y = platformY - 10;
@@ -482,13 +497,13 @@ export const joustGame = defineGame<JoustState>({
       null,
     );
     return new Float32Array([
-      (player.x / JOUST.width) * 2 - 1,
+      clamp((player.x / JOUST.width) * 2 - 1, -1, 1),
       (player.y / JOUST.height) * 2 - 1,
       player.vx / JOUST.maxSpeed,
       player.vy / 600,
       player.onGround ? 1 : -1,
       player.facing,
-      nearest ? ((nearest.x - player.x) / JOUST.width) * 2 - 1 : 1,
+      nearest ? clamp(((nearest.x - player.x) / JOUST.width) * 2 - 1, -1, 1) : 1,
       nearest ? ((nearest.y - player.y) / JOUST.height) * 2 - 1 : 0,
       Math.min(1, state.enemies.length / JOUST.maxEnemies),
       Math.min(1, state.eggs.length / 8),

@@ -104,32 +104,37 @@ function spawnPiece(state: PuyoState, ctx: StepContext, cpu = false): void {
   }
 }
 
+/** El original exige 4 puyos del mismo color en línea recta (horizontal o vertical). */
 function findMatches(board: number[][]): Set<string> {
   const matched = new Set<string>();
-  const seen = new Set<string>();
   for (let row = 0; row < PUYO.rows; row++) {
-    for (let col = 0; col < PUYO.cols; col++) {
-      const color = board[row]![col]!;
-      if (color < 0) continue;
-      const origin = `${row},${col}`;
-      if (seen.has(origin)) continue;
-      const group: string[] = [];
-      const queue: Array<[number, number]> = [[row, col]];
-      seen.add(origin);
-      while (queue.length > 0) {
-        const [r, c] = queue.pop()!;
-        group.push(`${r},${c}`);
-        for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as const) {
-          const nr = r + dr;
-          const nc = c + dc;
-          const key = `${nr},${nc}`;
-          if (nr < 0 || nr >= PUYO.rows || nc < 0 || nc >= PUYO.cols || seen.has(key)) continue;
-          if (board[nr]![nc] !== color) continue;
-          seen.add(key);
-          queue.push([nr, nc]);
+    let run = 1;
+    for (let col = 1; col <= PUYO.cols; col++) {
+      const color = board[row]![col - 1]!;
+      const next = col < PUYO.cols ? board[row]![col]! : -1;
+      if (color >= 0 && next === color) {
+        run++;
+      } else {
+        if (color >= 0 && run >= PUYO.matchMin) {
+          for (let c = col - run; c < col; c++) matched.add(`${row},${c}`);
         }
+        run = 1;
       }
-      if (group.length >= PUYO.matchMin) for (const key of group) matched.add(key);
+    }
+  }
+  for (let col = 0; col < PUYO.cols; col++) {
+    let run = 1;
+    for (let row = 1; row <= PUYO.rows; row++) {
+      const color = board[row - 1]![col]!;
+      const next = row < PUYO.rows ? board[row]![col]! : -1;
+      if (color >= 0 && next === color) {
+        run++;
+      } else {
+        if (color >= 0 && run >= PUYO.matchMin) {
+          for (let r = row - run; r < row; r++) matched.add(`${r},${col}`);
+        }
+        run = 1;
+      }
     }
   }
   return matched;
@@ -280,7 +285,7 @@ function hardDropPiece(state: PuyoState, ctx: StepContext): void {
 export const puyoGame = defineGame<PuyoState>({
   id: 'puyo-puyo',
   meta: { title: 'Puyo Puyo', players: [1, 2], modes: ['solo', 'vsAI', 'demo'] },
-  actions: ['left', 'right', 'rotate', 'softDrop', 'hardDrop', 'restart', 'pause'],
+  actions: ['left', 'right', 'rotate', 'rotateCCW', 'softDrop', 'hardDrop', 'restart', 'pause'],
   progression: {
     id: 'puyo-puyo',
     levels: [
@@ -366,11 +371,13 @@ export const puyoGame = defineGame<PuyoState>({
       piece.col++;
       ctx.emit('move', { col: piece.col });
     }
-    if (ctx.actions.consume('rotate')) {
+    const cw = ctx.actions.consume('rotate');
+    const ccw = ctx.actions.consume('rotateCCW');
+    if (cw || ccw) {
       const first = piece.gems[0];
       piece.gems[0] = piece.gems[1];
       piece.gems[1] = first;
-      ctx.emit('rotate', { col: piece.col });
+      ctx.emit('rotate', { col: piece.col, ccw });
     }
     if (dropRequested) {
       hardDropPiece(state, ctx);

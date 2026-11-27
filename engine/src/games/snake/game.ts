@@ -142,7 +142,7 @@ function rayDistance(state: SnakeState, turn: -1 | 0 | 1): number {
 export const snakeGame = defineGame<SnakeState>({
   id: 'snake',
   meta: { title: 'Snake', players: [1], modes: ['solo', 'vsAI', 'demo'] },
-  actions: ['up', 'down', 'left', 'right', 'restart', 'pause'],
+  actions: ['primary', 'up', 'down', 'left', 'right', 'restart', 'pause'],
   progression: {
     id: 'snake',
     levels: [
@@ -194,6 +194,13 @@ export const snakeGame = defineGame<SnakeState>({
     if (requested >= 0 && requested !== (state.dir + 2) % 4) {
       state.pendingDir = requested;
       ctx.emit('turn', { dir: requested });
+    } else if (ctx.actions.consume('primary')) {
+      // Tap del hub: giro horario relativo, registrado como acción del juego.
+      const next = (state.dir + 1) % 4;
+      if (next !== (state.dir + 2) % 4) {
+        state.pendingDir = next;
+        ctx.emit('turn', { dir: next, source: 'primary' });
+      }
     }
 
     state.ticks++;

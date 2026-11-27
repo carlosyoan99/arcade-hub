@@ -51,6 +51,8 @@ export interface BreakoutState {
   lives: number;
   level: number;
   bricksBroken: number;
+  /** Tableros vaciados: cada uno sube de nivel (curva declarativa 1 tablero/nivel). */
+  boardsCleared: number;
   ballSpeed: number;
   serving: boolean;
   over: boolean;
@@ -97,6 +99,7 @@ function initialState(ctx: StepContext): BreakoutState {
     lives: BREAKOUT.lives,
     level: 1,
     bricksBroken: 0,
+    boardsCleared: 0,
     ballSpeed: BREAKOUT.launchSpeed,
     serving: true,
     over: false,
@@ -121,7 +124,7 @@ export const breakoutGame = defineGame<BreakoutState>({
       { speed: 1.16, spawnInterval: 240, hazard: 0.2, label: 'Nivel 3' },
       { speed: 1.28, spawnInterval: 210, hazard: 0.35, label: 'Nivel 4' },
     ],
-    pointsPerLevel: 12,
+    pointsPerLevel: 1,
     dda: { enabled: true, window: 300, maxAdjust: 0.08 },
     patterns: ['straight', 'bank', 'power'],
     avoidRepeat: 2,
@@ -133,8 +136,13 @@ export const breakoutGame = defineGame<BreakoutState>({
 
   step(state, ctx) {
     const generation = state.generation;
+    // El original completa el nivel al vaciar el tablero, no al romper N ladrillos.
+    if (state.bricks.length > 0 && state.bricks.every((brick) => !brick.alive)) {
+      state.boardsCleared++;
+      ctx.emit('boardClear', { level: state.level });
+    }
     if (
-      handleLifecycle(state, ctx, state.bricksBroken, () => {
+      handleLifecycle(state, ctx, state.boardsCleared, () => {
         Object.assign(state, initialState(ctx));
         state.generation = generation + 1;
       })
@@ -266,10 +274,10 @@ export const breakoutGame = defineGame<BreakoutState>({
       if (state.serving) break;
     }
 
-    // Anti-stuck fiel al original: 5 s (spawnInterval de la curva) sin ladrillo ⇒ forzar subida.
+    // Anti-stuck fiel al original: 5 s fijos sin golpe ⇒ forzar subida, sin importar el nivel.
     if (!state.serving) {
       state.stuckTimer++;
-      if (state.stuckTimer >= (progress.spawnInterval ?? BREAKOUT.antiStuckTicks) && state.ball.vy > 0) {
+      if (state.stuckTimer >= BREAKOUT.antiStuckTicks && state.ball.vy > 0) {
         state.ball.vy = -Math.abs(state.ball.vy);
         state.stuckTimer = 0;
         ctx.emit('antiStuck', { x: state.ball.x, y: state.ball.y });

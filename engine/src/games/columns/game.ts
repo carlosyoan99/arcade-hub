@@ -204,7 +204,7 @@ function clearAndCollapse(state: ColumnsState, ctx: StepContext, matched: Set<st
   const points = cleared * 10 + (chain > 1 ? chain * 20 : 0) + state.level * 5;
   state.score += points;
   state.gemsCleared += cleared;
-  state.level = Math.floor(state.gemsCleared / 25) + 1;
+  // El nivel lo deriva la curva declarativa (25 gemas por nivel), no esta función.
   ctx.emit(chain > 1 ? 'chain' : 'clear', { cleared, chain, points });
   ctx.progression.observe(Math.min(1, chain / 4));
   return cleared;
@@ -277,7 +277,7 @@ function hardDropPiece(state: ColumnsState, ctx: StepContext): void {
 export const columnsGame = defineGame<ColumnsState>({
   id: 'columns',
   meta: { title: 'Columns', players: [1], modes: ['solo', 'vsAI', 'demo'] },
-  actions: ['left', 'right', 'rotate', 'softDrop', 'hardDrop', 'restart', 'pause'],
+  actions: ['left', 'right', 'rotate', 'rotateCCW', 'softDrop', 'hardDrop', 'restart', 'pause'],
   progression: {
     id: 'columns',
     levels: [
@@ -285,7 +285,7 @@ export const columnsGame = defineGame<ColumnsState>({
       { speed: 1.1, spawnInterval: 32, hazard: 0.15, label: 'Nivel 2' },
       { speed: 1.22, spawnInterval: 28, hazard: 0.3, label: 'Nivel 3' },
     ],
-    pointsPerLevel: 20,
+    pointsPerLevel: 25,
     dda: { enabled: true, window: 400, maxAdjust: 0.08 },
     patterns: ['gem', 'power', 'chain'],
     avoidRepeat: 2,
@@ -346,12 +346,22 @@ export const columnsGame = defineGame<ColumnsState>({
       piece.col++;
       ctx.emit('move', { col: piece.col });
     }
-    if (ctx.actions.consume('rotate')) {
-      const first = piece.gems[0]!;
-      piece.gems[0] = piece.gems[1];
-      piece.gems[1] = piece.gems[2];
-      piece.gems[2] = first;
-      ctx.emit('rotate', { col: piece.col });
+    const cw = ctx.actions.consume('rotate');
+    const ccw = ctx.actions.consume('rotateCCW');
+    if (cw || ccw) {
+      const gems = piece.gems;
+      if (ccw && !cw) {
+        const last = gems[2]!;
+        gems[2] = gems[1]!;
+        gems[1] = gems[0]!;
+        gems[0] = last;
+      } else {
+        const first = gems[0]!;
+        gems[0] = gems[1]!;
+        gems[1] = gems[2]!;
+        gems[2] = first;
+      }
+      ctx.emit('rotate', { col: piece.col, ccw: ccw && !cw });
     }
     if (dropRequested) {
       hardDropPiece(state, ctx);
