@@ -27,6 +27,12 @@ export const ASTEROIDS = {
   hyperCooldown: 5,
   hyperInvulnerable: 1.5,
   spawnSafeDistance: 150,
+  saucerSpeed: 140,
+  saucerBulletSpeed: 260,
+  saucerPoints: { large: 200, small: 1000 },
+  saucerFirstDelay: 12,
+  saucerInterval: 16,
+  saucerSmallAfterScore: 40000,
 } as const;
 
 interface Body {
@@ -38,6 +44,15 @@ interface Body {
 
 interface Bullet extends Body {
   life: number;
+  hostile: boolean;
+}
+
+interface Saucer {
+  x: number;
+  y: number;
+  vx: number;
+  size: 'large' | 'small';
+  fireTimer: number;
 }
 
 interface Asteroid extends Body {
@@ -54,6 +69,9 @@ export interface AsteroidsState {
   ship: Ship;
   bullets: Bullet[];
   asteroids: Asteroid[];
+  saucer: Saucer | null;
+  /** Tick absoluto en que puede aparecer el próximo platillo (0 = pendiente). */
+  saucerAt: number;
   score: number;
   lives: number;
   wave: number;
@@ -142,6 +160,54 @@ function breakAsteroid(state: AsteroidsState, ctx: StepContext, asteroid: Astero
   }
 }
 
+function spawnSaucer(state: AsteroidsState, ctx: StepContext): void {
+  const small =
+    state.score >= ASTEROIDS.saucerSmallAfterScore || ctx.rng.next() < 0.3;
+  const fromLeft = ctx.rng.next() < 0.5;
+  const size = small ? 'small' : 'large';
+  state.saucer = {
+    x: fromLeft ? -30 : ASTEROIDS.width + 30,
+    y: ctx.rng.range(40, ASTEROIDS.height * 0.3),
+    vx: (fromLeft ? 1 : -1) * (ASTEROIDS.saucerSpeed + state.wave * 4),
+    size,
+    fireTimer: ctx.rng.range(0.4, 1.1),
+  };
+  state.saucerAt = state.ticks + Math.round(ASTEROIDS.saucerInterval / ctx.clock.dt);
+  ctx.emit('spawn', { kind: 'saucer', size });
+}
+
+function updateSaucer(state: AsteroidsState, ctx: StepContext, dt: number, speed: number): void {
+  if (state.saucer === null) {
+    if (state.ticks >= state.saucerAt) spawnSaucer(state, ctx);
+    return;
+  }
+  const saucer = state.saucer;
+  saucer.x += saucer.vx * speed * dt;
+  if (saucer.x < -60 || saucer.x > ASTEROIDS.width + 60) {
+    state.saucer = null;
+    return;
+  }
+  saucer.fireTimer -= dt;
+  if (saucer.fireTimer > 0 || saucer.x < 20 || saucer.x > ASTEROIDS.width - 20) return;
+  // Grande: dispara al azar. Pequeño: apunta a la nave con precisión creciente.
+  const spread = Math.max(0.03, 0.5 - state.score / 120000);
+  const angle =
+    saucer.size === 'small'
+      ? Math.atan2(state.ship.y - saucer.y, state.ship.x - saucer.x) + ctx.rng.range(-spread, spread)
+      : ctx.rng.range(-Math.PI, Math.PI);
+  state.bullets.push({
+    x: saucer.x,
+    y: saucer.y + 10,
+    vx: Math.cos(angle) * ASTEROIDS.saucerBulletSpeed,
+    vy: Math.sin(angle) * ASTEROIDS.saucerBulletSpeed,
+    life: ASTEROIDS.bulletLife * 2,
+    hostile: true,
+  });
+  saucer.fireTimer =
+    saucer.size === 'small' ? ctx.rng.range(0.25, 0.55) : ctx.rng.range(0.9, 1.5);
+  ctx.emit('shoot', { x: saucer.x, y: saucer.y, hostile: true, size: saucer.size });
+}
+
 function reset(state: AsteroidsState, ctx: StepContext): void {
   state.score = 0;
   state.lives = ASTEROIDS.startLives;
@@ -154,6 +220,8 @@ function reset(state: AsteroidsState, ctx: StepContext): void {
   state.fireCd = 0;
   state.hyperCd = 0;
   state.spawnTimer = 0;
+  state.saucer = null;
+  state.saucerAt = Math.round(ASTEROIDS.saucerFirstDelay / ctx.clock.dt);
   state.ship.x = ASTEROIDS.width / 2;
   state.ship.y = ASTEROIDS.height / 2;
   state.ship.vx = 0;
@@ -214,6 +282,8 @@ export const asteroidsGame = defineGame<AsteroidsState>({
       fireCd: 0,
       hyperCd: 0,
       spawnTimer: 0,
+      saucer: null,
+      saucerAt: 0,
       seed,
     };
     reset(state, ctx);
@@ -258,6 +328,7 @@ export const asteroidsGame = defineGame<AsteroidsState>({
         vx: Math.cos(angle) * ASTEROIDS.bulletSpeed + ship.vx,
         vy: Math.sin(angle) * ASTEROIDS.bulletSpeed + ship.vy,
         life: ASTEROIDS.bulletLife,
+        hostile: false,
       });
       state.fireCd = ASTEROIDS.fireCooldown;
       ctx.emit('shoot', { x: ship.x, y: ship.y });
@@ -278,6 +349,9 @@ export const asteroidsGame = defineGame<AsteroidsState>({
       }
     }
 
+    // El platillo aparece por ticks del estado y dispara con ctx.rng (sin reloj real).
+    updateSaucer(state, ctx, dt, speed);
+
     // Sub-pasos para balas rápidas: anti-tunneling sobre el radio pequeño (13 px).
     for (let bi = state.bullets.length - 1; bi >= 0; bi--) {
       const bullet = state.bullets[bi];
@@ -288,30 +362,68 @@ export const asteroidsGame = defineGame<AsteroidsState>({
       for (let sub = 0; sub < steps && !consumed; sub++) {
         bullet.x += (bullet.vx * dt) / steps;
         bullet.y += (bullet.vy * dt) / steps;
-        for (let ai = state.asteroids.length - 1; ai >= 0; ai--) {
-          const asteroid = state.asteroids[ai];
-          if (!asteroid) continue;
-          if (!collision.circleAabb(
+        if (bullet.hostile) {
+          if (
+            state.invuln <= 0 &&
+            collision.circleAabb(
+              { x: bullet.x, y: bullet.y, r: ASTEROIDS.bulletRadius },
+              {
+                x: ship.x - ASTEROIDS.shipRadius,
+                y: ship.y - ASTEROIDS.shipRadius,
+                w: ASTEROIDS.shipRadius * 2,
+                h: ASTEROIDS.shipRadius * 2,
+              },
+            )
+          ) {
+            loseLife(state, ctx, ship.x, ship.y);
+            state.bullets.splice(bi, 1);
+            consumed = true;
+            if (state.over) return;
+            break;
+          }
+        } else {
+          const saucer = state.saucer;
+          if (saucer && collision.circleAabb(
             { x: bullet.x, y: bullet.y, r: ASTEROIDS.bulletRadius },
-            {
-              x: asteroid.x - asteroid.radius,
-              y: asteroid.y - asteroid.radius,
-              w: asteroid.radius * 2,
-              h: asteroid.radius * 2,
-            },
-          )) continue;
-          const points = asteroid.points;
-          state.score += points;
-          state.progress += points;
-          ctx.emit('hit', { x: asteroid.x, y: asteroid.y });
-          ctx.emit('explode', { x: asteroid.x, y: asteroid.y, size: asteroid.size });
-          ctx.emit('score', { score: state.score, points });
-          ctx.progression.observe(0.4);
-          breakAsteroid(state, ctx, asteroid);
-          state.asteroids.splice(ai, 1);
-          state.bullets.splice(bi, 1);
-          consumed = true;
-          break;
+            { x: saucer.x - 16, y: saucer.y - 9, w: 32, h: 18 },
+          )) {
+            const points = ASTEROIDS.saucerPoints[saucer.size];
+            state.score += points;
+            state.progress += points;
+            ctx.emit('hit', { x: saucer.x, y: saucer.y, kind: 'saucer' });
+            ctx.emit('explode', { x: saucer.x, y: saucer.y, kind: 'saucer' });
+            ctx.emit('score', { score: state.score, points });
+            ctx.progression.observe(0.6);
+            state.saucer = null;
+            state.bullets.splice(bi, 1);
+            consumed = true;
+            break;
+          }
+          for (let ai = state.asteroids.length - 1; ai >= 0; ai--) {
+            const asteroid = state.asteroids[ai];
+            if (!asteroid) continue;
+            if (!collision.circleAabb(
+              { x: bullet.x, y: bullet.y, r: ASTEROIDS.bulletRadius },
+              {
+                x: asteroid.x - asteroid.radius,
+                y: asteroid.y - asteroid.radius,
+                w: asteroid.radius * 2,
+                h: asteroid.radius * 2,
+              },
+            )) continue;
+            const points = asteroid.points;
+            state.score += points;
+            state.progress += points;
+            ctx.emit('hit', { x: asteroid.x, y: asteroid.y });
+            ctx.emit('explode', { x: asteroid.x, y: asteroid.y, size: asteroid.size });
+            ctx.emit('score', { score: state.score, points });
+            ctx.progression.observe(0.4);
+            breakAsteroid(state, ctx, asteroid);
+            state.asteroids.splice(ai, 1);
+            state.bullets.splice(bi, 1);
+            consumed = true;
+            break;
+          }
         }
       }
     }
@@ -351,7 +463,8 @@ export const asteroidsGame = defineGame<AsteroidsState>({
       }
     }
 
-    if (state.asteroids.length === 0) {
+    // El original solo pasa de oleada cuando no quedan rocas NI platillos.
+    if (state.asteroids.length === 0 && state.saucer === null) {
       state.wave++;
       state.progress += 40;
       spawnWave(state, ctx);
@@ -378,6 +491,7 @@ export const asteroidsGame = defineGame<AsteroidsState>({
       clamp(nearest * 2 - 1, -1, 1),
       state.invuln > 0 ? 1 : -1,
       clamp((state.lives / ASTEROIDS.startLives) * 2 - 1, -1, 1),
+      state.saucer === null ? -1 : clamp((state.saucer.x / ASTEROIDS.width) * 2 - 1, -1, 1),
     ]);
   },
 
@@ -422,9 +536,26 @@ export const asteroidsGame = defineGame<AsteroidsState>({
         ctx.stroke();
       });
     }
-    ctx.fillStyle = '#ffd166';
     for (const bullet of state.bullets) {
+      ctx.fillStyle = bullet.hostile ? '#ff3fa4' : '#ffd166';
       drawWrapped(bullet.x, bullet.y, (px, py) => ctx.fillRect(px - 2, py - 2, 4, 4));
+    }
+    const saucer = state.saucer;
+    if (saucer) {
+      ctx.strokeStyle = '#ffb347';
+      drawWrapped(saucer.x, saucer.y, (px, py) => {
+        ctx.beginPath();
+        ctx.moveTo(px - 16, py - 4);
+        ctx.lineTo(px + 16, py - 4);
+        ctx.lineTo(px + 9, py + 4);
+        ctx.lineTo(px - 9, py + 4);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(px - 8, py + 8);
+        ctx.lineTo(px + 8, py + 8);
+        ctx.stroke();
+      });
     }
 
     const ship = state.ship;

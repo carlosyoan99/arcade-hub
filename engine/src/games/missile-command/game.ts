@@ -26,6 +26,7 @@ export const MISSILE_COMMAND = {
   baseIncomingInterval: 1.2,
   incomingReduction: 0.05,
   waveEndDelay: 1.5,
+  cityBonusScore: 10000,
 } as const;
 
 interface Incoming {
@@ -70,6 +71,9 @@ export interface MissileCommandState {
   waveTimer: number;
   toSpawn: number;
   incomingTimer: number;
+  /** Ciudades de reserva ganadas por puntuación (el arcade no resurrecta gratis). */
+  cityReserve: number;
+  nextCityBonusAt: number;
   pattern: string;
   seed: number;
 }
@@ -78,11 +82,13 @@ function citiesAlive(state: MissileCommandState): number {
   return state.cities.filter((city) => city.alive).length;
 }
 
-function initLevel(state: MissileCommandState): void {
-  state.cities = [];
-  const spacing = MISSILE_COMMAND.width / (MISSILE_COMMAND.cities + 1);
-  for (let i = 0; i < MISSILE_COMMAND.cities; i++) {
-    state.cities.push({ x: spacing * (i + 1), alive: true });
+function initLevel(state: MissileCommandState, freshCities: boolean): void {
+  if (freshCities || state.cities.length === 0) {
+    state.cities = [];
+    const spacing = MISSILE_COMMAND.width / (MISSILE_COMMAND.cities + 1);
+    for (let i = 0; i < MISSILE_COMMAND.cities; i++) {
+      state.cities.push({ x: spacing * (i + 1), alive: true });
+    }
   }
   state.bases = [
     MISSILE_COMMAND.width * 0.15,
@@ -126,7 +132,9 @@ function reset(state: MissileCommandState, ctx: StepContext): void {
   state.progress = 0;
   state.cursor.x = MISSILE_COMMAND.width / 2;
   state.cursor.y = MISSILE_COMMAND.height / 2;
-  initLevel(state);
+  state.cityReserve = 0;
+  state.nextCityBonusAt = MISSILE_COMMAND.cityBonusScore;
+  initLevel(state, true);
   startWave(state, ctx);
 }
 
@@ -163,7 +171,17 @@ function nextWave(state: MissileCommandState, ctx: StepContext): void {
   state.progress += bonus + 200;
   ctx.emit('score', { score: state.score, points: bonus });
   state.wave++;
-  initLevel(state);
+  // Las ciudades destruidas siguen destruidas entre oleadas; solo se repone
+  // una si se ganó una ciudad de reserva por puntuación (como en el arcade).
+  initLevel(state, false);
+  if (state.cityReserve > 0) {
+    const destroyed = state.cities.find((city) => !city.alive);
+    if (destroyed) {
+      destroyed.alive = true;
+      state.cityReserve--;
+      ctx.emit('spawn', { kind: 'city', x: destroyed.x });
+    }
+  }
   startWave(state, ctx);
 }
 
@@ -203,6 +221,8 @@ export const missileCommandGame = defineGame<MissileCommandState>({
       waveTimer: 0,
       toSpawn: 0,
       incomingTimer: 0,
+      cityReserve: 0,
+      nextCityBonusAt: MISSILE_COMMAND.cityBonusScore,
       pattern: 'straight',
       seed,
     };
@@ -217,6 +237,12 @@ export const missileCommandGame = defineGame<MissileCommandState>({
     const progress = ctx.progression.state;
     const speed = progress.speed;
     state.ticks++;
+
+    while (state.score >= state.nextCityBonusAt) {
+      state.cityReserve++;
+      state.nextCityBonusAt += MISSILE_COMMAND.cityBonusScore;
+      ctx.emit('score', { score: state.score, points: 0, reason: 'cityReserve' });
+    }
 
     // El puntero virtual (ratón, stick derecho o táctil) manda cuando está
     // activo; las acciones de mirilla siguen siendo el fallback de teclado y

@@ -2,15 +2,20 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { createGameSimulation, gameSimulationOptions } from '../src/game/adapter.js';
 import type { GameDefinition } from '../src/game/contract.js';
+import type { Simulation } from '../src/core/simulation.js';
 import { runHeadless } from '../src/tools/headless.js';
-import { asteroidsGame } from '../src/games/asteroids/game.js';
+import { ASTEROIDS, asteroidsGame } from '../src/games/asteroids/game.js';
 import { centipedeGame } from '../src/games/centipede/game.js';
 import { galagaGame } from '../src/games/galaga/game.js';
 import { gradiusGame } from '../src/games/gradius/game.js';
 import { raidenGame } from '../src/games/raiden/game.js';
 import { spaceInvadersGame } from '../src/games/space-invaders/game.js';
 import { TEMPEST, tempestGame } from '../src/games/tempest/game.js';
-import { missileCommandGame } from '../src/games/missile-command/game.js';
+import {
+  MISSILE_COMMAND,
+  missileCommandGame,
+  type MissileCommandState,
+} from '../src/games/missile-command/game.js';
 
 /** Todos los juegos del batch exponen `progress` para alimentar la curva. */
 interface ShooterState {
@@ -174,5 +179,174 @@ describe('reglas duras del batch de shooters', () => {
       expect(source).toContain("get<CollisionService>('collision')");
       expect(source).toContain('nextPattern()');
     }
+  });
+});
+
+describe('Galaga: oscilación de la formación (regresión P0)', () => {
+  it('la x de la formación se desplaza respecto a homeX, emite formationShift y vuelve tras el borde', () => {
+    const sim = createGameSimulation(galagaGame, { seed: 4242 });
+    // Esperamos a que termine la secuencia de entrada (los enemigos llegan
+    // volando a la formación) y congelamos los picados para aislar la oscilación.
+    for (let tick = 0; tick < 500; tick++) {
+      sim.tick([]);
+      sim.state.diveTimer = 999;
+      if (sim.state.entry === null && sim.state.enemies.some((candidate) => !candidate.entering)) break;
+    }
+    const enemy = sim.state.enemies.find((candidate) => candidate.alive && !candidate.diving && !candidate.entering);
+    expect(enemy).toBeDefined();
+    const target = enemy!;
+    const homeX = target.homeX;
+    const homeY = target.homeY;
+    sim.events.clear();
+
+    for (let tick = 0; tick < 40; tick++) sim.tick([]);
+    expect(sim.state.formationOffset).not.toBe(0);
+    expect(target.x).not.toBe(homeX);
+    expect(sim.events.peek().some((event) => event.type === 'formationShift')).toBe(true);
+
+    const direction = sim.state.formationDir;
+    sim.state.formationOffset = 235;
+    for (let tick = 0; tick < 40; tick++) sim.tick([]);
+    expect(sim.state.formationDir).toBe(-direction);
+    expect(target.homeY).toBeGreaterThan(homeY);
+
+    sim.state.formationOffset = 8;
+    let returnedHome = false;
+    for (let tick = 0; tick < 45; tick++) {
+      sim.tick([]);
+      if (Math.abs(sim.state.formationOffset) < 1) returnedHome = true;
+    }
+    expect(returnedHome).toBe(true);
+  });
+});
+
+describe('Gradius: medidor de poder vacío (regresión P0)', () => {
+  it('pulsar Espacio sin cápsulas no activa mejoras ni puntúa; con una cápsula sí', () => {
+    const sim = createGameSimulation(gradiusGame, { seed: 77 });
+    sim.tick([]);
+    sim.events.clear();
+
+    sim.tick(['power']);
+    expect(sim.state.player.speed).toBe(0);
+    expect(sim.state.score).toBe(0);
+    expect(sim.events.peek().some((event) => event.type === 'hit' &&
+      (event.payload as { kind?: string }).kind === 'power')).toBe(false);
+
+    sim.tick([]); // soltar la pulsación anterior
+    sim.state.gauge = 1;
+    sim.tick(['power']);
+    expect(sim.state.player.missile).toBe(true);
+    expect(sim.state.score).toBe(100);
+  });
+});
+
+describe('Asteroids: platillos voladores (P0 de identidad)', () => {
+  it('aparecen por deadline en ticks, emiten spawn y puntúan 1000 (pequeño) y 200 (grande)', () => {
+    const sim = createGameSimulation(asteroidsGame, { seed: 2026 });
+    sim.tick([]);
+    expect(sim.state.saucerAt).toBe(Math.round(ASTEROIDS.saucerFirstDelay / sim.ctx.clock.dt));
+    sim.events.clear();
+
+    sim.state.saucerAt = sim.state.ticks + 1;
+    sim.tick([]);
+    expect(sim.state.saucer).not.toBeNull();
+    expect(sim.events.peek().some((event) => event.type === 'spawn' &&
+      (event.payload as { kind?: string }).kind === 'saucer')).toBe(true);
+
+    const saucer = sim.state.saucer!;
+    saucer.size = 'small';
+    saucer.x = 400;
+    saucer.y = 200;
+    sim.state.bullets = [{ x: 400, y: 200, vx: 0, vy: 0, life: 1, hostile: false }];
+    sim.events.clear();
+    const smallBefore = sim.state.score;
+    sim.tick([]);
+    expect(sim.state.score - smallBefore).toBe(1000);
+    expect(sim.state.saucer).toBeNull();
+    expect(sim.events.peek().some((event) => event.type === 'hit' &&
+      (event.payload as { kind?: string }).kind === 'saucer')).toBe(true);
+
+    sim.state.saucerAt = sim.state.ticks + 1;
+    sim.tick([]);
+    const large = sim.state.saucer!;
+    large.size = 'large';
+    large.x = 400;
+    large.y = 200;
+    sim.state.bullets = [{ x: 400, y: 200, vx: 0, vy: 0, life: 1, hostile: false }];
+    const largeBefore = sim.state.score;
+    sim.tick([]);
+    expect(sim.state.score - largeBefore).toBe(200);
+  });
+
+  it('la pequeña apunta a la nave y la grande dispara al azar, con ctx.rng determinista', () => {
+    function saucerShot(seed: number, size: 'small' | 'large') {
+      const sim = createGameSimulation(asteroidsGame, { seed });
+      sim.tick([]);
+      sim.state.invuln = 999;
+      sim.state.ship.x = 200;
+      sim.state.ship.y = 100;
+      sim.state.bullets = [];
+      sim.state.saucer = { x: 400, y: 90, vx: 0, size, fireTimer: 0.001 };
+      sim.events.clear();
+      sim.tick([]);
+      return {
+        bullet: sim.state.bullets.find((candidate) => candidate.hostile),
+        shoot: sim.events.peek().some((event) => event.type === 'shoot' &&
+          (event.payload as { hostile?: boolean }).hostile === true),
+      };
+    }
+
+    const small = saucerShot(3131, 'small');
+    expect(small.bullet).toBeDefined();
+    // La nave está a la izquierda: el disparo debe ir hacia ella (vx < 0)
+    // y con poca desviación vertical (el spread máximo es 0.5 rad).
+    expect(small.bullet!.vx).toBeLessThan(0);
+    expect(Math.abs(small.bullet!.vy)).toBeLessThan(Math.abs(small.bullet!.vx));
+    expect(small.bullet!.life).toBeGreaterThan(ASTEROIDS.bulletLife);
+    expect(small.shoot).toBe(true);
+
+    const large = saucerShot(3131, 'large');
+    expect(large.bullet).toBeDefined();
+    expect(large.shoot).toBe(true);
+    const repeat = saucerShot(3131, 'large');
+    expect(repeat.bullet?.vx).toBe(large.bullet?.vx);
+    expect(repeat.bullet?.vy).toBe(large.bullet?.vy);
+  });
+});
+
+describe('Missile Command: ciudades persistentes (regresión P0)', () => {
+  function clearWave(sim: Simulation<MissileCommandState>): void {
+    sim.state.toSpawn = 0;
+    sim.state.incoming = [];
+    sim.state.waveActive = true;
+    sim.state.waveTimer = MISSILE_COMMAND.waveEndDelay + 0.1;
+    sim.state.nextCityBonusAt = 100000;
+  }
+
+  it('una ciudad destruida sigue destruida al avanzar de oleada sin ciudad de reserva', () => {
+    const sim = createGameSimulation(missileCommandGame, { seed: 8181 });
+    sim.tick([]);
+    sim.state.cities[0]!.alive = false;
+    sim.state.cityReserve = 0;
+    clearWave(sim);
+    const wave = sim.state.wave;
+
+    sim.tick([]);
+    expect(sim.state.wave).toBe(wave + 1);
+    expect(sim.state.cities[0]!.alive).toBe(false);
+  });
+
+  it('una ciudad de reserva repone una destruida al cambiar de oleada', () => {
+    const sim = createGameSimulation(missileCommandGame, { seed: 8182 });
+    sim.tick([]);
+    sim.state.cities[0]!.alive = false;
+    sim.state.cityReserve = 1;
+    clearWave(sim);
+
+    sim.tick([]);
+    expect(sim.state.cities[0]!.alive).toBe(true);
+    expect(sim.state.cityReserve).toBe(0);
+    expect(sim.events.peek().some((event) => event.type === 'spawn' &&
+      (event.payload as { kind?: string }).kind === 'city')).toBe(true);
   });
 });

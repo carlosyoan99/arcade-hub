@@ -132,6 +132,8 @@ export interface GalagaState {
   entry: EntryState | null;
   formationDir: number;
   formationTimer: number;
+  /** Desplazamiento horizontal acumulado de la formación respecto a `homeX`. */
+  formationOffset: number;
   diveTimer: number;
   score: number;
   lives: number;
@@ -294,6 +296,7 @@ function applyPattern(state: GalagaState, ctx: StepContext): void {
   }
   state.formationDir = 1;
   state.formationTimer = 0;
+  state.formationOffset = 0;
   state.diveTimer = 2.5 / ctx.progression.state.speed;
   state.beam = null;
   state.bonusFighters = [];
@@ -371,6 +374,7 @@ function reset(state: GalagaState, ctx: StepContext): void {
   state.doubleShot = false;
   state.extraLivesGiven = 0;
   state.nextId = 0;
+  state.formationOffset = 0;
   state.beamCooldown = 0;
   state.bonusTimer = 0;
   state.bonusKills = 0;
@@ -398,7 +402,7 @@ function loseLife(state: GalagaState, ctx: StepContext): void {
 function finishDive(state: GalagaState, enemy: Enemy): void {
   enemy.diving = false;
   enemy.beam = false;
-  enemy.x = enemy.homeX + state.formationDir * 8;
+  enemy.x = enemy.homeX + state.formationOffset;
   enemy.y = enemy.homeY;
 }
 
@@ -442,6 +446,7 @@ export const galagaGame = defineGame<GalagaState>({
       entry: null,
       formationDir: 1,
       formationTimer: 0,
+      formationOffset: 0,
       diveTimer: 2.5,
       score: 0,
       lives: GALAGA.startLives,
@@ -554,18 +559,22 @@ export const galagaGame = defineGame<GalagaState>({
         state.formationTimer += dt * multiplier * speed;
         while (state.formationTimer >= 0.6) {
           state.formationTimer -= 0.6;
-          let hitEdge = false;
-          for (const enemy of state.enemies) {
-            if (!enemy.alive || enemy.diving || enemy.entering) continue;
-            enemy.x += state.formationDir * 8;
-            if (enemy.x > GALAGA.width - 30 || enemy.x < 30) hitEdge = true;
-          }
+          const formation = state.enemies.filter(
+            (enemy) => enemy.alive && !enemy.diving && !enemy.entering,
+          );
+          const nextOffset = state.formationOffset + state.formationDir * 8;
+          const hitEdge = formation.some((enemy) => {
+            const x = enemy.homeX + nextOffset;
+            return x > GALAGA.width - 30 || x < 30;
+          });
+          // El desplazamiento vive en el estado: sobrevive a snapshot/restore y
+          // no se sobrescribe con `homeX` al renderizar cada tick (B1 de la auditoría).
+          state.formationOffset = nextOffset;
           if (hitEdge) {
             state.formationDir = -state.formationDir;
-            for (const enemy of state.enemies) {
-              if (enemy.alive && !enemy.diving && !enemy.entering) enemy.y += 4;
-            }
+            for (const enemy of formation) enemy.homeY += 4;
           }
+          ctx.emit('formationShift', { dir: state.formationDir, offset: state.formationOffset, dropped: hitEdge });
         }
 
         state.diveTimer -= dt * speed;
@@ -616,7 +625,7 @@ export const galagaGame = defineGame<GalagaState>({
     for (const enemy of state.enemies) {
       if (!enemy.alive) continue;
       if (enemy.entering) {
-        const targetX = enemy.homeX;
+        const targetX = enemy.homeX + state.formationOffset;
         const targetY = enemy.homeY;
         const dx = targetX - enemy.x;
         const dy = targetY - enemy.y;
@@ -639,7 +648,7 @@ export const galagaGame = defineGame<GalagaState>({
       }
       if (!enemy.diving) {
         if (state.bonusTimer === 0 && state.entry === null) {
-          enemy.x = enemy.homeX + state.formationDir * 0;
+          enemy.x = enemy.homeX + state.formationOffset;
         }
         continue;
       }

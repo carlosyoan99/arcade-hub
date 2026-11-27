@@ -273,7 +273,7 @@ describe('grafo de imports del motor', () => {
     // `render/thumbnail.ts` necesita `game/adapter.ts` para ejecutar el step real
     // del juego y capturar su imagen. Es render-only, pura lectura y no muta el estado.
     const violations = bannedImports(['render', 'audio'], SIM_LAYERS).filter(
-      (problem) => !problem.startsWith('src/render/thumbnail.ts:'),
+      (problem) => !problem.startsWith('render/thumbnail.ts:'),
     );
     assertClean(violations);
   });

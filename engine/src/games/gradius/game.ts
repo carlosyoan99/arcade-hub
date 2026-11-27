@@ -136,6 +136,8 @@ function resetPower(state: GradiusState): void {
 }
 
 function activatePower(state: GradiusState, ctx: StepContext): void {
+  // Sin cápsulas no hay mejora: el legacy ya bloqueaba el medidor vacío.
+  if (state.gauge === 0) return;
   const index = state.gauge;
   let available = false;
   if (index === 0) available = state.player.speed < 4;
