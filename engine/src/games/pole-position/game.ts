@@ -6,7 +6,7 @@ import { COLLISION_SERVICE, type CollisionService } from '../../sim/collision.js
 import type { StepContext } from '../../core/simulation.js';
 
 /**
- * Pole Position completo: clasificación de 75 s, carrera de 2 vueltas,
+ * Pole Position completo: clasificación de 75 s, carrera de 3 vueltas,
  * 8 rivales, posición de salida según tiempo, turbo, invencibilidad,
  * pickups en pista y 3 circuitos crecientes. Sin reloj real (B7).
  */
@@ -20,7 +20,7 @@ export const POLE_POSITION = {
   // Adaptación moderna: el original tenía 35 s para ~58 s de vuelta; se sube a 75 s para que la clasificación sea alcanzable.
   qualifySeconds: 75,
   raceSeconds: 60,
-  raceLaps: 2,
+  raceLaps: 3,
   maxSpeed: 220,
   accel: 180,
   brake: 300,
@@ -281,6 +281,9 @@ export const polePositionGame = defineGame<PolePositionState>({
         rival.speed *= 0.8;
         state.crashThisLap += 1;
         ctx.emit('crash', { x: rival.x, y: rival.y });
+        // Juice: shake/hit-stop y partículas se consumen fuera del juego.
+        ctx.emit('hit', { x: state.player.x, y: state.player.y });
+        ctx.emit('explode', { x: rival.x, y: rival.y });
         ctx.progression.observe(-0.6);
       }
       if (rival.y < state.player.y) position += 1;

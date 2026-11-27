@@ -109,6 +109,7 @@ export { singlePlayerRules, type SinglePlayerRulesState } from './game/rules.js'
 
 // Presentación (F1): sistemas reutilizables, nunca dentro de los juegos.
 export * from './render/canvas2d.js';
+export * from './render/thumbnail.js';
 export * from './render/camera.js';
 export * from './render/event-fanout.js';
 export * from './render/sprites.js';

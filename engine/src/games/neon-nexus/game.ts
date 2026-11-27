@@ -180,14 +180,15 @@ function resetNexus(state: NexusState, ctx: StepContext): void {
   state.cleared = false;
   state.clearTimer = 0;
   state.stars = 0;
-  state.coins = 0;
+  // Monedas y mejoras compradas son metaprogresión: se inicializan en init()
+  // y sobreviven al reinicio, igual que en el original (persistencia fuera de step()).
   state.kills = 0;
   state.score = 0;
   state.atkLevel = 0;
   state.hpLevel = 0;
   state.spdLevel = 0;
   state.upgCost = { atk: 10, hp: 10, spd: 15 };
-  state.perm = { maxHP: 0, atkBonus: 0, startShield: 0, regenBonus: 0 };
+  // state.perm NO se reinicia: la tienda del original era permanente.
   for (const card of NEXUS_CARDS) state.cards[card] = 0;
   state.offeredCards = [];
   state.offerPending = false;
@@ -238,6 +239,7 @@ function spawnEnemy(state: NexusState, ctx: StepContext, type: NexusEnemyType): 
     frozen: 0,
     detected: false,
   });
+  if (type === 'boss') ctx.emit('boss', { wave: state.wave });
 }
 
 function findTarget(state: NexusState): NexusEnemy | null {
@@ -316,6 +318,7 @@ function damageTower(state: NexusState, ctx: StepContext, damage: number): void 
   }
   tower.hp = Math.max(0, tower.hp - remaining);
   ctx.emit('towerHit', { damage, hp: tower.hp });
+  ctx.emit('hit', { x: 0, y: 0, damage });
   ctx.progression.observe(-0.7);
   if (tower.hp <= 0) {
     state.over = true;
@@ -348,6 +351,7 @@ function pickCard(state: NexusState, ctx: StepContext, card: NexusCard): void {
   state.offerPending = false;
   state.offeredCards = [];
   ctx.emit('cardPick', { card });
+  ctx.emit('card', { card });
   ctx.progression.observe(0.5);
 }
 
@@ -416,8 +420,8 @@ export const neonNexusGame = defineGame<NexusState>({
   },
 
   step(state, ctx) {
-    // Tienda: accesible al morir (T en el original) o entre oleadas.
-    if (ctx.actions.consume('shop') && (state.over || state.cleared)) {
+    // Tienda: accesible al morir (T en el original), entre oleadas o durante una oferta.
+    if (ctx.actions.consume('shop') && (state.over || state.cleared || state.offerPending)) {
       state.shopOpen = !state.shopOpen;
       ctx.emit('shop', { open: state.shopOpen });
     }
@@ -450,11 +454,12 @@ export const neonNexusGame = defineGame<NexusState>({
 
     if (handleLifecycle(state, ctx, state.wave, () => resetNexus(state, ctx))) return;
 
+    // La oferta es un overlay, no un bloqueo: se puede elegir carta mientras
+    // el bucle sigue avanzando (y se pueden seguir comprando mejoras/tienda).
     if (state.offerPending) {
       if (ctx.actions.consume('card1')) pickCard(state, ctx, state.offeredCards[0] ?? 'atkUp');
       else if (ctx.actions.consume('card2')) pickCard(state, ctx, state.offeredCards[1] ?? 'atkUp');
       else if (ctx.actions.consume('card3')) pickCard(state, ctx, state.offeredCards[2] ?? 'atkUp');
-      return;
     }
 
     const dt = ctx.clock.dt;

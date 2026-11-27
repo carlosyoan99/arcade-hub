@@ -8,10 +8,17 @@ import { doubleDragonGame } from '../src/games/double-dragon/game.js';
 import { moonPatrolGame } from '../src/games/moon-patrol/game.js';
 import { neonNexusGame, NEXUS_CARDS, NEXUS_SHOP } from '../src/games/neon-nexus/game.js';
 import { outRunGame } from '../src/games/out-run/game.js';
-import { paperboyGame } from '../src/games/paperboy/game.js';
-import { polePositionGame } from '../src/games/pole-position/game.js';
+import { PAPERBOY, paperboyGame } from '../src/games/paperboy/game.js';
+import { POLE_POSITION, polePositionGame } from '../src/games/pole-position/game.js';
+import type { Simulation } from '../src/core/simulation.js';
 
 type InputsAt = (tick: number) => InputFrame;
+
+/** Avanza un tick y devuelve los tipos de evento emitidos (juice). */
+function tickEvents<S extends object>(sim: Simulation<S>, input: InputFrame = []): string[] {
+  sim.tick(input);
+  return sim.events.drain().map((event) => event.type);
+}
 
 /** (a) Misma semilla + misma cinta ⇒ mismo hash. */
 function expectDeterministic<S extends object>(
@@ -126,7 +133,7 @@ describe('Juegos migrados al motor — determinismo, dificultad, observación y 
   });
 
   describe('Paperboy', () => {
-    const inputsAt: InputsAt = (tick) => (tick % 20 === 1 ? ['throw'] : tick % 37 === 5 ? ['right'] : []);
+    const inputsAt: InputsAt = (tick) => (tick % 20 === 1 ? ['throw'] : tick % 37 === 5 ? ['down'] : []);
     it('es determinista', () => expectDeterministic(paperboyGame, 606, inputsAt));
     it('sube la dificultad por calle', () =>
       expectDifficultyRises(paperboyGame, 606, (state) => {
@@ -222,5 +229,223 @@ describe('Regresiones documentadas y mecánicas completas', () => {
     for (let i = 0; i < 600; i++) sim.tick(i % 10 === 1 ? ['fire'] : []);
     expect(sim.state.wave).toBeGreaterThan(0);
     expect(sim.state.kills + sim.state.stars).toBeGreaterThan(0);
+  });
+});
+
+describe('Correcciones P0/P1 del batch conducción (efecto real en el motor)', () => {
+  it('todas las acciones del original están declaradas', () => {
+    expect(defenderGame.actions).toEqual(expect.arrayContaining(['fire', 'bomb', 'hyperspace', 'nuclear']));
+    expect(doubleDragonGame.actions).toEqual(expect.arrayContaining(['punch', 'kick', 'combo']));
+    expect(moonPatrolGame.actions).toEqual(expect.arrayContaining(['jump', 'fireUp']));
+    expect(neonNexusGame.actions).toEqual(
+      expect.arrayContaining([
+        'card1', 'card2', 'card3', 'upgradeAtk', 'upgradeHp', 'upgradeSpd',
+        'shop', 'buyMaxHp', 'buyAtkBonus', 'buyStartShield', 'buyRegenBonus', 'closeShop',
+      ]),
+    );
+    expect(outRunGame.actions).toContain('turbo');
+    expect(polePositionGame.actions).toContain('turbo');
+    expect(paperboyGame.actions).toEqual(expect.arrayContaining(['up', 'down']));
+    expect(paperboyGame.actions).not.toContain('left');
+    expect(paperboyGame.actions).not.toContain('right');
+  });
+
+  it('Defender: bomb, hyperspace y nuclear gastan recursos y surten efecto', () => {
+    const bombSim = createGameSimulation(defenderGame, { seed: 801 });
+    bombSim.state.enemies = [
+      {
+        type: 'lander', x: 100, y: 100, vx: 0, vy: 0, speed: 10, hp: 1, size: 14,
+        targetX: 100, phase: 'hunting', carrying: null, timer: 0, wobble: 0,
+      },
+    ];
+    const bombs = bombSim.state.bombsLeft;
+    const bombEvents = tickEvents(bombSim, ['bomb']);
+    expect(bombSim.state.bombsLeft).toBe(bombs - 1);
+    expect(bombSim.state.enemies).toHaveLength(0);
+    expect(bombEvents).toContain('smartBomb');
+    expect(bombEvents).toContain('explode');
+
+    const hyperSim = createGameSimulation(defenderGame, { seed: 802 });
+    const x0 = hyperSim.state.ship.x;
+    const hyperEvents = tickEvents(hyperSim, ['hyperspace']);
+    expect(hyperSim.state.hyperspaceCd).toBeGreaterThan(0);
+    expect(hyperSim.state.ship.x).not.toBe(x0);
+    expect(hyperEvents).toContain('hyperspace');
+
+    const nukeSim = createGameSimulation(defenderGame, { seed: 803 });
+    const nukes = nukeSim.state.nuclearLeft;
+    const nukeEvents = tickEvents(nukeSim, ['nuclear']);
+    expect(nukeSim.state.nuclearLeft).toBe(nukes - 1);
+    expect(nukeEvents).toContain('nuke');
+  });
+
+  it('Double Dragon: punch, kick y combo dañan y emiten hit', () => {
+    for (const [action, damage] of [['punch', 10], ['kick', 18], ['combo', 30]] as const) {
+      const sim = createGameSimulation(doubleDragonGame, { seed: 811 });
+      sim.state.waiting = false;
+      sim.state.phase = 'grunts';
+      sim.state.player.facing = 1;
+      sim.state.enemies = [
+        {
+          x: 260, y: 250, type: 'punk', hp: 60, maxHp: 60, speed: 0,
+          attackTimer: 999, hit: 0, facing: -1, alive: true,
+        },
+      ];
+      const events = tickEvents(sim, [action]);
+      expect(sim.state.enemies[0]?.hp, action).toBe(60 - damage);
+      expect(events, action).toContain('attack');
+      expect(events, action).toContain('hit');
+    }
+  });
+
+  it('Moon Patrol: jump salta y fireUp dispara arriba; los impactos emiten hit', () => {
+    const jumpSim = createGameSimulation(moonPatrolGame, { seed: 821 });
+    tickEvents(jumpSim, ['jump']);
+    expect(jumpSim.state.player.grounded).toBe(false);
+
+    const fireSim = createGameSimulation(moonPatrolGame, { seed: 822 });
+    const shootEvents = tickEvents(fireSim, ['fireUp']);
+    expect(fireSim.state.bullets.some((bullet) => !bullet.enemy && bullet.vy < 0)).toBe(true);
+    expect(shootEvents).toContain('shootUp');
+
+    const hitSim = createGameSimulation(moonPatrolGame, { seed: 823 });
+    hitSim.state.enemies = [{ x: 130, y: 260, type: 'rover', speed: 0, w: 20, h: 10, shootTimer: 999 }];
+    hitSim.state.bullets = [{ x: 125, y: 260, vx: 300, vy: 0, w: 8, h: 3, enemy: false }];
+    const hitEvents = tickEvents(hitSim, []);
+    expect(hitEvents).toContain('hit');
+    expect(hitEvents).toContain('explode');
+  });
+
+  it('Neon Nexus: card1..3 se consumen sin que offerPending bloquee el bucle', () => {
+    const sim = createGameSimulation(neonNexusGame, { seed: 831 });
+    sim.tick([]);
+    sim.state.offerPending = true;
+    sim.state.offeredCards = ['atkUp', 'regen', 'magnet'];
+    const ticks = sim.state.ticks;
+    const events = tickEvents(sim, ['card1']);
+    expect(sim.state.ticks).toBe(ticks + 1);
+    expect(sim.state.offerPending).toBe(false);
+    expect(sim.state.cards.atkUp).toBe(1);
+    expect(events).toContain('card');
+
+    sim.state.offerPending = true;
+    sim.state.offeredCards = ['atkUp', 'regen', 'magnet'];
+    const idleTicks = sim.state.ticks;
+    tickEvents(sim, []);
+    expect(sim.state.ticks).toBe(idleTicks + 1);
+    expect(sim.state.offerPending).toBe(true);
+  });
+
+  it('Neon Nexus: mejoras y tienda consumen recursos y la tienda persiste al reiniciar', () => {
+    const sim = createGameSimulation(neonNexusGame, { seed: 832 });
+    sim.state.stars = 100;
+    // Evita que el bonus de la oleada recién iniciada añada estrellas al total.
+    sim.state.cleared = true;
+    sim.state.clearTimer = 120;
+    tickEvents(sim, ['upgradeAtk']);
+    expect(sim.state.atkLevel).toBe(1);
+    expect(sim.state.stars).toBe(90);
+
+    sim.state.over = true;
+    expect(tickEvents(sim, ['shop'])).toContain('shop');
+    expect(sim.state.shopOpen).toBe(true);
+    sim.state.coins = 100;
+    tickEvents(sim, ['buyMaxHp']);
+    expect(sim.state.perm.maxHP).toBe(1);
+    expect(sim.state.coins).toBe(85);
+    tickEvents(sim, ['closeShop']);
+    expect(sim.state.shopOpen).toBe(false);
+
+    tickEvents(sim, ['restart']);
+    expect(sim.state.perm.maxHP).toBe(1);
+    expect(sim.state.coins).toBe(85);
+    expect(sim.state.wave).toBe(0);
+  });
+
+  it('Neon Nexus: la oleada de jefe emite boss', () => {
+    const sim = createGameSimulation(neonNexusGame, { seed: 833 });
+    sim.state.wave = 5;
+    sim.state.waveQueue = ['boss'];
+    sim.state.spawned = 0;
+    sim.state.spawnTimer = 0;
+    expect(tickEvents(sim, [])).toContain('boss');
+  });
+
+  it('Out Run: turbo y colisión emiten eventos de juice', () => {
+    const sim = createGameSimulation(outRunGame, { seed: 841 });
+    expect(tickEvents(sim, ['turbo', 'accel'])).toContain('turbo');
+    expect(sim.state.turbo).toBeGreaterThan(0);
+
+    const crashSim = createGameSimulation(outRunGame, { seed: 842 });
+    crashSim.state.player.speed = 100;
+    crashSim.state.rivals = [{ z: crashSim.state.camZ, x: crashSim.state.player.x, speed: 0 }];
+    const events = tickEvents(crashSim, []);
+    expect(events).toContain('crash');
+    expect(events).toContain('hit');
+    expect(events).toContain('explode');
+  });
+
+  it('Paperboy: ↑↓ cambian de carril, ←→ no, y los obstáculos se reciclan', () => {
+    const sim = createGameSimulation(paperboyGame, { seed: 851 });
+    tickEvents(sim, ['down']);
+    expect(sim.state.playerLane).toBe(2);
+    tickEvents(sim, []);
+    tickEvents(sim, ['up']);
+    expect(sim.state.playerLane).toBe(1);
+    tickEvents(sim, []);
+    const lane = sim.state.playerLane;
+    tickEvents(sim, ['right']);
+    expect(sim.state.playerLane).toBe(lane);
+
+    sim.state.obstacles = [{ x: -61, lane: 0, type: 'car', w: 35, speed: 0 }];
+    tickEvents(sim, []);
+    expect(sim.state.obstacles).toHaveLength(1);
+    expect(sim.state.obstacles[0]?.x).toBeGreaterThan(PAPERBOY.width);
+
+    const crashSim = createGameSimulation(paperboyGame, { seed: 852 });
+    crashSim.state.obstacles = [
+      { x: PAPERBOY.playerX, lane: crashSim.state.playerLane, type: 'car', w: 35, speed: 0 },
+    ];
+    const events = tickEvents(crashSim, []);
+    expect(events).toEqual(expect.arrayContaining(['crash', 'hit', 'explode', 'gameOver']));
+  });
+
+  it('Pole Position: la carrera dura 3 vueltas y turbo/colisión emiten juice', () => {
+    expect(POLE_POSITION.raceLaps).toBe(3);
+    const sim = createGameSimulation(polePositionGame, { seed: 861 });
+    expect(tickEvents(sim, ['turbo', 'accel'])).toContain('turbo');
+    expect(sim.state.turbo).toBeGreaterThan(0);
+
+    const crashSim = createGameSimulation(polePositionGame, { seed: 862 });
+    crashSim.state.phase = 'race';
+    crashSim.state.player.speed = 100;
+    crashSim.state.rivals = [{ x: crashSim.state.player.x, y: crashSim.state.player.y, speed: 0, phase: 0 }];
+    const crashEvents = tickEvents(crashSim, []);
+    expect(crashEvents).toEqual(expect.arrayContaining(['crash', 'hit', 'explode']));
+
+    const race = createGameSimulation(polePositionGame, { seed: 863 });
+    const roadLength = POLE_POSITION.segments * (POLE_POSITION.height / 6);
+    race.state.phase = 'race';
+    race.state.circuit = POLE_POSITION.circuits - 1; // última vuelta del último circuito
+    race.state.laps = POLE_POSITION.raceLaps - 1;
+    race.state.roadOffset = roadLength - 1;
+    race.state.player.speed = POLE_POSITION.maxSpeed;
+    race.state.player.x = POLE_POSITION.width / 2;
+    race.state.rivals = [];
+    race.state.pickups = [];
+    race.state.time = 60;
+    const events = tickEvents(race, ['accel']);
+    expect(race.state.laps).toBe(3);
+    expect(race.state.over).toBe(true);
+    expect(events).toContain('lap');
+  });
+
+  it('los juegos de conducción emiten gameOver al agotarse el tiempo', () => {
+    const out = createGameSimulation(outRunGame, { seed: 871 });
+    out.state.time = 0.01;
+    expect(tickEvents(out, [])).toContain('gameOver');
+    const pole = createGameSimulation(polePositionGame, { seed: 872 });
+    pole.state.time = 0.01;
+    expect(tickEvents(pole, [])).toContain('gameOver');
   });
 });

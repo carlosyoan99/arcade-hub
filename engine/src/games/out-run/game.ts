@@ -225,6 +225,9 @@ export const outRunGame = defineGame<OutRunState>({
       ) {
         state.player.speed *= 0.3 - progress.hazard * 0.1;
         ctx.emit('crash', { z: rival.z });
+        // Juice: shake/hit-stop y partículas se consumen fuera del juego.
+        ctx.emit('hit', { x: state.player.x, y: rival.z });
+        ctx.emit('explode', { x: state.player.x, y: rival.z });
         ctx.progression.observe(-0.6);
       }
     }

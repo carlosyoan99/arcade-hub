@@ -318,6 +318,7 @@ export const moonPatrolGame = defineGame<MoonPatrolState>({
           state.over = true;
           state.winner = null;
           ctx.emit('crash', { x: bullet.x, y: bullet.y });
+          ctx.emit('hit', { x: MOON_PATROL.playerX, y: state.player.y });
           ctx.emit('gameOver', { score: state.score });
           ctx.progression.observe(-1);
         }
@@ -336,6 +337,7 @@ export const moonPatrolGame = defineGame<MoonPatrolState>({
           state.enemies.splice(j, 1);
           state.kills += 1;
           state.score += enemy.type === 'ufo' ? 50 : 20;
+          ctx.emit('hit', { x: bullet.x, y: bullet.y });
           ctx.emit('explode', { type: enemy.type, x: enemy.x, y: enemy.y });
           ctx.progression.observe(0.5);
           break;
@@ -373,6 +375,7 @@ export const moonPatrolGame = defineGame<MoonPatrolState>({
         state.over = true;
         state.winner = null;
         ctx.emit('crash', { x: enemy.x, y: enemy.y });
+        ctx.emit('hit', { x: MOON_PATROL.playerX, y: state.player.y });
         ctx.emit('gameOver', { score: state.score });
         ctx.progression.observe(-1);
         return;
@@ -391,6 +394,7 @@ export const moonPatrolGame = defineGame<MoonPatrolState>({
         state.over = true;
         state.winner = null;
         ctx.emit('crash', { kind: obstacle.kind });
+        ctx.emit('hit', { x: MOON_PATROL.playerX, y: state.player.y });
         ctx.emit('gameOver', { score: state.score });
         ctx.progression.observe(-1);
         return;

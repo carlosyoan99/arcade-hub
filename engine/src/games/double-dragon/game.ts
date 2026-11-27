@@ -132,6 +132,7 @@ function hurtPlayer(state: DragonState, ctx: StepContext, damage: number): void 
   state.hurtCd = 0.5;
   state.lives -= 1;
   ctx.emit('playerHit', { damage, lives: state.lives });
+  ctx.emit('hit', { type: 'player', damage });
   ctx.progression.observe(-0.8);
   if (state.lives <= 0) {
     state.over = true;

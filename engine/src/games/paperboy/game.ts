@@ -132,6 +132,17 @@ function generateObstacles(ctx: StepContext, pattern: string, hazard: number): P
   return obstacles;
 }
 
+/** Reinserta un obstáculo al final de la calle en vez de vaciarla (paridad con el original). */
+function recycleObstacle(ctx: StepContext, obstacle: PaperboyObstacle): void {
+  const types: readonly PaperboyObstacle['type'][] = ['car', 'fence', 'dog', 'truck'];
+  const type = types[ctx.rng.int(types.length)] as PaperboyObstacle['type'];
+  obstacle.type = type;
+  obstacle.lane = ctx.rng.int(3);
+  obstacle.w = type === 'truck' ? 50 : type === 'car' ? 35 : type === 'fence' ? 20 : 16;
+  obstacle.speed = type === 'dog' ? 40 : 0;
+  obstacle.x = PAPERBOY.width + 100 + ctx.rng.range(0, PAPERBOY.houseSpacing);
+}
+
 /** Rejilla de 3 carriles × 8 columnas: 1 = obstáculo, 0 = libre. */
 function safeLaneAhead(state: PaperboyState, pathfinding: PathfindingService): number {
   const grid: number[][] = Array.from({ length: 3 }, () =>
@@ -166,7 +177,8 @@ function safeLaneAhead(state: PaperboyState, pathfinding: PathfindingService): n
 export const paperboyGame = defineGame<PaperboyState>({
   id: 'paperboy',
   meta: { title: 'Paperboy', players: [1], modes: ['solo', 'vsAI', 'demo'] },
-  actions: ['left', 'right', 'throw', 'pause', 'restart'],
+  // ↑↓ cambian de carril (←→ no tienen sentido en la perspectiva del original).
+  actions: ['up', 'down', 'throw', 'pause', 'restart'],
   progression: {
     id: 'paperboy',
     levels: [
@@ -232,8 +244,8 @@ export const paperboyGame = defineGame<PaperboyState>({
     state.throwTimer = Math.max(0, state.throwTimer - dt);
     state.score += scroll * dt * 0.05;
 
-    if (ctx.actions.consume('left')) state.playerLane = Math.max(0, state.playerLane - 1);
-    if (ctx.actions.consume('right')) state.playerLane = Math.min(2, state.playerLane + 1);
+    if (ctx.actions.consume('up')) state.playerLane = Math.max(0, state.playerLane - 1);
+    if (ctx.actions.consume('down')) state.playerLane = Math.min(2, state.playerLane + 1);
     state.playerY = approach(
       state.playerY,
       laneY(state.playerLane),
@@ -303,7 +315,7 @@ export const paperboyGame = defineGame<PaperboyState>({
       if (obstacle === undefined) continue;
       obstacle.x -= (scroll + obstacle.speed) * dt;
       if (obstacle.x < -60) {
-        state.obstacles.splice(i, 1);
+        recycleObstacle(ctx, obstacle);
         continue;
       }
       if (
@@ -316,6 +328,9 @@ export const paperboyGame = defineGame<PaperboyState>({
         state.over = true;
         state.winner = null;
         ctx.emit('crash', { type: obstacle.type });
+        // Juice: shake/hit-stop y partículas se consumen fuera del juego.
+        ctx.emit('hit', { x: PAPERBOY.playerX, y: state.playerY });
+        ctx.emit('explode', { x: obstacle.x, y: state.playerY });
         ctx.emit('gameOver', { score: state.score });
         ctx.progression.observe(-1);
         return;
