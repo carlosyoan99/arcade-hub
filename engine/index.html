@@ -6,6 +6,11 @@
     <meta name="description" content="32 juegos arcade sobre Arcade Engine" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#080a12" />
+    <!-- JSON-LD en línea y el script anti-FOUC necesitan 'unsafe-inline' en script-src. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' ws: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
     <title>Arcade Engine · 32 juegos</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="sitemap" type="application/xml" href="./sitemap.xml" />
@@ -72,6 +77,25 @@
       }
     </script>
 
+    <!-- Anti-FOUC: aplica el tema persistido antes del primer pintado. -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('arcadehub_theme');
+          var saved = raw ? JSON.parse(raw) : null;
+          var theme =
+            saved && saved.v === 1 && ['dark', 'light', 'retro'].indexOf(saved.data) >= 0
+              ? saved.data
+              : null;
+          if (!theme) {
+            theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          }
+          document.documentElement.dataset.theme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="./demo/hub.css" />
   </head>
   <body>
@@ -92,6 +116,9 @@
           spellcheck="false"
         />
       </label>
+      <button id="theme" class="toolbar-button" type="button" data-testid="theme" aria-label="Cambiar tema">
+        Tema: Oscuro
+      </button>
     </header>
 
     <main class="shell">
@@ -112,11 +139,34 @@
               <option value="hard">Difícil</option>
             </select>
           </label>
+          <button
+            id="fullscreen"
+            class="toolbar-button"
+            type="button"
+            data-testid="fullscreen"
+            aria-label="Pantalla completa (tecla F)"
+          >
+            ⛶ Pantalla completa
+          </button>
           <h2 id="stage-title" class="stage__title"></h2>
         </div>
-        <canvas id="screen" width="960" height="600" aria-label="Pantalla del juego">
+        <p class="stage__meta">
+          <label class="seed">Semilla <output id="seed" data-testid="seed">12345</output></label>
+          <button id="copy-seed" class="toolbar-button" type="button" data-testid="copy-seed">
+            Copiar enlace
+          </button>
+          <label class="seed">Hash <output id="hash" data-testid="hash">—</output></label>
+          <label class="seed">Entradas <output id="actions" data-testid="actions"></output></label>
+        </p>
+        <canvas id="screen" width="1024" height="700" aria-label="Pantalla del juego">
           Tu navegador no admite canvas.
         </canvas>
+        <div
+          id="touch-actions"
+          class="touch-actions"
+          data-testid="touch-actions"
+          aria-label="Acciones táctiles del juego"
+        ></div>
         <p id="hint" class="hint"></p>
       </section>
     </main>

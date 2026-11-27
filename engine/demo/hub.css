@@ -1,13 +1,40 @@
-/* Vitrina: seis tokens, una idea (una luz cálida sobre piezas de museo). */
+/* Vitrina: un juego de tokens para tres temas (oscuro, claro y retro). */
 
-:root {
+:root,
+:root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #080a12;
   --panel: #101421;
   --ink: #f0f2fa;
-  --muted: #9aa3bd;
-  --line: #2b3350;
+  --muted: #b7c0d8;
+  --line: #39425f;
   --accent: #ffc861;
+  --accent-soft: #3a2c12;
+  --radius: 8px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4f5f8;
+  --panel: #ffffff;
+  --ink: #141824;
+  --muted: #414a5e;
+  --line: #b9c0cd;
+  --accent: #8a4700;
+  --accent-soft: #ffe9c7;
+  --radius: 8px;
+}
+
+:root[data-theme='retro'] {
+  color-scheme: dark;
+  --bg: #080c07;
+  --panel: #101a10;
+  --ink: #e0ffc0;
+  --muted: #a8cf8a;
+  --line: #35562c;
+  --accent: #ffcc66;
+  --accent-soft: #2c2a0e;
+  --radius: 3px;
 }
 
 * { box-sizing: border-box; }
@@ -48,7 +75,7 @@ body {
 }
 .skip:focus { left: 12px; }
 
-:where(a, button, input, select):focus-visible {
+:where(a, button, input, select, output):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -57,7 +84,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   padding: 14px clamp(16px, 4vw, 40px);
   border-bottom: 1px solid var(--line);
@@ -76,6 +103,7 @@ body {
 
 .search input {
   width: min(260px, 60vw);
+  min-height: 32px;
   padding: 8px 10px;
   font: inherit;
   color: var(--ink);
@@ -85,6 +113,19 @@ body {
 }
 .search input::placeholder { color: var(--muted); }
 .search input::-webkit-search-cancel-button { cursor: pointer; }
+
+.toolbar-button {
+  min-height: 32px;
+  min-width: 44px;
+  padding: 7px 12px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.toolbar-button:hover { border-color: var(--accent); background: var(--accent-soft); }
 
 .shell { max-width: 1120px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 40px) 56px; }
 
@@ -109,14 +150,14 @@ body {
 .card {
   position: relative;
   display: grid;
-  align-content: space-between;
-  gap: 16px;
+  align-content: start;
+  gap: 8px;
   min-height: 118px;
-  padding: 16px;
+  padding: 12px;
   overflow: hidden;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   color: var(--ink);
   text-decoration: none;
   transition: transform 180ms ease, border-color 180ms ease;
@@ -133,11 +174,32 @@ body {
 }
 .card:hover, .card:focus-visible {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  border-color: var(--accent);
 }
 .card:hover::before, .card:focus-visible::before { background: var(--accent); }
 
 .card__n { color: var(--muted); font-size: 11px; letter-spacing: 0.14em; }
+.card__thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 320 / 200;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.card__fallback {
+  display: grid;
+  place-items: center;
+  min-height: 92px;
+  padding: 8px;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+  font-size: 11px;
+  text-align: center;
+}
 .card__title {
   margin: 0;
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
@@ -153,11 +215,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .back {
+  min-height: 32px;
   padding: 8px 12px;
   font: inherit;
   color: var(--ink);
@@ -178,6 +241,7 @@ body {
   text-transform: uppercase;
 }
 .difficulty select {
+  min-height: 32px;
   padding: 7px 9px;
   font: inherit;
   letter-spacing: normal;
@@ -198,14 +262,73 @@ body {
   text-align: right;
 }
 
+.stage__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+}
+.seed { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.seed output {
+  color: var(--ink);
+  letter-spacing: normal;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+/* El canvas ocupa todo el ancho disponible; el letterbox del renderer dibuja
+   el mundo centrado y conserva la proporción, sin scroll ni recorte. */
 #screen {
   display: block;
   width: 100%;
+  max-width: 100%;
   height: auto;
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
+
+#stage:fullscreen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 12px;
+  overflow: hidden;
+  background: var(--bg);
+}
+#stage:fullscreen #screen {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.touch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.touch-actions:empty { display: none; }
+.touch-action {
+  min-width: 56px;
+  min-height: 44px;
+  padding: 8px 14px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.touch-action:active { transform: translateY(1px); }
 
 .hint { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
 
@@ -220,4 +343,20 @@ body {
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, output):focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 3px;
+  }
+  .skip:focus { left: 12px; outline: 3px solid Highlight; }
+  .card, .toolbar-button, .back, .touch-action, .search input, .difficulty select {
+    border: 1px solid CanvasText;
+  }
+  .card:hover, .card:focus-visible, .toolbar-button:hover, .back:hover {
+    border-color: Highlight;
+  }
+  .card__thumb { forced-color-adjust: none; }
+  .seed output { color: CanvasText; }
 }
