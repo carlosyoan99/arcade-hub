@@ -114,6 +114,7 @@ export * from './render/event-fanout.js';
 export * from './render/sprites.js';
 export * from './render/particles.js';
 export * from './render/ui-draw.js';
+export * from './render/thumbnail.js';
 export * from './audio/synth.js';
 export * from './audio/music.js';
 export * from './audio/manager.js';
