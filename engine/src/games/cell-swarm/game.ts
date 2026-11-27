@@ -157,6 +157,8 @@ function spawnBot(ctx: StepContext, pattern: string | null): Bot {
 
 function startLevel(state: SwarmState, ctx: StepContext): void {
   state.pattern = ctx.progression.nextPattern();
+  // Cada nivel parte de cero masa ganada; el progreso acumulado vive en state.progress.
+  state.gained = 0;
   const hazard = ctx.progression.state.hazard;
   const start = worldPos(ctx, 200);
   state.cells = [{ x: start.x, y: start.y, mass: SWARM.minMass, mergeTimer: 0 }];
@@ -438,17 +440,29 @@ export const cellSwarmGame = defineGame<SwarmState>({
     if (handleLifecycle(state, ctx, state.progress, () => resetGame(state, ctx))) return;
     const dt = ctx.clock.dt * ctx.progression.state.speed;
 
+    const main = state.cells[0];
+    const pointer = ctx.actions.pointer;
     let dx = 0;
     let dy = 0;
-    if (ctx.actions.isDown('up')) dy = -1;
-    else if (ctx.actions.isDown('down')) dy = 1;
-    else if (ctx.actions.isDown('left')) dx = -1;
-    else if (ctx.actions.isDown('right')) dx = 1;
+    if (pointer.active && main !== undefined) {
+      // Puntero normalizado (ratón/táctil/stick): apunta y mueve como en el original.
+      dx = pointer.x * SWARM.world - main.x;
+      dy = pointer.y * SWARM.world - main.y;
+    } else {
+      if (ctx.actions.isDown('up')) dy = -1;
+      else if (ctx.actions.isDown('down')) dy = 1;
+      else if (ctx.actions.isDown('left')) dx = -1;
+      else if (ctx.actions.isDown('right')) dx = 1;
+    }
     const direction = normalize2(dx, dy);
-    const main = state.cells[0];
     if (main !== undefined && (dx !== 0 || dy !== 0)) {
-      state.targetX = main.x + direction.x * 400;
-      state.targetY = main.y + direction.y * 400;
+      if (pointer.active) {
+        state.targetX = clamp(pointer.x * SWARM.world, 0, SWARM.world);
+        state.targetY = clamp(pointer.y * SWARM.world, 0, SWARM.world);
+      } else {
+        state.targetX = main.x + direction.x * 400;
+        state.targetY = main.y + direction.y * 400;
+      }
     }
 
     state.boosting = ctx.actions.isDown('boost');
@@ -562,9 +576,9 @@ export const cellSwarmGame = defineGame<SwarmState>({
     const totalMass = state.cells.reduce((sum, cell) => sum + cell.mass, 0);
     state.bestMass = Math.max(state.bestMass, totalMass);
     state.score = Math.floor(totalMass) + state.kills * 50;
-    if (state.gained >= (state.level + 1) * 100) {
+    if (state.gained >= 100) {
+      state.progress += state.gained;
       state.level++;
-      state.progress = state.gained;
       state.score += 500;
       ctx.emit('levelUp', { level: state.level });
       startLevel(state, ctx);

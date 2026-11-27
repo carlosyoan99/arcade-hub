@@ -142,7 +142,9 @@ function generateMaze(ctx: StepContext, pattern: string | null): number[][] {
 }
 
 function spawnEnemies(state: BombermanState, ctx: StepContext): void {
-  const count = Math.min(2 + Math.floor((state.level - 1) / 2), 6);
+  // La curva `hazard` añade enemigos y acelera su patrulla (DDA real, sin azar nuevo).
+  const hazard = ctx.progression.state.hazard;
+  const count = Math.min(2 + Math.floor((state.level - 1) / 2) + Math.round(hazard * 2), 6);
   state.enemies = [];
   for (let i = 0; i < count; i++) {
     const spawn = BOMBERMAN.enemySpawns[i % BOMBERMAN.enemySpawns.length];
@@ -156,7 +158,7 @@ function spawnEnemies(state: BombermanState, ctx: StepContext): void {
       dirC: 1,
       prevR: 0,
       prevC: 1,
-      speed: 0.55 + ctx.rng.next() * 0.15 + (state.pattern === 'rush' ? 0.15 : 0),
+      speed: 0.55 + ctx.rng.next() * 0.15 + (state.pattern === 'rush' ? 0.15 : 0) + hazard * 0.15,
       type: oneal ? 'oneal' : 'balloon',
       dead: false,
     });

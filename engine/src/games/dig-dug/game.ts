@@ -117,7 +117,8 @@ function buildGrid(state: DigDugState, ctx: StepContext): void {
 }
 
 function spawnEnemies(state: DigDugState, ctx: StepContext): void {
-  const count = Math.min(2 + state.level, 6);
+  const hazard = ctx.progression.state.hazard;
+  const count = Math.min(2 + state.level + Math.round(hazard * 2), 6);
   const points: ReadonlyArray<readonly [number, number]> = [
     [1, 1],
     [DIGDUG.cols - 2, 1],
@@ -136,7 +137,7 @@ function spawnEnemies(state: DigDugState, ctx: StepContext): void {
       alive: true,
       dir: 1,
       moveTimer: 0,
-      moveInterval: 0.3 + ctx.rng.next() * 0.15,
+      moveInterval: (0.3 + ctx.rng.next() * 0.15) / (1 + hazard * 0.25),
       inflation: 0,
       stunned: 0,
       disguised: false,
@@ -245,11 +246,15 @@ function updatePlayer(state: DigDugState, dt: number, ctx: StepContext): void {
   if (dc !== 0 || dr !== 0) {
     const nc = state.c + dc;
     const nr = state.r + dr;
-    if (isEmpty(state, nc, nr)) {
-      if (isDirt(state, nc, nr)) {
-        state.score += 1;
-        ctx.emit('dig', { c: nc, r: nr });
-      }
+    if (isDirt(state, nc, nr)) {
+      // Excavar tierra: se abre el túnel, suma 1 punto y emite el evento de juice 'dig'.
+      const row = state.grid[nr];
+      if (row !== undefined) row[nc] = DIGDUG.empty;
+      state.score += 1;
+      ctx.emit('dig', { c: nc, r: nr });
+      state.c = nc;
+      state.r = nr;
+    } else if (isEmpty(state, nc, nr)) {
       state.c = nc;
       state.r = nr;
     }
@@ -301,9 +306,11 @@ function updatePlayer(state: DigDugState, dt: number, ctx: StepContext): void {
 }
 
 function updateEnemies(state: DigDugState, dt: number, ctx: StepContext, pathfinding: PathfindingService): void {
+  const hazard = ctx.progression.state.hazard;
   for (const enemy of state.enemies) {
     if (!enemy.alive) continue;
-    enemy.moveInterval = enemy.inflation > 0 ? 0.3 + enemy.inflation * 0.5 : 0.25 + ctx.rng.next() * 0.1;
+    const baseInterval = enemy.inflation > 0 ? 0.3 + enemy.inflation * 0.5 : 0.25 + ctx.rng.next() * 0.1;
+    enemy.moveInterval = baseInterval / (1 + hazard * 0.25);
     enemy.moveTimer += dt;
     if (enemy.moveTimer < enemy.moveInterval || enemy.inflation >= 1 || enemy.stunned > 0) {
       if (enemy.stunned > 0) enemy.stunned -= dt;

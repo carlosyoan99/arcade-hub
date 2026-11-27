@@ -68,6 +68,12 @@ export interface BonusItem {
   timer: number;
   collected: boolean;
 }
+/** Bonus del original: tipo aleatorio ponderado con RNG sembrado (sin Math.random). */
+function randomBonusType(ctx: StepContext): BonusItem['type'] {
+  const roll = ctx.rng.next();
+  return roll < 0.3 ? 'snake' : roll < 0.7 ? 'fly' : 'butterfly';
+}
+
 export interface FroggerState {
   x: number;
   y: number;
@@ -127,7 +133,7 @@ function buildObstacles(state: FroggerState, ctx: StepContext): void {
     if (lane === undefined) continue;
     const speed = (lane.speed ?? 0) * (1 + hazard * 0.25);
     if (lane.type === 'road') {
-      const count = 2 + ctx.rng.int(2) + (state.pattern === 'car' ? 1 : 0);
+      const count = 2 + ctx.rng.int(2) + (state.pattern === 'car' ? 1 : 0) + (hazard >= 0.2 ? 1 : 0);
       const isTruck = (lane.speed ?? 0) < 70;
       const isRace = (lane.speed ?? 0) > 130;
       for (let i = 0; i < count; i++) {
@@ -168,14 +174,13 @@ function buildObstacles(state: FroggerState, ctx: StepContext): void {
   }
   const safeLanes = [1, 7, 13];
   const count = 1 + ctx.rng.int(2);
-  const kinds: BonusItem['type'][] = ['snake', 'fly', 'butterfly'];
   for (let i = 0; i < count; i++) {
     const row = safeLanes[ctx.rng.int(safeLanes.length)] ?? 7;
     state.bonusItems.push({
       row,
       x: FROGGER.cs + ctx.rng.next() * (FROGGER.cols * FROGGER.cs - FROGGER.cs * 2),
       y: row * FROGGER.cs + FROGGER.cs / 2,
-      type: kinds[i % kinds.length] ?? 'fly',
+      type: randomBonusType(ctx),
       timer: 8 + ctx.rng.next() * 5,
       collected: false,
     });

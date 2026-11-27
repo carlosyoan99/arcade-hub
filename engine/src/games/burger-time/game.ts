@@ -123,8 +123,9 @@ function buildLevel(state: BurgerState, ctx: StepContext): void {
     }
   }
   const kinds: EnemyKind[] = ['hotdog', 'pickle', 'egg'];
+  const hazard = ctx.progression.state.hazard;
   state.enemies = [];
-  const count = 3 + state.level + (state.pattern === 'enemy' ? 1 : 0);
+  const count = 3 + state.level + (state.pattern === 'enemy' ? 1 : 0) + Math.round(hazard * 2);
   for (let i = 0; i < count; i++) {
     const kind = kinds[i % kinds.length] ?? 'hotdog';
     state.enemies.push({
@@ -132,7 +133,7 @@ function buildLevel(state: BurgerState, ctx: StepContext): void {
       plat: ctx.rng.int(BURGER.platforms),
       type: kind,
       facing: ctx.rng.int(2) === 0 ? 1 : -1,
-      speed: ENEMY_TYPES[kind].speed + state.level * 3,
+      speed: ENEMY_TYPES[kind].speed + state.level * 3 + hazard * 10,
       stunned: 0,
     });
   }
@@ -203,7 +204,8 @@ function checkBurgers(state: BurgerState, ctx: StepContext): void {
     if (!complete) continue;
     state.score += 200;
     state.burgersCompleted++;
-    state.progress++;
+    // El progreso de la curva se ancla al nivel, no a cada hamburguesa:
+    // 20 ingredientes = 4 burgers = 1 nivel (pointsPerLevel: 1).
     ctx.emit('burger', { plat: p, score: state.score });
     ctx.progression.observe(1);
     state.ingredients = state.ingredients.filter(
@@ -211,6 +213,7 @@ function checkBurgers(state: BurgerState, ctx: StepContext): void {
     );
     if (state.ingredients.length === 0) {
       state.level++;
+      state.progress = state.level - 1;
       ctx.emit('levelUp', { level: state.level });
       startLevel(state, ctx);
       return;

@@ -239,14 +239,17 @@ function updatePlayer(state: DkState, dt: number, ctx: StepContext, collision: C
   if (ctx.actions.isDown('left')) move -= 1;
   if (ctx.actions.isDown('right')) move += 1;
   state.vx = move * DK.playerSpeed;
+  // Contrato separado: 'up' (↑) solo trepa escaleras; 'jump' (Espacio/W en el HUB) solo salta.
+  // El original compartía ↑ para trepar y saltar, haciendo ambigua la intención del jugador.
   if (ctx.actions.consume('jump')) state.buffer = DK.jumpBuffer;
   state.buffer -= dt;
-  if (ctx.actions.consume('jump')) state.jumpReleased = true;
+  if (ctx.actions.wasReleased('jump')) state.jumpReleased = true;
   if (state.onGround) state.coyote = DK.coyoteTime;
   else state.coyote -= dt;
 
   const climbing = ladderAt(state, ctx.actions.isDown('up'));
-  if (state.buffer > 0 && state.coyote > 0 && climbing === null) {
+  const jumping = state.buffer > 0 && state.coyote > 0;
+  if (jumping) {
     state.vy = JUMP_VEL;
     state.buffer = 0;
     state.coyote = 0;
@@ -258,7 +261,7 @@ function updatePlayer(state: DkState, dt: number, ctx: StepContext, collision: C
     state.jumpReleased = false;
   }
   state.vy += (state.vy > 0 ? FALL_GRAVITY : GRAVITY) * dt;
-  if (climbing !== null && ctx.actions.isDown('up')) {
+  if (climbing !== null && ctx.actions.isDown('up') && !jumping) {
     state.vy = -DK.playerSpeed * 0.7;
     state.onGround = false;
   }

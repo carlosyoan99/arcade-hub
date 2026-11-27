@@ -198,20 +198,24 @@ function playerHit(state: QbertState, ctx: StepContext): void {
 
 function spawnEgg(state: QbertState, ctx: StepContext): void {
   if (state.coily !== null) return;
-  state.eggTimer = QBERT.eggHatch;
+  // `hazard` acorta la incubación: Coily aparece antes en niveles altos.
+  state.eggTimer = QBERT.eggHatch * (1 - ctx.progression.state.hazard * 0.3);
   state.coily = makeHopper('egg', 0, 0);
   ctx.emit('egg', {});
 }
 
 function spawnSlick(state: QbertState, ctx: StepContext): void {
-  const maxSlick = state.pattern === 'sam' ? 2 : state.level >= 4 ? 2 : state.level >= 2 ? 1 : 0;
+  // `hazard` adelanta la presión: más deslizadores y menos espera entre oleadas.
+  const hazard = ctx.progression.state.hazard;
+  const base = state.pattern === 'sam' ? 2 : state.level >= 4 ? 2 : state.level >= 2 ? 1 : 0;
+  const maxSlick = Math.min(2, base + Math.round(hazard * 2));
   while (state.slick.length < maxSlick) {
     const k = 2 + ctx.rng.int(3);
     const i = ctx.rng.int(k + 1);
     const kind: QbertHopper['kind'] = ctx.rng.int(2) === 0 ? 'slick' : 'sam';
     state.slick.push(makeHopper(kind, k, i));
   }
-  state.slickTimer = QBERT.slickInterval + ctx.rng.range(0, 8);
+  state.slickTimer = (QBERT.slickInterval + ctx.rng.range(0, 8)) * (1 - hazard * 0.3);
   ctx.emit('slickSpawn', {});
 }
 

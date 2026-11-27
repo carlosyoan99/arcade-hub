@@ -355,6 +355,7 @@ function updateGhosts(
     }
   }
 
+  const hazard = ctx.progression.state.hazard;
   for (const ghost of state.ghosts) {
     if (ghost.mode === 'home') continue;
     let speed: number;
@@ -366,6 +367,8 @@ function updateGhosts(
       else speed = PACMAN.ghostSpeed;
       if (state.dotsLeft < PACMAN.elroy1Dots && ghost.mode === 'scatter') ghost.mode = 'chase';
     } else speed = PACMAN.ghostSpeed;
+    // La curva `hazard` acelera la persecución real (sin azar ni nuevos temporizadores).
+    if (ghost.mode !== 'fright' && ghost.mode !== 'eyes') speed *= 1 + hazard * 0.3;
 
     ghost.x += ghost.dx * speed * dt;
     ghost.y += ghost.dy * speed * dt;
@@ -618,12 +621,13 @@ export const pacmanGame = defineGame<PacmanState>({
     }
 
     if (state.dotsLeft <= 0 && !state.over) {
-      state.level++;
-      state.progress = state.level;
+      // winGame del original: vaciar el laberinto gana la partida, sin niveles infinitos.
+      // Los 4 fantasmas conservan su objetivo propio (ghostTarget) durante la partida.
+      state.over = true;
       state.score += 500;
-      ctx.emit('levelUp', { level: state.level });
+      ctx.emit('win', { score: state.score, level: state.level });
+      ctx.emit('gameOver', { score: state.score, won: true });
       ctx.progression.observe(1);
-      startLevel(state, ctx);
     }
     if (state.lives <= 0 && state.dying <= 0) state.over = true;
     state.ticks++;
