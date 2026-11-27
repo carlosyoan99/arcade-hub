@@ -34,7 +34,7 @@ F0 construye el núcleo que hace imposibles esos bugs por diseño: **simulación
 
 ### Política de versionado
 
-El motor está en **pre-release**: `0.2.0-beta.0` (`engine/package.json`). Política: F0-F3 `alpha.N`, F4-F6 `beta.N`, y `1.0.0` solo tras validación final en producción (E2E en navegador y despliegue). Estado real: F0-F7 completados; la versión se promocionó a `beta.0` el 26-nov-2026. El hub heredado ya no está en el repo: solo queda su registro histórico en `docs/` y el HUB generado desde `engine/`.
+El motor está en **pre-release**: `0.2.0-beta.0` (`engine/package.json`). Política: F0-F3 `alpha.N`, F4-F6 `beta.N`, `rc` solo cuando la revisión juego a juego y del HUB confirme que no quedan errores; `1.0.0` definitiva tras verificar el despliegue. Estado real (27-nov-2026): se detectaron regresiones de presentación (ajuste a pantalla, fullscreen, capturas, temas) y se ha devuelto a beta para corregirlas. El hub heredado ya no está en el repo y solo queda su registro histórico en `docs/`.
 
 ## 3. Alcance de F0
 

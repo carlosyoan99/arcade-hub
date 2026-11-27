@@ -1,6 +1,6 @@
 {
   "name": "arcade-hub",
-  "version": "1.0.0",
+  "version": "0.2.0-beta.0",
   "private": true,
   "description": "Arcade Engine — 32 juegos arcade deterministas y servidor de salas online",
   "type": "module",
